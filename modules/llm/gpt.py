@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from modules.llm.api_keys import api_base
+from modules.llm.api_keys import api_base, key_manager
 
 
 class GPT():
@@ -16,11 +16,12 @@ class GPT():
         temperature (float): Controls the randomness of the model's output.
     """
 
-    def __init__(self, key: str, model: str = 'gpt-3.5-turbo-1106',
-                 temperature: float = 0.7):
+    def __init__(self, model: str = 'gpt-3.5-turbo-1106', 
+                 temperature: float = 0.7) -> None:
         self._model = model
         self._memories = []  # Current memories
         self._temperature = temperature
+        key = key_manager.allocate_key()
         self._client = OpenAI(api_key=key, base_url=api_base)
         self._prompt = None
         self.response = None
