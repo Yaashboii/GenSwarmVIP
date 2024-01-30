@@ -16,6 +16,8 @@ class GPT():
         temperature (float): Controls the randomness of the model's output.
     """
 
+    system_prompt = "You are a helpful assistant."
+
     def __init__(self, model: str = 'gpt-3.5-turbo-1106', 
                  temperature: float = 0.7) -> None:
         self._model = model
@@ -23,10 +25,13 @@ class GPT():
         self._temperature = temperature
         key = key_manager.allocate_key()
         self._client = OpenAI(api_key=key, base_url=api_base)
-        self._prompt = None
         self.response = None
 
-    def generate_answer(self, prompt: str, temperature=0.7) -> str:
+    def reset(self) -> None:
+        self._memories = []
+        self._memories.append({"role": "system", "content": self.system_prompt})
+
+    def ask(self, prompt: str, temperature=0.7) -> str:
         """
         Generate an answer from the GPT model based on the given prompt.
 
@@ -37,9 +42,7 @@ class GPT():
         Returns:
             str: The generated answer from the GPT model.
         """
-        self._memories = []
         self._memories.append({"role": "user", "content": prompt})
-        self._prompt = prompt
         try:
             response = self._client.chat.completions.create(
                 model=self._model,
@@ -52,4 +55,4 @@ class GPT():
             self._response = content
             return content
         except Exception as e:
-            raise ConnectionError(f"Error in generate_answer: {e}")
+            raise ConnectionError(f"Error in ask: {e}")
