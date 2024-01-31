@@ -1,9 +1,12 @@
 import os
+import re
 import subprocess
 import traceback
 from typing import Tuple
 from modules.actions.action import Action
 from loguru import logger
+
+from modules.framework.message import Message
 
 PROMPT_TEMPLATE = """
 Role: You are a senior development and qa engineer, your role is summarize the code running result.
@@ -19,6 +22,10 @@ Please summarize the cause of the errors and give correction instruction
 ## Status:
 Determine if all of the code works fine, if so write PASS, else FAIL,
 WRITE ONLY ONE WORD, PASS OR FAIL, IN THIS SECTION
+## Send To:
+Please write Engineer if the errors are due to problematic development codes, and QaEngineer to problematic test codes, and NoOne if there are no errors,
+WRITE ONLY ONE WORD, Engineer OR QaEngineer OR NoOne, IN THIS SECTION.
+---
 ---
 You should fill in necessary instruction, status, and finally return all content between the --- segment line.
 """
@@ -101,7 +108,30 @@ class RunCode(Action):
 
         prompt = PROMPT_TEMPLATE.format(context=context)
         rsp = await self._ask(prompt)
+        status = re.search("Status:\s*(.+)", context, re.IGNORECASE).group(1)
+        if status == "PASS":
+            if code_file_name == "run.py":
+                send_to = "NoOne"
+            else:
+                send_to = "Actor"
+            instruction = ''
+            file_name = ''
+        else:
+            send_to = re.search("Send To:\s*(.+)", context, re.IGNORECASE).group(1)
+            instruction = re.search("Instruction:\s*(.+)", context, re.IGNORECASE).group(1)
+            file_name = re.search("File To Rewrite:\s*(.+\\.py)", context, re.IGNORECASE).group(1)
 
-        result = context + rsp
+        result = {
+            "file_name":   file_name,
+            "instruction": instruction,
+            }
 
-        return result
+        msg = Message(
+                content=str(result),
+                role=self.profile,
+                cause_by=RunCode,
+                sent_from=self.profile,
+                send_to=send_to,
+                )
+
+        return msg
