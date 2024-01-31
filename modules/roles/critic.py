@@ -1,5 +1,5 @@
 from modules.roles.role import Role
-from modules.actions import RunCode, DebugError, WriteUnitTest, WriteCode, WriteRun, RewriteUnitTest, RewriteCode
+from modules.actions import RunCode, WriteUnitTest, WriteCode, WriteRun, RewriteUnitTest, RewriteCode, ReWriteRun
 from modules.framework.message import Message
 from modules.actions.action import Action
 
@@ -16,23 +16,12 @@ class Critic(Role):
     def __init__(self, **data) -> None:
         super().__init__(**data)
         self._init_actions([RunCode, WriteUnitTest, RewriteUnitTest])
-        self._watch([WriteCode, DebugError, WriteRun, RewriteCode])
+        self._watch([WriteCode, WriteRun, RewriteCode, ReWriteRun])
 
     async def _think(self, msg):
-        if msg.cause_by in ['WriteCode', 'WriteRun', 'ReWriteCode']:
+        if msg.cause_by in ['WriteCode', 'WriteRun']:
+            self.next_action = self.actions['WriteUnitTest']
+        elif msg.cause_by in ['ReWriteCode', 'ReWriteRun']:
             self.next_action = self.actions['RunCode']
-    
-    async def _act(self, msg) -> Message:
-        is_passed, res_msg = await self._act_run_code(msg.content)
-        if not is_passed: return res_msg
-        self.next_action = self.actions['WriteUnitTest']
-        code = await self.next_action.run(msg.content)
-        is_passed, res_msg = await self._act_run_code(code)
-        if not is_passed: return res_msg
-        return Message(content="No actions taken yet", cause_by=Action)
-    
-    async def _act_run_code(self, code) -> (bool, Message):
-        is_passed, response = await self.actions['RunCode'].run(code)
-        res_msg =  Message(content=response, role=self.profile,
-                          cause_by=self.next_action, sent_from=self)
-        return is_passed, res_msg
+        elif msg.cause_by in ['RunCode']:
+            self.next_action = self.actions['RewriteUnitTest']
