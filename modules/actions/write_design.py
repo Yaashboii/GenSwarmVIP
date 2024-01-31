@@ -30,9 +30,9 @@ class WriteDesign(Action):
     def _save(self, filename, code):
         code_path = WORKSPACE_ROOT
         write_file(directory=code_path, filename=filename, content=code)
-        self._logger.info(f"Saving Code to {code_path}/{filename}")
+        self._logger.info(f"Saving design result to {code_path}/{filename}")
 
-    async def run(self, instruction, filename='core'):
+    async def run(self, instruction, filename='design.txt'):
         prompt = PROMPT_TEMPLATE.format(instruction=instruction, code=ENV_CODE)
         self._logger.info(f'Writing {filename}..')
         code = await self._write_design(prompt)

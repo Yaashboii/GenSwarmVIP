@@ -1,5 +1,6 @@
 from modules.actions.action import Action
-from modules.utils import parse_code
+from modules.utils import parse_code, read_file, write_file
+from const import WORKSPACE_ROOT
 
 PROMPT_TEMPLATE = """
 This is the test file you previously wrote, but there are error messages as follows. 
@@ -40,9 +41,21 @@ class RewriteUnitTest(Action):
             code = code_rsp
         return code
 
-    async def run(self, test_code, error_message):
+    def _save(self, filename, code):
+        code_path = WORKSPACE_ROOT
+        write_file(directory=code_path, filename=filename, content=code)
+        self._logger.info(f"Saving Code to {code_path}/{filename}")
+
+    async def run(self, content):
+        file_name = content['file_name']
+        error_message = content['instruction']
+        code = read_file(WORKSPACE_ROOT, file_name)
         prompt = PROMPT_TEMPLATE.format(
-                test_code=test_code,
+                code=code,
+                error_message=error_message,
                 )
+
         code = await self.write_code(prompt)
+
+        self._save(file_name, code)
         return code

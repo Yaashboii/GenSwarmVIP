@@ -39,7 +39,7 @@ class WriteRun(Action):
         write_file(directory=code_path, filename=filename, content=code)
         self._logger.info(f"Saving Code to {code_path}/{filename}")
 
-    async def run(self, filename='run'):
+    async def run(self, filename='run.py'):
         prompt = PROMPT_TEMPLATE.format(user_requirements=user_requirements, env_code=ENV_CODE, core_code=core_code)
         self._logger.info(f'Writing {filename}..')
         code = await self._write_code(prompt)
