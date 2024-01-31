@@ -4,7 +4,7 @@ import re
 import json
 
 from modules.roles.role import Role
-from modules.actions import WriteCode, WriteDesign, RunCode, DebugError, WriteRun
+from modules.actions import WriteCode, WriteDesign, RunCode, DebugError, WriteRun, RewriteCode
 from modules.framework.message import Message
 
 
@@ -19,7 +19,7 @@ class Actor(Role):
 
     def __init__(self, **data) -> None:
         super().__init__(**data)
-        self._init_actions([WriteCode, DebugError, WriteRun])
+        self._init_actions([WriteCode, DebugError, WriteRun, RewriteCode])
         self._watch([WriteDesign, RunCode])
 
     async def _think(self, msg):
@@ -31,8 +31,10 @@ class Actor(Role):
             is_pass = json.loads(msg)['is_pass']
             if is_pass:
                 self.next_action = self.actions['WriteRun']
-            else:
+            elif ??:
                 self.next_action = self.actions['RewriteCode']
+            elif ??:
+                self.next_action = self.actions['RewriteUnitTest']
 
     async def _act(self, msg) -> Message:
         rsp = await self.next_action.run(msg.content)

@@ -1,5 +1,5 @@
 from modules.roles.role import Role
-from modules.actions import RunCode, DebugError, WriteTest, WriteCode, WriteRun
+from modules.actions import RunCode, DebugError, WriteUnitTest, WriteCode, WriteRun, RewriteUnitTest, RewriteCode
 from modules.framework.message import Message
 from modules.actions.action import Action
 
@@ -15,17 +15,17 @@ class Critic(Role):
     
     def __init__(self, **data) -> None:
         super().__init__(**data)
-        self._init_actions([RunCode, WriteTest])
-        self._watch([WriteCode, DebugError, WriteRun])
+        self._init_actions([RunCode, WriteUnitTest, RewriteUnitTest])
+        self._watch([WriteCode, DebugError, WriteRun, RewriteCode])
 
     async def _think(self, msg):
-        if msg.cause_by in ['WriteCode', 'WriteRun']:
+        if msg.cause_by in ['WriteCode', 'WriteRun', 'ReWriteCode']:
             self.next_action = self.actions['RunCode']
     
     async def _act(self, msg) -> Message:
         is_passed, res_msg = await self._act_run_code(msg.content)
         if not is_passed: return res_msg
-        self.next_action = self.actions['WriteTest']
+        self.next_action = self.actions['WriteUnitTest']
         code = await self.next_action.run(msg.content)
         is_passed, res_msg = await self._act_run_code(code)
         if not is_passed: return res_msg

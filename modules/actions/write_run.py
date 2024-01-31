@@ -29,8 +29,8 @@ class WriteRun(Action):
     name: str = "WriteRun"
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    async def write_code(self, prompt):
-        code_rsp = await self._aask(prompt)
+    async def _write_code(self, prompt):
+        code_rsp = await self._ask(prompt)
         code = parse_code(text=code_rsp)
         return code
 
@@ -42,6 +42,6 @@ class WriteRun(Action):
     async def run(self, filename='run'):
         prompt = PROMPT_TEMPLATE.format(user_requirements=user_requirements, env_code=ENV_CODE, core_code=core_code)
         self._logger.info(f'Writing {filename}..')
-        code = await self.write_code(prompt)
+        code = await self._write_code(prompt)
         self._save(filename, code)
         return code

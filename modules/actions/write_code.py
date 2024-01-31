@@ -26,8 +26,8 @@ class WriteCode(Action):
     name: str = "WriteCode"
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    async def write_code(self, prompt):
-        code_rsp = await self._aask(prompt)
+    async def _write_code(self, prompt):
+        code_rsp = await self._ask(prompt)
         code = parse_code(text=code_rsp, lang='python')
         return code
 
@@ -39,7 +39,7 @@ class WriteCode(Action):
     async def run(self, instruction, filename='core'):
         prompt = PROMPT_TEMPLATE.format(instruction=instruction, code=ENV_CODE)
         self._logger.info(f'Writing {filename}..')
-        code = await self.write_code(prompt)
+        code = await self._write_code(prompt)
         # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
         self._save(filename, code)
         return code

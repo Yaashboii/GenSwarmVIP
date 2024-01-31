@@ -24,8 +24,8 @@ your code:
 class WriteUnitTest(Action):
     name: str = "WriteUnitTest"
 
-    async def write_code(self, prompt):
-        code_rsp = await self._aask(prompt)
+    async def _write_code(self, prompt):
+        code_rsp = await self._ask(prompt)
 
         try:
             code = parse_code(text=code_rsp)
@@ -41,5 +41,5 @@ class WriteUnitTest(Action):
         prompt = PROMPT_TEMPLATE.format(
                 code_to_test=code_to_test,
                 )
-        code = await self.write_code(prompt)
+        code = await self._write_code(prompt)
         return code

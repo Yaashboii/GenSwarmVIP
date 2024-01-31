@@ -27,8 +27,8 @@ your code:
 class RewriteCode(Action):
     name: str = "RewriteCode"
 
-    async def write_code(self, prompt):
-        code_rsp = await self._aask(prompt)
+    async def _write_code(self, prompt):
+        code_rsp = await self._ask(prompt)
 
         try:
             code = parse_code(text=code_rsp)
@@ -45,5 +45,5 @@ class RewriteCode(Action):
                 code=code,
                 error_message=error_message,
                 )
-        code = await self.write_code(prompt)
+        code = await self._write_code(prompt)
         return code

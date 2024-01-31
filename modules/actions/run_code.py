@@ -48,7 +48,7 @@ class RunCode(Action):
     name: str = 'RunCode'
 
     @classmethod
-    async def run_text(cls, code) -> Tuple[str, str]:
+    async def _run_text(cls, code) -> Tuple[str, str]:
         try:
             # We will document_store the result in this dictionary
             namespace = {}
@@ -59,7 +59,7 @@ class RunCode(Action):
             return "", traceback.format_exc()
 
     @classmethod
-    async def run_script(cls, working_directory, command=[]) -> Tuple[str, str]:
+    async def _run_script(cls, working_directory, command=[]) -> Tuple[str, str]:
         working_directory = str(working_directory)
         # Copy the current environment variables
         env = os.environ.copy()
@@ -82,9 +82,9 @@ class RunCode(Action):
                   **kwargs) -> str:
         logger.info(f"Running {' '.join(command)}")
         if mode == "script":
-            outs, errs = await self.run_script(command=command, **kwargs)
+            outs, errs = await self._run_script(command=command, **kwargs)
         elif mode == "text":
-            outs, errs = await self.run_text(code=code)
+            outs, errs = await self._run_text(code=code)
 
         logger.info(f"{outs=}")
         logger.info(f"{errs=}")
@@ -100,7 +100,7 @@ class RunCode(Action):
                 )
 
         prompt = PROMPT_TEMPLATE.format(context=context)
-        rsp = await self._aask(prompt)
+        rsp = await self._ask(prompt)
 
         result = context + rsp
 

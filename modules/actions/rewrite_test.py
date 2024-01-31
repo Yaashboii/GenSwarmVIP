@@ -28,7 +28,7 @@ class RewriteUnitTest(Action):
     name: str = "RewriteUnitTest"
 
     async def write_code(self, prompt):
-        code_rsp = await self._aask(prompt)
+        code_rsp = await self._ask(prompt)
 
         try:
             code = parse_code(text=code_rsp)

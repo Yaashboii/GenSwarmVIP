@@ -32,7 +32,7 @@ class DebugError(Action):
 
         prompt = PROMPT_TEMPLATE.format(context=context)
 
-        rsp = await self._aask(prompt)
+        rsp = await self._ask(prompt)
 
         code = parse_code(text=rsp)
 
