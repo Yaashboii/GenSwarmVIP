@@ -3,7 +3,6 @@ import ast
 import re
 import json
 
-from modules.prompt.code_prompt import code_example
 from modules.roles.role import Role
 from modules.actions import WriteCode, WriteDesign, RunCode, DebugError, WriteRun
 from modules.framework.message import Message
@@ -38,9 +37,5 @@ class Actor(Role):
         msg = Message(content=rsp, role=self.profile,
                       cause_by=self.next_action, sent_from=self)
         return msg
-        
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.CRITICAL)
-    actor = Actor()
-    query = "计算两数之差"
-    actor.generate_code(query)
+    
+
