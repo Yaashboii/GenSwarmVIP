@@ -82,7 +82,7 @@ class RunCode(Action):
         except subprocess.TimeoutExpired:
             logger.info("The command did not complete within the given timeout.")
             process.kill()  # Kill the process if it times out
-            stdout, stderr = process.communicate()
+            stdout, stderr = '', 'The command did not complete within the given timeout.'
         return stdout.decode("utf-8"), stderr.decode("utf-8")
 
     async def run(self, code, mode="script", code_file_name="", test_code="", test_file_name="", command=[],
@@ -108,18 +108,18 @@ class RunCode(Action):
 
         prompt = PROMPT_TEMPLATE.format(context=context)
         rsp = await self._ask(prompt)
-        status = re.search("Status:\s*(.+)", context, re.IGNORECASE).group(1)
+        status = re.search("Status:\s*(.+)", rsp, re.IGNORECASE).group(1)
         if status == "PASS":
             if code_file_name == "run.py":
                 send_to = "NoOne"
             else:
-                send_to = "Actor"
+                send_to = "Engineer"
             instruction = ''
             file_name = ''
         else:
-            send_to = re.search("Send To:\s*(.+)", context, re.IGNORECASE).group(1)
-            instruction = re.search("Instruction:\s*(.+)", context, re.IGNORECASE).group(1)
-            file_name = re.search("File To Rewrite:\s*(.+\\.py)", context, re.IGNORECASE).group(1)
+            send_to = re.search("Send To:\s*(.+)", rsp, re.IGNORECASE).group(1)
+            instruction = re.search("Instruction:\s*(.+)", rsp, re.IGNORECASE).group(1)
+            file_name = re.search("File To Rewrite:\s*(.+\\.py)", rsp, re.IGNORECASE).group(1)
 
         result = {
             "file_name":   file_name,
