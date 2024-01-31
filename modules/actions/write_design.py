@@ -27,7 +27,7 @@ class WriteDesign(Action):
         code = parse_code(text=code_rsp, lang='mermaid')
         return code
 
-    def _save(self, filename, code):
+    async def _save(self, filename, code):
         code_path = WORKSPACE_ROOT
         write_file(directory=code_path, filename=filename, content=code)
         self._logger.info(f"Saving design result to {code_path}/{filename}")
@@ -36,5 +36,5 @@ class WriteDesign(Action):
         prompt = PROMPT_TEMPLATE.format(instruction=instruction, code=ENV_CODE)
         self._logger.info(f'Writing {filename}..')
         code = await self._write_design(prompt)
-        self._save(filename, code)
+        await self._save(filename, code)
         return code

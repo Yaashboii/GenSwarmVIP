@@ -18,7 +18,5 @@ Enrich and organize user requirements based on existing simulation environment c
 
     async def run(self, instruction: str) -> str:
         prompt = self.PROMPT_TEMPLATE.format(instruction=instruction, code=ENV_CODE)
-
         context = await self._ask(prompt)
-
         return context

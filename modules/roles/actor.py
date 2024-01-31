@@ -26,16 +26,10 @@ class Actor(Role):
         if msg.cause_by == 'WriteDesign':
             self.next_action = self.actions['WriteCode']
         elif msg.cause_by == 'RunCode':
-            if "code.py" has error:
+            result = json.loads(msg)
+            if result["file_name"] == "core.py":
                 self.next_action = self.actions['RewriteCode']
-            elif code.py no error:
+            elif result["file_name"] == "":
                 self.next_action = self.actions['WriteRun']
-            elif run.py has error:
+            elif result["file_name"] == "run.py":
                 self.next_action = self.actions['ReWriteRun']
-            else:
-                self._looger.info("final code is finished.")
-    # async def _act(self, msg) -> Message:
-    #     rsp = await self.next_action.run(msg.content)
-    #     msg = Message(content=rsp, role=self.profile,
-    #                   cause_by=self.next_action, sent_from=self)
-    #     return msg

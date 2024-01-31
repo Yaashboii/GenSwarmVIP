@@ -34,7 +34,7 @@ class WriteRun(Action):
         code = parse_code(text=code_rsp)
         return code
 
-    def _save(self, filename, code):
+    async def _save(self, filename, code):
         code_path = WORKSPACE_ROOT
         write_file(directory=code_path, filename=filename, content=code)
         self._logger.info(f"Saving Code to {code_path}/{filename}")
@@ -43,5 +43,5 @@ class WriteRun(Action):
         prompt = PROMPT_TEMPLATE.format(user_requirements=user_requirements, env_code=ENV_CODE, core_code=core_code)
         self._logger.info(f'Writing {filename}..')
         code = await self._write_code(prompt)
-        self._save(filename, code)
+        await self._save(filename, code)
         return code

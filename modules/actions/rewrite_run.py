@@ -1,6 +1,5 @@
 from modules.actions.action import Action
-from modules.utils import parse_code, read_file, write_file
-from const import WORKSPACE_ROOT
+from modules.utils import parse_code
 
 PROMPT_TEMPLATE = """
 This is the test file you previously wrote, but there are error messages as follows. 
@@ -25,8 +24,8 @@ your code:
 """
 
 
-class RewriteUnitTest(Action):
-    name: str = "RewriteUnitTest"
+class ReWriteRun(Action):
+    name: str = "ReWriteRun"
 
     async def write_code(self, prompt):
         code_rsp = await self._ask(prompt)
@@ -41,21 +40,9 @@ class RewriteUnitTest(Action):
             code = code_rsp
         return code
 
-    async def _save(self, filename, code):
-        code_path = WORKSPACE_ROOT
-        write_file(directory=code_path, filename=filename, content=code)
-        self._logger.info(f"Saving Code to {code_path}/{filename}")
-
-    async def run(self, content):
-        file_name = content['file_name']
-        error_message = content['instruction']
-        code = read_file(WORKSPACE_ROOT, file_name)
+    async def run(self, test_code, error_message):
         prompt = PROMPT_TEMPLATE.format(
-                code=code,
-                error_message=error_message,
+                test_code=test_code,
                 )
-
         code = await self.write_code(prompt)
-
-        await self._save(file_name, code)
         return code

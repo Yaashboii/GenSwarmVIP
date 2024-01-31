@@ -1,7 +1,7 @@
 import os
 import re
 from typing import Any
-
+from const import ENV_CODE
 
 def get_class_name(cls) -> str:
     """Return class name"""
@@ -19,6 +19,9 @@ def any_to_str(val: Any) -> str:
 
 
 def write_file(directory, filename, content):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        write_file(directory, filename='env.py', content=ENV_CODE)
     file_path = os.path.join(directory, filename)
     with open(file_path, 'w') as file:
         file.write(content)

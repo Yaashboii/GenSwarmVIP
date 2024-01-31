@@ -70,7 +70,8 @@ if __name__ == "__main__":
     architect = Architect()
 
     framework = Framework()
+    framework.add_roles([analyst, architect, actor, critic])
 
-    framework.add_roles([analyst, actor, critic, architect])
+    # framework.add_roles([analyst, architect, actor, critic])
     framework.setup_command("move the car in a circle")
-    asyncio.run(framework.run(2))
+    asyncio.run(framework.run(5))

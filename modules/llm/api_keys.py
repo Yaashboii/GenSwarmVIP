@@ -39,7 +39,8 @@ class APIKeyManager:
         if not self._available_keys:
             raise Exception("No available keys to allocate.")
 
-        allocated_key = random.choice(self._available_keys)
+        # allocated_key = random.choice(self._available_keys)
+        allocated_key = self._available_keys[10]
         self._available_keys.remove(allocated_key)
         return allocated_key
 

@@ -23,7 +23,7 @@ class Action(BaseModel):
     def __str__(self):
         return self.__class__.__name__
 
-    def _ask(self, prompt: str) -> str:
+    async def _ask(self, prompt: str) -> str:
         return self.llm.ask(prompt)
 
     def set_prefix(self, prefix):

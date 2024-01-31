@@ -10,7 +10,6 @@ from modules.actions.rewrite_code import RewriteCode
 from modules.actions.rewrite_test import RewriteUnitTest
 from modules.actions.rewrite_run import ReWriteRun
 
-
 __all__ = [
     "Action",
     "WritePrompt",

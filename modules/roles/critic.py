@@ -25,3 +25,17 @@ class Critic(Role):
             self.next_action = self.actions['RunCode']
         elif msg.cause_by in ['RunCode']:
             self.next_action = self.actions['RewriteUnitTest']
+
+
+    async def _act(self, msg) -> Message:
+        if msg.cause_by in ['WriteCode', 'WriteRun']:
+            code = await self.next_action.run(msg)
+            rsp = await self.actions['RunCode'].run(??)
+            return rsp
+        elif msg.cause_by in ['ReWriteCode', 'ReWriteRun']:
+            rsp = await self.next_action.run(???)
+            return rsp
+        elif msg.cause_by in ['RunCode']:
+            rsp = await self.next_action.run(msg)
+            return rsp
+        return Message(none???)

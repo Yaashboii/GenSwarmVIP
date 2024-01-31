@@ -42,7 +42,7 @@ class RewriteCode(Action):
             code = code_rsp
         return code
 
-    def _save(self, filename, code):
+    async def _save(self, filename, code):
         code_path = WORKSPACE_ROOT
         write_file(directory=code_path, filename=filename, content=code)
         self._logger.info(f"Saving Code to {code_path}/{filename}")
@@ -56,5 +56,5 @@ class RewriteCode(Action):
                 error_message=error_message,
                 )
         code = await self._write_code(prompt)
-        self._save(file_name, code)
+        await self._save(file_name, code)
         return code

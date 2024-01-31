@@ -1,3 +1,5 @@
+import json
+
 from modules.actions.action import Action
 from const import WORKSPACE_ROOT, ENV_CODE
 from modules.utils import write_file, parse_code
@@ -31,15 +33,19 @@ class WriteCode(Action):
         code = parse_code(text=code_rsp, lang='python')
         return code
 
-    def _save(self, filename, code):
+    async def _save(self, filename, code):
         code_path = WORKSPACE_ROOT
         write_file(directory=code_path, filename=filename, content=code)
         self._logger.info(f"Saving Code to {code_path}/{filename}")
 
-    async def run(self, instruction, filename='core'):
+    async def run(self, instruction, filename='core.py'):
         prompt = PROMPT_TEMPLATE.format(instruction=instruction, code=ENV_CODE)
         self._logger.info(f'Writing {filename}..')
         code = await self._write_code(prompt)
         # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
-        self._save(filename, code)
-        return code
+        await self._save(filename, code)
+        result = {
+            "code": code,
+            "filename": filename
+        } 
+        return json.dumps(result)
