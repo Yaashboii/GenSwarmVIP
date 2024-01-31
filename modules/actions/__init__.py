@@ -5,6 +5,8 @@ from modules.actions.run_code import RunCode
 from modules.actions.write_code import WriteCode
 from modules.actions.write_test import WriteTest
 from modules.actions.add_command import UserCommand
+from modules.actions.write_design import WriteDesign
+from modules.actions.write_run import WriteRun
 
 
 __all__ = [
