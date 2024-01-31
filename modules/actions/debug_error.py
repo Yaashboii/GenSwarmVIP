@@ -5,18 +5,17 @@ from modules.utils import parse_code
 
 PROMPT_TEMPLATE = """
 NOTICE
-Translation: Based on the information below, you need to determine which file needs to be rewritten.
+Based on the information below, you need to determine which file needs to be rewritten.
 If the test file detects bugs in the source file, the source file should be rewritten.
-If there are issues with the test file itself, the test file needs to be rewritten. Only one file can be rewritten.
+If there are issues with the test file itself, the test file needs to be rewritten.
+Only one file can be rewritten.
 
-Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the test case or script and triple quotes.
 The message is as follows:
 {context}
 ---
+## reason:...
 ## role:...
 ## file to rewrite:...
-## code:
-```python ... ``` 
 """
 
 
