@@ -1,22 +1,24 @@
-from modules.actions.action import Action
+from modules.actions import Action
+from const import ENV_CODE
 
-PROMPT_TEMPLATE = """
-Write more detials accoding to following command, in order to get better python code:
 
-{command}
+class WritePrompt(Action):
+    PROMPT_TEMPLATE: str = """
+env_code:
+{code}
+
+user requirement: {instruction}
+Enrich and organize user requirements based on existing simulation environment code and according to the following basic format.
+1)task objectives:
+2)core requirements:
+3)constraints:
+4)task success criteria:
 """
+    name: str = "WritePrompt"
 
-class RephraseCommand(Action):
-    name: str= "RephraseCommand"
-        
-    async def run(self, command) -> str:
-        await super().run()
-        prompt = PROMPT_TEMPLATE.format(command=command)
-        res = self._ask(prompt)
-        self._logger.debug("res: %s", res)
-        return res
+    async def run(self, instruction: str) -> str:
+        prompt = self.PROMPT_TEMPLATE.format(instruction=instruction, code=ENV_CODE)
 
-if __name__ == "__main__":
-    action = RephraseCommand()
-    import asyncio
-    asyncio.run(action.run())
+        context = await self._aask(prompt)
+
+        return context

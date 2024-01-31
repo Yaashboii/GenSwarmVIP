@@ -1,34 +1,34 @@
 import logging
 from enum import Enum
 
-
 __all__ = ['setup_logger', 'LoggerLevel']
 
 # ANSI 转义码
 _ANSI_COLOR_CODES = {
-    'RESET': '\033[0m',
-    'BOLD': '\033[1m',
+    'RESET':     '\033[0m',
+    'BOLD':      '\033[1m',
     'UNDERLINE': '\033[4m',
-    'BLACK': '\033[30m',
-    'RED': '\033[31m',
-    'GREEN': '\033[32m',
-    'YELLOW': '\033[33m',
-    'BLUE': '\033[34m',
-    'MAGENTA': '\033[35m',
-    'CYAN': '\033[36m',
-    'WHITE': '\033[37m',
-}
+    'BLACK':     '\033[30m',
+    'RED':       '\033[31m',
+    'GREEN':     '\033[32m',
+    'YELLOW':    '\033[33m',
+    'BLUE':      '\033[34m',
+    'MAGENTA':   '\033[35m',
+    'CYAN':      '\033[36m',
+    'WHITE':     '\033[37m',
+    }
+
 
 class _ColoredFormatter(logging.Formatter):
     def format(self, record):
         # Apply color based on log level
         log_level_color = {
-            logging.DEBUG: _ANSI_COLOR_CODES['BLUE'],
-            logging.INFO: _ANSI_COLOR_CODES['GREEN'],
-            logging.WARNING: _ANSI_COLOR_CODES['YELLOW'],
-            logging.ERROR: _ANSI_COLOR_CODES['RED'],
+            logging.DEBUG:    _ANSI_COLOR_CODES['BLUE'],
+            logging.INFO:     _ANSI_COLOR_CODES['GREEN'],
+            logging.WARNING:  _ANSI_COLOR_CODES['YELLOW'],
+            logging.ERROR:    _ANSI_COLOR_CODES['RED'],
             logging.CRITICAL: _ANSI_COLOR_CODES['MAGENTA']
-        }.get(record.levelno, _ANSI_COLOR_CODES['RESET'])
+            }.get(record.levelno, _ANSI_COLOR_CODES['RESET'])
 
         # Customize log record message with color
         record.msg = f"{log_level_color}{record.msg}{_ANSI_COLOR_CODES['RESET']}"
@@ -40,13 +40,15 @@ class _ColoredFormatter(logging.Formatter):
 
         return super(_ColoredFormatter, self).format(record)
 
+
 class LoggerLevel(Enum):
     INFO = logging.INFO
     DEBUG = logging.DEBUG
     CRITICAL = logging.CRITICAL
     ERROR = logging.ERROR
     WARNING = logging.WARNING
-    
+
+
 def setup_logger(name, level=LoggerLevel.INFO):
     """
     Set up a logger and return it.
@@ -71,6 +73,7 @@ def setup_logger(name, level=LoggerLevel.INFO):
     logger.addHandler(ch)
 
     return logger
+
 
 if __name__ == '__main__':
     # 设置全局logger，日志级别为DEBUG
