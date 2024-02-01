@@ -39,17 +39,24 @@ class WriteUnitTest(Action):
             # Return code_rsp in case of an exception, assuming llm just returns code as it is and doesn't wrap it inside ```
             code = code_rsp
         return code
-    
+
     async def _save(self, filename, code):
         code_path = WORKSPACE_ROOT
         write_file(directory=code_path, filename=filename, content=code)
         self._logger.info(f"Saving Code to {code_path}/{filename}")
 
-    async def run(self, context):
-        context_json = json.loads(context)
+    async def run(self, msg):
+        content = eval(msg.content)
         prompt = PROMPT_TEMPLATE.format(
-                code_to_test=context_json["code"],
+                code_to_test=content["code"],
                 )
         code = await self._write_code(prompt)
-        await self._save('test_' + context_json["filename"], code)
-        return code
+        test_file_name = 'test_' + content["filename"]
+        await self._save(test_file_name, code)
+        command = ["python", f"{test_file_name}"]
+        file_info = {
+            "file_name":      content["filename"],
+            "test_file_name": test_file_name,
+            "command":        command,
+            }
+        return str(file_info)

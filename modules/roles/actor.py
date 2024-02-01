@@ -10,7 +10,7 @@ from modules.framework.message import Message
 
 class Actor(Role):
     name: str = "Alex"
-    profile: str = "Programmer"
+    profile: str = "Engineer"
     goal: str = "write elegant, readable, extensible, efficient code"
     constraints: str = (
         "the code should conform to standards like google-style and be modular and maintainable. "

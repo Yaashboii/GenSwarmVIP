@@ -47,15 +47,22 @@ class RewriteUnitTest(Action):
         self._logger.info(f"Saving Code to {code_path}/{filename}")
 
     async def run(self, content):
-        file_name = content['file_name']
+        content= eval(content)
+
+        test_file_name = content['file_name']
         error_message = content['instruction']
-        code = read_file(WORKSPACE_ROOT, file_name)
+        test_code = read_file(WORKSPACE_ROOT, test_file_name)
         prompt = PROMPT_TEMPLATE.format(
-                code=code,
+                code=test_code,
                 error_message=error_message,
                 )
 
-        code = await self.write_code(prompt)
-
-        await self._save(file_name, code)
-        return code
+        test_code = await self.write_code(prompt)
+        await self._save(test_file_name, test_code)
+        file_name = test_file_name.replace('test_', '')
+        result = {
+            'file_name':      file_name,
+            'test_file_name': test_file_name,
+            'command':        ["python", f"{test_file_name}"]
+            }
+        return str(result)
