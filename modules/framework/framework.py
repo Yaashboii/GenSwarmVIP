@@ -73,5 +73,5 @@ if __name__ == "__main__":
     framework.add_roles([analyst, architect, actor, critic])
 
     # framework.add_roles([analyst, architect, actor, critic])
-    framework.setup_command("move the car in a circle")
+    framework.setup_command("Develop an algorithm for multiple mobile robots in a 2D space to converge from different positions to a common location.")
     asyncio.run(framework.run(5))

@@ -40,9 +40,21 @@ class ReWriteRun(Action):
             code = code_rsp
         return code
 
-    async def run(self, test_code, error_message):
-        prompt = PROMPT_TEMPLATE.format(
-                test_code=test_code,
-                )
-        code = await self.write_code(prompt)
-        return code
+    # async def run(self, content):
+    #     file_name = content['file_name']
+    #     error_message = content['instruction']
+    #     test_code = read_file(WORKSPACE_ROOT, test_file_name)
+    #     prompt = PROMPT_TEMPLATE.format(
+    #             code=test_code,
+    #             error_message=error_message,
+    #             )
+    #
+    #     test_code = await self.write_code(prompt)
+    #     await self._save(test_file_name, test_code)
+    #     file_name = test_file_name.replace('test_', '')
+    #     result = {
+    #         'file_name':      file_name,
+    #         'test_file_name': test_file_name,
+    #         'command':        ["python", f"{test_file_name}"]
+    #         }
+    #     return str(result)

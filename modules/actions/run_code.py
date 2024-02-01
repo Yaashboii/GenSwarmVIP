@@ -6,6 +6,8 @@ from typing import Tuple
 from modules.actions.action import Action
 from loguru import logger
 
+from const import WORKSPACE_ROOT
+from modules.utils import read_file
 from modules.framework.message import Message
 
 PROMPT_TEMPLATE = """
@@ -16,7 +18,7 @@ and give specific instructions on fixing the errors. Here is the code info:
 {context}
 Now you should begin your analysis
 ---
-## instruction:
+## Instruction:
 Please summarize the cause of the errors and give correction instruction
 ## File To Rewrite: Determine the ONE file to rewrite in order to fix the error, for example, xyz.py, or test_xyz.py
 ## Status:
@@ -27,7 +29,7 @@ Please write Engineer if the errors are due to problematic development codes, an
 WRITE ONLY ONE WORD, Engineer OR QaEngineer OR NoOne, IN THIS SECTION.
 ---
 ---
-You should fill in necessary instruction, status, and finally return all content between the --- segment line.
+You should fill in necessary Instruction, status, and finally return all content between the --- segment line.
 """
 
 CONTEXT = """
@@ -79,17 +81,24 @@ class RunCode(Action):
         try:
             # Wait for the process to complete, with a timeout
             stdout, stderr = process.communicate(timeout=10)
+            return stdout.decode("utf-8"), stderr.decode("utf-8")
         except subprocess.TimeoutExpired:
             logger.info("The command did not complete within the given timeout.")
             process.kill()  # Kill the process if it times out
             stdout, stderr = '', 'The command did not complete within the given timeout.'
-        return stdout.decode("utf-8"), stderr.decode("utf-8")
+            return stdout, stderr
 
-    async def run(self, code, mode="script", code_file_name="", test_code="", test_file_name="", command=[],
-                  **kwargs) -> str:
+    async def run(self, code_info, mode="script", **kwargs) -> str:
+        code_info = eval(code_info)
+        command = code_info["command"]
+        code_file_name = code_info["file_name"]
+        code = read_file(directory=WORKSPACE_ROOT, filename=code_file_name)
+        test_file_name = code_info["test_file_name"]
+        test_code = read_file(directory=WORKSPACE_ROOT, filename=test_file_name)
+
         logger.info(f"Running {' '.join(command)}")
         if mode == "script":
-            outs, errs = await self._run_script(command=command, **kwargs)
+            outs, errs = await self._run_script(working_directory=WORKSPACE_ROOT, command=command, **kwargs)
         elif mode == "text":
             outs, errs = await self._run_text(code=code)
 
@@ -128,9 +137,9 @@ class RunCode(Action):
 
         msg = Message(
                 content=str(result),
-                role=self.profile,
+                role='Engineer',
                 cause_by=RunCode,
-                sent_from=self.profile,
+                sent_from='Engineer',
                 send_to=send_to,
                 )
 

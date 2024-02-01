@@ -88,8 +88,6 @@ class Role(BaseModel):
     @final
     async def _observe(self):
         news = self.rc.msg_buffer.pop_all()
-        for n in news:
-            self._logger.debug(n)
         news = [n for n in news if ((n.cause_by in self.watch and '<all>' in n.send_to) or self.profile in n.send_to)]
         news_text = [f"{i.role}: {i.content[:20]}..." for i in news]
         if news_text:

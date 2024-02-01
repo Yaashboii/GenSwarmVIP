@@ -45,7 +45,7 @@ class WriteCode(Action):
         # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
         await self._save(filename, code)
         result = {
-            "code": code,
+            "code":     code,
             "filename": filename
-        } 
-        return json.dumps(result)
+            }
+        return str(result)

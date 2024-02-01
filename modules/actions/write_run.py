@@ -1,3 +1,4 @@
+import json
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 from modules.actions.action import Action
 from const import WORKSPACE_ROOT, ENV_CODE
@@ -44,4 +45,8 @@ class WriteRun(Action):
         self._logger.info(f'Writing {filename}..')
         code = await self._write_code(prompt)
         await self._save(filename, code)
-        return code
+        result = {
+            "code":     code,
+            "filename": filename
+            }
+        return json.dumps(result)

@@ -47,8 +47,10 @@ class RewriteCode(Action):
         write_file(directory=code_path, filename=filename, content=code)
         self._logger.info(f"Saving Code to {code_path}/{filename}")
 
-    async def run(self, content):
+    async def run(self, msg):
+        content = eval(msg.content)
         file_name = content['file_name']
+        test_file_name = 'test_' + file_name
         error_message = content['instruction']
         code = read_file(WORKSPACE_ROOT, file_name)
         prompt = PROMPT_TEMPLATE.format(
@@ -57,4 +59,9 @@ class RewriteCode(Action):
                 )
         code = await self._write_code(prompt)
         await self._save(file_name, code)
-        return code
+        result = {
+            'file_name':      file_name,
+            'test_file_name': test_file_name,
+            'command':        ["python", f"{test_file_name}"]
+            }
+        return str(result)
