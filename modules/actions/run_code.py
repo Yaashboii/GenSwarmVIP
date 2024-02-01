@@ -9,6 +9,7 @@ from loguru import logger
 from const import WORKSPACE_ROOT
 from modules.utils import read_file
 from modules.framework.message import Message
+from modules.llm.gpt import GPT
 
 PROMPT_TEMPLATE = """
 Role: You are a senior development and qa engineer, your role is summarize the code running result.
@@ -55,6 +56,10 @@ standard errors: {errs};
 
 class RunCode(Action):
     name: str = 'RunCode'
+
+    def __int__(self):
+        super(RunCode, self).__int__()
+        self.llm = GPT(model="gpt4-turbo-1106-preview")
 
     @classmethod
     async def _run_text(cls, code) -> Tuple[str, str]:
