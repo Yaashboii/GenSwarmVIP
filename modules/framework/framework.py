@@ -58,17 +58,20 @@ class Framework(BaseModel):
 
 if __name__ == "__main__":
     
-    from modules.roles.actor import Actor
-    from modules.roles.critic import Critic
-    from modules.roles.analyst import Analyst
+    from modules.roles import Actor
+    from modules.roles import Critic
+    from modules.roles import Analyst
+    from modules.roles import Architect
     from modules.actions import *
 
     analyst = Analyst()
     actor = Actor()
     critic = Critic()
+    architect = Architect()
 
     framework = Framework()
+    framework.add_roles([analyst, architect, actor, critic])
 
-    framework.add_roles([analyst, actor, critic])
-    framework.setup_command("move the car in a circle")
-    asyncio.run(framework.run(2))
+    # framework.add_roles([analyst, architect, actor, critic])
+    framework.setup_command("Develop an algorithm for multiple mobile robots in a 2D space to converge from different positions to a common location.")
+    asyncio.run(framework.run(8))

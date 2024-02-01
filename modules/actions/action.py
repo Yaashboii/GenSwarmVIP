@@ -15,7 +15,7 @@ class Action(BaseModel):
         if "name" not in values or not values["name"]:
             values["name"] = cls.__name__
         return values
-    
+
     def __init__(self, **data):
         super().__init__()
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
@@ -23,17 +23,19 @@ class Action(BaseModel):
     def __str__(self):
         return self.__class__.__name__
 
-    def _ask(self, prompt: str) -> str:
+    async def _ask(self, prompt: str) -> str:
         return self.llm.ask(prompt)
-    
+
     def set_prefix(self, prefix):
         self.llm.system_prompt = prefix
 
-    async def run(self) -> str:
+    async def run(self, *args, **kwargs) -> str:
         self._logger.info("Running action")
+
 
 if __name__ == "__main__":
     action = Action()
     import asyncio
+
     asyncio.run(action.run())
     # story = action.llm.ask("tell a story")

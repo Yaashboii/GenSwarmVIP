@@ -1,6 +1,5 @@
 from modules.roles.role import Role
-from modules.actions import RephraseCommand, UserCommand
-from modules.framework.message import Message
+from modules.actions import WritePrompt, UserCommand
 
 
 class Analyst(Role):
@@ -11,5 +10,5 @@ class Analyst(Role):
     
     def __init__(self, **data) -> None:
         super().__init__(**data)
-        self._init_actions([RephraseCommand])
+        self._init_actions([WritePrompt])
         self._watch([UserCommand])
