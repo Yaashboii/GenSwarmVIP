@@ -1,7 +1,6 @@
 from const import WORKSPACE_ROOT
 from modules.actions.action import Action
-from modules.utils import parse_code, write_file
-from modules.utils import read_file
+from modules.utils import parse_code, write_file, read_file
 
 PROMPT_TEMPLATE = """
 This is the source file you previously wrote, but there are error messages as follows. 
@@ -47,8 +46,8 @@ class RewriteCode(Action):
         write_file(directory=code_path, filename=filename, content=code)
         self._logger.info(f"Saving Code to {code_path}/{filename}")
 
-    async def run(self, msg):
-        content = eval(msg.content)
+    async def run(self, content):
+        content = eval(content)
         file_name = content['file_name']
         test_file_name = 'test_' + file_name
         error_message = content['instruction']
@@ -59,6 +58,8 @@ class RewriteCode(Action):
                 )
         code = await self._write_code(prompt)
         await self._save(file_name, code)
+        self._logger.fatal(file_name)
+
         result = {
             'file_name':      file_name,
             'test_file_name': test_file_name,

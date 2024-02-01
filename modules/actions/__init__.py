@@ -8,7 +8,7 @@ from modules.actions.write_design import WriteDesign
 from modules.actions.write_run import WriteRun
 from modules.actions.rewrite_code import RewriteCode
 from modules.actions.rewrite_test import RewriteUnitTest
-from modules.actions.rewrite_run import ReWriteRun
+from modules.actions.rewrite_run import RewriteRun
 
 __all__ = [
     "Action",
@@ -21,5 +21,5 @@ __all__ = [
     "WriteRun",
     "RewriteCode",
     "RewriteUnitTest",
-    "ReWriteRun"
+    "RewriteRun"
 ]

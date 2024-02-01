@@ -1,6 +1,6 @@
 import datetime
 from pathlib import Path
-from loguru import logger
+from modules.utils.logger import setup_logger, LoggerLevel
 
 ENV_CODE = """
 
@@ -33,6 +33,7 @@ class Env:
 env = Env()
 """
 
+_logger = setup_logger("Utils")
 
 def get_project_root():
     """Search upwards to find the project root directory."""
@@ -44,13 +45,13 @@ def get_project_root():
                 or (current_path / ".gitignore").exists()
         ):
             # use metagpt with git clone will land here
-            logger.info(f"PROJECT_ROOT set to {str(current_path)}")
+            _logger.info(f"PROJECT_ROOT set to {str(current_path)}")
             return current_path
         parent_path = current_path.parent
         if parent_path == current_path:
             # use metagpt with pip install will land here
             cwd = Path.cwd()
-            logger.info(f"PROJECT_ROOT set to current working directory: {str(cwd)}")
+            _logger.info(f"PROJECT_ROOT set to current working directory: {str(cwd)}")
             return cwd
         current_path = parent_path
 

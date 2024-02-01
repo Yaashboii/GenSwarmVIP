@@ -4,7 +4,7 @@ import re
 import json
 
 from modules.roles.role import Role
-from modules.actions import WriteCode, WriteDesign, RunCode, RewriteCode, WriteRun, ReWriteRun
+from modules.actions import WriteCode, WriteDesign, RunCode, RewriteCode, WriteRun, RewriteRun
 from modules.framework.message import Message
 
 
@@ -19,7 +19,7 @@ class Actor(Role):
 
     def __init__(self, **data) -> None:
         super().__init__(**data)
-        self._init_actions([WriteCode, WriteRun, RewriteCode, ReWriteRun])
+        self._init_actions([WriteCode, WriteRun, RewriteCode, RewriteRun])
         self._watch([WriteDesign, RunCode])
 
     async def _think(self, msg):
@@ -32,4 +32,4 @@ class Actor(Role):
             elif result["file_name"] == "":
                 self.next_action = self.actions['WriteRun']
             elif result["file_name"] == "run.py":
-                self.next_action = self.actions['ReWriteRun']
+                self.next_action = self.actions['RewriteRun']

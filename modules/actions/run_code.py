@@ -3,9 +3,8 @@ import re
 import subprocess
 import traceback
 from typing import Tuple
-from modules.actions.action import Action
-from loguru import logger
 
+from modules.actions.action import Action
 from const import WORKSPACE_ROOT
 from modules.utils import read_file
 from modules.framework.message import Message
@@ -88,7 +87,7 @@ class RunCode(Action):
             stdout, stderr = process.communicate(timeout=10)
             return stdout.decode("utf-8"), stderr.decode("utf-8")
         except subprocess.TimeoutExpired:
-            logger.info("The command did not complete within the given timeout.")
+            self._logger.info("The command did not complete within the given timeout.")
             process.kill()  # Kill the process if it times out
             stdout, stderr = '', 'The command did not complete within the given timeout.'
             return stdout, stderr
@@ -101,14 +100,14 @@ class RunCode(Action):
         test_file_name = code_info["test_file_name"]
         test_code = read_file(directory=WORKSPACE_ROOT, filename=test_file_name)
 
-        logger.info(f"Running {' '.join(command)}")
+        self._logger.info(f"Running {' '.join(command)}")
         if mode == "script":
             outs, errs = await self._run_script(working_directory=WORKSPACE_ROOT, command=command, **kwargs)
         elif mode == "text":
             outs, errs = await self._run_text(code=code)
 
-        logger.info(f"{outs=}")
-        logger.info(f"{errs=}")
+        self._logger.info(f"{outs=}")
+        self._logger.info(f"{errs=}")
 
         context = CONTEXT.format(
                 code=code,
@@ -133,6 +132,7 @@ class RunCode(Action):
         else:
             send_to = re.search("Send To:\s*(.+)", rsp, re.IGNORECASE).group(1)
             instruction = re.search("Instruction:\s*(.+)", rsp, re.IGNORECASE).group(1)
+            self._logger.error(rsp)
             file_name = re.search("File To Rewrite:\s*(.+\\.py)", rsp, re.IGNORECASE).group(1)
 
         result = {
