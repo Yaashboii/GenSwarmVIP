@@ -26,7 +26,7 @@ class Actor(Role):
         if msg.cause_by == 'WriteDesign':
             self.next_action = self.actions['WriteCode']
         elif msg.cause_by == 'RunCode':
-            result = json.loads(msg)
+            result = eval(msg.content)
             if result["file_name"] == "core.py":
                 self.next_action = self.actions['RewriteCode']
             elif result["file_name"] == "":

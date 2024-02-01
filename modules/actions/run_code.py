@@ -145,7 +145,7 @@ class RunCode(Action):
                 role='Engineer',
                 cause_by=RunCode,
                 sent_from='Engineer',
-                send_to=send_to,
+                send_to={send_to},
                 )
 
         return msg
