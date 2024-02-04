@@ -28,6 +28,9 @@ def write_file(directory, filename, content):
 
     return file_path
 
+def check_file_exists(directory, filename):
+    file_path = os.path.join(directory, filename)
+    return os.path.exists(file_path)
 
 def read_file(directory, filename):
     file_path = os.path.join(directory, filename)

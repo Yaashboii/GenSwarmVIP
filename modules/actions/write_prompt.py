@@ -1,4 +1,4 @@
-from modules.actions import Action
+from modules.actions.action import Action, ActionResult
 from const import ENV_CODE
 
 
@@ -16,7 +16,7 @@ Enrich and organize user requirements based on existing simulation environment c
 """
     name: str = "WritePrompt"
 
-    async def run(self, instruction: str) -> str:
-        prompt = self.PROMPT_TEMPLATE.format(instruction=instruction, code=ENV_CODE)
-        context = await self._ask(prompt)
-        return context
+    def _run(self, action_result: ActionResult) -> ActionResult:
+        prompt = self.PROMPT_TEMPLATE.format(instruction=action_result.message, code=ENV_CODE)
+        context = self._ask(prompt)
+        return ActionResult(0, context)

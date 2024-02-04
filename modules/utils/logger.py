@@ -36,7 +36,9 @@ class _ColoredFormatter(logging.Formatter):
         # Apply color to other parts of the log record
         record.levelname = f"{log_level_color}[{record.levelname}]{_ANSI_COLOR_CODES['RESET']}"
         record.name = f"{log_level_color}[{record.name}]{_ANSI_COLOR_CODES['RESET']}"
-        record.created = f"{log_level_color}[{'{:.6f}'.format(record.created)}]{_ANSI_COLOR_CODES['RESET']}"
+        if isinstance(record.created, float):
+            record.created = f"{log_level_color}[{float(record.created):.6f}]{_ANSI_COLOR_CODES['RESET']}"
+
 
         return super(_ColoredFormatter, self).format(record)
 
