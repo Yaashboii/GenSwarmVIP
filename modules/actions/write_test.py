@@ -1,6 +1,6 @@
 import json
 
-from modules.actions.action import Action, ActionResult
+from modules.actions.action import Action
 from modules.utils import write_file, parse_code
 from const import WORKSPACE_ROOT
 
@@ -8,9 +8,8 @@ from const import WORKSPACE_ROOT
 class WriteUnitTest(Action):
     name: str = "WriteUnitTest"
     
-    def __init__(self, filename, prompt_template=""):
+    def __init__(self):
         super().__init__()
-        self.filename = filename
 
     def _write_code(self, prompt):
         code_rsp = self._ask(prompt)
@@ -25,18 +24,8 @@ class WriteUnitTest(Action):
             code = code_rsp
         return code
 
-    def _save(self, filename, code):
-        code_path = WORKSPACE_ROOT
-        write_file(directory=code_path, filename=filename, content=code)
-        self._logger.info(f"Saving Code to {code_path}/{filename}")
-
-    def _run(self, action_result: ActionResult) -> ActionResult:
-        # content = eval(action_result.message)
-        # prompt = self.prompt_template.format(
-        #         code_to_test=content["code"],
-        #         )
-        code =  self._write_code(action_result.message)
-        test_file_name = 'test_' + self.filename
-        self._save(test_file_name, code)
-        command = ["python", f"{test_file_name}"]
+    def _run(self, prompt: str, filename: str) -> str:
+        code =  self._write_code(prompt)
+        write_file(filename, code)
+        command = ["python", f"{filename}"]
         return command

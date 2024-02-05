@@ -1,36 +1,36 @@
 from enum import Enum
-from typing import List, Any
+from typing import List, Union, final
 from abc import ABC, abstractmethod
 
-from typing import final
-from modules.utils.logger import setup_logger
+from pydantic import BaseModel, Field
 
+from modules.utils.logger import setup_logger
+from modules.utils.common import TestResult, BugSource
+from modules.framework.workflow_context import WorkflowContext
+
+class StageResult(BaseModel):
+    keys: List[Union[TestResult, BugSource]] = Field(default=[])
 
 class StageType(Enum):
     AnalyzeStage = 1
     DesignStage = 2
-    WriteCoreStage = 3
-    TestCoreStage = 4
-    WriteMainStage = 5
-    TestMainStage = 6
-    FinalStage = 7
-    RunTestStage = 8
+    CodingStage = 3
+    TestingStage = 4
+    FinalStage = 5
 
-class Stage(ABC):
+class Stage(ABC, BaseModel):
     def __init__(self):
+        super(Stage, self).__init__()
         self._logger = setup_logger(self.__class__.__name__)
+        self._context = WorkflowContext()
 
     def __str__(self) -> str:
         return self.__class__.__name__
     
-    @abstractmethod
-    def update(self):
-        raise NotImplementedError
-    
     @final
-    def run(self) -> (str, List[Any]):
+    def run(self) -> StageResult:
         self._logger.info(f"Current stage: {self}")
         return self._run()
     
-    def _run(self) -> (str, List[Any]):
-        return "", []
+    def _run(self) -> StageResult:
+        return StageResult()

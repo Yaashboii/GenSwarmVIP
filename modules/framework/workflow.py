@@ -1,26 +1,16 @@
 from modules.stages import *
 from modules.actions import *
-from modules.stages.stage import StageType
+from modules.stages.stage import StageType, StageResult
 from modules.utils.logger import setup_logger
-from modules.stages.stage_transition import StageTransition
-
+from modules.framework.stage_transition import StageTransition
+from modules.framework.workflow_context import WorkflowContext
 
 class Workflow:
     STAGE_POOL = {
         StageType.AnalyzeStage: AnalyzeStage(WritePrompt()),
         StageType.DesignStage: DesignStage(WriteDesign()),
-        StageType.WriteCoreStage: WriteCoreStage(
-            WriteCode(filename="core.py")
-        ),
-        StageType.TestCoreStage: TestStage(
-            WriteUnitTest(filename="core.py"), filename="core.py"
-        ),
-        StageType.WriteMainStage: WriteMainStage(
-            WriteCode(filename="run.py")
-        ),
-        StageType.TestMainStage: TestStage(
-            WriteUnitTest(filename="run.py"), filename="run.py"
-        ),
+        StageType.TestingStage: TestStage(WriteUnitTest()),
+        StageType.CodingStage: CodingStage(WriteCode()),
         StageType.FinalStage: FinalStage(),
     }
 
@@ -34,17 +24,16 @@ class Workflow:
     def __init__(self, user_command: str, init_stage: StageType = StageType.AnalyzeStage):
         self.__stage = init_stage
         self._logger = setup_logger("Workflow")
-        self.__user_command = user_command
+        workflow_context = WorkflowContext()
+        workflow_context.user_command = user_command
 
     def run(self):
-        res = self.__user_command
         while self.__stage != StageType.FinalStage:
             stage = self.create_stage(self.__stage)
-            stage.update(res)
-            res, keys = stage.run()
+            stage_result = stage.run()
 
             temp = StageTransition[self.__stage]
-            for key in keys:
+            for key in stage_result.keys:
                 temp = temp[key]
                 
             self.__stage = temp
@@ -57,14 +46,10 @@ class Workflow:
             return Workflow.STAGE_POOL[StageType.AnalyzeStage]
         elif stage_type == StageType.DesignStage:
             return Workflow.STAGE_POOL[StageType.DesignStage]
-        elif stage_type == StageType.WriteCoreStage:
-            return Workflow.STAGE_POOL[StageType.WriteCoreStage]
-        elif stage_type == StageType.TestCoreStage:
-            return Workflow.STAGE_POOL[StageType.TestCoreStage]
-        elif stage_type == StageType.WriteMainStage:
-            return Workflow.STAGE_POOL[StageType.WriteMainStage]
-        elif stage_type == StageType.TestMainStage:
-            return Workflow.STAGE_POOL[StageType.TestMainStage]
+        elif stage_type == StageType.CodingStage:
+            return Workflow.STAGE_POOL[StageType.CodingStage]
+        elif stage_type == StageType.TestingStage:
+            return Workflow.STAGE_POOL[StageType.TestingStage]
         elif stage_type == StageType.FinalStage:
             return Workflow.STAGE_POOL[StageType.FinalStage]
         else:
@@ -84,5 +69,5 @@ class Workflow:
     #         raise ValueError("Invalid action type")
         
 if __name__ == "__main__":
-    workflow = Workflow("build a city")
+    workflow = Workflow("move in circle")
     workflow.run()

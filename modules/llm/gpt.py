@@ -44,6 +44,7 @@ class GPT():
         """
         self._memories.append({"role": "user", "content": prompt})
         try:
+            # return "this is from gpt"
             response = self._client.chat.completions.create(
                 model=self._model,
                 messages=self._memories,

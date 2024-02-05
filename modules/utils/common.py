@@ -1,7 +1,19 @@
 import os
 import re
 from typing import Any
-from const import ENV_CODE
+from enum import Enum
+
+from const import ENV_CODE, WORKSPACE_ROOT
+
+
+class TestResult(Enum):
+    PASS = 1
+    NOT_PASS= 2
+
+class BugSource(Enum):
+    CODE = 1
+    TEST_CODE = 2
+
 
 def get_class_name(cls) -> str:
     """Return class name"""
@@ -18,10 +30,10 @@ def any_to_str(val: Any) -> str:
         return get_class_name(val)
 
 
-def write_file(directory, filename, content):
+def write_file(filename, content, directory=WORKSPACE_ROOT):
     if not os.path.exists(directory):
         os.makedirs(directory)
-        write_file(directory, filename='env.py', content=ENV_CODE)
+        write_file(filename='env.py', content=ENV_CODE)
     file_path = os.path.join(directory, filename)
     with open(file_path, 'w') as file:
         file.write(content)

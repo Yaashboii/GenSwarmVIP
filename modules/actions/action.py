@@ -18,12 +18,12 @@ class Action(ABC):
         self._llm.system_prompt = prefix
         self._llm.reset()
 
-    def run(self, action_result: ActionResult, **kwargs) -> ActionResult:
-        res = self._run(action_result)
+    def run(self, **kwargs) -> str:
+        res = self._run(**kwargs)
         return res
 
     @abstractmethod
-    def _run(self, action_result: ActionResult) -> ActionResult:
+    def _run(self, **kwargs) -> str:
         pass
 
     def _ask(self, prompt: str) -> str:

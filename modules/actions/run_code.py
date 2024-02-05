@@ -8,7 +8,8 @@ from modules.actions.action import Action, ActionResult
 from const import WORKSPACE_ROOT
 from modules.utils import read_file
 from modules.llm.gpt import GPT
-from modules.stages.stage_transition import BugSource, TestResult
+from modules.utils.common import BugSource, TestResult
+
 
 PROMPT_TEMPLATE = """
 Role: You are a senior development and qa engineer, your role is summarize the code running result.
@@ -89,8 +90,8 @@ class RunCode(Action):
             stdout, stderr = '', 'The command did not complete within the given timeout.'
             return stdout, stderr
 
-    def _run(self, action_result: ActionResult, mode="script", **kwargs) -> str:
-        code_info = eval(action_result.message)
+    def _run(self, code_info, mode="script", **kwargs) -> str:
+        code_info = eval(code_info)
         command = code_info["command"]
         code_file_name = code_info["file_name"]
         code = read_file(directory=WORKSPACE_ROOT, filename=code_file_name)
