@@ -23,7 +23,6 @@ class WriteCode(Action):
         code_path = WORKSPACE_ROOT
         write_file(directory=code_path, filename=filename, content=code)
         self._logger.info("Saving Code to %s/%s", code_path, filename)
-        print("=====")
 
     def _run(self, action_result: ActionResult):
         prompt = action_result.message
