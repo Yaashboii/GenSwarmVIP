@@ -9,7 +9,7 @@ class Workflow:
     STAGE_POOL = {
         StageType.AnalyzeStage: AnalyzeStage(WritePrompt()),
         StageType.DesignStage: DesignStage(WriteDesign()),
-        StageType.TestingStage: TestStage(WriteUnitTest()),
+        StageType.TestingStage: TestStage(WriteCode()),
         StageType.CodingStage: CodingStage(WriteCode()),
         StageType.FinalStage: FinalStage(),
     }

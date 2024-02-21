@@ -4,12 +4,16 @@ from pydantic import BaseModel, Field
 
 class FileStatus(Enum):
     NOT_TESTED = 1
-    TESTED_WITH_ERROR =2
     TESTED_PASS= 3
+
+class RunResult(Enum):
+    WITH_ERROR = 1
+    WITHOUT_ERROR = 2
 
 class FileInfo(BaseModel):
     message: str = Field(default='')
     status: FileStatus = Field(default=FileStatus.NOT_TESTED)
+    version: int = Field(default=0)
 
 class WorkflowContext():
     _instance = None

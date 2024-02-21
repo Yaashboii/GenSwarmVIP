@@ -92,10 +92,10 @@ class RunCode(Action):
 
     def _run(self, code_info, mode="script", **kwargs) -> str:
         code_info = eval(code_info)
-        command = code_info["command"]
         code_file_name = code_info["file_name"]
         code = read_file(directory=WORKSPACE_ROOT, filename=code_file_name)
         test_file_name = code_info["test_file_name"]
+        command = ["python", test_file_name]
         test_code = read_file(directory=WORKSPACE_ROOT, filename=test_file_name)
 
         self._logger.info(f"Running {' '.join(command)}")
@@ -119,6 +119,7 @@ class RunCode(Action):
 
         prompt = PROMPT_TEMPLATE.format(context=context)
         rsp = self._ask(prompt)
+        self._logger.error("run code analysis: \n%s", rsp)
         status = re.search("Status:\s*(.+)", rsp, re.IGNORECASE).group(1)
 
         # send results

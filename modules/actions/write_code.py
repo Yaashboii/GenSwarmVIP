@@ -19,10 +19,10 @@ class WriteCode(Action):
 
     def _run(self, prompt: str, filename: str) -> str:
         self._logger.info("Writing %s..", filename)
-        # code = self._write_code(prompt)
+        code = self._write_code(prompt)
         # code_rsp = self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
-        # write_file(filename, code)
-        return "code"
+        write_file(filename, code)
+        return code
 
 
 if __name__ == "__main__":

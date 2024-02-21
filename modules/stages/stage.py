@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 from pydantic import BaseModel, Field
 
-from modules.utils.logger import setup_logger
+from modules.utils.logger import setup_logger, LoggerLevel
 from modules.utils.common import TestResult, BugSource
 from modules.framework.workflow_context import WorkflowContext
 
@@ -21,7 +21,7 @@ class StageType(Enum):
 class Stage(ABC, BaseModel):
     def __init__(self):
         super(Stage, self).__init__()
-        self._logger = setup_logger(self.__class__.__name__)
+        self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
         self._context = WorkflowContext()
 
     def __str__(self) -> str:

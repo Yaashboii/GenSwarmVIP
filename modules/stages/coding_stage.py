@@ -20,12 +20,14 @@ class CodingStage(Stage):
                 instruction=self._context.analysis,
                 code=ENV_CODE)
             filename = "core.py"
+            code_files[filename] = FileInfo()
         elif code_files["core.py"].status != FileStatus.TESTED_PASS:
             code = read_file(WORKSPACE_ROOT, "core.py")
             prompt = REWRITE_CORE_PROMPT_TEMPLATE.format(
                 code=code,
                 error_message=code_files["core.py"].message)
             filename = "core.py"
+            code_files[filename].version += 1
         elif "run.py" not in code_files:
             core_code = read_file(directory=WORKSPACE_ROOT, filename='core.py')
             prompt = WRITE_MAIN_PROMPT_TEMPLATE.format(
@@ -33,12 +35,16 @@ class CodingStage(Stage):
                 core_code=core_code,
                 env_code=ENV_CODE)
             filename = "run.py"
+            code_files[filename] = FileInfo()
         else:
-            test_code = read_file(WORKSPACE_ROOT, "test_run.py")
+            code = read_file(WORKSPACE_ROOT, "run.py")
+            core_code = read_file(WORKSPACE_ROOT, "core.py")
             prompt = REWRITE_MAIN_PROMPT_TEMPLATE.format(
-                test_code=test_code,
+                code=code,
+                env_code=ENV_CODE,
+                core_code=core_code,
                 error_message=code_files["run.py"].message)
             filename = "run.py"
-        code_files[filename] = FileInfo()
+            code_files[filename].version += 1
         self._action.run(prompt=prompt, filename=filename)
         return StageResult(keys=[])
