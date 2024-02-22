@@ -7,7 +7,8 @@ StageTransition = {
     StageType.DesignStage: StageType.CodingStage,
     StageType.CodingStage: StageType.TestingStage,
     StageType.TestingStage: {
-        TestResult.PASS: StageType.CodingStage,
+        TestResult.HALF_PASS: StageType.CodingStage,
+        TestResult.ALL_PASS: StageType.FinalStage,
         TestResult.NOT_PASS: {
             BugSource.CODE: StageType.CodingStage,
             BugSource.TEST_CODE: StageType.TestingStage,

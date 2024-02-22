@@ -124,7 +124,9 @@ class RunCode(Action):
 
         # send results
         if status == "PASS":
-            return "no error", [TestResult.PASS]
+            return "no error", [TestResult.ALL_PASS
+                                if test_file_name == "test_run.py"
+                                else TestResult.HALF_PASS]
         else:
             instruction = re.search("Instruction:\s*(.+)", rsp, re.IGNORECASE).group(1)
             file_name = re.search("File To Rewrite:\s*(.+\\.py)", rsp, re.IGNORECASE).group(1)

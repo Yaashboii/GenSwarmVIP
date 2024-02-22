@@ -7,8 +7,9 @@ from const import ENV_CODE, WORKSPACE_ROOT
 
 
 class TestResult(Enum):
-    PASS = 1
-    NOT_PASS= 2
+    HALF_PASS = 1
+    ALL_PASS = 2
+    NOT_PASS= 3
 
 class BugSource(Enum):
     CODE = 1
