@@ -3,8 +3,8 @@ from modules.actions import AnalyzeReqs
 from modules.const import ROBOT_API, ENV_DES
 
 PROMPT_TEMPLATE: str = """
-To assist users in automating specific tasks,and can automatically exit after task completion,you need to analyze the sub-functions required to complete the task based on the user's simple task instructions, considering the resources available in the current environment.
-You also need to consider any constraints. 
+There are some ground-moving robots in the room, and users will issue commands to direct their movement. 
+You need to understand the user's commands and then analyze these commands. Consider what functions are needed to meet the user's requirements.
 {env_des}
 user requirements:{instruction}
 APIs: {api}
@@ -15,8 +15,6 @@ Functional Requirements:
 List the functions expected to be developed based on user needs and available resources.
 For each function, briefly describe its purpose and expected outcome.
 These functions should be decoupled from each other.
-Task Constraints:
-Detail any specific requirements or restrictions in terms of performance, security, etc."
 """.strip()
 
 

@@ -6,12 +6,11 @@ from modules.utils import DesignPattern
 
 DesignFunction_PROMPT_TEMPLATE = """
 User requirements: {instruction}
-In order to assist users in automating specific tasks, and can automatically exit after task completion, you need to design a series of decoupled Python functions based on user functional requirements and constraints.
+In order to assist users in automating specific tasks, you need to design a series of decoupled Python functions based on user functional requirements and constraints.
 - These functions should be decoupled from each other. 
 - Each function can utilize the existing APIs.
 - Each function should have strong reusability and should have a sufficient number of inputs and outputs.
 - Each function does not need to provide the content of the function body; just giving a `pass` will suffice.
-- Dynamically interact with the environment, continuously adjusting strategies until the task is completed
 
 This is the existing environment API. 
 {code}
@@ -32,12 +31,14 @@ function list:
 {function_list}
 {env_des}
 Based on the user requirements document and current functions, you are required to design a sequence diagram.
+Explanation: 
+1. This sequence diagram is to call these existing functions to fulfill the user's requirements.
+2. This sequence diagram can be directly translated into Python code, which is capable of continuously monitoring the environment and outputting control signals at a certain frequency.
+3. The code generated from the sequence diagram should not loop infinitely; it should be able to exit the loop once the task is completed.
 constrains: 
 1. You need to use these existing functions to generate a call flow diagram to fulfill the user's requirements.
 2. You can't define any new functions.
 3. Ensure that the sequence diagram translates directly into executable code that can accomplish the task objectives.
-4. Can automatically exit after task completion.
-5. Dynamically interact with the environment, continuously adjusting strategies until the task is completed。
 
 You should respond to with:
 0)explanation: think step by step. How do you make the diagram conform to the algorithm?
