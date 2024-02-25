@@ -97,8 +97,10 @@ class Env:
 
         def update_frame(frame_number):
             ax.clear()
-            ax.set_xlim(0, self._size[0])
-            ax.set_ylim(0, self._size[1])
+            half_x = int(self._size[0] / 2)
+            half_y = int(self._size[1] / 2)
+            ax.set_xlim(-half_x, half_x)
+            ax.set_ylim(-half_y, half_y)
             for i in range(robots_num):
                 ax.plot(histories[i, :frame_number, 0], histories[i, :frame_number, 1],
                         label=f"Robot {i}")
