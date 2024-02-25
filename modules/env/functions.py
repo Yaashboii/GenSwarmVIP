@@ -52,6 +52,7 @@ def set_robot_velocity_by_id(robot_id, velocity):
     - ValueError: If no robot with the specified ID is found.
     """
     initialize_ros_node()  # 确保ROS节点已初始化
+    velocity = np.array(velocity, dtype=float)
     for robot in robots:
         if robot.robot_id == robot_id:
             # 使用ROS发布机器人速度

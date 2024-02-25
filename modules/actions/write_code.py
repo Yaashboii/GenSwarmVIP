@@ -18,10 +18,14 @@ class WriteCode(Action):
 
         elif filename == "functions.py":
             import_list, function_list = extract_imports_and_functions(code)
-            if len(function_list) > 1:
+            if not function_list:
+                self._logger.error(f"Write Code Failed: No function detected in the response")
+                raise Exception
+            elif len(function_list) > 1:
                 self._logger.error(
                     f"Write Code Failed: More than one function detected in the response: {function_list}")
                 raise Exception  # to trigger retry
+
             result = {
                 "import": import_list,
                 "code": function_list
