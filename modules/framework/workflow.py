@@ -67,9 +67,8 @@ class Workflow:
 if __name__ == "__main__":
     task_list = [
         "Gather these robots together",
-        'Form an equilateral triangle with side length of 2',
-        'Form a square with side length of 2',
-        'Form a circle with radius of 2',
+        'Move the robots to form a hexagon',
+        'All the robots form a rectangular formation and move within the environment.',
     ]
-    workflow = Workflow(task_list[0])
+    workflow = Workflow(task_list[2])
     asyncio.run(workflow.run())

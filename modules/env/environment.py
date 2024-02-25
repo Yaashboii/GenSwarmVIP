@@ -61,7 +61,7 @@ class Env:
         if self._run_test:
             for robot in self._robots:
                 new_position = robot.position + robot.velocity * self._dt
-                robot.position = np.clip(new_position, 0, self._size[0])
+                robot.position = np.clip(new_position, -np.array(self._size) / 2, np.array(self._size) / 2)
                 robot.history.append(robot.position.copy())
                 self._position_publishers[robot.robot_id].publish(Float32MultiArray(data=robot.position.tolist()))
 
@@ -79,8 +79,10 @@ class Env:
             history = np.array(robot.history)
             self._ax.plot(history[:, 0], history[:, 1], label=f"Robot {robot.robot_id} path")
             self._ax.plot(history[-1, 0], history[-1, 1], 'o', label=f"Robot {robot.robot_id} current")
-        self._ax.set_xlim(0, self._size[0])
-        self._ax.set_ylim(0, self._size[1])
+        half_x = int(self._size[0] / 2)
+        half_y = int(self._size[1] / 2)
+        self._ax.set_xlim(-half_x, half_x)
+        self._ax.set_ylim(-half_y, half_y)
         # self._ax.legend(loc='upper right')
         plt.draw()
         plt.pause(0.001)  # This is necessary for the plot to update

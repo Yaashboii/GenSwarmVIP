@@ -7,7 +7,9 @@ below are the basic information of the environment and robots:
 environment:
     size: 10m x 10m
     Obstacles: None
-
+    X-axis: -5m to 5m
+    Y-axis: -5m to 5m
+    
 Robots: 
     Max Speed: 2m/s
     Control: velocity control

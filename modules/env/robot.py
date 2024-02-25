@@ -51,9 +51,10 @@ def create_robots(n_robots, initial_positions):
     return robots_list
 
 
-def generate_robots_random_positions(n_robots, size):
-    return [[np.random.uniform(0, size[0]), np.random.uniform(0, size[1])] for _ in range(n_robots)]
+def generate_robots_random_positions(n_robots):
+    return [[np.random.uniform(-5, 5), np.random.uniform(-5, 5)] for _ in range(n_robots)]
 
 
-robots = create_robots(6, generate_robots_random_positions(6, [10, 10]))
+n = 6
+robots = create_robots(n, generate_robots_random_positions(n))
 pass
