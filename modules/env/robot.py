@@ -55,6 +55,6 @@ def generate_robots_random_positions(n_robots):
     return [[np.random.uniform(-5, 5), np.random.uniform(-5, 5)] for _ in range(n_robots)]
 
 
-n = 6
+n = 4
 robots = create_robots(n, generate_robots_random_positions(n))
 pass
