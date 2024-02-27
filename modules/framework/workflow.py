@@ -28,7 +28,7 @@ class Workflow:
         self.__stage = init_stage
         self._logger = setup_logger("Workflow")
         workflow_context = WorkflowContext()
-        workflow_context.user_command = user_command
+        workflow_context.user_command.message = user_command
 
     async def run(self):
         while self.__stage != StageType.FinalStage:
