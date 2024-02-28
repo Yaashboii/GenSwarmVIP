@@ -1,30 +1,36 @@
-import json
-
 from modules.actions.action import Action
-from const import WORKSPACE_ROOT
-from modules.utils import write_file, parse_code
-from tenacity import retry, stop_after_attempt, wait_random_exponential
+from modules.utils import parse_code, extract_imports_and_functions
+
 
 class WriteCode(Action):
     name: str = "WriteCode"
 
-    def __init__(self):
-        super().__init__()
+    def process_response(self, response: str, **kwargs) -> str:
+        code = parse_code(text=response)
+        if not kwargs.get('filename'):
+            self._logger.error(f"Write Sequence Diagram Failed: No filename provided")
+            raise SystemExit  # avoid retry mechanism
 
-    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    def _write_code(self, prompt):
-        code_rsp = self._ask(prompt)
-        code = parse_code(text=code_rsp, lang='python')
-        return code
+        filename = kwargs.get('filename')
+        if filename not in self._context.code_files:
+            self._logger.error(f"Write Code Failed: No filename found in context")
+            raise SystemExit
 
-    def _run(self, prompt: str, filename: str) -> str:
-        self._logger.info("Writing %s..", filename)
-        code = self._write_code(prompt)
-        # code_rsp = self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
-        write_file(filename, code)
-        return code
+        elif filename == "functions.py":
+            import_list, function_list = extract_imports_and_functions(code)
+            if not function_list:
+                self._logger.error(f"Write Code Failed: No function detected in the response")
+                raise Exception
+            elif len(function_list) > 1:
+                self._logger.error(
+                    f"Write Code Failed: More than one function detected in the response: {function_list}")
+                raise Exception  # to trigger retry
 
-
-if __name__ == "__main__":
-    action = WriteCode()
-    action.run(prompt="prompt", filename="filename")
+            result = {
+                "import": import_list,
+                "code": function_list
+            }
+            return str(result)
+        elif filename == "run.py":
+            self._context.code_files[filename].message = 'from functions import *\n' + code
+            return code

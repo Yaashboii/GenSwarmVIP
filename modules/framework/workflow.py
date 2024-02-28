@@ -1,3 +1,5 @@
+import asyncio
+
 from modules.stages import *
 from modules.actions import *
 from modules.stages.stage import StageType, StageResult
@@ -5,12 +7,13 @@ from modules.utils.logger import setup_logger
 from modules.framework.stage_transition import StageTransition
 from modules.framework.workflow_context import WorkflowContext
 
+
 class Workflow:
     STAGE_POOL = {
-        StageType.AnalyzeStage: AnalyzeStage(WritePrompt()),
-        StageType.DesignStage: DesignStage(WriteDesign()),
-        StageType.TestingStage: TestStage(WriteCode()),
+        StageType.AnalyzeStage: AnalyzeStage(AnalyzeReqs()),
+        StageType.DesignStage: DesignStage(DesignFunction()),
         StageType.CodingStage: CodingStage(WriteCode()),
+        StageType.RunningStage: RunningStage(RunCode()),
         StageType.FinalStage: FinalStage(),
     }
 
@@ -20,41 +23,33 @@ class Workflow:
     #     ActionType.WritePrompt: WritePrompt(),
     #     ActionType.RunCode: RunCode(),
     # }
-    
+
     def __init__(self, user_command: str, init_stage: StageType = StageType.AnalyzeStage):
         self.__stage = init_stage
         self._logger = setup_logger("Workflow")
         workflow_context = WorkflowContext()
-        workflow_context.user_command = user_command
+        workflow_context.user_command.message = user_command
 
-    def run(self):
+    async def run(self):
         while self.__stage != StageType.FinalStage:
             stage = self.create_stage(self.__stage)
-            stage_result = stage.run()
+            stage_result = await stage.run()
 
             temp = StageTransition[self.__stage]
             for key in stage_result.keys:
                 temp = temp[key]
-                
+
             self.__stage = temp
         else:
             self._logger.info("=================== END ===================")
 
     @staticmethod
     def create_stage(stage_type: StageType):
-        if stage_type == StageType.AnalyzeStage:
-            return Workflow.STAGE_POOL[StageType.AnalyzeStage]
-        elif stage_type == StageType.DesignStage:
-            return Workflow.STAGE_POOL[StageType.DesignStage]
-        elif stage_type == StageType.CodingStage:
-            return Workflow.STAGE_POOL[StageType.CodingStage]
-        elif stage_type == StageType.TestingStage:
-            return Workflow.STAGE_POOL[StageType.TestingStage]
-        elif stage_type == StageType.FinalStage:
-            return Workflow.STAGE_POOL[StageType.FinalStage]
-        else:
-            raise ValueError("Invalid stage type")
-        
+        try:
+            return Workflow.STAGE_POOL[stage_type]
+        except KeyError:
+            raise ValueError(f"Invalid stage type: {stage_type}")
+
     # @staticmethod
     # def create_action(action_type: ActionType):
     #     if action_type == ActionType.WriteCode:
@@ -67,7 +62,14 @@ class Workflow:
     #         return Workflow.ACTION_POOL[ActionType.RunCode]
     #     else:
     #         raise ValueError("Invalid action type")
-        
+
+
 if __name__ == "__main__":
-    workflow = Workflow("move in circle")
-    workflow.run()
+    task_list = [
+        "Gather these robots together",
+        'Move the robots to form a square formation',
+        'First, move the robot to form a square formation. Then, move the robots to form a triangle formation.Finally gather these robots together',
+        "Initially, gather all robots at the center of the environment, confirming their arrival before proceeding. Next, arrange the robots into a square formation with each side measuring exactly 1.0 meter, ensuring the formation's precision with right angles and equal sides. Once the square is confirmed, guide the robots to trace a circular path while maintaining the square formation. Constant monitoring is required to preserve the formation's integrity and the path's accuracy throughout the movement."
+    ]
+    workflow = Workflow(task_list[2])
+    asyncio.run(workflow.run())

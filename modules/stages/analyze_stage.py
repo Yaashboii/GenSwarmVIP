@@ -1,32 +1,36 @@
 from modules.stages.stage import Stage, StageResult
-from modules.actions import WritePrompt
-from const import ENV_CODE
-
+from modules.actions import AnalyzeReqs
+from modules.const import ROBOT_API, ENV_DES
 
 PROMPT_TEMPLATE: str = """
-env_code:
-{code}
+There are some ground-moving robots in the room, and users will issue commands to direct their movement. 
+You need to understand the user's commands and then analyze these commands. Consider what functions are needed to meet the user's requirements.
+{env_des}
+user requirements:{instruction}
+APIs: {api}
+Output the analysis in the following format:
 
-user requirement: {instruction}
-Enrich and organize user requirements based on existing simulation environment code and according to the following basic format.
-1)task objectives:
-2)core requirements:
-3)constraints:
-4)task success criteria:
-"""
+User Requirement Description: Detailed description of the task the user hopes to automate.
+Functional Requirements:
+List the functions expected to be developed based on user needs and available resources.
+For each function, briefly describe its purpose and expected outcome.
+These functions should be decoupled from each other.
+""".strip()
+
 
 class AnalyzeStage(Stage):
-    def __init__(self, action: WritePrompt):
+    def __init__(self, action: AnalyzeReqs):
         super(AnalyzeStage, self).__init__()
         self._user_command = ""
         self._action = action
 
-    def _run(self) -> StageResult:
-        prompt = PROMPT_TEMPLATE.format(instruction=self._context.user_command, code=ENV_CODE) 
-        self._context.analysis  = self._action.run(prompt=prompt)
+    async def _run(self) -> StageResult:
+        prompt = PROMPT_TEMPLATE.format(instruction=self._context.user_command, api=ROBOT_API, env_des=ENV_DES)
+        await self._action.run(prompt=prompt)
         return StageResult(keys=[])
 
+
 if __name__ == "__main__":
-    stage = AnalyzeStage(WritePrompt())
+    stage = AnalyzeStage(AnalyzeReqs())
     res = stage.run()
     print(res)

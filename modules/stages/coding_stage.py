@@ -1,50 +1,72 @@
-from const import ENV_CODE, WORKSPACE_ROOT
+import asyncio
+
+from modules.const import WORKSPACE_ROOT, ROBOT_API, ENV_DES
 from modules.stages.stage import Stage, StageResult
-from modules.actions import ActionResult, WriteCode
-from modules.utils import read_file
-from modules.framework.prompts import *
+from modules.actions import WriteCode
+from modules.utils import read_file, CodeMode
+from modules.framework.prompts import WRITE_FUNCTION_PROMPT_TEMPLATE, WRITE_RUN_PROMPT_TEMPLATE
 from modules.framework.workflow_context import FileStatus, FileInfo
+from modules.utils import combine_unique_imports
+
 
 class CodingStage(Stage):
-    def __init__(self,  action: WriteCode=None):
+    def __init__(self, action: WriteCode = None):
         super().__init__()
         self._action = action
 
-    def update(self, data: StageResult):
-        self._last_stage_result = data
+    async def _write_run(self):
+        sequence_diagram = self._context.sequence_diagram.message
+        result = await self._action.run(
+            prompt=WRITE_RUN_PROMPT_TEMPLATE.format(sequence_diagram=sequence_diagram, env_des=ENV_DES),
+            filename=f"run.py"
+        )
+        return result
 
-    def _run(self) -> StageResult:
+    async def _write_function(self, function: str, index, other_functions: list[str]):
+        result = await self._action.run(
+            prompt=WRITE_FUNCTION_PROMPT_TEMPLATE.format(
+                env_api=ROBOT_API,
+                function=function,
+                other_functions="\n".join(other_functions)
+            ),
+            filename=f"functions.py"
+        )
+        # add the function code to the functions.py file
+        new_message = (self._context.code_files['functions.py'].message
+                       + f'\n\n{eval(result)["code"][0]}')
+        self._context.code_files['functions.py'].message = new_message
+
+        # update the function list with the new function code
+        self._context.function_list[index] = eval(result)['code'][0]
+        return eval(result)
+
+    async def _write_functions(self):
+
+        function_list = self._context.function_list
+        tasks = []
+        import_list = []
+        for index, function in enumerate(function_list):
+            other_functions = [f for f in function_list if f != function]
+            task = asyncio.create_task(self._write_function(function, index, other_functions))
+            tasks.append(task)
+        result_list = await asyncio.gather(*tasks)
+
+        # combine the import lists from all the functions
+        for result in result_list:
+            import_list.extend(result['import'])
+        combined_import_str = combine_unique_imports(import_list) + '\n'
+        # add the import list to the functions.py file
+        new_message = combined_import_str + self._context.code_files['functions.py'].message
+        self._context.code_files['functions.py'].message = new_message
+
+    async def _run(self) -> StageResult:
         code_files = self._context.code_files
-        if "core.py" not in code_files:
-            prompt = WRITE_CORE_PROMPT_TEMPLATE.format(
-                instruction=self._context.analysis,
-                code=ENV_CODE)
-            filename = "core.py"
-            code_files[filename] = FileInfo()
-        elif code_files["core.py"].status != FileStatus.TESTED_PASS:
-            code = read_file(WORKSPACE_ROOT, "core.py")
-            prompt = REWRITE_CORE_PROMPT_TEMPLATE.format(
-                code=code,
-                error_message=code_files["core.py"].message)
-            filename = "core.py"
-            code_files[filename].version += 1
-        elif "run.py" not in code_files:
-            core_code = read_file(directory=WORKSPACE_ROOT, filename='core.py')
-            prompt = WRITE_MAIN_PROMPT_TEMPLATE.format(
-                user_requirements=self._context.analysis,
-                core_code=core_code,
-                env_code=ENV_CODE)
-            filename = "run.py"
-            code_files[filename] = FileInfo()
-        else:
-            code = read_file(WORKSPACE_ROOT, "run.py")
-            core_code = read_file(WORKSPACE_ROOT, "core.py")
-            prompt = REWRITE_MAIN_PROMPT_TEMPLATE.format(
-                code=code,
-                env_code=ENV_CODE,
-                core_code=core_code,
-                error_message=code_files["run.py"].message)
-            filename = "run.py"
-            code_files[filename].version += 1
-        self._action.run(prompt=prompt, filename=filename)
-        return StageResult(keys=[])
+        if code_files['functions.py'].status == FileStatus.NOT_WRITTEN:
+            await self._write_functions()
+            code_files['functions.py'].version += 1
+            return StageResult(keys=[CodeMode.WRITE_FUNCTION])
+
+        elif code_files['run.py'].status == FileStatus.NOT_WRITTEN:
+            await self._write_run()
+            code_files['run.py'].version += 1
+            return StageResult(keys=[CodeMode.WRITE_RUN])
