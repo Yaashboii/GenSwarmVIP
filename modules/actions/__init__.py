@@ -1,25 +1,16 @@
-from modules.actions.action import Action
-from modules.actions.rephrase_command import WritePrompt
+from modules.actions.action import Action, ActionResult
+from modules.actions.analyze_requirements import AnalyzeReqs
 from modules.actions.run_code import RunCode
 from modules.actions.write_code import WriteCode
-from modules.actions.write_test import WriteUnitTest
-from modules.actions.add_command import UserCommand
-from modules.actions.write_design import WriteDesign
-from modules.actions.write_run import WriteRun
-from modules.actions.rewrite_code import RewriteCode
-from modules.actions.rewrite_test import RewriteUnitTest
-from modules.actions.rewrite_run import RewriteRun
+from modules.actions.design_function import DesignFunction
+from modules.actions.write_seq_diagram import WriteSeqDiagram
 
 __all__ = [
     "Action",
-    "WritePrompt",
+    "ActionResult",
+    "AnalyzeReqs",
     "RunCode",
     "WriteCode",
-    "WriteUnitTest",
-    "UserCommand",
-    "WriteDesign",
-    "WriteRun",
-    "RewriteCode",
-    "RewriteUnitTest",
-    "RewriteRun"
+    "DesignFunction",
+    "WriteSeqDiagram"
 ]
