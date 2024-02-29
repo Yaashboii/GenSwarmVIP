@@ -55,7 +55,7 @@ class RunCode(Action):
 
     def __int__(self):
         super(RunCode, self).__int__()
-        self.llm = GPT(model="gpt4-turbo-1106-preview")
+        self.llm = GPT()
 
     @classmethod
     def _run_text(cls, code) -> Tuple[str, str]:
