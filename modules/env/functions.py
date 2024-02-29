@@ -57,7 +57,7 @@ def set_robot_velocity_by_id(robot_id, velocity):
         if robot.robot_id == robot_id:
             # 使用ROS发布机器人速度
             velocity_msg = Float32MultiArray(data=velocity.tolist())
-            velocity_publisher = rospy.Publisher(f'/robot_{robot_id}/velocity', Float32MultiArray, queue_size=10)
+            velocity_publisher = velocity_publishers[robot_id]
             velocity_publisher.publish(velocity_msg)
             return
     raise ValueError(f"Robot with ID {robot_id} not found")
