@@ -1,7 +1,7 @@
 from openai import AsyncOpenAI
 
 from modules.llm.api_keys import api_base, key_manager
-from tenacity import retry, stop_after_attempt, wait_random_exponential
+from tenacity import retry, stop_after_attempt, wait_random_exponential, stop_after_delay
 
 
 class GPT:
@@ -39,7 +39,7 @@ class GPT:
         self._memories.append({"role": "user", "content": prompt})
         return await self._ask_with_retry(temperature)
 
-    @retry(stop=stop_after_attempt(5), wait=wait_random_exponential(multiplier=1, max=60))
+    @retry(stop=(stop_after_attempt(5) | stop_after_delay(120)), wait=wait_random_exponential(multiplier=1, max=60))
     async def _ask_with_retry(self, temperature: float) -> str:
         """
         Helper function to perform the actual call to the GPT model with retry logic.
