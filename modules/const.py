@@ -45,7 +45,7 @@ def get_all_robot_ids():
     Get a list of all existing robot IDs.
 
     Output:
-    - List[int] : A list containing all the robot IDs.
+    - list[int] : A list containing all the robot IDs.
     '''
 """
 

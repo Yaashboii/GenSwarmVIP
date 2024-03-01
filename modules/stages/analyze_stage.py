@@ -25,7 +25,7 @@ class AnalyzeStage(Stage):
         self._action = action
 
     async def _run(self) -> StageResult:
-        prompt = PROMPT_TEMPLATE.format(instruction=self._context.user_command, api=ROBOT_API, env_des=ENV_DES)
+        prompt = PROMPT_TEMPLATE.format(instruction=self._context.user_command.message, api=ROBOT_API, env_des=ENV_DES)
         await self._action.run(prompt=prompt)
         return StageResult(keys=[])
 
