@@ -53,10 +53,6 @@ standard errors: {errs};
 class RunCode(Action):
     name: str = 'RunCode'
 
-    def __int__(self):
-        super(RunCode, self).__int__()
-        self.llm = GPT()
-
     @classmethod
     def _run_text(cls, code) -> Tuple[str, str]:
         try:
