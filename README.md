@@ -1,3 +1,13 @@
+<div align="center">
+  CodeLLM
+</div>
+
+<p align="center">
+  <a href="https://hub.docker.com/repository/docker/huabench/code-llm/general">
+    <img alt="Docker image" title="Docker image" src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white"/></a>
+</p>
+
+
 ## Using Docker
 
 ### Installing Docker
