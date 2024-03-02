@@ -3,6 +3,7 @@ import re
 import ast
 import shutil
 import rospy
+import cv2
 from typing import Any
 from enum import Enum
 from std_srvs.srv import SetBool
@@ -74,7 +75,6 @@ def init_workspace():
         utils = read_file(os.path.join(PROJECT_ROOT, 'modules/env'), 'functions.py')
         robot = read_file(os.path.join(PROJECT_ROOT, 'modules/env'), 'robot.py')
         write_file(WORKSPACE_ROOT, 'functions.py', utils)
-        write_file(WORKSPACE_ROOT, 'robot.py', robot)
     print(f"Workspace initialized at {WORKSPACE_ROOT}")
 
 
@@ -152,6 +152,24 @@ def combine_unique_imports(import_list):
     return combined_imports
 
 
+def generate_video_from_frames(frames_folder, video_path, fps=10):
+    frame_files = sorted(os.listdir(frames_folder), key=lambda x: int(re.search(r'\d+', x).group()))
+    frame_files = [os.path.join(frames_folder, file) for file in frame_files]
+
+    frame = cv2.imread(frame_files[0])
+    height, width, layers = frame.shape
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+
+    video = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
+
+    for frame_file in frame_files:
+        video.write(cv2.imread(frame_file))
+
+    cv2.destroyAllWindows()
+    video.release()
+    print(f"Video generated: {video_path}")
+
+
 def call_reset_environment(data: bool):
     """
 
@@ -173,3 +191,8 @@ def call_reset_environment(data: bool):
 
 
 init_workspace()
+
+if __name__ == '__main__':
+    generate_video_from_frames(
+        frames_folder='/home/derrick/catkin_ws/src/code_llm/workspace/2024-03-02_01-04-20/data/frames',
+        video_path='/home/derrick/catkin_ws/src/code_llm/workspace/2024-03-02_01-04-20/data/video.mp4')
