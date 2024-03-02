@@ -5,7 +5,7 @@ from modules.const import ROBOT_API, ENV_DES
 from modules.utils import DesignPattern
 
 DesignFunction_PROMPT_TEMPLATE = """
-User requirements: {instruction}
+User requirements: {analysis}
 In order to assist users in automating specific tasks, you need to design a series of decoupled Python functions based on user functional requirements and constraints.
 - These functions should be decoupled from each other. 
 - Each function can utilize the existing APIs.
@@ -25,7 +25,7 @@ Note:
 - Every function should provide a detailed description of its functionality as well as any constraints that may need to be considered.
 """
 WriteSeqDiagram_PROMPT_TEMPLATE = """
-requirements document: {instruction}
+requirements document: {analysis}
 function list: 
 {robot_api}
 {function_list}
@@ -57,7 +57,7 @@ class DesignStage(Stage):
     async def _design_function(self):
         self._action = DesignFunction()
         prompt = DesignFunction_PROMPT_TEMPLATE.format(
-            instruction=self._context.analysis.message,
+            analysis=self._context.analysis.message,
             code=ROBOT_API,
             env_des=ENV_DES
         )
@@ -65,10 +65,10 @@ class DesignStage(Stage):
 
     async def _design_sequence_diagram(self):
         self._action = WriteSeqDiagram()
-        user_command = self._context.analysis.message
+        analysis = self._context.analysis.message
         function_list_str = "\n".join(self._context.function_list)
         prompt = WriteSeqDiagram_PROMPT_TEMPLATE.format(
-            instruction=user_command,
+            analysis=analysis,
             robot_api=ROBOT_API,
             function_list=function_list_str,
             env_des=ENV_DES
