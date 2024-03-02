@@ -47,7 +47,38 @@ def get_all_robot_ids():
     Output:
     - list[int] : A list containing all the robot IDs.
     '''
+    
+def get_robots_count():
+    '''
+    Get the total number of robots.
+
+    Returns:
+    - int: The total number of robots.
+    '''
+    
+    
+def get_leader_position():
+    '''
+    Get the position of the leader robot.
+
+    Returns:
+    - numpy.ndarray: The position of the leader robot.
+    '''
 """
+LEADER_API = """
+def get_leader_position():
+    '''
+    Get the position of the leader robot.
+
+    Returns:
+    - numpy.ndarray: The position of the leader robot.
+    '''
+"""
+
+
+def get_robot_api(leader=False):
+    if leader:
+        return ROBOT_API + LEADER_API
 
 
 def get_project_root():
