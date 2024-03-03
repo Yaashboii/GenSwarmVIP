@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import rospy
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 from std_msgs.msg import Float32MultiArray
 from std_srvs.srv import SetBool, SetBoolResponse
 
@@ -118,6 +119,10 @@ class Env:
         self._ax.plot(self._leader.position[0], self._leader.position[1],
                       marker='*', markersize=12, color='r',
                       linestyle='None', label="Leader position")
+        x_major_locator = MultipleLocator(1)
+        self._ax.xaxis.set_major_locator(x_major_locator)
+        y_major_locator = MultipleLocator(1)
+        self._ax.yaxis.set_major_locator(y_major_locator)
         self._ax.set_xlim(-self._size[0], self._size[0])
         self._ax.set_ylim(-self._size[1], self._size[1])
         if self._render_frames:
