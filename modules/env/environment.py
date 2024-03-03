@@ -104,9 +104,6 @@ class Env:
         if not plt.get_fignums():
             self._fig, self._ax = plt.subplots()
         self._ax.clear()
-        self._ax.set_facecolor('black')
-
-        self._fig.patch.set_facecolor('black')
 
         traj_len, robot_num, _ = self._robots.history.shape
         for i in range(robot_num):
@@ -127,6 +124,8 @@ class Env:
             plt.draw()
             plt.pause(0.001)  # This is necessary for the plot to update
         data_path = rospy.get_param('data_path', '.')
+        if data_path == '.':
+            print("data_path not set, save frames to current directory")
         frame_id = len(self._robots.history)
         plt.savefig(f'{data_path}/frames/{frame_id}.png')
 
