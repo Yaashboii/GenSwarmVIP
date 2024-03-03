@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from std_msgs.msg import Float32MultiArray
 from std_srvs.srv import SetBool, SetBoolResponse
 
-from .robot import Robots, Leader
+from robot import Robots, Leader
 
 
 class Env:
@@ -104,6 +104,9 @@ class Env:
         if not plt.get_fignums():
             self._fig, self._ax = plt.subplots()
         self._ax.clear()
+        self._ax.set_facecolor('black')
+
+        self._fig.patch.set_facecolor('black')
 
         traj_len, robot_num, _ = self._robots.history.shape
         for i in range(robot_num):
