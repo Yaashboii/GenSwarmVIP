@@ -1,16 +1,14 @@
+import re
 import sys
 import os
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-sys.path.append(project_root)
-
+import cv2
 import numpy as np
 import rospy
 import matplotlib.pyplot as plt
 from std_msgs.msg import Float32MultiArray
 from std_srvs.srv import SetBool, SetBoolResponse
 
-from modules.env.robot import Robots, Leader
-from modules.utils import generate_video_from_frames
+from .robot import Robots, Leader
 
 
 class Env:
@@ -109,7 +107,7 @@ class Env:
 
         traj_len, robot_num, _ = self._robots.history.shape
         for i in range(robot_num):
-            show_len = min(10, traj_len)
+            show_len = min(60, traj_len)
             self._ax.plot(self._robots.history[-show_len:, i, 0],
                           self._robots.history[-show_len:, i, 1],
                           label=f"Robot {i} path")
@@ -136,6 +134,24 @@ class Env:
             self.step()
             rate.sleep()
         print("Environment stopped!")
+
+
+def generate_video_from_frames(frames_folder, video_path, fps=10):
+    frame_files = sorted(os.listdir(frames_folder), key=lambda x: int(re.search(r'\d+', x).group()))
+    frame_files = [os.path.join(frames_folder, file) for file in frame_files]
+
+    frame = cv2.imread(frame_files[0])
+    height, width, layers = frame.shape
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+
+    video = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
+
+    for frame_file in frame_files:
+        video.write(cv2.imread(frame_file))
+
+    cv2.destroyAllWindows()
+    video.release()
+    print(f"Video generated: {video_path}")
 
 
 if __name__ == "__main__":

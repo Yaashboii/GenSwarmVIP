@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import rospy
 from std_msgs.msg import Float32MultiArray
@@ -24,6 +26,8 @@ def initialize_ros_node():
         rospy.Subscriber('/robots/position', Float32MultiArray, position_callback)
         robots_position = np.array(rospy.wait_for_message('/robots/position', Float32MultiArray).data).reshape(-1, 2)
         robots_num = rospy.get_param('/robots_num')
+        current_folder = os.path.dirname(os.path.abspath(__file__))
+        rospy.set_param('data_path', str(current_folder) + '/data')
         robots_velocity = np.zeros((robots_num, 2), dtype=float)
         timer = rospy.Timer(rospy.Duration(0.01), publish_all_velocities)
 
