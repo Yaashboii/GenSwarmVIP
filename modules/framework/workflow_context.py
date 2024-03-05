@@ -76,7 +76,7 @@ class WorkflowContext():
     }
     sequence_diagram: FileInfo = FileInfo(name='sequence_diagram.md')
     run_result: FileInfo = FileInfo(name='run_result.md')
-    log: FileInfo = FileInfo(name='log.md')
+    log: FileLog = FileLog(name='log.md')
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
