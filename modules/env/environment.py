@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import rospy
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 from std_msgs.msg import Float32MultiArray
 from std_srvs.srv import SetBool, SetBoolResponse
 

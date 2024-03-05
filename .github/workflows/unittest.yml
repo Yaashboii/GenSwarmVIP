@@ -1,0 +1,25 @@
+name: Run Unit Tests with Docker
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:19.03.12
+        options: --privileged
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Build Docker image
+      run: docker build -t my_project_test .
+      
+    - name: Run unit tests in Docker container
+      run: docker run my_project_test python -m unittest discover -v
