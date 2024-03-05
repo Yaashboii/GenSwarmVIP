@@ -167,3 +167,7 @@ def call_reset_environment(data: bool):
         return resp.success, resp.message
     except rospy.ServiceException as e:
         print("Service call failed: %s" % e)
+
+
+def get_param(param_name):
+    return rospy.get_param(param_name)
