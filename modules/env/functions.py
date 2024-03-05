@@ -108,9 +108,9 @@ def set_velocity(velocity):
     set_robot_velocity_by_id(robot_id, velocity)
 
 
-def get_observation():
+def gather_field_view_data():
     """
-    Retrieve the positions and velocities of other robots within the field of view, focusing on 2D spatial information.
+    Get the other robots' positions and velocities within the field of view.
 
     Returns:
     - A list of dictionaries, each containing:
@@ -118,7 +118,6 @@ def get_observation():
        (x, y coordinates).
       - 'velocity': A numpy array representing the robot's 2D velocity (x, y components).
     if the robot is not able to observe any other robots, an empty list is returned.
-    This format provides a straightforward way to access each observed robot's 2D position and velocity information.
     """
     global robot_observation
 
