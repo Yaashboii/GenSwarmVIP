@@ -115,11 +115,12 @@ class Env:
                           self._robots.history[-1, i, 1],
                           'o',
                           label=f"Robot {i} position")
-        self._ax.plot(self._leader.position[0], self._leader.position[1],
-                      marker='*', markersize=12, color='r',
-                      linestyle='None', label="Leader position")
-        self._ax.set_xlim(-self._size[0], self._size[0])
-        self._ax.set_ylim(-self._size[1], self._size[1])
+        if self._leader:
+            self._ax.plot(self._leader.position[0], self._leader.position[1],
+                          marker='*', markersize=12, color='r',
+                          linestyle='None', label="Leader position")
+        self._ax.set_xlim(-0.7 * self._size[0], 0.7 * self._size[0])
+        self._ax.set_ylim(-0.7 * self._size[1], 0.7 * self._size[1])
         if self._render_frames:
             plt.draw()
             plt.pause(0.001)  # This is necessary for the plot to update
