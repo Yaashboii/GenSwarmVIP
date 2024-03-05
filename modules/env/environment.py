@@ -18,7 +18,7 @@ class Env:
             self,
             size=(10, 10),
             n_robots=3,
-            dt=0.01,
+            dt=0.1,
             if_leader=False,
             leader_speed=2.0,
             render_interval=10,
@@ -114,6 +114,12 @@ class Env:
                           linestyle='None', label="Leader position")
         self._ax.set_xlim(-0.7 * self._size[0], 0.7 * self._size[0])
         self._ax.set_ylim(-0.7 * self._size[1], 0.7 * self._size[1])
+
+        major_locator = MultipleLocator(1)
+        self._ax.xaxis.set_major_locator(major_locator)
+        self._ax.yaxis.set_major_locator(major_locator)
+        self._ax.set_xlim(-self._size[0], self._size[0])
+        self._ax.set_ylim(-self._size[1], self._size[1])
         if self._render_frames:
             plt.draw()
             plt.pause(0.001)  # This is necessary for the plot to update
@@ -125,7 +131,7 @@ class Env:
 
     def run(self):
         print("Environment started!")
-        rate = rospy.Rate(1 / self._dt)
+        rate = rospy.Rate(10 / self._dt)
         while not rospy.is_shutdown():
             self.step()
             rate.sleep()
@@ -151,5 +157,5 @@ def generate_video_from_frames(frames_folder, video_path, fps=10):
 
 
 if __name__ == "__main__":
-    env = Env(if_leader=False, n_robots=5, size=(10, 10))
+    env = Env(if_leader=False, n_robots=10, size=(10, 10))
     env.run()

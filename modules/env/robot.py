@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Robot:
-    def __init__(self, robot_id, initial_position, max_speed=2.0, communication_range=2.0):
+    def __init__(self, robot_id, initial_position, max_speed=2.0, communication_range=5.0):
         self._id = robot_id
         self._position = np.array(initial_position, dtype=float)
         self._velocity = np.array([0.0, 0.0], dtype=float)
