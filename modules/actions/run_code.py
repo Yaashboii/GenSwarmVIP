@@ -5,7 +5,6 @@ import traceback
 from typing import Tuple
 
 from modules.actions.action import Action
-from modules.const import WORKSPACE_ROOT
 from modules.utils import call_reset_environment, read_file
 from modules.llm.gpt import GPT
 from modules.utils.common import BugSource, TestResult
@@ -93,9 +92,9 @@ class RunCode(Action):
         outs, errs = "", ""
         if mode == "script":
             # Note: must call call_reset_environment before and after running the script
-            call_reset_environment(True)
-            outs, errs = self._run_script(working_directory=WORKSPACE_ROOT, command=command)
-            call_reset_environment(True)
+            from modules.const import WORKSPACE_ROOT
+
+            outs, errs = await self._run_script(working_directory=WORKSPACE_ROOT, command=command)
 
         self._logger.info(f"Outs: {outs}")
         self._logger.error(f"Errs: {errs}")
