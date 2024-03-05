@@ -2,11 +2,12 @@ import numpy as np
 
 
 class Robot:
-    def __init__(self, robot_id, initial_position, max_speed=2.0):
-        self._robot_id = robot_id
+    def __init__(self, robot_id, initial_position, max_speed=2.0, communication_range=2.0):
+        self._id = robot_id
         self._position = np.array(initial_position, dtype=float)
         self._velocity = np.array([0.0, 0.0], dtype=float)
         self._max_speed = max_speed
+        self._communication_range = communication_range
         self._history = [self._position.copy()]
 
     @property
@@ -37,8 +38,12 @@ class Robot:
         self._history = value
 
     @property
-    def robot_id(self):
-        return self._robot_id
+    def id(self):
+        return self._id
+
+    @property
+    def communication_range(self):
+        return self._communication_range
 
     @property
     def max_speed(self):
@@ -70,6 +75,10 @@ class Robots:
     def positions(self):
         self._positions = np.array([robot.position for robot in self._robots])
         return self._positions
+
+    @property
+    def robots(self):
+        return self._robots
 
     @positions.setter
     def positions(self, new_positions):

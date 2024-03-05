@@ -9,6 +9,7 @@ from std_msgs.msg import Float32MultiArray
 from std_srvs.srv import SetBool, SetBoolResponse
 
 from robot import Robots, Leader
+from manager import Manager
 
 
 class Env:
@@ -27,7 +28,8 @@ class Env:
         self._dt = dt
         self._render_interval = render_interval
         self._leader_speed = leader_speed
-        self._robots = Robots(n_robots, self._size)
+        self._manager = Manager(n_robots, size)
+        self._robots = self._manager.robots
         if if_leader:
             self._leader = Leader(initial_position=(0, 0))
             self._leader_publisher = rospy.Publisher('/leader/position', Float32MultiArray, queue_size=1)
@@ -37,8 +39,6 @@ class Env:
         self._position_publisher = rospy.Publisher('/robots/position', Float32MultiArray, queue_size=1)
         self._reset_service = rospy.Service('/reset_environment', SetBool, self.reset_environment_callback)
         rospy.set_param('robots_num', n_robots)
-        rospy.Subscriber('/robots/velocity', Float32MultiArray, self.velocity_callback, callback_args=self._robots)
-
         # flag to indicate if the test is running,if running, the robots will save their positions to history
         self._run_test = False
         # flag to indicate if the frames should be rendered
@@ -47,14 +47,6 @@ class Env:
 
         # counter for total run time
         self._run_time = 0
-
-    @staticmethod
-    def velocity_callback(data, robots):
-        """
-        velocity_callback is a callback function for the velocity topic.
-        """
-        print("Received velocity")
-        robots.velocities = np.array(data.data).reshape(-1, 2)
 
     def reset_environment_callback(self, req):
         """
@@ -158,5 +150,5 @@ def generate_video_from_frames(frames_folder, video_path, fps=10):
 
 
 if __name__ == "__main__":
-    env = Env(if_leader=True, n_robots=100, size=(10, 10))
+    env = Env(if_leader=False, n_robots=5, size=(10, 10))
     env.run()
