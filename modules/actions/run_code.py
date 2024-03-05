@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 import subprocess
@@ -63,23 +64,25 @@ class RunCode(Action):
             # If there is an error in the code, return the error message
             return "", traceback.format_exc()
 
-    def _run_script(self, working_directory, command=[]) -> Tuple[str, str]:
+    async def _run_script(self, working_directory, command=[]) -> Tuple[str, str]:
         working_directory = str(working_directory)
-        # Copy the current environment variables
         env = os.environ.copy()
 
-        # Start the subprocess
-        process = subprocess.Popen(
-            command, cwd=working_directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            cwd=working_directory,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env
         )
 
         try:
-            # Wait for the process to complete, with a timeout
-            stdout, stderr = process.communicate(timeout=20)
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60)
             return stdout.decode("utf-8"), stderr.decode("utf-8")
-        except subprocess.TimeoutExpired:
+        except asyncio.TimeoutError:
             self._logger.info("The command did not complete within the given timeout.")
-            process.kill()  # Kill the process if it times out
+            process.kill()
+            await process.wait()
             stdout, stderr = '', 'The command did not complete within the given timeout.'
             return stdout, stderr
         except Exception as e:
