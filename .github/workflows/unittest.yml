@@ -11,15 +11,12 @@ jobs:
 
     services:
       docker:
-        image: docker:19.03.12
+        image: huabench/code-llm
         options: --privileged
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
       
-    - name: Build Docker image
-      run: docker build -t my_project_test .
-      
     - name: Run unit tests in Docker container
-      run: docker run my_project_test python -m unittest discover -v
+      run: docker run huabench/code-llm python -m unittest discover -v
