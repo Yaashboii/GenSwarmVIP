@@ -3,14 +3,14 @@ import threading
 from pathlib import Path
 
 ENV_DES = '''
-below are the basic information of the environment and robots:
+below are the basic information of the environment and robot:
 environment:
     size: 10m x 10m
     Obstacles: None
     X-axis: -5m to 5m
     Y-axis: -5m to 5m
     
-Robots: 
+Robot: 
     Max Speed: 2m/s
     Control: velocity control
     Max Control Frequency: 20Hz
@@ -18,51 +18,34 @@ Robots:
 '''
 
 ROBOT_API = """
-
-def get_robot_position_by_id(robot_id):
+def get_position():
     '''
-    Get the position of a robot with the given ID.
+    Get the position of the robot.
+    Returns:
+    - numpy.ndarray: The position of the robot.
 
-    Input:
-    - robot_id(int): The ID of the robot to retrieve.
-
-    Output:
-    - numpy.ndarray(float,float) : The position of the robot.
     '''
 
-def set_robot_velocity_by_id(robot_id, velocity):
-    '''
-    Set the velocity of a robot with the given ID.
 
-    Input:
-    - robot_id(int): The ID of the robot to set the velocity for.
-    Output:
-    -  numpy.ndarray(float,float): The new velocity to set.
+def set_velocity(velocity):
+    '''
+    Set the velocity of the robot.
+
+    Parameters:
+    - velocity (numpy.ndarray): The new velocity to set.
     '''
 
-def get_all_robot_ids():
-    '''
-    Get a list of all existing robot IDs.
 
-    Output:
-    - list[int] : A list containing all the robot IDs.
+def get_observation():
     '''
-    
-def get_robots_count():
-    '''
-    Get the total number of robots.
+    Retrieve the positions and velocities of other robots within the field of view, focusing on 2D spatial information.
 
     Returns:
-    - int: The total number of robots.
-    '''
-    
-    
-def get_leader_position():
-    '''
-    Get the position of the leader robot.
-
-    Returns:
-    - numpy.ndarray: The position of the leader robot.
+    - A list of dictionaries, each containing:
+      - 'position': A numpy array representing the robot's 2D position (x, y coordinates).
+      - 'velocity': A numpy array representing the robot's 2D velocity (x, y components).
+    if the robot is not able to observe any other robots, an empty list is returned.
+    This format provides a straightforward way to access each observed robot's 2D position and velocity information.
     '''
 """
 LEADER_API = """

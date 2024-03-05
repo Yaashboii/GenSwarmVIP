@@ -3,7 +3,7 @@ from modules.actions import AnalyzeReqs
 from modules.const import ROBOT_API, ENV_DES
 
 PROMPT_TEMPLATE: str = """
-There are some ground-moving robots in the room, and users will issue commands to direct their movement. 
+You are a robot with the ability to move and perceive.
 You need to understand the user's commands and then analyze these commands. Consider what functions are needed to meet the user's requirements.
 {env_des}
 user requirements:{instruction}
