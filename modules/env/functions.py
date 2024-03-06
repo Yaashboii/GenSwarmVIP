@@ -42,6 +42,8 @@ def initialize_ros_node():
         print(f"Waiting for position message from /robot_{robot_id}/observation...")
         msg = rospy.wait_for_message(f'/robot_{robot_id}/observation', Observations)
         position = np.array([msg.position.x, msg.position.y])
+        robot_velocity = np.array([0.0, 0.0])
+
         print(f"Observations data init successfully")
 
         # timer to publish velocity in a fixed frequency of 100Hz
@@ -66,6 +68,17 @@ def get_position():
     initialize_ros_node()
     global position
     return position
+
+
+def get_velocity():
+    """
+    Get the velocity of the robot.
+    Returns:
+    - numpy.ndarray: The velocity of the robot.
+    """
+    initialize_ros_node()
+    global robot_velocity
+    return robot_velocity
 
 
 def set_velocity(velocity):

@@ -36,6 +36,14 @@ def set_velocity(velocity):
     '''
 
 
+def get_velocity():
+    '''
+    Get the velocity of the robot.
+    Returns:
+    - numpy.ndarray: The velocity of the robot.
+    '''
+
+
 def gather_field_view_data():
     '''
     Get the other robots' positions and velocities within the field of view.
