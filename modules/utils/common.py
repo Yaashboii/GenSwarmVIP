@@ -57,12 +57,14 @@ def write_file(directory, filename, content):
     print(f"File written: {file_path}")
     return file_path
 
+
 def append_file(directory, filename, content):
     file_path = os.path.join(directory, filename)
     with open(file_path, 'a') as file:
         file.write(content)
     print(f"Log appended: {file_path}")
     return file_path
+
 
 def copy_folder(source_folder, destination_folder):
     try:
@@ -171,7 +173,7 @@ def call_reset_environment(data: bool):
         resp = reset_environment(data)
         return resp.success, resp.message
     except rospy.ServiceException as e:
-        print("Service call failed: %s" % e)
+        print(f"Service call failed: {e}")
 
 
 def get_param(param_name):

@@ -46,6 +46,7 @@ def gather_field_view_data():
     if the robot is not able to observe any other robots, an empty list is returned.
     '''
 """
+
 LEADER_API = """
 def get_leader_position():
     '''
@@ -94,9 +95,7 @@ GLOBAL_LOCK = threading.Lock()
 def set_workspace_root(workspace_root: str):
     global WORKSPACE_ROOT, DATA_PATH, ENV_PATH
 
-    # 创建一个PosixPath对象
     WORKSPACE_ROOT = Path(workspace_root)
 
-    # 使用Path对象的操作来设置DATA_PATH和ENV_PATH
     DATA_PATH = WORKSPACE_ROOT / "data"
     ENV_PATH = WORKSPACE_ROOT / "env"
