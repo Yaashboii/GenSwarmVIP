@@ -22,7 +22,7 @@ cd code_llm
 
 - 把Github上的 CodeLLM中全部文件复制到code_llm包中, 粘贴完如下图所示:
 
-<img src="assets/codellm.png" alt="codellm" style="zoom:67%;" />
+<img src="assets/files.png" alt="codellm" style="zoom:67%;" />
 
 ### 1.3 编译工作空间
 
@@ -47,7 +47,7 @@ export PYTHONPATH=/home/{替换你的用户名}/{替换工作空间名}/devel/li
 export PYTHONPATH=/opt/ros/noetic/lib/python3/dist-packages:$PYTHONPATH  # 根据实际的ubuntu版本进行调整
 ```
 
-- 打开一个新的Terminal
+- 打开一个新的Terminal, 运行仿真
 
 ```
 cd 工作空间/src/code_llm/modules/env
@@ -58,7 +58,8 @@ python environment.py
 ### 1.5 配置pycharm中的路径
 
 配置后可在 pycharm 中引用 rospy 以及编译的消息文件。
-使用vscode可以将下面这段代码配置进settings.json中。
+
+- 在vscode中, 可以将下面这段代码配置进settings.json中。
 
 ```json
 {
@@ -69,7 +70,7 @@ python environment.py
 }
 ```
 
-- 同样地, 手动给python interpreter添加***code_llm***和***ros***包的路径, 如图中倒数两行(added by user)所示:
+- 在pycharm中, 手动给python interpreter添加***code_llm***和***ros***包的路径, 如图中倒数两行(added by user)所示:
 
 <img src="assets/path.png" alt="path" style="zoom:67%;" />
 
@@ -81,7 +82,7 @@ python environment.py
 
 ```
 cd 工作空间/src/code_llm/modules/env
-conda activate conda环境名 # 激活conda环境
+conda activate conda环境名 # 激活conda环境 版本py 3.10
 python environment.py
 ```
 > note: 注意在运行前，先运行 environment.py
