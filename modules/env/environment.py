@@ -9,7 +9,7 @@ from matplotlib.ticker import MultipleLocator
 from std_msgs.msg import Float32MultiArray
 from std_srvs.srv import SetBool, SetBoolResponse
 
-from robot import Robots, Leader
+from robot import Leader
 from manager import Manager
 
 
@@ -37,7 +37,6 @@ class Env:
         else:
             self._leader = None
         self._robots_initial_positions = self._robots.positions.copy()
-        self._position_publisher = rospy.Publisher('/robots/position', Float32MultiArray, queue_size=1)
         self._reset_service = rospy.Service('/reset_environment', SetBool, self.reset_environment_callback)
         rospy.set_param('robots_num', n_robots)
         # flag to indicate if the test is running,if running, the robots will save their positions to history
@@ -45,6 +44,8 @@ class Env:
         # flag to indicate if the frames should be rendered
         self._render_frames = False
         self._fig, self._ax = plt.subplots()
+        # path to save the frames
+        self._data_path = None
 
         # counter for total run time
         self._run_time = 0
@@ -69,12 +70,16 @@ class Env:
         Reset the environment to its initial state.
         """
         self._run_test = not self._run_test
+        # update the data path
+
+        self._data_path = rospy.get_param('data_path', '.')
         if not self._run_test:
             self._robots.positions = self._robots_initial_positions.copy()
             self._robots.velocities = np.zeros_like(self._robots.velocities)
             self._robots.history = [self._robots.positions.copy()]
-            data_path = rospy.get_param('data_path', '.')
-            generate_video_from_frames(frames_folder=f'{data_path}/frames', video_path=f'{data_path}/video.mp4')
+
+            generate_video_from_frames(frames_folder=f'{self._data_path}/frames',
+                                       video_path=f'{self._data_path}/video.mp4')
             print("Test stopped! Waiting for new test...")
             print("Environment reset successful!")
         else:
@@ -86,7 +91,6 @@ class Env:
                 self._leader.move(self._leader_speed, self._dt)
                 self._leader_publisher.publish(Float32MultiArray(data=self._leader.position))
             self._robots.move_robots(self._dt)
-            self._position_publisher.publish(Float32MultiArray(data=self._robots.positions.flatten().tolist()))
             self._run_time += 1
             if self._run_time % self._render_interval == 0:
                 self.render()
@@ -103,13 +107,10 @@ class Env:
             show_len = min(60, traj_len)
             self._ax.plot(self._robots.history[-show_len:, i, 0],
                           self._robots.history[-show_len:, i, 1],
-                          '.',
-                          markersize=1,
                           label=f"Robot {i} path")
             self._ax.plot(self._robots.history[-1, i, 0],
                           self._robots.history[-1, i, 1],
                           'o',
-                          markersize=4,
                           label=f"Robot {i} position")
         if self._leader:
             self._ax.plot(self._leader.position[0], self._leader.position[1],
@@ -126,11 +127,8 @@ class Env:
         if self._render_frames:
             plt.draw()
             plt.pause(0.001)  # This is necessary for the plot to update
-        data_path = rospy.get_param('data_path', '.')
-        if data_path == '.':
-            print("data_path not set, save frames to current directory")
         frame_id = len(self._robots.history)
-        plt.savefig(f'{data_path}/frames/{frame_id}.png')
+        plt.savefig(f'{self._data_path}/frames/{frame_id}.png')
 
     def run(self):
         print("Environment started!")
@@ -142,7 +140,18 @@ class Env:
 
 
 def generate_video_from_frames(frames_folder, video_path, fps=10):
-    frame_files = sorted(os.listdir(frames_folder), key=lambda x: int(re.search(r'\d+', x).group()))
+    try:
+        frame_files = sorted(
+            [file for file in os.listdir(frames_folder) if re.search(r'\d+', file)],
+            key=lambda x: int(re.search(r'\d+', x).group())
+        )
+    except Exception as e:
+        print(f"Error sorting frame files: {e}")
+        return
+
+    if not frame_files:
+        print("No frames found in the folder.")
+        return
     frame_files = [os.path.join(frames_folder, file) for file in frame_files]
 
     frame = cv2.imread(frame_files[0])
@@ -160,5 +169,5 @@ def generate_video_from_frames(frames_folder, video_path, fps=10):
 
 
 if __name__ == "__main__":
-    env = Env(if_leader=False, n_robots=10, size=(5, 5))
+    env = Env(if_leader=False, n_robots=10, size=(10, 10))
     env.run()
