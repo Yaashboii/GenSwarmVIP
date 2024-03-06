@@ -42,5 +42,5 @@ if __name__ == '__main__':
     run_test = RunningStage(RunCode())
     from modules.prompt.const import set_workspace_root
 
-    set_workspace_root('/home/ubuntu/Desktop/CodeLLM/workspace/2024-03-05_20-03-52')
+    set_workspace_root('/home/ubuntu/Desktop/CodeLLM/workspace/2024-03-06_09-56-18')
     asyncio.run(run_test.run())

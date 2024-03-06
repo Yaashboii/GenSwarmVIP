@@ -20,7 +20,7 @@ cd code_llm
 
 ### 1.2 加入包文件
 
-- 把Github上的 CodeLLM中全部文件复制到code_llm包中, 粘贴完如下图所示:
+- 把Github上的 CodeLLM中**全部文件复制**到code_llm包中, 粘贴完如下图所示:
 
 <img src="assets/files.png" alt="codellm" style="zoom:67%;" />
 
@@ -33,7 +33,7 @@ cd 工作空间
 # 需要安装python3-em
 sudo apt install python3-em
 
-catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 需要根据实际的python解释器位置更改路径
+catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 需要根据实际的本地python解释器位置更改路径, ubuntu 18为/usr/bin/python, 20为/usr/bin/python3. 此外python不能是anaconda的, 因其无法访问pip install的pkg. 
 ```
 
 ### 1.4 运行仿真环境
@@ -43,7 +43,7 @@ catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 需要根据实际的python
 ```
 gedit ~/.bashrc
 加入以下内容: 
-export PYTHONPATH=/home/{替换你的用户名}/{替换工作空间名}/devel/lib/python3/dist-packages:$PYTHONPATH
+export PYTHONPATH=/home/{替换你的用户名}/{替换工作空间名}/devel/lib/python3/dist-packages:$PYTHONPATH  #根据实际python版本调整
 export PYTHONPATH=/opt/ros/noetic/lib/python3/dist-packages:$PYTHONPATH  # 根据实际的ubuntu版本进行调整
 ```
 
@@ -51,15 +51,13 @@ export PYTHONPATH=/opt/ros/noetic/lib/python3/dist-packages:$PYTHONPATH  # 根�
 
 ```
 cd 工作空间/src/code_llm/modules/env
-conda activate pyxxx   # 选择使用哪个python来运行, 这里展示了conda的情况. py要3.10即可
-python environment.py
+conda activate pyxxx   # 选择使用哪个python来运行, 这里是使用的conda的python. py要3.10即可
+python environment.py  # 运行仿真环境
 ```
 
-### 1.5 配置pycharm中的路径
+### 1.5 配置引用路径
 
-配置后可在 pycharm 中引用 rospy 以及编译的消息文件。
-
-- 在vscode中, 可以将下面这段代码配置进settings.json中。
+- 方式1 在vscode中, 可以将下面这段代码配置进settings.json中。
 
 ```json
 {
@@ -70,7 +68,7 @@ python environment.py
 }
 ```
 
-- 在pycharm中, 手动给python interpreter添加***code_llm***和***ros***包的路径, 如图中倒数两行(added by user)所示:
+- 方式2 在pycharm中, 手动给python interpreter添加***code_llm***和***ros***包的路径, 如图中倒数两行(added by user)所示:
 
 <img src="assets/path.png" alt="path" style="zoom:67%;" />
 
