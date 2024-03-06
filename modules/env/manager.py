@@ -51,4 +51,3 @@ class Manager:
             ]
 
             self._pub_list[i].publish(observations_msg)
-            print(f'published observations for robot {i}')

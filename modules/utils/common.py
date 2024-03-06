@@ -81,20 +81,15 @@ def check_file_exists(directory, filename):
     return os.path.exists(file_path)
 
 
-def write_file(directory, filename, content):
+def write_file(directory, filename, content, mode='w'):
     file_path = os.path.join(directory, filename)
-    with open(file_path, 'w') as file:
+    with open(file_path, mode) as file:
         file.write(content)
 
-    print(f"File written: {file_path}")
+    operation = "written" if mode == 'w' else "appended"
+    print(f"File {operation}: {file_path}")
     return file_path
 
-def append_file(directory, filename, content):
-    file_path = os.path.join(directory, filename)
-    with open(file_path, 'a') as file:
-        file.write(content)
-    print(f"Log appended: {file_path}")
-    return file_path
 
 def copy_folder(source_folder, destination_folder):
     try:
@@ -111,6 +106,7 @@ def init_workspace():
         os.makedirs(os.path.join(WORKSPACE_ROOT, 'data/frames'))
         utils = read_file(os.path.join(PROJECT_ROOT, 'modules/env'), 'functions.py')
         write_file(WORKSPACE_ROOT, 'functions.py', utils)
+        set_param('data_path', str(DATA_PATH))
     print(f"Workspace initialized at {WORKSPACE_ROOT}")
 
 
@@ -208,6 +204,11 @@ def call_reset_environment(data: bool):
 
 def get_param(param_name):
     return rospy.get_param(param_name)
+
+
+def set_param(param_name, param_value):
+    rospy.set_param(param_name, param_value)
+    print(f"Setting param {param_name} to {param_value}")
 
 
 def set_workspace_root(workspace_root: str):
