@@ -1,5 +1,6 @@
 WRITE_FUNCTION_PROMPT_TEMPLATE = """
 You need to complete this function, making maximum reuse of existing functions.
+These are the environment description: {env_des}
 These are the basic Robot APIs:
 {robot_api}
 These are existing functions:
@@ -33,11 +34,11 @@ The generated result should be in the following fields:
 explanation: think step by step. How to translate the sequence diagram into Python code.
 python code: Translate the sequence diagram into corresponding Python code. ```python\n <your response>```
 
-The output format is as follows:
-{{
+The output  TEXT format is as follows:
+
 explanation: <explanation>
 python code: <python code>
-}}
+
 
 Sequence Diagram: {sequence_diagram}
 """.strip()

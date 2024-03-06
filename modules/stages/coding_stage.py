@@ -26,7 +26,8 @@ class CodingStage(Stage):
     async def _write_function(self, function: str, index, other_functions: list[str]):
         result = await self._action.run(
             prompt=WRITE_FUNCTION_PROMPT_TEMPLATE.format(
-                env_api=ROBOT_API,
+                env_des=ENV_DES,
+                robot_api=ROBOT_API,
                 function=function,
                 other_functions="\n".join(other_functions)
             ),

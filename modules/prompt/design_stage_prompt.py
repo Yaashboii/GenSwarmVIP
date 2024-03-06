@@ -16,11 +16,10 @@ function list: write the function list in the following format, ```python\n<your
 - To avoid complexity, functions only need to provide the function name and docstring; you cannot write out the function body. You only need to design rather than write code.
 - Every function should provide a detailed description of its functionality as well as any constraints that may need to be considered.
 
-The output format is as follows:
-{{
+The output TEXT format is as follows:
 explanation: <explanation>
 function list: <function list>"
-}}
+
 
 Analysis: {analysis}
 """.strip()
@@ -47,11 +46,10 @@ The generated result should be in the following fields:
 explanation: think step by step. How do you make the diagram conform to the algorithm?
 sequence diagram: use Mermaid's sequenceDiagram to write sequence diagram, ```mermaid\nsequenceDiagram\n <your response>```
 
-The output format is as follows:
-{{
+The output TEXT  format is as follows:
 explanation: <explanation>
 sequence diagram: <sequence diagram>
-}}
+
 
 User requirements: {analysis}
 """.strip()

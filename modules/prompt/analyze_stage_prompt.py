@@ -11,11 +11,9 @@ Functional Requirements:List the functions expected to be developed based on use
 For each function, briefly describe its purpose and expected outcome.
 These functions should be decoupled from each other.
 
-The output format is as follows:
-{{
+The output TEXT format is as follows:
 User Requirement: <User Requirement>
 Functional Requirements: <Functional Requirements>
-}}
 
 User requirements: {instruction}
 """.strip()
