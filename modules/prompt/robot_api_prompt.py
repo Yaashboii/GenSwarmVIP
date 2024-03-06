@@ -21,6 +21,14 @@ def set_velocity(velocity):
     '''
 
 
+def get_velocity():
+    '''
+    Get the velocity of the robot.
+    Returns:
+    - numpy.ndarray: The velocity of the robot.
+    '''
+
+
 def gather_field_view_data():
     '''
     Description: Get the other robots' positions and velocities within the field of view.
@@ -46,6 +54,7 @@ def get_leader_position():
     - numpy.ndarray: The position of the leader robot.
     '''
 """.strip()
+
 
 def get_robot_api(leader=False):
     if leader:
