@@ -1,10 +1,11 @@
 import asyncio
 import os
+import sys
 import traceback
 from typing import Tuple
 
 from modules.actions.action import Action
-from modules.prompt.run_code_prompt import PROMPT_TEMPLATE,CONTEXT
+from modules.prompt.run_code_prompt import PROMPT_TEMPLATE, CONTEXT
 
 
 class RunCode(Action):
@@ -21,7 +22,7 @@ class RunCode(Action):
             # If there is an error in the code, return the error message
             return "", traceback.format_exc()
 
-    async def _run_script(self, working_directory, command=[]) -> Tuple[str, str]:
+    async def _run_script(self, working_directory, command=[], print_output=True) -> Tuple[str, str]:
         working_directory = str(working_directory)
         env = os.environ.copy()
 
@@ -33,18 +34,43 @@ class RunCode(Action):
             env=env
         )
 
+        stdout_chunks, stderr_chunks = [], []
+
+        # Simplified stream reading with direct print control
+        async def read_stream(stream, accumulate, is_stdout=True):
+            while True:
+                line_bytes = await stream.readline()
+                if not line_bytes:
+                    break
+                line = line_bytes.decode('utf-8')
+                accumulate.append(line)
+                if print_output:
+                    print(line, end='' if is_stdout else '', file=sys.stderr if not is_stdout else None)
+
         try:
-            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60)
-            return stdout.decode("utf-8"), stderr.decode("utf-8")
+            # Gather stdout and stderr concurrently
+            await asyncio.gather(
+                read_stream(process.stdout, stdout_chunks, is_stdout=True),
+                read_stream(process.stderr, stderr_chunks, is_stdout=False)
+            )
+
+            # Wait for process to complete
+            await process.wait()
+
         except asyncio.TimeoutError:
             self._logger.info("The command did not complete within the given timeout.")
             process.kill()
             await process.wait()
-            stdout, stderr = '', 'The command did not complete within the given timeout.'
-            return stdout, stderr
+            return '', 'The command did not complete within the given timeout.'
         except Exception as e:
             self._logger.error(f"An error occurred while running the command: {e}")
             return '', f"An error occurred while running the command: {e}"
+
+        # Join collected lines into single strings
+        stdout = ''.join(stdout_chunks)
+        stderr = ''.join(stderr_chunks)
+        return stdout, stderr
+
 
     async def _run(self, code_info, mode="script", **kwargs) -> str:
         command = code_info["command"]

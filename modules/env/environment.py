@@ -18,7 +18,7 @@ class Env:
             self,
             size=(10, 10),
             n_robots=3,
-            dt=0.1,
+            dt=0.01,
             if_leader=False,
             leader_speed=2.0,
             render_interval=10,
