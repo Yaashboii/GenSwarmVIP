@@ -22,7 +22,12 @@ Please finish the following function:
 
 WRITE_RUN_PROMPT_TEMPLATE = """
 You are a robot, you need to translate the sequence diagram into Python code.
+Sequence Diagram: {sequence_diagram}
 These are the environment description: {env_des}
+
+The list of functions you can call is as follows:
+{robot_api}
+{function_list}
 
 constrains: 
 1. You can't define any new functions.
@@ -39,6 +44,4 @@ The output  TEXT format is as follows:
 explanation: <explanation>
 python code: <python code>
 
-
-Sequence Diagram: {sequence_diagram}
 """.strip()

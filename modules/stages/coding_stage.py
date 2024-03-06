@@ -17,8 +17,10 @@ class CodingStage(Stage):
 
     async def _write_run(self):
         sequence_diagram = self._context.sequence_diagram.message
+        function_list_str = "\n".join(self._context.function_list)
         result = await self._action.run(
-            prompt=WRITE_RUN_PROMPT_TEMPLATE.format(sequence_diagram=sequence_diagram, env_des=ENV_DES),
+            prompt=WRITE_RUN_PROMPT_TEMPLATE.format(sequence_diagram=sequence_diagram, env_des=ENV_DES,
+                                                    robot_api=ROBOT_API, function_list=function_list_str),
             filename=f"run.py"
         )
         return result
