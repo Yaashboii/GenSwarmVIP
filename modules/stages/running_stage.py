@@ -23,12 +23,17 @@ class RunningStage(Stage):
         robot_num = get_param('robots_num')
         tasks = []
 
-        call_reset_environment(True)
-        for robot_id in range(robot_num):
-            task = asyncio.create_task(self._run_code(robot_id))
-            tasks.append(task)
-        result_list = await asyncio.gather(*tasks)
-        call_reset_environment(True)
+        try:
+            call_reset_environment(True)
+            for robot_id in range(robot_num):
+                task = asyncio.create_task(self._run_code(robot_id))
+                tasks.append(task)
+            result_list = await asyncio.gather(*tasks)
+        except Exception as e:
+            self._logger.error(f"An error occurred while running the command: {e}")
+            result_list = [f"An error occurred while running the command: {e}"]
+        finally:
+            call_reset_environment(True)
 
         return '\n'.join(result_list)
 
