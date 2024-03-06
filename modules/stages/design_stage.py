@@ -1,7 +1,8 @@
 from modules.framework.workflow_context import FileStatus
 from modules.stages.stage import Stage, StageResult
 from modules.actions import DesignFunction, WriteSeqDiagram
-from modules.prompt.const import ROBOT_API, ENV_DES
+from modules.prompt.robot_api_prompt import ROBOT_API
+from modules.prompt.env_description_prompt import ENV_DES
 from modules.utils import DesignPattern
 from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE,WriteSeqDiagram_PROMPT_TEMPLATE
 

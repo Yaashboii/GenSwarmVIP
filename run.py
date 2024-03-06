@@ -11,9 +11,6 @@ def main(task: str):
     workflow = Workflow(task)
     asyncio.run(workflow.run())
 
-
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run simulation with custom parameters.")
     # TODO: add more arguments and use them in the simulation
@@ -23,8 +20,9 @@ if __name__ == "__main__":
 
     task_list = [
         "Forming flocking with other robots.",
+        "Flocking with other robots to form a square",
         "form a circle with the robots at the position of leader robot",
     ]
     # TODO: fix bug when run multiple tasks
     # for task in task_list:
-    main(task_list[0])
+    main(task_list[1])

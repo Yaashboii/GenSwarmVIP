@@ -1,6 +1,7 @@
 from modules.stages.stage import Stage, StageResult
 from modules.actions import AnalyzeReqs
-from modules.prompt.const import ROBOT_API, ENV_DES
+from modules.prompt.robot_api_prompt import ROBOT_API
+from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.analyze_stage_prompt import PROMPT_TEMPLATE
 
 

@@ -52,7 +52,7 @@ class RunCode(Action):
         outs, errs = "", ""
         if mode == "script":
             # Note: must call call_reset_environment before and after running the script
-            from modules.prompt.const import WORKSPACE_ROOT
+            from modules.utils.common import WORKSPACE_ROOT
 
             outs, errs = await self._run_script(working_directory=WORKSPACE_ROOT, command=command)
 

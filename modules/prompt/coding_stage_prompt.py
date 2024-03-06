@@ -1,8 +1,8 @@
 WRITE_FUNCTION_PROMPT_TEMPLATE = """
 You need to complete this function, making maximum reuse of existing functions.
-Environment APIs:
-
-{env_api}
+These are the basic Robot APIs:
+{robot_api}
+These are existing functions:
 {other_functions}
 
 The functions you generate need to comply with the following constraints.
@@ -17,23 +17,27 @@ constrains:
 
 Please finish the following function:
 {function}
-
-"""
+""".strip()
 
 WRITE_RUN_PROMPT_TEMPLATE = """
-you need to translate the sequence diagram into Python code.
-Sequence Diagram:
-{sequence_diagram}
-{env_des}
+You are a robot, you need to translate the sequence diagram into Python code.
+These are the environment description: {env_des}
+
 constrains: 
 1. You can't define any new functions.
 3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. 
 3. All functions that appear in the sequence diagram do not need to be imported. However, if you need to use external libraries, you must import them correctly.
 4. Ensure the generated code contains a 'if __name__ == '__main__':' statement and can be executed directly
-You should respond to with:
-0)explanation: think step by step. How to translate the sequence diagram into Python code.
-2)python code: Translate the sequence diagram into corresponding Python code. ```python\n <your response>```
-You should only respond in the format as described below :
-0)explanation:
-1)python code:
-"""
+
+The generated result should be in the following fields:
+explanation: think step by step. How to translate the sequence diagram into Python code.
+python code: Translate the sequence diagram into corresponding Python code. ```python\n <your response>```
+
+The output format is as follows:
+{{
+explanation: <explanation>
+python code: <python code>
+}}
+
+Sequence Diagram: {sequence_diagram}
+""".strip()

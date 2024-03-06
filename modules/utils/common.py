@@ -6,6 +6,38 @@ import rospy
 from typing import Any
 from enum import Enum
 from std_srvs.srv import SetBool
+import datetime
+import threading
+from pathlib import Path
+
+
+def get_project_root():
+    """Search upwards to find the project root directory."""
+    current_path = Path.cwd()
+    while True:
+        if (
+                (current_path / ".git").exists()
+                or (current_path / ".project_root").exists()
+                or (current_path / ".gitignore").exists()
+        ):
+            # use metagpt with git clone will land here
+            return current_path
+        parent_path = current_path.parent
+        if parent_path == current_path:
+            # use metagpt with pip install will land here
+            cwd = Path.cwd()
+            return cwd
+        current_path = parent_path
+
+
+current_datetime = datetime.datetime.now()
+formatted_date = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
+PROJECT_ROOT = get_project_root()
+WORKSPACE_ROOT = PROJECT_ROOT / f"workspace/{formatted_date}"
+DATA_PATH = WORKSPACE_ROOT / "data"
+ENV_PATH = WORKSPACE_ROOT / "env"
+
+GLOBAL_LOCK = threading.Lock()
 
 
 class TestResult(Enum):
@@ -73,7 +105,7 @@ def copy_folder(source_folder, destination_folder):
 
 
 def init_workspace():
-    from modules.prompt.const import WORKSPACE_ROOT, PROJECT_ROOT
+    global WORKSPACE_ROOT, PROJECT_ROOT
     if not os.path.exists(WORKSPACE_ROOT):
         os.makedirs(WORKSPACE_ROOT)
         os.makedirs(os.path.join(WORKSPACE_ROOT, 'data/frames'))
@@ -176,3 +208,14 @@ def call_reset_environment(data: bool):
 
 def get_param(param_name):
     return rospy.get_param(param_name)
+
+
+def set_workspace_root(workspace_root: str):
+    global WORKSPACE_ROOT, DATA_PATH, ENV_PATH
+
+    # 创建一个PosixPath对象
+    WORKSPACE_ROOT = Path(workspace_root)
+
+    # 使用Path对象的操作来设置DATA_PATH和ENV_PATH
+    DATA_PATH = WORKSPACE_ROOT / "data"
+    ENV_PATH = WORKSPACE_ROOT / "env"

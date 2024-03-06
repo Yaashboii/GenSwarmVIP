@@ -40,7 +40,7 @@ class RunningStage(Stage):
 
 if __name__ == '__main__':
     run_test = RunningStage(RunCode())
-    from modules.prompt.const import set_workspace_root
+    from modules.utils.common import set_workspace_root
 
-    set_workspace_root('/home/ubuntu/Desktop/CodeLLM/workspace/2024-03-06_09-56-18')
+    set_workspace_root('/home/ubuntu/Desktop/CodeLLM/workspace/2024-03-06_14-40-37')
     asyncio.run(run_test.run())

@@ -103,10 +103,13 @@ class Env:
             show_len = min(60, traj_len)
             self._ax.plot(self._robots.history[-show_len:, i, 0],
                           self._robots.history[-show_len:, i, 1],
+                          '.',
+                          markersize=1,
                           label=f"Robot {i} path")
             self._ax.plot(self._robots.history[-1, i, 0],
                           self._robots.history[-1, i, 1],
                           'o',
+                          markersize=4,
                           label=f"Robot {i} position")
         if self._leader:
             self._ax.plot(self._leader.position[0], self._leader.position[1],
@@ -157,5 +160,5 @@ def generate_video_from_frames(frames_folder, video_path, fps=10):
 
 
 if __name__ == "__main__":
-    env = Env(if_leader=False, n_robots=10, size=(10, 10))
+    env = Env(if_leader=False, n_robots=10, size=(5, 5))
     env.run()
