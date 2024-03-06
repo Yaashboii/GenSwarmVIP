@@ -8,24 +8,34 @@ classDiagram
         + run()
         + create_stage()
     }
+    
+    class FinalStage {
+        <<abstract>>
+        +run(): Stage
+    }
 
-    note for Workflow "run() {
-        stage = InitialStage
-        while stage != FinalStage:
-            stage = stage.run()
-    }"
 
     class FileInfo {
         <<JSON>>
         message: string
         status: Enum
     }
-
+    
+    class FileLog {
+        + stage()
+        + prompt()
+        + response()
+        + warn()
+    }
+    
+    FileInfo --|> FileLog
+    
     class WorkflowContext {
         + user_command: string
         + class_diagram: string
         + sequence_diagram: string
         + code_files: dict~string, FileInfo~
+        + log: FileLog
     }
 
 	class GPT {
