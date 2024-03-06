@@ -29,7 +29,7 @@ class FileInfo(BaseModel):
     @property
     def message(self):
         if not self._message:
-            from modules.const import WORKSPACE_ROOT
+            from modules.prompt.const import WORKSPACE_ROOT
             self._message = read_file(WORKSPACE_ROOT, self.name)
         return self._message
 
@@ -38,7 +38,7 @@ class FileInfo(BaseModel):
         self._message = content
         if self.status == FileStatus.NOT_WRITTEN:
             self.status = FileStatus.NOT_TESTED
-        from modules.const import WORKSPACE_ROOT
+        from modules.prompt.const import WORKSPACE_ROOT
         write_file(WORKSPACE_ROOT, self.name, content)
 
 class FileLog(BaseModel):
@@ -53,14 +53,14 @@ class FileLog(BaseModel):
 
     @property
     def message(self):
-        from modules.const import WORKSPACE_ROOT
+        from modules.prompt.const import WORKSPACE_ROOT
 
         self._message = read_file(WORKSPACE_ROOT, self.name)
         return self._message
 
     @message.setter
     def message(self, content: str):
-        from modules.const import WORKSPACE_ROOT
+        from modules.prompt.const import WORKSPACE_ROOT
 
         append_file(WORKSPACE_ROOT, self.name, content)
 

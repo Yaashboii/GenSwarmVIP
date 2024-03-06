@@ -1,14 +1,9 @@
 import asyncio
 import os
-import re
-import subprocess
 import traceback
 from typing import Tuple
 
 from modules.actions.action import Action
-from modules.utils import call_reset_environment, read_file
-from modules.llm.gpt import GPT
-from modules.utils.common import BugSource, TestResult
 
 PROMPT_TEMPLATE = """
 Role: You are a senior development and qa engineer, your role is summarize the code running result.
@@ -95,7 +90,7 @@ class RunCode(Action):
         outs, errs = "", ""
         if mode == "script":
             # Note: must call call_reset_environment before and after running the script
-            from modules.const import WORKSPACE_ROOT
+            from modules.prompt.const import WORKSPACE_ROOT
 
             outs, errs = await self._run_script(working_directory=WORKSPACE_ROOT, command=command)
 
