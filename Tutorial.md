@@ -22,7 +22,7 @@ cd code_llm
 
 - 把Github上的 CodeLLM中全部文件复制到code_llm包中, 粘贴完如下图所示:
 
-<img src="aserts/codellm.png" alt="codellm" style="zoom:67%;" />
+<img src="assets/codellm.png" alt="codellm" style="zoom:67%;" />
 
 ### 1.3 编译工作空间
 
@@ -71,7 +71,7 @@ python environment.py
 
 - 同样地, 手动给python interpreter添加***code_llm***和***ros***包的路径, 如图中倒数两行(added by user)所示:
 
-<img src="aserts/path.png" alt="path" style="zoom:67%;" />
+<img src="assets/path.png" alt="path" style="zoom:67%;" />
 
 ## 2. 运行
 
