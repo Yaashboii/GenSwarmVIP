@@ -46,5 +46,11 @@ RUN /bin/bash -c "source activate py310 && pip3 install --no-cache-dir -r requir
 RUN echo "source /usr/local/miniconda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     echo "conda activate py310" >> ~/.bashrc
 
+RUN apt-get update && apt-get install -y libgl1-mesa-glx
+
+# Build connection between host and docker container
+RUN echo 'export ROS_MASTER_URI=http://$(hostname):11311' >> ~/.bashrc
+
+
 # Set the default command when the container starts
 CMD ["/bin/bash"]
