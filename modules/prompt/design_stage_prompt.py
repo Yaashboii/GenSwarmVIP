@@ -21,7 +21,6 @@ The output TEXT format is as follows:
 explanation: <explanation>
 function list: <function list>"
 
-
 Analysis: {analysis}
 """.strip()
 

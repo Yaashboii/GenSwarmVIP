@@ -33,10 +33,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     task_list = [
+        # {
+        #     "task": "Forming flocking with other robots.",
+        #     "run_times": 1
+        # },
         {
-            "task": "Forming flocking with other robots.",
+            "task": "Form a circle shape flocking with other robots.",
             "run_times": 1
         },
-
     ]
     asyncio.run(run_all_tasks_sequentially(task_list, args))
