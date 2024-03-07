@@ -32,9 +32,12 @@ class RunningStage(Stage):
         except Exception as e:
             self._logger.error(f"An error occurred while running the command: {e}")
             result_list = [f"An error occurred while running the command: {e}"]
-        # finally:
-        #     call_reset_environment(True)
-
+        finally:
+            call_reset_environment(True)
+            from modules.utils import generate_video_from_frames, root_manager
+            data_root = root_manager.data_root
+            generate_video_from_frames(frames_folder=f"{data_root}/frames",
+                                       video_path=f"{data_root}/output.mp4")
         return '\n'.join(result_list)
 
     async def _run(self) -> StageResult:
@@ -45,10 +48,8 @@ class RunningStage(Stage):
 
 if __name__ == '__main__':
     run_test = RunningStage(RunCode())
-    from modules.utils import set_workspace_root, set_param
+    from modules.utils import root_manager
 
     path = '/home/derrick/catkin_ws/src/code_llm/workspace/2024-03-07_10-57-56'
-    set_param("data_path", path + "/data")
-
-    set_workspace_root(path)
+    root_manager.update_root(path)
     asyncio.run(run_test.run())

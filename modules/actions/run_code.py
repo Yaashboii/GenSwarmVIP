@@ -22,7 +22,7 @@ class RunCode(Action):
             # If there is an error in the code, return the error message
             return "", traceback.format_exc()
 
-    async def _run_script(self, working_directory, command=[], print_output=True, timeout=10) -> Tuple[str, str]:
+    async def _run_script(self, working_directory, command=[], print_output=True) -> Tuple[str, str]:
         working_directory = str(working_directory)
         env = os.environ.copy()
 
@@ -49,6 +49,10 @@ class RunCode(Action):
 
         try:
             # Apply timeout to the gather call using asyncio.wait_for
+            if self._context.args.timeout is not None:
+                timeout = self._context.args.timeout
+            else:
+                timeout = 30
             await asyncio.wait_for(
                 asyncio.gather(
                     read_stream(process.stdout, stdout_chunks, is_stdout=True),
@@ -80,9 +84,9 @@ class RunCode(Action):
         outs, errs = "", ""
         if mode == "script":
             # Note: must call call_reset_environment before and after running the script
-            from modules.utils.common import WORKSPACE_ROOT
+            from modules.utils.root import root_manager
 
-            outs, errs = await self._run_script(working_directory=WORKSPACE_ROOT, command=command)
+            outs, errs = await self._run_script(working_directory=root_manager.workspace_root, command=command)
 
         self._logger.info(f"Outs: {outs}")
         self._logger.error(f"Errs: {errs}")

@@ -2,42 +2,12 @@ import os
 import re
 import ast
 import shutil
+
+import cv2
 import rospy
 from typing import Any
 from enum import Enum
 from std_srvs.srv import SetBool
-import datetime
-import threading
-from pathlib import Path
-
-
-def get_project_root():
-    """Search upwards to find the project root directory."""
-    current_path = Path.cwd()
-    while True:
-        if (
-                (current_path / ".git").exists()
-                or (current_path / ".project_root").exists()
-                or (current_path / ".gitignore").exists()
-        ):
-            # use metagpt with git clone will land here
-            return current_path
-        parent_path = current_path.parent
-        if parent_path == current_path:
-            # use metagpt with pip install will land here
-            cwd = Path.cwd()
-            return cwd
-        current_path = parent_path
-
-
-current_datetime = datetime.datetime.now()
-formatted_date = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
-PROJECT_ROOT = get_project_root()
-WORKSPACE_ROOT = PROJECT_ROOT / f"workspace/{formatted_date}"
-DATA_PATH = WORKSPACE_ROOT / "data"
-ENV_PATH = WORKSPACE_ROOT / "env"
-
-GLOBAL_LOCK = threading.Lock()
 
 
 class TestResult(Enum):
@@ -99,17 +69,6 @@ def copy_folder(source_folder, destination_folder):
         shutil.copytree(source_folder, destination_folder)
     except Exception as e:
         raise Exception(f"Error copying folder: {e}")
-
-
-def init_workspace():
-    global WORKSPACE_ROOT, PROJECT_ROOT
-    if not os.path.exists(WORKSPACE_ROOT):
-        os.makedirs(WORKSPACE_ROOT)
-        os.makedirs(os.path.join(WORKSPACE_ROOT, 'data/frames'))
-        utils = read_file(os.path.join(PROJECT_ROOT, 'modules/env'), 'functions.py')
-        write_file(WORKSPACE_ROOT, 'functions.py', utils)
-        set_param('data_path', str(DATA_PATH))
-    print(f"Workspace initialized at {WORKSPACE_ROOT}")
 
 
 def read_file(directory, filename):
@@ -213,12 +172,31 @@ def set_param(param_name, param_value):
     print(f"Setting param {param_name} to {param_value}")
 
 
-def set_workspace_root(workspace_root: str):
-    global WORKSPACE_ROOT, DATA_PATH, ENV_PATH
+def generate_video_from_frames(frames_folder, video_path, fps=10):
+    print(f"Generating video from frames in {frames_folder}")
+    try:
+        frame_files = sorted(
+            [file for file in os.listdir(frames_folder) if re.search(r'\d+', file)],
+            key=lambda x: int(re.search(r'\d+', x).group())
+        )
+    except Exception as e:
+        print(f"Error sorting frame files: {e}")
+        return
 
-    # 创建一个PosixPath对象
-    WORKSPACE_ROOT = Path(workspace_root)
+    if not frame_files:
+        print("No frames found in the folder.")
+        return
+    frame_files = [os.path.join(frames_folder, file) for file in frame_files]
 
-    # 使用Path对象的操作来设置DATA_PATH和ENV_PATH
-    DATA_PATH = WORKSPACE_ROOT / "data"
-    ENV_PATH = WORKSPACE_ROOT / "env"
+    frame = cv2.imread(frame_files[0])
+    height, width, layers = frame.shape
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+
+    video = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
+
+    for frame_file in frame_files:
+        video.write(cv2.imread(frame_file))
+
+    cv2.destroyAllWindows()
+    video.release()
+    print(f"Video generated: {video_path}")
