@@ -8,10 +8,26 @@ RUN apt-get update && \
     apt-get install -y python3-pip python3-rosdep python3-rospkg wget && \
     rm -rf /var/lib/apt/lists/*
 
-# Install conda
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh && \
-    bash Miniconda3-py39_4.10.3-Linux-x86_64.sh -b -p /usr/local/miniconda && \
-    rm Miniconda3-py39_4.10.3-Linux-x86_64.sh
+# # Install conda
+# RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh && \
+#     bash Miniconda3-py39_4.10.3-Linux-x86_64.sh -b -p /usr/local/miniconda && \
+#     rm Miniconda3-py39_4.10.3-Linux-x86_64.sh
+
+# Check system architecture
+RUN arch=$(uname -m) && \
+    if [ "$arch" = "x86_64" ]; then \
+        wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh && \
+        bash Miniconda3-py39_4.10.3-Linux-x86_64.sh -b -p /usr/local/miniconda && \
+        rm Miniconda3-py39_4.10.3-Linux-x86_64.sh; \
+    elif [ "$arch" = "aarch64" ]; then \
+        wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-aarch64.sh && \
+        bash Miniconda3-py39_4.10.3-Linux-aarch64.sh -b -p /usr/local/miniconda && \
+        rm Miniconda3-py39_4.10.3-Linux-aarch64.sh; \
+    else \
+        echo "Unsupported architecture: $arch"; \
+        exit 1; \
+    fi
+
 ENV PATH="/usr/local/miniconda/bin:${PATH}"
 
 # Create a conda environment with Python 3.10
