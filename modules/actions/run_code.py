@@ -22,7 +22,7 @@ class RunCode(Action):
             # If there is an error in the code, return the error message
             return "", traceback.format_exc()
 
-    async def _run_script(self, working_directory, command=[], print_output=True) -> Tuple[str, str]:
+    async def _run_script(self, working_directory, command=[], print_output=True, timeout=10) -> Tuple[str, str]:
         working_directory = str(working_directory)
         env = os.environ.copy()
 
@@ -48,36 +48,35 @@ class RunCode(Action):
                     print(line, end='' if is_stdout else '', file=sys.stderr if not is_stdout else None)
 
         try:
-            # Gather stdout and stderr concurrently
-            await asyncio.gather(
-                read_stream(process.stdout, stdout_chunks, is_stdout=True),
-                read_stream(process.stderr, stderr_chunks, is_stdout=False)
+            # Apply timeout to the gather call using asyncio.wait_for
+            await asyncio.wait_for(
+                asyncio.gather(
+                    read_stream(process.stdout, stdout_chunks, is_stdout=True),
+                    read_stream(process.stderr, stderr_chunks, is_stdout=False)
+                ),
+                timeout=timeout
             )
-
-            # Wait for process to complete
-            await process.wait()
 
         except asyncio.TimeoutError:
             self._logger.info("The command did not complete within the given timeout.")
-            # self._context.log.format_message("The command did not complete within the given timeout.","error")
             process.kill()
-            await process.wait()
-            return '', 'The command did not complete within the given timeout.'
+            stdout, stderr = await process.communicate()
+            return stdout.decode('utf-8'), 'The command did not complete within the given timeout: ' + stderr.decode(
+                'utf-8')
         except Exception as e:
             self._logger.error(f"An error occurred while running the command: {e}")
-            # self._context.log.format_message(f"An error occurred while running the command: {e}","error")
-            return '', f"An error occurred while running the command: {e}"
+            process.kill()
+            stdout, stderr = await process.communicate()
+            return stdout.decode('utf-8'), f"An error occurred while running the command: {e}"
 
         # Join collected lines into single strings
         stdout = ''.join(stdout_chunks)
         stderr = ''.join(stderr_chunks)
         return stdout, stderr
 
-
     async def _run(self, code_info, mode="script", **kwargs) -> str:
         command = code_info["command"]
         self._logger.info(f"Running {' '.join(command)}")
-
         outs, errs = "", ""
         if mode == "script":
             # Note: must call call_reset_environment before and after running the script

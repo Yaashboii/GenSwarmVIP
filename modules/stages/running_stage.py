@@ -30,11 +30,10 @@ class RunningStage(Stage):
                 tasks.append(task)
             result_list = await asyncio.gather(*tasks)
         except Exception as e:
-            # self._logger.error(f"An error occurred while running the command: {e}")
-            self._context.log.format_message(f"An error occurred while running the command: {e}", "error")
+            self._logger.error(f"An error occurred while running the command: {e}")
             result_list = [f"An error occurred while running the command: {e}"]
-        finally:
-            call_reset_environment(True)
+        # finally:
+        #     call_reset_environment(True)
 
         return '\n'.join(result_list)
 
@@ -46,7 +45,10 @@ class RunningStage(Stage):
 
 if __name__ == '__main__':
     run_test = RunningStage(RunCode())
-    from modules.utils.common import set_workspace_root
+    from modules.utils import set_workspace_root, set_param
 
-    set_workspace_root('/home/ubuntu/Desktop/CodeLLM/workspace/distribute_success')
+    path = '/home/derrick/catkin_ws/src/code_llm/workspace/2024-03-07_10-57-56'
+    set_param("data_path", path + "/data")
+
+    set_workspace_root(path)
     asyncio.run(run_test.run())

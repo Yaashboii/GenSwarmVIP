@@ -39,9 +39,10 @@ def gather_field_view_data():
     if the robot is not able to observe any other robots, an empty list is returned.
     Usage: 
     robots = gather_field_view_data()
-    for robot in robots:
-        pos = robot['position']
-        vel = robot['velocity']       
+    if robots:
+        for robot in robots:
+            pos = robot['position']
+            vel = robot['velocity']       
     '''
 """.strip()
 
