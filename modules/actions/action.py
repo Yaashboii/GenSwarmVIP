@@ -43,8 +43,8 @@ class Action(ABC):
         result = await self._llm.ask(prompt)
         # store PROMPT and RESULT in the log.md
         # make sure output them after _llm.ask(), for it's an asynchronize function
-        self._logger.debug(format_log_message("Prompt", prompt))
-        self._logger.info(format_log_message("Response", result))
+        # self._logger.debug(format_log_message("Prompt", prompt))
+        # self._logger.info(format_log_message("Response", result))
         self._context.log.format_message(prompt,"prompt")
         self._context.log.format_message(result,"response")
         return result
