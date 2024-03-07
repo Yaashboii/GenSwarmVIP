@@ -1,7 +1,3 @@
-import re
-import sys
-import os
-import cv2
 import numpy as np
 import rospy
 import matplotlib.pyplot as plt
@@ -72,32 +68,24 @@ class Env:
         """
         Reset the environment to its initial state.
         """
+        self._run_test = not self._run_test
         if self._run_test:
-
-            generate_video_from_frames(frames_folder=f'{self._data_path}/frames',
-                                       video_path=f'{self._data_path}/video.mp4')
+            self._data_path = rospy.get_param('data_path', '.')
+            self._robots.positions = self._robots_initial_positions.copy()
+            self._robots.velocities = np.zeros_like(self._robots.velocities)
+            self._robots.history = [self._robots.positions.copy()]
+            print("Test started!")
         else:
-            self._run_test = True
-        # update the data path
-
-        self._data_path = rospy.get_param('data_path', '.')
-        self._robots.positions = self._robots_initial_positions.copy()
-        self._robots.velocities = np.zeros_like(self._robots.velocities)
-        self._robots.history = [self._robots.positions.copy()]
-
-        print("Test started!")
+            print("Test stopped!")
 
     def step(self):
-        if self._leader:
-            self._leader.move(self._leader_speed, self._dt)
-            self._leader_publisher.publish(Float32MultiArray(data=self._leader.position))
-        self._robots.move_robots(self._dt)
-        self._run_time += 1
-        # if self._run_time % self._render_interval == 0:
-        # elif plt.get_fignums():
-        #     plt.close(self._fig)
-
-        self.render()
+        if self._run_test:
+            if self._leader:
+                self._leader.move(self._leader_speed, self._dt)
+                self._leader_publisher.publish(Float32MultiArray(data=self._leader.position))
+            self._robots.move_robots(self._dt)
+            self._run_time += 1
+            self.render()
 
     def render(self):
         if not plt.get_fignums():
@@ -143,39 +131,7 @@ class Env:
         while not rospy.is_shutdown():
             self.step()
             rate.sleep()
-        generate_video_from_frames(frames_folder=f'{self._data_path}/frames',
-                                   video_path=f'{self._data_path}/video.mp4')
         print("Environment stopped!")
-
-
-def generate_video_from_frames(frames_folder, video_path, fps=10):
-    print(f"Generating video from frames in {frames_folder}")
-    try:
-        frame_files = sorted(
-            [file for file in os.listdir(frames_folder) if re.search(r'\d+', file)],
-            key=lambda x: int(re.search(r'\d+', x).group())
-        )
-    except Exception as e:
-        print(f"Error sorting frame files: {e}")
-        return
-
-    if not frame_files:
-        print("No frames found in the folder.")
-        return
-    frame_files = [os.path.join(frames_folder, file) for file in frame_files]
-
-    frame = cv2.imread(frame_files[0])
-    height, width, layers = frame.shape
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-
-    video = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
-
-    for frame_file in frame_files:
-        video.write(cv2.imread(frame_file))
-
-    cv2.destroyAllWindows()
-    video.release()
-    print(f"Video generated: {video_path}")
 
 
 if __name__ == "__main__":

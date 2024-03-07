@@ -32,9 +32,12 @@ class RunningStage(Stage):
         except Exception as e:
             self._logger.error(f"An error occurred while running the command: {e}")
             result_list = [f"An error occurred while running the command: {e}"]
-        # finally:
-        #     call_reset_environment(True)
-
+        finally:
+            call_reset_environment(True)
+            from modules.utils import generate_video_from_frames, root_manager
+            data_root = root_manager.data_root
+            generate_video_from_frames(frames_folder=f"{data_root}/frames",
+                                       video_path=f"{data_root}/output.mp4")
         return '\n'.join(result_list)
 
     async def _run(self) -> StageResult:

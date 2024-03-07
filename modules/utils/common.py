@@ -2,6 +2,8 @@ import os
 import re
 import ast
 import shutil
+
+import cv2
 import rospy
 from typing import Any
 from enum import Enum
@@ -170,12 +172,31 @@ def set_param(param_name, param_value):
     print(f"Setting param {param_name} to {param_value}")
 
 
-def set_workspace_root(workspace_root: str):
-    global WORKSPACE_ROOT, DATA_PATH, ENV_PATH
+def generate_video_from_frames(frames_folder, video_path, fps=10):
+    print(f"Generating video from frames in {frames_folder}")
+    try:
+        frame_files = sorted(
+            [file for file in os.listdir(frames_folder) if re.search(r'\d+', file)],
+            key=lambda x: int(re.search(r'\d+', x).group())
+        )
+    except Exception as e:
+        print(f"Error sorting frame files: {e}")
+        return
 
-    # 创建一个PosixPath对象
-    WORKSPACE_ROOT = Path(workspace_root)
+    if not frame_files:
+        print("No frames found in the folder.")
+        return
+    frame_files = [os.path.join(frames_folder, file) for file in frame_files]
 
-    # 使用Path对象的操作来设置DATA_PATH和ENV_PATH
-    DATA_PATH = WORKSPACE_ROOT / "data"
-    ENV_PATH = WORKSPACE_ROOT / "env"
+    frame = cv2.imread(frame_files[0])
+    height, width, layers = frame.shape
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+
+    video = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
+
+    for frame_file in frame_files:
+        video.write(cv2.imread(frame_file))
+
+    cv2.destroyAllWindows()
+    video.release()
+    print(f"Video generated: {video_path}")
