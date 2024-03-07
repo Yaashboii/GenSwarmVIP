@@ -1,8 +1,10 @@
 WRITE_FUNCTION_PROMPT_TEMPLATE = """
-You need to complete this function, making maximum reuse of existing functions.
-These are the environment description: {env_des}
+These are the environment description: 
+{env_des}
+
 These are the basic Robot APIs:
 {robot_api}
+
 These are existing functions:
 {other_functions}
 
@@ -16,14 +18,14 @@ constrains:
 7. You only need to make sure single function has correct input and output. don't need to consider complex conditions.
 8. You can only complete this one function; you cannot generate other Helper functions. If necessary, you can define functions within this function.
 
-Please finish the following function:
+Please finish the following function, maximizing the reuse of existing functions:
 {function}
 """.strip()
 
 WRITE_RUN_PROMPT_TEMPLATE = """
 You are a robot, you need to translate the sequence diagram into Python code.
-Sequence Diagram: {sequence_diagram}
-These are the environment description: {env_des}
+These are the environment description: 
+{env_des}
 
 The list of functions you can call is as follows:
 {robot_api}
@@ -40,8 +42,9 @@ explanation: think step by step. How to translate the sequence diagram into Pyth
 python code: Translate the sequence diagram into corresponding Python code. ```python\n <your response>```
 
 The output  TEXT format is as follows:
-
 explanation: <explanation>
 python code: <python code>
 
+This is the Sequence Diagram: 
+{sequence_diagram}
 """.strip()

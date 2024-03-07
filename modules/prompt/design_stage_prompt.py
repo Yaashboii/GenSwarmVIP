@@ -5,8 +5,9 @@ In order to assist users in automating specific tasks, you need to design a seri
 - Each function should have strong reusability and should have a sufficient number of inputs and outputs.
 - Each function does not need to provide the content of the function body; just giving a `pass` is suffice.
 
-These are the existing environment API, functions should try to reuse these APIs as much as possible and refer to the design of these APIs:
+These are the existing robot APIs, functions should try to reuse them as much as possible and refer to the design of them:
 {code}
+
 These are the environment description:
 {env_des}
 
@@ -28,8 +29,10 @@ WriteSeqDiagram_PROMPT_TEMPLATE = """
 Based on the user requirements document and current functions, you need to design a sequence diagram.
 These are the environment description:
 {env_des}
+
 These are the basic Robot APIs:
 {robot_api}
+
 These are existing functions:
 {function_list}
 
@@ -49,7 +52,6 @@ sequence diagram: use Mermaid's sequenceDiagram to write sequence diagram, ```me
 The output TEXT  format is as follows:
 explanation: <explanation>
 sequence diagram: <sequence diagram>
-
 
 User requirements: {analysis}
 """.strip()

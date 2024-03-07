@@ -1,7 +1,9 @@
 PROMPT_TEMPLATE: str = """
 You are a robot with the ability to move and perceive.
-These are the basic Robot APIs: {api}
-These are the environment description: {env_des}
+These are the basic Robot APIs:
+{api}
+These are the environment description:
+{env_des}
 
 You need to understand the user's commands and then analyze these commands. Consider what functions are needed to meet the user's requirements.
 
