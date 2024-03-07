@@ -18,10 +18,10 @@ class Env:
             self,
             size=(10, 10),
             n_robots=3,
-            dt=0.01,
+            dt=0.1,
             if_leader=False,
             leader_speed=2.0,
-            render_interval=10,
+            render_interval=1,
 
     ):
         rospy.init_node('env_node', anonymous=True)
@@ -45,10 +45,13 @@ class Env:
         self._render_frames = False
         self._fig, self._ax = plt.subplots()
         # path to save the frames
-        self._data_path = None
+        self._data_path = rospy.get_param('data_path', '.')
 
         # counter for total run time
         self._run_time = 0
+
+        # history of the robots' positions ,pop from the deque
+        self._history = None
 
     def reset_environment_callback(self, req):
         """
@@ -69,47 +72,51 @@ class Env:
         """
         Reset the environment to its initial state.
         """
-        self._run_test = not self._run_test
-        # update the data path
-
-        self._data_path = rospy.get_param('data_path', '.')
-        if not self._run_test:
-            self._robots.positions = self._robots_initial_positions.copy()
-            self._robots.velocities = np.zeros_like(self._robots.velocities)
-            self._robots.history = [self._robots.positions.copy()]
+        if self._run_test:
 
             generate_video_from_frames(frames_folder=f'{self._data_path}/frames',
                                        video_path=f'{self._data_path}/video.mp4')
-            print("Test stopped! Waiting for new test...")
-            print("Environment reset successful!")
         else:
-            print("Test started!")
+            self._run_test = True
+        # update the data path
+
+        self._data_path = rospy.get_param('data_path', '.')
+        self._robots.positions = self._robots_initial_positions.copy()
+        self._robots.velocities = np.zeros_like(self._robots.velocities)
+        self._robots.history = [self._robots.positions.copy()]
+
+        print("Test started!")
 
     def step(self):
-        if self._run_test:
-            if self._leader:
-                self._leader.move(self._leader_speed, self._dt)
-                self._leader_publisher.publish(Float32MultiArray(data=self._leader.position))
-            self._robots.move_robots(self._dt)
-            self._run_time += 1
-            if self._run_time % self._render_interval == 0:
-                self.render()
-        elif plt.get_fignums():
-            plt.close(self._fig)
+        if self._leader:
+            self._leader.move(self._leader_speed, self._dt)
+            self._leader_publisher.publish(Float32MultiArray(data=self._leader.position))
+        self._robots.move_robots(self._dt)
+        self._run_time += 1
+        # if self._run_time % self._render_interval == 0:
+        # elif plt.get_fignums():
+        #     plt.close(self._fig)
+
+        self.render()
 
     def render(self):
         if not plt.get_fignums():
             self._fig, self._ax = plt.subplots()
         self._ax.clear()
-
-        traj_len, robot_num, _ = self._robots.history.shape
+        try:
+            self._history = self._manager.robots.histories.pop()
+        except IndexError:
+            print("No more history to pop!")
+        if self._history is None:
+            return
+        traj_len, robot_num, _ = self._history.shape
         for i in range(robot_num):
-            show_len = min(60, traj_len)
-            self._ax.plot(self._robots.history[-show_len:, i, 0],
-                          self._robots.history[-show_len:, i, 1],
+            show_len = min(20, traj_len)
+            self._ax.plot(self._history[-show_len:, i, 0],
+                          self._history[-show_len:, i, 1],
                           label=f"Robot {i} path")
-            self._ax.plot(self._robots.history[-1, i, 0],
-                          self._robots.history[-1, i, 1],
+            self._ax.plot(self._history[-1, i, 0],
+                          self._history[-1, i, 1],
                           'o',
                           label=f"Robot {i} position")
         if self._leader:
@@ -136,10 +143,13 @@ class Env:
         while not rospy.is_shutdown():
             self.step()
             rate.sleep()
+        generate_video_from_frames(frames_folder=f'{self._data_path}/frames',
+                                   video_path=f'{self._data_path}/video.mp4')
         print("Environment stopped!")
 
 
 def generate_video_from_frames(frames_folder, video_path, fps=10):
+    print(f"Generating video from frames in {frames_folder}")
     try:
         frame_files = sorted(
             [file for file in os.listdir(frames_folder) if re.search(r'\d+', file)],

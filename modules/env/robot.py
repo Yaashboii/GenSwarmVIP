@@ -1,4 +1,5 @@
 import numpy as np
+from collections import deque
 
 
 class Robot:
@@ -58,6 +59,7 @@ class Robots:
         self._positions = np.array([robot.position for robot in self._robots])
         self._velocities = np.array([robot.velocity for robot in self._robots])
         self._history = [self._positions]
+        self._histories = deque(maxlen=1000)
 
     @staticmethod
     def create_robots(n_robots, initial_positions):
@@ -88,6 +90,8 @@ class Robots:
             robot.position = new_positions[i]
         self._history.append(self._positions)
 
+        self._histories.append(np.array(self._history))
+
     @property
     def velocities(self):
         self._velocities = np.array([robot.velocity for robot in self._robots])
@@ -103,6 +107,10 @@ class Robots:
     @property
     def history(self):
         return np.array(self._history)
+
+    @property
+    def histories(self):
+        return self._histories
 
     @history.setter
     def history(self, value):
