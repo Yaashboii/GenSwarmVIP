@@ -31,7 +31,7 @@ class Workflow:
         workflow_context = WorkflowContext()
         workflow_context.user_command.message = user_command
 
-    async def run(self):
+    async def run(self, args=None):
         while self.__stage != StageType.FinalStage:
             stage = self.create_stage(self.__stage)
             stage_result = await stage.run()

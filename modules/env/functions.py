@@ -2,109 +2,115 @@ import os
 
 import numpy as np
 import rospy
-from std_msgs.msg import Float32MultiArray
+from geometry_msgs.msg import Twist
+from code_llm.msg import Observations
 
 ros_initialized = False
 velocity_publisher: rospy.Publisher
-robots_num: int
-robots_velocity: np.ndarray
-robots_position: np.ndarray
+robot_velocity: np.ndarray
+position: np.ndarray
+observations: Observations
 timer: rospy.Timer
+robot_id: int
+robots_num: int
 
 
-def position_callback(msg):
-    global robots_position
-    robots_position = np.array(msg.data).reshape(-1, 2)
+def observation_callback(msg: Observations):
+    global robot_observation, position
+    robot_observation = msg.observations
+    position = np.array([msg.position.x, msg.position.y])
 
 
 def initialize_ros_node():
-    global ros_initialized, velocity_publisher, robots_num, robots_velocity, timer, robots_position
+    global ros_initialized, velocity_publisher, robot_velocity, timer, position, robot_id, observations
+    # avoid multiple initialization
     if not ros_initialized:
-        rospy.init_node('robot_control_node', anonymous=True)
+        # init ros node
+        robot_id = int(os.environ['ROBOT_ID'])
+        rospy.init_node(f'robot{robot_id}_control_node', anonymous=True)
         ros_initialized = True
-        velocity_publisher = rospy.Publisher('/robots/velocity', Float32MultiArray, queue_size=10)
-        rospy.Subscriber('/robots/position', Float32MultiArray, position_callback)
-        robots_position = np.array(rospy.wait_for_message('/robots/position', Float32MultiArray).data).reshape(-1, 2)
-        robots_num = rospy.get_param('/robots_num')
+
+        rospy.Subscriber(f'/robot_{robot_id}/observation', Observations, observation_callback)
+
+        velocity_publisher = rospy.Publisher(f'/robot_{robot_id}/velocity', Twist, queue_size=1)
+
+        # TODO: 每个节点都会set一遍，但是这个路径现在是一样的，可以优化。如果后续考虑每个机器人的数据单独保存，这一段代码可以保留
         current_folder = os.path.dirname(os.path.abspath(__file__))
         rospy.set_param('data_path', str(current_folder) + '/data')
-        robots_velocity = np.zeros((robots_num, 2), dtype=float)
-        timer = rospy.Timer(rospy.Duration(0.01), publish_all_velocities)
+
+        # make sure the position is received
+        print(f"Waiting for position message from /robot_{robot_id}/observation...")
+        msg = rospy.wait_for_message(f'/robot_{robot_id}/observation', Observations)
+        position = np.array([msg.position.x, msg.position.y])
+        robot_velocity = np.array([0.0, 0.0])
+
+        print(f"Observations data init successfully")
+
+        # timer to publish velocity in a fixed frequency of 100Hz
+        timer = rospy.Timer(rospy.Duration(0.01), publish_velocities)
 
 
-def publish_all_velocities(event):
-    global robots_velocity, velocity_publisher
-    velocity_msg = Float32MultiArray(data=robots_velocity.flatten().tolist())
+def publish_velocities(event):
+    global robot_velocity, velocity_publisher
+    velocity_msg = Twist()
+    velocity_msg.linear.x = robot_velocity[0]
+    velocity_msg.linear.y = robot_velocity[1]
     velocity_publisher.publish(velocity_msg)
 
 
-def get_robot_position_by_id(robot_id):
+def get_position():
     """
-    Get the position of a robot with the given ID.
-
-    Parameters:
-    - robot_id (int): The ID of the robot to retrieve.
-
+    Get the position of the robot.
     Returns:
     - numpy.ndarray: The position of the robot.
+
     """
-    global robots_position
     initialize_ros_node()
-    positions = robots_position
-    if robot_id >= positions.shape[0]:
-        raise ValueError(f"Robot with ID {robot_id} not found")
-    return positions[robot_id]
+    global position
+    return position
 
 
-def set_robot_velocity_by_id(robot_id, velocity):
+def get_velocity():
     """
-    Set the velocity of a robot with the given ID.
+    Get the velocity of the robot.
+    Returns:
+    - numpy.ndarray: The velocity of the robot.
+    """
+    initialize_ros_node()
+    global robot_velocity
+    return robot_velocity
+
+
+def set_velocity(velocity):
+    """
+    Set the velocity of the robot.
 
     Parameters:
-    - robot_id (int): The ID of the robot to set the velocity for.
     - velocity (numpy.ndarray): The new velocity to set.
     """
-    initialize_ros_node()  # 确保ROS节点已初始化
-    velocity = np.array(velocity, dtype=float)
-    if robot_id >= robots_num:
-        raise ValueError(f"Robot with ID {robot_id} not found")
-    if velocity.shape != (2,):
-        raise ValueError(f"Expected velocity shape (2,), got {velocity.shape}")
-    robots_velocity[robot_id] = velocity
+    global robot_velocity
+    initialize_ros_node()
+    robot_velocity = np.array(velocity)
 
 
-def get_all_robot_ids():
+def gather_field_view_data():
     """
-    Get a list of all existing robot IDs.
+    Get the other robots' positions and velocities within the field of view.
 
     Returns:
-    - list: A list containing all the robot IDs.
+    - A list of dictionaries, each containing:
+      - 'position': A numpy array representing the robot's 2D position
+       (x, y coordinates).
+      - 'velocity': A numpy array representing the robot's 2D velocity (x, y components).
+    if the robot is not able to observe any other robots, an empty list is returned.
     """
-    global robots_num
+    global observations
+
     initialize_ros_node()
+    observations_list = []
+    for robot_info in robot_observation:
+        position_array = np.array([robot_info.position.x, robot_info.position.y])
+        velocity_array = np.array([robot_info.velocity.linear.x, robot_info.velocity.linear.y])
+        observations_list.append({'position': position_array, 'velocity': velocity_array})
 
-    return list(range(robots_num))
-
-
-def get_robots_count():
-    """
-    Get the total number of robots.
-
-    Returns:
-    - int: The total number of robots.
-    """
-    global robots_num
-    initialize_ros_node()
-    return robots_num
-
-
-def get_leader_position():
-    """
-    Get the position of the leader robot.
-
-    Returns:
-    - numpy.ndarray: The position of the leader robot.
-    """
-    initialize_ros_node()
-    position_msg = rospy.wait_for_message('/leader/position', Float32MultiArray)
-    return np.array(position_msg.data)
+    return observations_list

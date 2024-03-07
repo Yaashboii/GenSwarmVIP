@@ -3,10 +3,41 @@ import re
 import ast
 import shutil
 import rospy
-import cv2
 from typing import Any
 from enum import Enum
 from std_srvs.srv import SetBool
+import datetime
+import threading
+from pathlib import Path
+
+
+def get_project_root():
+    """Search upwards to find the project root directory."""
+    current_path = Path.cwd()
+    while True:
+        if (
+                (current_path / ".git").exists()
+                or (current_path / ".project_root").exists()
+                or (current_path / ".gitignore").exists()
+        ):
+            # use metagpt with git clone will land here
+            return current_path
+        parent_path = current_path.parent
+        if parent_path == current_path:
+            # use metagpt with pip install will land here
+            cwd = Path.cwd()
+            return cwd
+        current_path = parent_path
+
+
+current_datetime = datetime.datetime.now()
+formatted_date = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
+PROJECT_ROOT = get_project_root()
+WORKSPACE_ROOT = PROJECT_ROOT / f"workspace/{formatted_date}"
+DATA_PATH = WORKSPACE_ROOT / "data"
+ENV_PATH = WORKSPACE_ROOT / "env"
+
+GLOBAL_LOCK = threading.Lock()
 
 
 class TestResult(Enum):
@@ -50,20 +81,15 @@ def check_file_exists(directory, filename):
     return os.path.exists(file_path)
 
 
-def write_file(directory, filename, content):
+def write_file(directory, filename, content, mode='w'):
     file_path = os.path.join(directory, filename)
-    with open(file_path, 'w') as file:
+    with open(file_path, mode) as file:
         file.write(content)
 
-    print(f"File written: {file_path}")
+    operation = "written" if mode == 'w' else "appended"
+    print(f"File {operation}: {file_path}")
     return file_path
 
-def append_file(directory, filename, content):
-    file_path = os.path.join(directory, filename)
-    with open(file_path, 'a') as file:
-        file.write(content)
-    print(f"Log appended: {file_path}")
-    return file_path
 
 def copy_folder(source_folder, destination_folder):
     try:
@@ -74,12 +100,13 @@ def copy_folder(source_folder, destination_folder):
 
 
 def init_workspace():
-    from modules.const import WORKSPACE_ROOT, PROJECT_ROOT
+    global WORKSPACE_ROOT, PROJECT_ROOT
     if not os.path.exists(WORKSPACE_ROOT):
         os.makedirs(WORKSPACE_ROOT)
         os.makedirs(os.path.join(WORKSPACE_ROOT, 'data/frames'))
         utils = read_file(os.path.join(PROJECT_ROOT, 'modules/env'), 'functions.py')
         write_file(WORKSPACE_ROOT, 'functions.py', utils)
+        set_param('data_path', str(DATA_PATH))
     print(f"Workspace initialized at {WORKSPACE_ROOT}")
 
 
@@ -173,3 +200,23 @@ def call_reset_environment(data: bool):
         return resp.success, resp.message
     except rospy.ServiceException as e:
         print("Service call failed: %s" % e)
+
+
+def get_param(param_name):
+    return rospy.get_param(param_name)
+
+
+def set_param(param_name, param_value):
+    rospy.set_param(param_name, param_value)
+    print(f"Setting param {param_name} to {param_value}")
+
+
+def set_workspace_root(workspace_root: str):
+    global WORKSPACE_ROOT, DATA_PATH, ENV_PATH
+
+    # 创建一个PosixPath对象
+    WORKSPACE_ROOT = Path(workspace_root)
+
+    # 使用Path对象的操作来设置DATA_PATH和ENV_PATH
+    DATA_PATH = WORKSPACE_ROOT / "data"
+    ENV_PATH = WORKSPACE_ROOT / "env"

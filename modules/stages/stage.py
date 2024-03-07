@@ -32,10 +32,10 @@ class Stage(ABC, BaseModel):
         return self.__class__.__name__
 
     @final
-    def run(self) -> StageResult:
+    async def run(self) -> StageResult:
         self._logger.info(f"Current stage: {self}")
         self._context.log.message = f"***\n# *Current stage: {self}*\n"
-        return self._run()
+        return await self._run()
 
     def _run(self) -> StageResult:
         return StageResult()

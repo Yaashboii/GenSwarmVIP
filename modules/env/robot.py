@@ -1,12 +1,14 @@
 import numpy as np
+from collections import deque
 
 
 class Robot:
-    def __init__(self, robot_id, initial_position, max_speed=2.0):
-        self._robot_id = robot_id
+    def __init__(self, robot_id, initial_position, max_speed=2.0, communication_range=5.0):
+        self._id = robot_id
         self._position = np.array(initial_position, dtype=float)
         self._velocity = np.array([0.0, 0.0], dtype=float)
         self._max_speed = max_speed
+        self._communication_range = communication_range
         self._history = [self._position.copy()]
 
     @property
@@ -37,8 +39,12 @@ class Robot:
         self._history = value
 
     @property
-    def robot_id(self):
-        return self._robot_id
+    def id(self):
+        return self._id
+
+    @property
+    def communication_range(self):
+        return self._communication_range
 
     @property
     def max_speed(self):
@@ -53,6 +59,7 @@ class Robots:
         self._positions = np.array([robot.position for robot in self._robots])
         self._velocities = np.array([robot.velocity for robot in self._robots])
         self._history = [self._positions]
+        self._histories = deque(maxlen=1000)
 
     @staticmethod
     def create_robots(n_robots, initial_positions):
@@ -71,6 +78,10 @@ class Robots:
         self._positions = np.array([robot.position for robot in self._robots])
         return self._positions
 
+    @property
+    def robots(self):
+        return self._robots
+
     @positions.setter
     def positions(self, new_positions):
         assert new_positions.shape == self._positions.shape, f"Expected shape {self._positions.shape}, got {new_positions.shape}"
@@ -78,6 +89,8 @@ class Robots:
         for i, robot in enumerate(self._robots):
             robot.position = new_positions[i]
         self._history.append(self._positions)
+
+        self._histories.append(np.array(self._history))
 
     @property
     def velocities(self):
@@ -94,6 +107,10 @@ class Robots:
     @property
     def history(self):
         return np.array(self._history)
+
+    @property
+    def histories(self):
+        return self._histories
 
     @history.setter
     def history(self, value):

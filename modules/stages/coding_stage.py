@@ -1,11 +1,12 @@
 import asyncio
 
-from modules.const import WORKSPACE_ROOT, ROBOT_API, ENV_DES
+from modules.prompt.robot_api_prompt import ROBOT_API
+from modules.prompt.env_description_prompt import ENV_DES
 from modules.stages.stage import Stage, StageResult
 from modules.actions import WriteCode
-from modules.utils import read_file, CodeMode
-from modules.framework.prompts import WRITE_FUNCTION_PROMPT_TEMPLATE, WRITE_RUN_PROMPT_TEMPLATE
-from modules.framework.workflow_context import FileStatus, FileInfo
+from modules.utils import CodeMode
+from modules.prompt.coding_stage_prompt  import WRITE_FUNCTION_PROMPT_TEMPLATE, WRITE_RUN_PROMPT_TEMPLATE
+from modules.framework.workflow_context import FileStatus
 from modules.utils import combine_unique_imports
 
 
@@ -16,8 +17,10 @@ class CodingStage(Stage):
 
     async def _write_run(self):
         sequence_diagram = self._context.sequence_diagram.message
+        function_list_str = "\n".join(self._context.function_list)
         result = await self._action.run(
-            prompt=WRITE_RUN_PROMPT_TEMPLATE.format(sequence_diagram=sequence_diagram, env_des=ENV_DES),
+            prompt=WRITE_RUN_PROMPT_TEMPLATE.format(sequence_diagram=sequence_diagram, env_des=ENV_DES,
+                                                    robot_api=ROBOT_API, function_list=function_list_str),
             filename=f"run.py"
         )
         return result
@@ -25,7 +28,8 @@ class CodingStage(Stage):
     async def _write_function(self, function: str, index, other_functions: list[str]):
         result = await self._action.run(
             prompt=WRITE_FUNCTION_PROMPT_TEMPLATE.format(
-                env_api=ROBOT_API,
+                env_des=ENV_DES,
+                robot_api=ROBOT_API,
                 function=function,
                 other_functions="\n".join(other_functions)
             ),

@@ -1,53 +1,11 @@
+import asyncio
 import os
-import re
-import subprocess
+import sys
 import traceback
 from typing import Tuple
 
 from modules.actions.action import Action
-from modules.const import WORKSPACE_ROOT
-from modules.utils import call_reset_environment, read_file
-from modules.llm.gpt import GPT
-from modules.utils.common import BugSource, TestResult
-
-PROMPT_TEMPLATE = """
-Role: You are a senior development and qa engineer, your role is summarize the code running result.
-If the running result does not include an error, you should explicitly approve the result.
-On the other hand, if the running result indicates some error, you should point out which part, the development code or the test code, produces the error,
-and give specific instructions on fixing the errors. Here is the code info:
-{context}
-Now you should begin your analysis
----
-## Instruction:
-Please summarize the cause of the errors and give correction instruction
-## File To Rewrite: Determine the ONE file to rewrite in order to fix the error, for example, xyz.py, or test_xyz.py
-## Status:
-Determine if all of the code works fine, if so write PASS, else FAIL,
-WRITE ONLY ONE WORD, PASS OR FAIL, IN THIS SECTION
----
----
-You should fill in necessary Instruction, status, and finally return all content between the --- segment line.
-"""
-
-CONTEXT = """
-## Development Code File Name
-{code_file_name}
-## Development Code
-```python
-{code}
-```
-## Test File Name
-{test_file_name}
-## Test Code
-```python
-{test_code}
-```
-## Running Command
-{command}
-## Running Output
-standard output: {outs};
-standard errors: {errs};
-"""
+from modules.prompt.run_code_prompt import PROMPT_TEMPLATE, CONTEXT
 
 
 class RunCode(Action):
@@ -64,28 +22,57 @@ class RunCode(Action):
             # If there is an error in the code, return the error message
             return "", traceback.format_exc()
 
-    def _run_script(self, working_directory, command=[]) -> Tuple[str, str]:
+    async def _run_script(self, working_directory, command=[], print_output=True, timeout=10) -> Tuple[str, str]:
         working_directory = str(working_directory)
-        # Copy the current environment variables
         env = os.environ.copy()
 
-        # Start the subprocess
-        process = subprocess.Popen(
-            command, cwd=working_directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            cwd=working_directory,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env
         )
 
+        stdout_chunks, stderr_chunks = [], []
+
+        # Simplified stream reading with direct print control
+        async def read_stream(stream, accumulate, is_stdout=True):
+            while True:
+                line_bytes = await stream.readline()
+                if not line_bytes:
+                    break
+                line = line_bytes.decode('utf-8')
+                accumulate.append(line)
+                if print_output:
+                    print(line, end='' if is_stdout else '', file=sys.stderr if not is_stdout else None)
+
         try:
-            # Wait for the process to complete, with a timeout
-            stdout, stderr = process.communicate(timeout=20)
-            return stdout.decode("utf-8"), stderr.decode("utf-8")
-        except subprocess.TimeoutExpired:
+            # Apply timeout to the gather call using asyncio.wait_for
+            await asyncio.wait_for(
+                asyncio.gather(
+                    read_stream(process.stdout, stdout_chunks, is_stdout=True),
+                    read_stream(process.stderr, stderr_chunks, is_stdout=False)
+                ),
+                timeout=timeout
+            )
+
+        except asyncio.TimeoutError:
             self._logger.info("The command did not complete within the given timeout.")
-            process.kill()  # Kill the process if it times out
-            stdout, stderr = '', 'The command did not complete within the given timeout.'
-            return stdout, stderr
+            process.kill()
+            stdout, stderr = await process.communicate()
+            return stdout.decode('utf-8'), 'The command did not complete within the given timeout: ' + stderr.decode(
+                'utf-8')
         except Exception as e:
             self._logger.error(f"An error occurred while running the command: {e}")
-            return '', f"An error occurred while running the command: {e}"
+            process.kill()
+            stdout, stderr = await process.communicate()
+            return stdout.decode('utf-8'), f"An error occurred while running the command: {e}"
+
+        # Join collected lines into single strings
+        stdout = ''.join(stdout_chunks)
+        stderr = ''.join(stderr_chunks)
+        return stdout, stderr
 
     async def _run(self, code_info, mode="script", **kwargs) -> str:
         command = code_info["command"]
@@ -93,9 +80,9 @@ class RunCode(Action):
         outs, errs = "", ""
         if mode == "script":
             # Note: must call call_reset_environment before and after running the script
-            call_reset_environment(True)
-            outs, errs = self._run_script(working_directory=WORKSPACE_ROOT, command=command)
-            call_reset_environment(True)
+            from modules.utils.common import WORKSPACE_ROOT
+
+            outs, errs = await self._run_script(working_directory=WORKSPACE_ROOT, command=command)
 
         self._logger.info(f"Outs: {outs}")
         self._logger.error(f"Errs: {errs}")
