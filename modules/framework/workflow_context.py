@@ -1,3 +1,4 @@
+import argparse
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -103,6 +104,7 @@ class WorkflowContext:
     sequence_diagram: FileInfo = FileInfo(name='sequence_diagram.md')
     run_result: FileInfo = FileInfo(name='run_result.md')
     log: FileLog = FileLog(name='log.md')
+    args: argparse.Namespace = argparse.Namespace()
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:

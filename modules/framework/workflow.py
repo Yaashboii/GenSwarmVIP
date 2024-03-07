@@ -24,13 +24,14 @@ class Workflow:
     #     ActionType.RunCode: RunCode(),
     # }
 
-    def __init__(self, user_command: str, init_stage: StageType = StageType.AnalyzeStage):
+    def __init__(self, user_command: str, init_stage: StageType = StageType.AnalyzeStage, args=None):
         self.__stage = init_stage
         self._logger = setup_logger("Workflow")
         workflow_context = WorkflowContext()
         workflow_context.user_command.message = user_command
+        workflow_context.args = args
 
-    async def run(self, args=None):
+    async def run(self):
         while self.__stage != StageType.FinalStage:
             stage = self.create_stage(self.__stage)
             stage_result = await stage.run()
