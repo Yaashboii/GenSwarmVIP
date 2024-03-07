@@ -83,9 +83,11 @@ def check_file_exists(directory, filename):
 
 def write_file(directory, filename, content, mode='w'):
     file_path = os.path.join(directory, filename)
-    with open(file_path, mode) as file:
-        file.write(content)
-
+    try:
+        with open(file_path, mode) as file:
+            file.write(content)
+    except Exception as e:
+        print("Exception: ", e)
     operation = "written" if mode == 'w' else "appended"
     print(f"File {operation}: {file_path}")
     return file_path

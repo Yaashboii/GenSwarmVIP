@@ -8,22 +8,25 @@ class WriteCode(Action):
     def process_response(self, response: str, **kwargs) -> str:
         code = parse_code(text=response)
         if not kwargs.get('filename'):
-            self._logger.error(f"Write Sequence Diagram Failed: No filename provided")
+            # self._logger.error(f"Write Sequence Diagram Failed: No filename provided")
+            self._context.log.format_message(f"Write Sequence Diagram Failed: No filename provided", "error")
             raise SystemExit  # avoid retry mechanism
 
         filename = kwargs.get('filename')
         if filename not in self._context.code_files:
-            self._logger.error(f"Write Code Failed: No filename found in context")
+            # self._logger.error(f"Write Code Failed: No filename found in context")
+            self._context.log.format_message(f"Write Code Failed: No filename found in context","error")
             raise SystemExit
 
         elif filename == "functions.py":
             import_list, function_list = extract_imports_and_functions(code)
             if not function_list:
-                self._logger.error(f"Write Code Failed: No function detected in the response")
+                # self._logger.error(f"Write Code Failed: No function detected in the response")
+                self._context.log.format_message(f"Write Code Failed: No function detected in the response","error")
                 raise Exception
             elif len(function_list) > 1:
-                self._logger.error(
-                    f"Write Code Failed: More than one function detected in the response: {function_list}")
+                # self._logger.error(f"Write Code Failed: More than one function detected in the response: {function_list}")
+                self._context.log.format_message(f"Write Code Failed: More than one function detected in the response: {function_list}","error")
                 raise Exception  # to trigger retry
 
             result = {
