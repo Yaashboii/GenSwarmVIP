@@ -3,7 +3,7 @@ import asyncio
 import threading
 
 from modules.framework.workflow import Workflow
-from modules.utils import init_workspace
+from modules.utils import root_manager
 
 
 def main(task: str, args: argparse.Namespace):

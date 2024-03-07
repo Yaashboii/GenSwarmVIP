@@ -3,7 +3,6 @@ import asyncio
 from modules.stages import *
 from modules.actions import *
 from modules.stages.stage import StageType, StageResult
-from modules.utils import init_workspace
 from modules.utils.logger import setup_logger
 from modules.framework.stage_transition import StageTransition
 from modules.framework.workflow_context import WorkflowContext
@@ -74,6 +73,5 @@ if __name__ == "__main__":
         'First, move the robot to form a square formation. Then, move the robots to form a triangle formation.Finally gather these robots together',
         "Initially, gather all robots at the center of the environment, confirming their arrival before proceeding. Next, arrange the robots into a square formation with each side measuring exactly 1.0 meter, ensuring the formation's precision with right angles and equal sides. Once the square is confirmed, guide the robots to trace a circular path while maintaining the square formation. Constant monitoring is required to preserve the formation's integrity and the path's accuracy throughout the movement."
     ]
-    init_workspace()
     workflow = Workflow(task_list[0])
     asyncio.run(workflow.run())

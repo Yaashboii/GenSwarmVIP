@@ -18,20 +18,23 @@ class RunResult(Enum):
 
 
 class FileInfo(BaseModel):
+    root: str = Field(default='')
     name: str = Field(default='')
     status: FileStatus = Field(default=FileStatus.NOT_WRITTEN)
     version: int = Field(default=0)
 
-    def __init__(self, name: str = '', message: str = ''):
+    def __init__(self, name: str = '', message: str = '', root: str = ''):
         super().__init__()
         self.name = name
         self._message = message
+        self.root = root
 
     @property
     def message(self):
         if not self._message:
-            from modules.utils.common import WORKSPACE_ROOT
-            self._message = read_file(WORKSPACE_ROOT, self.name)
+            from modules.utils import root_manager
+            self.root = root_manager.workspace_root
+            self._message = read_file(self.root, self.name)
         return self._message
 
     @message.setter
@@ -39,13 +42,14 @@ class FileInfo(BaseModel):
         self._message = content
         if self.status == FileStatus.NOT_WRITTEN:
             self.status = FileStatus.NOT_TESTED
-        from modules.utils.common import WORKSPACE_ROOT
-        write_file(WORKSPACE_ROOT, self.name, content)
+        from modules.utils import root_manager
+        self.root = root_manager.workspace_root
+        write_file(self.root, self.name, content)
 
 
 class FileLog(FileInfo):
-    def __init__(self, name: str = '', message: str = ''):
-        super().__init__(name, message)
+    def __init__(self, name: str = '', message: str = '', root: str = ''):
+        super().__init__(name, message, root)
         self._logger = setup_logger("Terminal Log", LoggerLevel.DEBUG)
 
     @property
@@ -54,9 +58,9 @@ class FileLog(FileInfo):
 
     @message.setter
     def message(self, content: str):
-        from modules.utils.common import WORKSPACE_ROOT
-
-        write_file(WORKSPACE_ROOT, self.name, content, mode='a')
+        from modules.utils import root_manager
+        self.root = root_manager.workspace_root
+        write_file(self.root, self.name, content, mode='a')
 
     def format_message(self, content: str, style: str):
         color_mapping = {
@@ -83,10 +87,10 @@ class FileLog(FileInfo):
             content = color_mapping[style].format(content)
             self.message = content
         except Exception as e:
-            print(f'Exception: {e}')
+            self._logger.error(f"An error occurred while formatting the message: {e}")
 
 
-class WorkflowContext():
+class WorkflowContext:
     _instance = None
     user_command: FileInfo = FileInfo(name='command.md')
     analysis: FileInfo = FileInfo(name='analysis.md')

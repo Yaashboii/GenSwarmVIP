@@ -80,9 +80,9 @@ class RunCode(Action):
         outs, errs = "", ""
         if mode == "script":
             # Note: must call call_reset_environment before and after running the script
-            from modules.utils.common import WORKSPACE_ROOT
+            from modules.utils.root import root_manager
 
-            outs, errs = await self._run_script(working_directory=WORKSPACE_ROOT, command=command)
+            outs, errs = await self._run_script(working_directory=root_manager.workspace_root, command=command)
 
         self._logger.info(f"Outs: {outs}")
         self._logger.error(f"Errs: {errs}")
