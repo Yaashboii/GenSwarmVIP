@@ -49,7 +49,7 @@ class RunCode(Action):
 
         try:
             # Apply timeout to the gather call using asyncio.wait_for
-            if self._context.args.timeout is not None:
+            if hasattr(self._context.args, 'timeout'):
                 timeout = self._context.args.timeout
             else:
                 timeout = 30
