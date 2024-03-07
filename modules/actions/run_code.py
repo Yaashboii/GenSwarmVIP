@@ -59,11 +59,13 @@ class RunCode(Action):
 
         except asyncio.TimeoutError:
             self._logger.info("The command did not complete within the given timeout.")
+            # self._context.log.format_message("The command did not complete within the given timeout.","error")
             process.kill()
             await process.wait()
             return '', 'The command did not complete within the given timeout.'
         except Exception as e:
             self._logger.error(f"An error occurred while running the command: {e}")
+            # self._context.log.format_message(f"An error occurred while running the command: {e}","error")
             return '', f"An error occurred while running the command: {e}"
 
         # Join collected lines into single strings
@@ -75,6 +77,7 @@ class RunCode(Action):
     async def _run(self, code_info, mode="script", **kwargs) -> str:
         command = code_info["command"]
         self._logger.info(f"Running {' '.join(command)}")
+
         outs, errs = "", ""
         if mode == "script":
             # Note: must call call_reset_environment before and after running the script

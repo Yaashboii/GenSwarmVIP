@@ -56,6 +56,20 @@ class FileLog(FileInfo):
 
         write_file(WORKSPACE_ROOT, self.name, content, mode='a')
 
+    def format_message(self, content: str, style: str):
+        color_mapping = {
+            'state': '***\n# <span style="color: blue;">State: {}</span>\n',
+            'prompt': '## <span style="color: grey ;">Prompt: </span>\n<span style="color: grey ;">{}</span>\n',
+            'response': '## <span style="color: black;">Response: </span>\n<span style="color: black ;">{}</span>\n',
+            'success': '### <span style="color: gold;">Success: </span>\n<span style="color: gold;">{}</span>\n',
+            'error': '### <span style="color: red;">Error: </span>\n<span style="color: red;">{}</span>\n',
+            'warning': '### <span style="color: orange;">Warning: </span>\n<span style="color: orange;">{}</span>\n',
+        }
+        try:
+            content = color_mapping[style].format(content)
+            self.message = content
+        except Exception as e:
+            print(f'Exception: {e}')
 
 
 class WorkflowContext():
@@ -79,8 +93,7 @@ class WorkflowContext():
 
 
 if __name__ == "__main__":
-    context = WorkflowContext()
-    context.user_command = "this is a test"
-    tt = context.code_files
-    tt["test"] = "dd"
-    print(context.code_files)
+    # context = WorkflowContext()
+    # context.log.message = ('Hello World!', 'prompt')
+    log = FileLog(name='log.md')
+    log.format_message('a', 'prompt')

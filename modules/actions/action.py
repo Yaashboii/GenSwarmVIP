@@ -45,14 +45,8 @@ class Action(ABC):
         # make sure output them after _llm.ask(), for it's an asynchronize function
         self._logger.debug(format_log_message("Prompt", prompt))
         self._logger.info(format_log_message("Response", result))
-        self._context.log.message = (
-            f'***\n'
-            f'# *Prompt of {self.__class__.__name__}:*\n'
-            f'{prompt}\n'
-            f"# *Response from {self.__class__.__name__}:*\n"
-            f"{result}\n"
-            f"***\n"
-        )
+        self._context.log.format_message(prompt,"prompt")
+        self._context.log.format_message(result,"response")
         return result
 
 
