@@ -32,5 +32,6 @@ class WriteCode(Action):
             }
             return str(result)
         elif filename == "run.py":
-            self._context.code_files[filename].message = 'from functions import *\n' + code
+            code_prefix = "from functions import * \nimport sys\n\nos.environ['ROBOT_ID'] = sys.argv[1]\n"
+            self._context.code_files[filename].message = code_prefix + code
             return code

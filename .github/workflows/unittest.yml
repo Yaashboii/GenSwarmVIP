@@ -1,0 +1,22 @@
+name: Run Unit Tests with Docker
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: huabench/code-llm
+        options: --privileged
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Run unit tests in Docker container
+      run: docker run huabench/code-llm python -m unittest discover -v
