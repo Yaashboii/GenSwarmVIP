@@ -9,5 +9,5 @@ class DesignFunction(Action):
         code = parse_code(text=response)
         function_list = extract_function_definitions(code)
         self._context.function_list = function_list
-        self._context.log.format_message(f"Design Function: {function_list}", "response")
+        self._context.log.format_message(f"{code}", "response")
         return str(function_list)
