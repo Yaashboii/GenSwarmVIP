@@ -24,8 +24,12 @@ class Action(ABC):
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def run(self, **kwargs) -> str:
-        res = await self._run(**kwargs)
-        res = self.process_response(res, **kwargs)
+        try:
+            res = await self._run(**kwargs)
+            res = self.process_response(res, **kwargs)
+        except Exception as e:
+            self._context.log.format_message(format_log_message(str(e), "error"), "error")
+            raise
         return res
 
     @abstractmethod
