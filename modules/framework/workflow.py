@@ -27,10 +27,12 @@ class Workflow:
     def __init__(self, user_command: str, init_stage: StageType = StageType.AnalyzeStage, args=None):
         self.__stage = init_stage
         self._logger = setup_logger("Workflow")
-        workflow_context = WorkflowContext()
-        workflow_context.user_command.message = user_command
-        workflow_context.args = args
-
+        self._context = WorkflowContext()
+        # workflow_context = WorkflowContext()
+        # workflow_context.user_command.message = user_command
+        # workflow_context.args = args
+        self._context.user_command.message = user_command
+        self._context.args = args
     async def run(self):
         while self.__stage != StageType.FinalStage:
             stage = self.create_stage(self.__stage)
@@ -42,7 +44,7 @@ class Workflow:
 
             self.__stage = temp
         else:
-            self._logger.info("=================== END ===================")
+            self._context.log.format_message("=========END=========", "Success")
 
     @staticmethod
     def create_stage(stage_type: StageType):

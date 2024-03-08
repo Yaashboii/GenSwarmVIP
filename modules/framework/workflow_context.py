@@ -51,7 +51,7 @@ class FileInfo(BaseModel):
 class FileLog(FileInfo):
     def __init__(self, name: str = '', message: str = '', root: str = ''):
         super().__init__(name, message, root)
-        self._logger = setup_logger("Terminal Log", LoggerLevel.DEBUG)
+        self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
 
     @property
     def message(self):
@@ -66,16 +66,17 @@ class FileLog(FileInfo):
     def format_message(self, content: str, style: str):
         color_mapping = {
             'stage': '***\n# <span style="color: blue;">Current Stage: *{}*</span>\n',
-            'prompt': '## <span style="color: grey ;">Prompt: </span>\n{}\n',
-            'response': '## <span style="color: black;">Response: </span>\n{}\n',
-            'success': '### <span style="color: gold;">Success: {}</span>\n',
-            'error': '### <span style="color: red;">Error: </span>\n{}\n',
-            'warning': '### <span style="color: orange;">Warning: </span>\n{}\n',
+            'action': '## <span style="color: purple;">Current Action: *{}*</span>\n',
+            'prompt': '### <span style="color: grey ;">Prompt: </span>\n{}\n',
+            'response': '### <span style="color: black;">Response: </span>\n{}\n',
+            'success': '#### <span style="color: gold;">Success: {}</span>\n',
+            'error': '#### <span style="color: red;">Error: </span>\n{}\n',
+            'warning': '#### <span style="color: orange;">Warning: </span>\n{}\n',
         }
 
         if style in ['state', 'success', 'response']:
             self._logger.info(content)
-        elif style in ['prompt']:
+        elif style in ['prompt','action']:
             self._logger.debug(content)
         elif style in ['error']:
             self._logger.error(content)
