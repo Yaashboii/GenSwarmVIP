@@ -44,7 +44,7 @@ class Workflow:
 
             self.__stage = temp
         else:
-            self._context.log.format_message("=========END=========", "Success")
+            self._context.log.format_message("=========END=========", "success")
 
     @staticmethod
     def create_stage(stage_type: StageType):

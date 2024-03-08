@@ -64,6 +64,13 @@ class FileLog(FileInfo):
         write_file(self.root, self.name, content, mode='a')
 
     def format_message(self, content: str, style: str):
+        """
+        Formats a message based on the provided style and logs the content.
+
+        :param content: The message content to be formatted and logged.
+        :param style: The style to format the message. Supported styles: stage, action,
+                      prompt, response, success, error, warning.
+        """
         color_mapping = {
             'stage': '***\n# <span style="color: blue;">Current Stage: *{}*</span>\n',
             'action': '## <span style="color: purple;">Current Action: *{}*</span>\n',
@@ -74,22 +81,22 @@ class FileLog(FileInfo):
             'warning': '#### <span style="color: orange;">Warning: </span>\n{}\n',
         }
 
-        if style in ['state', 'success', 'response']:
-            self._logger.info(content)
-        elif style in ['prompt','action']:
-            self._logger.debug(content)
-        elif style in ['error']:
-            self._logger.error(content)
-        elif style in ['warning']:
-            self._logger.warning(content)
-        else:
-            self._logger.info(content)
+        # Verify style is supported
+        if style not in color_mapping:
+            self._logger.error(f"Style {style} is not supported")
+        log_action = {
+            'stage': self._logger.info,
+            'action': self._logger.debug,
+            'prompt': self._logger.debug,
+            'response': self._logger.info,
+            'success': self._logger.info,
+            'error': self._logger.error,
+            'warning': self._logger.warning,
+        }.get(style, self._logger.info)
 
-        try:
-            content = color_mapping[style].format(content)
-            self.message = content
-        except Exception as e:
-            self._logger.error(f"An error occurred while formatting the message: {e}")
+        log_action(content)
+
+        self.message = color_mapping[style].format(content)
 
 
 class WorkflowContext:
