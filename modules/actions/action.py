@@ -43,16 +43,15 @@ class Action(ABC):
         result = await self._llm.ask(prompt)
         # store PROMPT and RESULT in the log.md
         # make sure output them after _llm.ask(), for it's an asynchronize function
-        # self._logger.debug(format_log_message("Prompt", prompt))
-        # self._logger.info(format_log_message("Response", result))
+        self._context.log.format_message(str(self),"action")
         self._context.log.format_message(prompt,"prompt")
         self._context.log.format_message(result,"response")
         return result
 
 
 if __name__ == "__main__":
-    action = Action()
     import asyncio
 
+    action = Action()
     asyncio.run(action.run())
     # story = action.llm.ask("tell a story")
