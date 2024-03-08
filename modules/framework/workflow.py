@@ -28,10 +28,11 @@ class Workflow:
         self.__stage = init_stage
         self._logger = setup_logger("Workflow")
         self._context = WorkflowContext()
-        workflow_context = WorkflowContext()
-        workflow_context.user_command.message = user_command
-        workflow_context.args = args
-
+        # workflow_context = WorkflowContext()
+        # workflow_context.user_command.message = user_command
+        # workflow_context.args = args
+        self._context.user_command.message = user_command
+        self._context.args = args
     async def run(self):
         while self.__stage != StageType.FinalStage:
             stage = self.create_stage(self.__stage)
