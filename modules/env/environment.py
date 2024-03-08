@@ -16,7 +16,7 @@ class Env:
             n_robots=3,
             dt=0.1,
             if_leader=False,
-            leader_speed=2.0,
+            leader_speed=0.5,
             render_interval=1,
 
     ):
@@ -25,11 +25,10 @@ class Env:
         self._dt = dt
         self._render_interval = render_interval
         self._leader_speed = leader_speed
-        self._manager = Manager(n_robots, size)
+        self._manager = Manager(n_robots, size, if_leader=if_leader)
         self._robots = self._manager.robots
         if if_leader:
-            self._leader = Leader(initial_position=(0, 0))
-            self._leader_publisher = rospy.Publisher('/leader/position', Float32MultiArray, queue_size=1)
+            self._leader = self._robots.leader
         else:
             self._leader = None
         self._robots_initial_positions = self._robots.positions.copy()
@@ -81,8 +80,10 @@ class Env:
     def step(self):
         if self._run_test:
             if self._leader:
-                self._leader.move(self._leader_speed, self._dt)
-                self._leader_publisher.publish(Float32MultiArray(data=self._leader.position))
+                if self._leader_speed > 0:
+                    self._leader.move(self._leader_speed, self._dt, shape='circle')
+                else:
+                    self._leader.move(self._leader_speed, self._dt)
             self._robots.move_robots(self._dt)
             self._run_time += 1
             self.render()
@@ -135,5 +136,5 @@ class Env:
 
 
 if __name__ == "__main__":
-    env = Env(if_leader=False, n_robots=10, size=(10, 10))
+    env = Env(if_leader=True, n_robots=10, size=(10, 10))
     env.run()

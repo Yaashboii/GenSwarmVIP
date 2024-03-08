@@ -52,10 +52,13 @@ class Robot:
 
 
 class Robots:
-    def __init__(self, n_robots, env_size):
+    def __init__(self, n_robots, env_size,if_leader=False):
         self._env_size = env_size
         initial_positions = self.generate_robots_random_positions(n_robots)
         self._robots = self.create_robots(n_robots, initial_positions)
+        if if_leader:
+            self._leader = Leader(initial_position=(0, 0))
+            self._robots.append(self._leader)
         self._positions = np.array([robot.position for robot in self._robots])
         self._velocities = np.array([robot.velocity for robot in self._robots])
         self._history = [self._positions]
@@ -81,6 +84,10 @@ class Robots:
     @property
     def robots(self):
         return self._robots
+
+    @property
+    def leader(self):
+        return self._leader
 
     @positions.setter
     def positions(self, new_positions):
@@ -130,7 +137,7 @@ class Robots:
 
 
 class Leader(Robot):
-    def __init__(self, initial_position, max_speed=3.0):
+    def __init__(self, initial_position, max_speed=2.0):
         super().__init__(0, initial_position, max_speed)
         self.trajectory = []
         self.angle = 0
@@ -149,7 +156,10 @@ class Leader(Robot):
 
         self.trajectory.append(self.position)
 
-    def move(self, speed, dt, shape='circle'):
+    def move(self, speed, dt, shape: str = None):
         # TODO add more methods to move the leader in different patterns
         if shape == 'circle':
-            self.move_in_circle(4, speed, dt)
+            self.move_in_circle(3, speed, dt)
+        if shape is None:
+            return
+

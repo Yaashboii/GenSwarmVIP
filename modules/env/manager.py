@@ -8,8 +8,8 @@ from robot import Robots
 
 class Manager:
 
-    def __init__(self, n_robots, size):
-        self._robots = Robots(n_robots, size)
+    def __init__(self, n_robots, size, if_leader=False):
+        self._robots = Robots(n_robots, size, if_leader=if_leader)
         self._agent_num = n_robots
         self._pub_list = []
         for i in range(self._agent_num):
@@ -32,7 +32,7 @@ class Manager:
         """
         distribute is responsible for distributing the observations to the robots.
         """
-        for i, robot in enumerate(self._robots.robots):
+        for i, robot in enumerate(self._robots.robots[0:self._agent_num]):
             observations_msg = Observations()
             observations_msg.observations = []
             observations_msg.position = Point(x=robot.position[0], y=robot.position[1], z=0)
