@@ -1,10 +1,9 @@
 ENV_DES = '''
-below are the basic information of the environment and robot:
 Environment:
-    size: 10m x 10m
+    map size: 10m x 10m
     Obstacles: None
-    X-axis: -5m to 5m
-    Y-axis: -5m to 5m
+    X-axis range: -5m to 5m
+    Y-axis range: -5m to 5m
 
 Robot: 
     Max Speed: 2m/s

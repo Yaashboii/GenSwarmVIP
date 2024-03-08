@@ -9,6 +9,5 @@ class WriteSeqDiagram(Action):
         code = parse_code(text=response, lang='mermaid')
         code = f"```mermaid\n{code}\n```"
         self._context.sequence_diagram.message = code
-        # self._logger.info(f"Write Sequence Diagram Success")
         self._context.log.format_message(f"Write Sequence Diagram Success", 'success')
         return code

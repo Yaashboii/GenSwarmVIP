@@ -50,6 +50,6 @@ if __name__ == '__main__':
     run_test = RunningStage(RunCode())
     from modules.utils import root_manager
 
-    path = '/home/derrick/catkin_ws/src/code_llm/workspace/2024-03-07_10-57-56'
+    path = '/home/ubuntu/Desktop/CodeLLM/workspace/2024-03-07_21-28-34'
     root_manager.update_root(path)
     asyncio.run(run_test.run())
