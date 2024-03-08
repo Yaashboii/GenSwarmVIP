@@ -51,7 +51,6 @@ class FileInfo(BaseModel):
 class FileLog(FileInfo):
     def __init__(self, name: str = '', message: str = '', root: str = ''):
         super().__init__(name, message, root)
-        self._logger = setup_logger("Terminal Log", LoggerLevel.DEBUG)
 
     @property
     def message(self):
