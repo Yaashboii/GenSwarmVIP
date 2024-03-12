@@ -48,19 +48,20 @@ def any_to_str(val: Any) -> str:
 
 def check_file_exists(directory, filename):
     file_path = os.path.join(directory, filename)
-    return os.path.exists(file_path)
+    return os.path.isfile(file_path)
 
 
 def write_file(directory, filename, content, mode='w'):
-    file_path = os.path.join(directory, filename)
     try:
+        file_path = os.path.join(directory, filename)
         with open(file_path, mode) as file:
             file.write(content)
+        operation = "written" if mode == 'w' else "appended"
+        print(f"File {operation}: {file_path}")
+    except FileNotFoundError:
+        print("Error: The specified directory does not exist.")
     except Exception as e:
-        print("Exception: ", e)
-    operation = "written" if mode == 'w' else "appended"
-    print(f"File {operation}: {file_path}")
-    return file_path
+        print(f"An unexpected error occurred: {e}")
 
 
 def copy_folder(source_folder, destination_folder):
@@ -191,7 +192,7 @@ def set_param(param_name, param_value):
     print(f"Setting param {param_name} to {param_value}")
 
 
-def generate_video_from_frames(frames_folder, video_path, fps=10):
+def generate_video_from_frames(frames_folder, video_path, fps=15):
     print(f"Generating video from frames in {frames_folder}")
     try:
         frame_files = sorted(
