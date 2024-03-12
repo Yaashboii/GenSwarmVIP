@@ -16,8 +16,9 @@ In order to assist users in automating specific tasks, you need to design a seri
 ## Existing robot APIs:
 These are the existing robot APIs, functions should try to reuse them as much as possible and refer to the design of them:
 ```python
-{code}
+{robot_api}
 ```
+
 
 ## These are the environment description:
 {env_des}
@@ -65,7 +66,7 @@ Based on the user requirements document and current functions, you need to desig
 1. explanation: think step by step. How do you make the diagram conform to the algorithm?
 2. sequence diagram: use Mermaid's sequenceDiagram to write sequence diagram, ```mermaid\nsequenceDiagram\n <your response>```
 
-## The output TEXT  format is as follows:
+## The output TEXT format is as follows:
 1. explanation: <explanation>
 2. sequence diagram: <sequence diagram>
 """.strip()
