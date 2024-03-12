@@ -8,8 +8,9 @@ from robot import Robots
 
 class Manager:
 
-    def __init__(self, n_robots, size, if_leader=False):
+    def __init__(self, n_robots, n_obstacles, size, if_leader=False):
         self._robots = Robots(n_robots, size, if_leader=if_leader)
+        self._obstacles = Obstacles(n_obstacles, size)
         self._agent_num = n_robots
         self._pub_list = []
         for i in range(self._agent_num):
@@ -21,6 +22,10 @@ class Manager:
     @property
     def robots(self):
         return self._robots
+
+    @property
+    def obstacles(self) -> Obstacles:
+        return self._obstacles
 
     def velocity_callback(self, data: geometry_msgs.msg.Twist, i):
         """

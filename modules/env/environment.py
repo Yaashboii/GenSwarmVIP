@@ -3,6 +3,7 @@ from os import listdir, makedirs
 import matplotlib.pyplot as plt
 import numpy as np
 import rospy
+from matplotlib import patches
 from matplotlib.ticker import MultipleLocator
 from std_srvs.srv import SetBool, SetBoolResponse
 from manager import Manager
@@ -13,19 +14,22 @@ class Env:
             self,
             size=(10, 10),
             n_robots=3,
+            n_obstacles=10,
             dt=0.1,
             if_leader=False,
             leader_speed=0.5,
             render_interval=1,
-            magnification=1.1
+            magnification=1.1,
+            show_obs=False
     ):
         rospy.init_node('env_node', anonymous=True)
         self._size = size
         self._dt = dt
         self._render_interval = render_interval
         self._leader_speed = leader_speed
-        self._manager = Manager(n_robots, size, if_leader=if_leader)
+        self._manager = Manager(n_robots, n_obstacles, size, if_leader=if_leader)
         self._robots = self._manager.robots
+        self._obstacles = self._manager.obstacles.obstacles
         rospy.set_param('robots_num', n_robots)
 
         # list of the robot color
@@ -45,7 +49,8 @@ class Env:
         self._run_test = False
         # flag to indicate if the frames should be rendered
         self._render_frames = False
-        self._fig, self._ax = plt.subplots()
+        self.show_obs = show_obs
+        self._fig, self._ax = plt.subplots(figsize=(6, 6))
         # path to save the frames
         self._data_path = rospy.get_param('data_path', '.')
 
@@ -116,9 +121,17 @@ class Env:
         if self._history is None:
             return
         traj_len, robot_num, _ = self._history.shape
+        for obs in self._obstacles:
+            obstacle = patches.Circle((obs.position[0], obs.position[1]),
+                                      radius=obs.radius,
+                                      edgecolor='gray',
+                                      facecolor='gray',
+                                      linewidth=1
+                                      )
+            self._ax.add_patch(obstacle)
         for i in range(robot_num):
             show_len = min(20, traj_len)
-            self._ax.plot(
+            self._ax.plot(  # plot the trajectory of the robots
                 self._history[-show_len:, i, 0],
                 self._history[-show_len:, i, 1],
                 '.',  # use '.' can show the speed of the robots by the density of the trajectory points
@@ -134,6 +147,21 @@ class Env:
                 color=self._colors[i],
                 label=f"Robot {i} position",
             )
+            robot = patches.Circle((self._history[-1, i, 0], self._history[-1, i, 1]),
+                                   radius=self._robots.robots[i].radius,
+                                   edgecolor=self._colors[i],
+                                   facecolor=self._colors[i],
+                                   linewidth=1)
+            if self.show_obs:
+                visual_range = patches.Circle((self._history[-1, i, 0], self._history[-1, i, 1]),
+                                              radius=self._robots.robots[i].communication_range,
+                                              edgecolor=self._colors[i],
+                                              facecolor=self._colors[i],
+                                              linewidth=1,
+                                              alpha=0.05)
+                self._ax.add_patch(visual_range)
+            self._ax.add_patch(robot)
+
         if self._leader:
             self._ax.plot(
                 self._leader.position[0],
@@ -158,13 +186,11 @@ class Env:
 
     def run(self):
         print("Environment started!")
-        rate = rospy.Rate(10 / self._dt)
         while not rospy.is_shutdown():
             self.step()
-            rate.sleep()
         print("Environment stopped!")
 
 
 if __name__ == "__main__":
-    env = Env(if_leader=True, n_robots=10, size=(10, 10), leader_speed=-1)
+    env = Env(if_leader=True, n_robots=6, size=(10, 10), leader_speed=-1, show_obs=False)
     env.run()
