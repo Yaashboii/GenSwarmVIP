@@ -1,12 +1,4 @@
 ROBOT_API = """
-def get_position():
-    '''
-    Get the position of the robot.
-    Returns:
-    - numpy.ndarray: The position of the robot.
-    '''
-
-
 def get_radius():
     '''
     Get the radius of the robot.
@@ -14,21 +6,31 @@ def get_radius():
     - float: The radius of the robot.
     '''
 
+def get_position():
+    '''
+    Description: Get the position of robot itself.
+    Returns:
+    - numpy.ndarray: The position of the robot itself.
+    Usage:
+    pos = get_position()
+    x, y = pos[0], pos[1]
+    '''
+
+def set_velocity(velocity):
+    '''
+    Description: Set the velocity of the robot itself
+    Input:
+    - velocity (numpy.ndarray): The new velocity to set.
+    Usage: 
+    velocity = [vx, vy]
+    set_velocity(velocity)
+    '''
 
 def get_velocity():
     '''
     Get the velocity of the robot.
     Returns:
     - numpy.ndarray: The velocity of the robot.
-    '''
-
-
-def set_velocity(velocity):
-    '''
-    Set the velocity of the robot.
-
-    Parameters:
-    - velocity (numpy.ndarray): The new velocity to set.
     '''
 
 def get_surrounding_robots_info():
