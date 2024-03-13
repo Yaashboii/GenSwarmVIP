@@ -31,6 +31,14 @@ class Stage(ABC, BaseModel):
     def __str__(self) -> str:
         return self.__class__.__name__
 
+    @property
+    def context(self):
+        return self._context
+
+    @context.setter
+    def context(self, value):
+        self._context = value
+
     @final
     async def run(self) -> StageResult:
         self._context.log.format_message(str(self), "stage")
