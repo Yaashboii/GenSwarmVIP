@@ -21,5 +21,5 @@ class DesignFunction(Action):
 
             functions_name_and_content.append({"name": function_name[0], "content": function})
         self._context.function_list = functions_name_and_content
-        self._context.log.format_message(f"{code}", "response")
+        # self._context.log.format_message(f"{code}", "response")
         return str(functions_name_and_content)
