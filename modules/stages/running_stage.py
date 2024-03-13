@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 from os import listdir
 
@@ -40,7 +41,7 @@ class RunningStage(Stage):
             call_reset_environment(True)
             from modules.utils import generate_video_from_frames, root_manager
             data_root = root_manager.data_root
-            number = len(listdir(f"{data_root}/frames")) -1 # the number of frame{} folder in the data/frames, -1 is necessary
+            number = len(listdir(f"{data_root}/frames")) - 1
             generate_video_from_frames(
                 frames_folder=f"{data_root}/frames/frame{number}",
                 video_path=f"{data_root}/output{number}.mp4",
@@ -59,6 +60,12 @@ if __name__ == '__main__':
     run_test = RunningStage(RunCode())
     from modules.utils import root_manager
 
-    path = '/home/ubuntu/Desktop/CodeLLM/work/2024-03-09_20-50-55_task2'
+    parser = argparse.ArgumentParser(description="Run simulation with custom parameters.")
+    parser.add_argument("--timeout", type=int, default=60, help="Total time for the simulation")
+    args = parser.parse_args()
+    context = run_test.context
+    context.args = args
+    run_test.context = context
+    path = '//home/derrick/catkin_ws/src/code_llm/workspace/2024-03-13_11-02-12'
     root_manager.update_root(path)
     asyncio.run(run_test.run())
