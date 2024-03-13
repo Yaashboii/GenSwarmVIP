@@ -6,7 +6,6 @@ Environment:
     Y-axis range: -5m to 5m
 
 Robot: 
-    Size: 0.3 meter round robot
     Max Speed: 2m/s
     Control: velocity control
     Max Control Frequency: 20Hz

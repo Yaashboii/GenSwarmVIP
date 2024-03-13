@@ -1,4 +1,11 @@
 ROBOT_API = """
+def get_radius():
+    '''
+    Get the radius of the robot.
+    Returns:
+    - float: The radius of the robot.
+    '''
+
 def get_position():
     '''
     Description: Get the position of robot itself.
@@ -26,20 +33,24 @@ def get_velocity():
     - numpy.ndarray: The velocity of the robot.
     '''
 
-def gather_field_view_data():
+def get_surrounding_robots_info():
     '''
-    Description: Get the other robots' positions and velocities within the field of view.
+    Get the information of the surrounding robots.
     Returns:
-    - A list of dictionaries, each containing:
-      - 'position': A numpy array representing the robot's 2D position (x, y coordinates).
-      - 'velocity': A numpy array representing the robot's 2D velocity (x, y components).
-    if the robot is not able to observe any other robots, an empty list is returned.
-    Usage: 
-    robots = gather_field_view_data()
-    if robots:
-        for robot in robots:
-            pos = robot['position']
-            vel = robot['velocity']       
+    - list: A list of dictionaries, each containing the position, velocity, and radius of a robot.
+        - position (numpy.ndarray): The position of the robot.
+        - velocity (numpy.ndarray): The velocity of the robot.
+        - radius (float): The radius of the robot.
+    '''
+
+
+def get_surrounding_obstacles_info():
+    '''
+    Get the information of the surrounding obstacles.
+    Returns:
+    - list: A list of dictionaries, each containing the position and radius of an obstacle.
+        - position (numpy.ndarray): The position of the obstacle.
+        - radius (float): The radius of the obstacle.
     '''
 """.strip()
 

@@ -3,13 +3,14 @@ from collections import deque
 
 import rospy
 from geometry_msgs.msg import Twist
+from obstacle import Entity
 
 
-class Robot:
-    def __init__(self, robot_id, initial_position, max_speed=2.0, communication_range=5.0):
-        self._id = robot_id
-        self._position = np.array(initial_position, dtype=float)
+class Robot(Entity):
+    def __init__(self, robot_id, initial_position, max_speed=2.0, communication_range=5.0, radius=0.1):
+        super().__init__(robot_id, initial_position)
         self._velocity = np.array([0.0, 0.0], dtype=float)
+        self._radius = radius
         self._max_speed = max_speed
         self._communication_range = communication_range
         self._history = [self._position.copy()]
@@ -26,7 +27,7 @@ class Robot:
 
     @property
     def position(self):
-        return self._position
+        return super().position
 
     @position.setter
     def position(self, value):
@@ -42,8 +43,8 @@ class Robot:
         self._history = value
 
     @property
-    def id(self):
-        return self._id
+    def radius(self):
+        return self._radius
 
     @property
     def communication_range(self):
@@ -54,11 +55,52 @@ class Robot:
         return self._max_speed
 
 
+class Leader(Robot):
+    def __init__(self, initial_position, max_speed=2.0):
+        super().__init__(robot_id=0, initial_position=initial_position, max_speed=max_speed)
+        self.trajectory = []
+        self.angle = 0
+        self.position = initial_position
+        self._subscriber = rospy.Subscriber('/leader/velocity', Twist, self.velocity_callback)
+
+    def velocity_callback(self, data: Twist):
+        self.velocity = np.array([data.linear.x, data.linear.y])
+        self.velocity = np.clip(self.velocity, -self.max_speed, self.max_speed)
+
+    def move_in_circle(self, center, radius, speed, dt):
+        if abs(speed) > self.max_speed:
+            speed = np.sign(speed) * self.max_speed
+
+        # The way mathematical integration maybe diverges
+        omega = speed / radius
+        self.angle += omega * dt
+
+        # target position
+        new_x = center[0] + radius * np.cos(self.angle)
+        new_y = center[1] + radius * np.sin(self.angle)
+        target_pos = np.array([new_x, new_y], dtype=np.float64)
+        # delta pos = target pos vector - current pos vector
+        delta_pos = target_pos - self.position
+        if np.linalg.norm(delta_pos) > abs(speed) * dt:
+            delta_pos = delta_pos / np.linalg.norm(delta_pos) * abs(speed) * dt
+
+        # next position = current pos + delta pos
+        self.position += delta_pos
+        self.trajectory.append(self.position)
+
+    def move(self, speed, dt, shape: str = None):
+        # TODO add more methods to move the leader in different patterns
+        if shape == 'circle':
+            self.move_in_circle(center=[0, 0], radius=3, speed=speed, dt=dt)
+        if shape is None:
+            self.position += self.velocity * dt
+
+
 class Robots:
     def __init__(self, n_robots, env_size, if_leader=False):
+
         self._env_size = env_size
-        initial_positions = self.generate_robots_random_positions(n_robots)
-        self._robots = self.create_robots(n_robots, initial_positions)
+        self._robots = self.create_robots(n_robots, env_size)
         if if_leader:
             self._leader = Leader(initial_position=(0, 0))
             self._robots.append(self._leader)
@@ -68,16 +110,15 @@ class Robots:
         self._histories = deque(maxlen=1000)
 
     @staticmethod
-    def create_robots(n_robots, initial_positions):
-        robots_list = []
+    def create_robots(n_robots, size):
+        # TODO: optimize this function to avoid obstacles overlapping
+        robot_list = []
         for i in range(n_robots):
-            # id starts from 1
-            robots_list.append(Robot(i + 1, initial_positions[i]))
-        return robots_list
+            position = np.random.uniform(-0.5, 0.5, size=2) * size
+            radius = np.random.uniform(0.1, 0.2)
+            robot_list.append(Robot(i, position, radius=radius))
 
-    def generate_robots_random_positions(self, n_robots):
-        return [[np.random.uniform(-self._env_size[0] / 2, self._env_size[0] / 2),
-                 np.random.uniform(-self._env_size[1] / 2, self._env_size[1] / 2)] for _ in range(n_robots)]
+        return robot_list
 
     @property
     def positions(self):
@@ -137,44 +178,3 @@ class Robots:
         """
         new_positions = self.positions + self.velocities * dt
         self.positions = np.clip(new_positions, -np.array(self._env_size) / 2, np.array(self._env_size) / 2)
-
-
-class Leader(Robot):
-    def __init__(self, initial_position, max_speed=2.0):
-        super().__init__(robot_id=0, initial_position=initial_position, max_speed=max_speed)
-        self.trajectory = []
-        self.angle = 0
-        self.position = initial_position
-        self._subscriber = rospy.Subscriber('/leader/velocity', Twist, self.velocity_callback)
-
-    def velocity_callback(self, data: Twist):
-        self.velocity = np.array([data.linear.x, data.linear.y])
-        self.velocity = np.clip(self.velocity, -self.max_speed, self.max_speed)
-
-    def move_in_circle(self, center, radius, speed, dt):
-        if abs(speed) > self.max_speed:
-            speed = np.sign(speed) * self.max_speed
-
-        # The way mathematical integration maybe diverges
-        omega = speed / radius
-        self.angle += omega * dt
-
-        # target position
-        new_x = center[0] + radius * np.cos(self.angle)
-        new_y = center[1] + radius * np.sin(self.angle)
-        target_pos = np.array([new_x, new_y], dtype=np.float64)
-        # delta pos = target pos vector - current pos vector
-        delta_pos = target_pos - self.position
-        if np.linalg.norm(delta_pos) > abs(speed) * dt:
-            delta_pos = delta_pos / np.linalg.norm(delta_pos) * abs(speed) * dt
-
-        # next position = current pos + delta pos
-        self.position += delta_pos
-        self.trajectory.append(self.position)
-
-    def move(self, speed, dt, shape: str = None):
-        # TODO add more methods to move the leader in different patterns
-        if shape == 'circle':
-            self.move_in_circle(center=[0, 0], radius=3, speed=speed, dt=dt)
-        if shape is None:
-            self.position += self.velocity * dt
