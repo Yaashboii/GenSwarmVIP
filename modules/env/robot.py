@@ -115,7 +115,7 @@ class Robots:
         robot_list = []
         for i in range(n_robots):
             position = np.random.uniform(-0.5, 0.5, size=2) * size
-            radius = np.random.uniform(0.1, 0.2)
+            radius = 0.15
             robot_list.append(Robot(i, position, radius=radius))
 
         return robot_list
