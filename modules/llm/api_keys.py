@@ -1,6 +1,7 @@
-import yaml
 import os
-import random
+
+import yaml
+
 
 class APIKeyManager:
     """
@@ -37,12 +38,13 @@ class APIKeyManager:
             str: The allocated API key.
         """
         if not self._available_keys:
-          allocated_key = _api_key
+            print("No API keys. Please check the configuration files.")
+            allocated_key = "none"
         else:
-          # allocated_key = random.choice(self._available_keys)
-          allocated_key = self._available_keys[12]
-          self._available_keys.remove(allocated_key)
+            allocated_key = self._available_keys[0]
+            # self._available_keys.remove(allocated_key)
         return allocated_key
+
 
 _current_dir = os.path.dirname(os.path.abspath(__file__))
 _config_path = os.path.join(_current_dir, '../../config/api_data/keys.yml')
@@ -58,7 +60,6 @@ except FileNotFoundError:
     _api_key = os.getenv('API_KEY')
     _keys_dict = {}
 
-    
 key_manager = APIKeyManager(_keys_dict)
 
 if __name__ == "__main__":
