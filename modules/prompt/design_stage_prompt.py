@@ -10,8 +10,7 @@ In order to assist users in automating specific tasks, you need to design a seri
 2. Each function can utilize the existing APIs.
 3. Each function should have strong reusability and should have a sufficient number of inputs and outputs.
 4. Each function does not need to provide the content of the function body; just giving a `pass` is suffice.
-5. To avoid complexity, functions only need to provide the function name and docstring; you cannot write out the function body. You only need to design rather than write code.
-6. Every function should provide a detailed description of its functionality as well as any constraints that may need to be considered.
+5. Every function should provide a very detailed description of its functionality.
 
 ## Existing robot APIs:
 These are the existing robot APIs, functions should try to reuse them as much as possible and refer to the design of them:
@@ -19,17 +18,26 @@ These are the existing robot APIs, functions should try to reuse them as much as
 {robot_api}
 ```
 
-
 ## These are the environment description:
 {env_des}
 
 ## The generated result should be in the following fields:
-1. explanation: think step by step. How do you make the functions conform to the algorithm?
-2. function list: write the function list in the following format, ```python\n<your python code>```
+function list: write the function list in the following format, 
+```python
+def function1(input1, input2, ...):
+    ```
+    Description: Detailed description of the function's functionality.
+    Input: Description of the function's input.
+    Returns: Description of the function's return value.
+    ```
+    pass
+    
+def function2(input1, input2, ...):
+    ...
+```
 
 ## The output TEXT format is as follows:
-1. explanation: <explanation>
-2. function list: <function list>
+function list: <function list>
 """.strip()
 
 WriteSeqDiagram_PROMPT_TEMPLATE = """
