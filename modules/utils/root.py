@@ -11,7 +11,7 @@ class RootManager:
         self.workspace_root = None
         self.data_root = None
 
-    def update_root(self, workspace_root: str = None):
+    def update_root(self, workspace_root: str = None, set_data_path: bool = True) -> None:
         if workspace_root is None:
             self.project_root = self.get_project_root()
             current_datetime = datetime.datetime.now()
@@ -20,7 +20,8 @@ class RootManager:
         else:
             self.workspace_root = Path(workspace_root)
         self.data_root = self.workspace_root / "data"
-        set_param('data_path', str(self.data_root))  # this is important
+        if set_data_path:
+            set_param('data_path', str(self.data_root))  # this is important
 
     @staticmethod
     def get_project_root():

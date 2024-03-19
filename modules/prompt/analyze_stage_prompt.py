@@ -10,7 +10,6 @@ These APIs can be directly called by you.
 ```python
 {robot_api}
 ```
-
 ## These are the environment description:
 These are the basic descriptions of the environment.
 {env_des}
@@ -33,3 +32,26 @@ Your output should satisfy the following constraints:
 
 User requirements: {instruction}
 """.strip()
+
+PARAMETER_PROMPT_TEMPLATE: str = """
+## Background:
+{task_des}
+## Role setting:
+- You need to further clarify which parameters the entire code will use based on the demand analysis and constraint analysis.
+- These parameters should be global, and the code written should use these parameters as currently defined.
+
+## These are the environment description:
+{env_des}
+
+## Requirements and Constraints:
+{requirements_constraints}
+
+## The output TEXT format is as follows
+1. Reasoning: Infer all parameters that might be used throughout the entire task process, with as much detail as possible.
+2. Parameters: ```python\n parameter_name: parameter_type = default_value\n...```
+
+## Constraints:
+Your output should satisfy the following constraints:
+- You should further clarify which parameters the entire code will use based on the demand analysis and constraint analysis.
+- Strictly follow the specified format.
+"""
