@@ -1,33 +1,35 @@
 ANALYZE_PROMPT_TEMPLATE: str = """
-## Role setting
-You are a robot with the ability to move and perceive.
+## Background:
+{task_des}
+## Role setting:
+- You need to analyze the user's commands, expand on their instructions, and identify key requirements and constraints.
+- Your output will guide the generation of control code for the robots.Therefore, your analysis of requirements and instructions should be feasible and based on existing conditions.
 
 ## These are the basic Robot APIs:
+These APIs can be directly called by you.
 ```python
 {robot_api}
 ```
 
 ## These are the environment description:
+These are the basic descriptions of the environment.
 {env_des}
 
 ## User requirements: 
 {instruction}
 
-## Task description:
-You need to analyze user's command. Consider what functions are needed to meet the user's requirements.
-The generated result should be in the following fields:
-1. Keyword: what are the key words in the requirements?
-2. Definition: Professional explanations about the keywords?
-3. User Requirement Description: Detailed description of the task the user hopes to automate.
-4. Functional Requirements: List the functions expected to be developed based on your analysis and available resources. For each function, briefly describe its purpose and expected outcome. These functions should be decoupled from each other.
-5. Anything unclear: If you have some questions about the query, please put them here directly. If you don't have any questions, just say "It's all set".
 
-## The output TEXT format is as follows:
-1. Keyword: <Keyword>
-2. Definition: <Definition>
-3. User Requirement: <User Requirement>
-4. Functional Requirements: <Functional Requirements>
-5. Anything unclear: <Anything unclear>
+
+## The output TEXT format is as follows
+1. Reasoning: You need to analyze the user's commands, expand on their instructions, and identify key requirements and constraints.
+2. Requirements: List the key requirements and explain the meaning of each requirement.
+3. Constraints: List the key constraints and explain the meaning of each constraint.
+
+## Constraints:
+Your output should satisfy the following constraints:
+- You should analyze the user's commands, expand on their instructions, and identify key requirements and constraints.
+- The requirements and constraints should be feasible and based on existing conditions.
+- The output should be in the specified format.
 
 User requirements: {instruction}
 """.strip()

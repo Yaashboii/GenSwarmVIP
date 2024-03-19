@@ -1,7 +1,7 @@
 from modules.actions.action import Action
 
 
-class AnalyzeReqs(Action):
+class Analyze(Action):
     name: str = "AnalyzeReqs"
 
     def process_response(self, response: str, **kwargs) -> str:

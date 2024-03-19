@@ -10,7 +10,7 @@ from modules.framework.workflow_context import WorkflowContext
 
 class Workflow:
     STAGE_POOL = {
-        StageType.AnalyzeStage: AnalyzeStage(AnalyzeReqs()),
+        StageType.AnalyzeStage: AnalysisStage(Analyze()),
         StageType.DesignStage: DesignStage(DesignFunction()),
         StageType.CodingStage: CodingStage(WriteCode()),
         StageType.RunningStage: RunningStage(RunCode()),

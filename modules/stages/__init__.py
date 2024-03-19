@@ -1,4 +1,4 @@
-from modules.stages.analyze_stage import AnalyzeStage
+from modules.stages.analysis_stage import AnalysisStage
 from modules.stages.design_stage import DesignStage
 from modules.stages.final_stage import FinalStage
 from modules.stages.coding_stage import CodingStage
@@ -10,7 +10,7 @@ __all__ = [
     "Stage",
     "StageType",
     "CodingStage",
-    "AnalyzeStage",
+    "AnalysisStage",
     "DesignStage",
     "FinalStage",
     "TestStage",
