@@ -4,5 +4,6 @@
     - name: 传输文件并覆盖源文件
       copy:
         src: "{{ lookup('env', 'LLM_SOURCE_CODE') }}/"
-        dest: /home/nvidia/CodeLLM/
+        dest: /home/nvidia/code_llm_ws/src/code_llm
         force: yes      # 强制覆盖目标文件，即使它已经存在
+    # - name: 拉取最新的docker镜像, 安装docker-compose
