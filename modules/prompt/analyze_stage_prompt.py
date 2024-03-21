@@ -1,10 +1,9 @@
-ANALYZE_PROMPT_TEMPLATE: str = """
+ANALYZE_FUNCTION_PROMPT_TEMPLATE: str = """
 ## Background:
 {task_des}
 ## Role setting:
-- You need to analyze the user's commands, expand on their instructions, and identify key requirements and constraints.
-- Your output will guide the generation of control code for the robots.Therefore, your analysis of requirements and instructions should be feasible and based on existing conditions.
-
+- You are a function designer. You need to design functions based on user commands and constraint information.
+- Your output will guide the generation of control code for the robots. Therefore, the functions you generate should be accurate and feasible, and based on existing conditions.
 ## These are the basic Robot APIs:
 These APIs can be directly called by you.
 ```python
@@ -13,24 +12,84 @@ These APIs can be directly called by you.
 ## These are the environment description:
 These are the basic descriptions of the environment.
 {env_des}
-
-## User requirements: 
+## Constraints information:
+The following are the constraints that the generated functions need to satisfy.
+{constraints}
+## User commands:
 {instruction}
+## The output TEXT format is as follows:
+```json
+{output_template}
+```
+## Notes:
+Your output should satisfy the following notes:
+- Analyze what essential functions are needed to implement the user commands.
+- Each function should be decoupled from others and closely cooperate, collaborate, and even call each other.
+- Each function should be extremely detailed, clear, feasible, and based on existing conditions.
+- Each function only needs to implement a small functionality under the overall objective, and one function should not solve multiple problems.
+- The output should adhere to the specified format.
+- You need to consider which constraints each function should satisfy or, in other words, implement.
+- One function can satisfy multiple constraints, and several functions can also implement a single constraint.
+- You only need to provide the names of the functions and their constraint information; designing the function bodies is not required.
+- The constraints section of each function needs to select the corresponding Constraints Name from the Constraints information.
+- If a function calls other functions, it is considered to have satisfied the constraints corresponding to the called functions.
+""".strip()
 
-
-
-## The output TEXT format is as follows
-1. Reasoning: You need to analyze the user's commands, expand on their instructions, and identify key requirements and constraints.
-2. Requirements: List the key requirements and explain the meaning of each requirement.
-3. Constraints: List the key constraints and explain the meaning of each constraint.
-
+ANALYZE_CONSTRAINT_PROMPT_TEMPLATE: str = """
+## Background:
+{task_des}
+## Role setting:
+- Analyze what constraints should be met by the code designed to execute the user's commands.
+- Your output will be used as a standard to check the final generated code, so you need to ensure that your constraints are checkable, feasible, and specifically targeted towards the generated code.
+## These are the basic Robot APIs:
+These APIs can be directly called by you.
+```python
+{robot_api}
+```
+## These are the environment description:
+These are the basic descriptions of the environment.
+{env_des}
+## User commands:
+{instruction}
+## The output TEXT format is as follows:
+```json
+{output_template}
+```
 ## Constraints:
 Your output should satisfy the following constraints:
-- You should analyze the user's commands, expand on their instructions, and identify key requirements and constraints.
-- The requirements and constraints should be feasible and based on existing conditions.
+- Analyze what constraints should be met by the code designed to execute the user's commands.
+- Each constraint should be feasible, and specifically targeted towards the generated code.
 - The output should be in the specified format.
+""".strip()
 
-User requirements: {instruction}
+CONSTRAIN_TEMPLATE: str = """
+{
+  "paraphrase": "Paraphrase the user's commands in your own words.",
+  "constraints": [
+    {
+      "name": "Constraint name",
+      "description": "Extremely detailed description of the constraint."
+    },
+    ... 
+  ]
+}
+""".strip()
+
+FUNCTION_TEMPLATE: str = """
+{
+  "paraphrase": "Paraphrase the user's commands here",
+  "functions": [
+    {
+      "name": "Function name",
+      "description": "Extremely detailed description of the function.",
+      "constraints": [
+        "Name of the constraint that this function needs to satisfy"
+        // More constraints can be added as needed
+      ]
+    }
+    // More functions can be added as needed
+  ]
+}
 """.strip()
 
 PARAMETER_PROMPT_TEMPLATE: str = """

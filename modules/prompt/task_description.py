@@ -1,5 +1,5 @@
 TASK_DES = """
-In a confined space, there are numerous robots capable of moving and sensing obstacles and other robots within a certain range.
-Users will issue commands, and multiple AI assistants need to collaborate with each other to generate control code for individual robots.
-This code, when applied to all robots and executed, fulfills the user's requirements.
+There is a mobile ground robot that has the capability to control its own speed, acquire its location, and sense obstacles in the surrounding environment as well as the positions and speeds of other robots.
+Now, multiple AI assistants are implementing user commands through collaborative coding.
+You are one of these assistants, and you need to understand this context and then carry out your work accordingly.
 """.strip()

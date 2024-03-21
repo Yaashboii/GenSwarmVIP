@@ -88,6 +88,8 @@ def parse_code(text: str, lang: str = "python") -> str:
     if match:
         code = match.group(1)
     else:
+        print(f"Error: No {lang} code block found in the response.")
+
         raise Exception
     return code
 

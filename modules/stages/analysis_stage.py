@@ -1,48 +1,62 @@
 import asyncio
 
 from modules.stages.stage import Stage, StageResult
-from modules.actions import Analyze, DesignParameters
+from modules.actions import AnalyzeFunctions, AnalyzeConstraints
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
-from modules.prompt.analyze_stage_prompt import ANALYZE_PROMPT_TEMPLATE, PARAMETER_PROMPT_TEMPLATE
+from modules.prompt.analyze_stage_prompt import ANALYZE_FUNCTION_PROMPT_TEMPLATE, ANALYZE_CONSTRAINT_PROMPT_TEMPLATE, \
+    CONSTRAIN_TEMPLATE, FUNCTION_TEMPLATE
 from modules.prompt.task_description import TASK_DES
 
 
 class AnalysisStage(Stage):
-    def __init__(self, action: Analyze):
+    def __init__(self, action: AnalyzeConstraints):
         super(AnalysisStage, self).__init__()
         self._user_command = ""
         self._prompt = None
         self._action = action
 
-    async def _analyze_requirements(self):
-        self._prompt = ANALYZE_PROMPT_TEMPLATE.format(
+    async def _analyze_functions(self):
+        self._prompt = ANALYZE_FUNCTION_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             instruction=self._context.user_command.message,
             robot_api=ROBOT_API,
-            env_des=ENV_DES
+            env_des=ENV_DES,
+            constraints=self._context.constraints.message,
+            output_template=FUNCTION_TEMPLATE
         )
-        self._action = Analyze()
+        self._action = AnalyzeFunctions()
         await self._action.run(prompt=self._prompt)
 
-    async def _design_parameters(self):
-        self._action = DesignParameters()
-        self._prompt = PARAMETER_PROMPT_TEMPLATE.format(
+    # async def _design_parameters(self):
+    #     self._action = DesignParameters()
+    #     self._prompt = PARAMETER_PROMPT_TEMPLATE.format(
+    #         task_des=TASK_DES,
+    #         requirements_constraints=self.context.analysis.message,
+    #         robot_api=ROBOT_API,
+    #         env_des=ENV_DES
+    #     )
+    #     await self._action.run(prompt=self._prompt)
+
+    async def _analyze_constraints(self):
+        self._prompt = ANALYZE_CONSTRAINT_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
-            requirements_constraints=self.context.analysis.message,
+            instruction=self._context.user_command.message,
             robot_api=ROBOT_API,
-            env_des=ENV_DES
+            env_des=ENV_DES,
+            output_template=CONSTRAIN_TEMPLATE
         )
+        self._action = AnalyzeConstraints()
         await self._action.run(prompt=self._prompt)
 
     async def _run(self) -> StageResult:
-        await self._analyze_requirements()
-        # await self._design_parameters()
+        await self._analyze_constraints()
+        await self._analyze_functions()
         return StageResult(keys=[])
 
 
 if __name__ == '__main__':
-    analyst = AnalysisStage(Analyze())
+    analyst = AnalysisStage(AnalyzeConstraints())
     from modules.utils import root_manager
 
     path = '/home/derrick/catkin_ws/src/code_llm/workspace/test'
