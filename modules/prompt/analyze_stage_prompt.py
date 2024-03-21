@@ -25,14 +25,15 @@ The following are the constraints that the generated functions need to satisfy.
 Your output should satisfy the following notes:
 - Analyze what essential functions are needed to implement the user commands.
 - Each function should be decoupled from others and closely cooperate, collaborate, and even call each other.
-- Each function should be extremely detailed, clear, feasible, and based on existing conditions.
+- Each function should be as detailed as possible while also being clear, feasible, and based on existing conditions.
 - Each function only needs to implement a small functionality under the overall objective, and one function should not solve multiple problems.
-- The output should adhere to the specified format.
+- The output should strictly adhere to the specified format.
 - You need to consider which constraints each function should satisfy or, in other words, implement.
 - One function can satisfy multiple constraints, and several functions can also implement a single constraint.
 - You only need to provide the names of the functions and their constraint information; designing the function bodies is not required.
 - The constraints section of each function needs to select the corresponding Constraints Name from the Constraints information.
-- If a function calls other functions, it is considered to have satisfied the constraints corresponding to the called functions.
+- If a function calls other functions, it is considered that this function has satisfied the constraints of the called functions, and there is no need for this function to include the constraints information of the called functions.
+- Each constraint in the Constraints information should be satisfied by one of the functions generated in your function list, without any omissions.
 """.strip()
 
 ANALYZE_CONSTRAINT_PROMPT_TEMPLATE: str = """
@@ -59,7 +60,7 @@ These are the basic descriptions of the environment.
 Your output should satisfy the following constraints:
 - Analyze what constraints should be met by the code designed to execute the user's commands.
 - Each constraint should be feasible, and specifically targeted towards the generated code.
-- The output should be in the specified format.
+- The output should strictly adhere to the specified format..
 """.strip()
 
 CONSTRAIN_TEMPLATE: str = """
