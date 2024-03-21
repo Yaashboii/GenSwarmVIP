@@ -23,5 +23,9 @@ class AnalyzeFunctions(Action):
         for i, function in self._context.functions.functions.items():
             for constraint in function.satisfying_constraints:
                 self._context.constraints.add_sat_func(constraint_name=constraint, function_id=i)
+            for constraint in self._context.constraints.constraints.values():
+                if not constraint.satisfyingFuncs:
+                    print(f"Constraint {constraint.name} has no satisfying function")
+                    raise SystemExit
         self._context.log.format_message(f"Analyze Functions Success", "success")
         return response

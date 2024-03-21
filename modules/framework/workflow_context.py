@@ -115,15 +115,23 @@ class FunctionPool(FileInfo):
 
 
 class ConstraintPool(FileInfo):
+    constraints: dict = {}
+
     def __init__(self, name: str = '', root: str = ''):
         super().__init__(name=name, root=root)
-        self._constraints: dict = {}
+        self.constraints = {
+            0:
+                ConstraintInfo(
+                    name='Human Interface',
+                    description="Create a function named run_loop. The purpose of this function is to allow the user to execute their commands by calling this function. Therefore, this function will call other generated functions to accomplish this task. The function itself is not capable of performing any complex functionality."
+                )
+        }
 
     def add_constraints(self, content: str):
         try:
-            current_count = len(self._constraints)
+            current_count = len(self.constraints)
             for i, constraint in enumerate(eval(content)['constraints']):
-                self._constraints[i + current_count] = ConstraintInfo(
+                self.constraints[i + current_count] = ConstraintInfo(
                     name=constraint['name'],
                     description=constraint['description']
                 )
@@ -133,21 +141,20 @@ class ConstraintPool(FileInfo):
         self.update_message()
 
     def update_message(self):
-        self.message = self.constraints
+        self.message = self.constraints_content()
 
     def add_sat_func(self, constraint_name, function_id: int | list[int]):
         if isinstance(function_id, int):
             function_id = [function_id]
-        for i, c in self._constraints.items():
+        for i, c in self.constraints.items():
             if c.name.lower() == constraint_name.lower():
                 constraint_id = i
-                self._constraints[constraint_id].satisfyingFuncs.extend(function_id)
+                self.constraints[constraint_id].satisfyingFuncs.extend(function_id)
                 return
         raise SystemExit(f"Constraint {constraint_name} not found")
 
-    @property
-    def constraints(self):
-        return '\n'.join([f"{c.name}: {c.description}" for c in self._constraints.values()])
+    def constraints_content(self):
+        return '\n'.join([f"{c.name}: {c.description}" for c in self.constraints.values()])
 
 
 class FileLog(FileInfo):
