@@ -154,7 +154,7 @@ class ConstraintPool(FileInfo):
         raise SystemExit(f"Constraint {constraint_name} not found")
 
     def constraints_content(self):
-        return '\n'.join([f"{c.name}: {c.description}" for c in self.constraints.values()])
+        return '\n'.join([f"**{c.name}**: {c.description}" for c in self.constraints.values()])
 
 
 class FileLog(FileInfo):
