@@ -54,13 +54,15 @@ class FileInfo(BaseModel):
 
 
 # TODO: function pool and constraint pool should be rewrite totally
+
 class FunctionInfo:
-    satisfying_constraints: list[int] = Field(default=[])
+    satisfying_constraints: list[str] = Field(default=[])
     content: str = Field(default='')
 
     def __init__(self, description, name):
         self.name = name
         self.description = description
+        self.text = f"**{self.name}**: {self.description}"
 
 
 class ConstraintInfo:
@@ -69,24 +71,25 @@ class ConstraintInfo:
     def __init__(self, description, name):
         self.name = name
         self.description = description
+        self.text = f"**{self.name}**: {self.description}"
 
 
 class FunctionPool(FileInfo):
     import_list: list[str] = Field(default=[])
-    functions: dict = Field(default={})
+    functions: dict = {}
 
     def __init__(self, name: str = '', root: str = ''):
         super().__init__(name=name, root=root)
 
     def init_functions(self, content: str):
         try:
-            current_count = len(self.functions)
-            for i, function in enumerate(eval(content)['functions']):
-                self.functions[i + current_count] = FunctionInfo(
-                    name=function['name'],
+            for function in eval(content)['functions']:
+                name = function['name']
+                self.functions[name] = FunctionInfo(
+                    name=name,
                     description=function['description'],
                 )
-                self.functions[i + current_count].satisfying_constraints = function['constraints']
+                self.functions[name].satisfying_constraints = function['constraints']
         except Exception as e:
             print('Error in init_functions: ', e)
             raise e
@@ -97,14 +100,8 @@ class FunctionPool(FileInfo):
         for function in function_list:
             function_name = extract_top_level_function_names(function)[0]
             _, function_content = extract_imports_and_functions(function)
-            for f in self.functions.values():
-                if f.name == function_name:
-                    self.functions[f].content = function
-            self.functions[len(self.functions)] = FunctionInfo(
-                name=function_name,
-                description=''
-            )
-            self.functions[len(self.functions)].content = function_content
+            self.functions[function_name].content = function_content
+            self.functions[function_name].name = function_name
         self.update_message()
 
     def update_message(self):
@@ -121,7 +118,7 @@ class ConstraintPool(FileInfo):
     def __init__(self, name: str = '', root: str = ''):
         super().__init__(name=name, root=root)
         self.constraints = {
-            0:
+            'Human Interface':
                 ConstraintInfo(
                     name='Human Interface',
                     description="Create a function named run_loop. The purpose of this function is to allow the user to execute their commands by calling this function. Therefore, this function will call other generated functions to accomplish this task. The function itself is not capable of performing any complex functionality."
@@ -130,10 +127,10 @@ class ConstraintPool(FileInfo):
 
     def add_constraints(self, content: str):
         try:
-            current_count = len(self.constraints)
-            for i, constraint in enumerate(eval(content)['constraints']):
-                self.constraints[i + current_count] = ConstraintInfo(
-                    name=constraint['name'],
+            for constraint in eval(content)['constraints']:
+                name = constraint['name']
+                self.constraints[name] = ConstraintInfo(
+                    name=name,
                     description=constraint['description']
                 )
         except Exception as e:
@@ -144,18 +141,16 @@ class ConstraintPool(FileInfo):
     def update_message(self):
         self.message = self.constraints_content()
 
-    def add_sat_func(self, constraint_name, function_id: int | list[int]):
-        if isinstance(function_id, int):
-            function_id = [function_id]
-        for i, c in self.constraints.items():
-            if c.name.lower() == constraint_name.lower():
-                constraint_id = i
-                self.constraints[constraint_id].satisfyingFuncs.extend(function_id)
-                return
-        raise SystemExit(f"Constraint {constraint_name} not found")
+    def add_sat_func(self, constraint_name, function_name: str | list[str]):
+        if isinstance(function_name, str):
+            function_name = [function_name]
+        if constraint_name in self.constraints:
+            self.constraints[constraint_name].satisfyingFuncs.extend(function_name)
+        else:
+            raise SystemExit(f"Constraint {constraint_name} not found")
 
     def constraints_content(self):
-        return '\n'.join([f"**{c.name}**: {c.description}" for c in self.constraints.values()])
+        return '\n'.join([c.text for c in self.constraints.values()])
 
 
 class FileLog(FileInfo):
