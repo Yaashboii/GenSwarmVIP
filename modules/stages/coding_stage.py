@@ -46,26 +46,36 @@ class CodingStage(Stage):
             tasks.append(task)
         await asyncio.gather(*tasks)
 
-    async def _write_functions(self):
-        self._prompt = WRITE_FUNCTION_PROMPT_TEMPLATE.format(
-            task_des=TASK_DES,
-            robot_api=ROBOT_API,
-            env_des=ENV_DES,
-            req_constraints=self._context.analysis.message,
-            existing_functions=self._context.function_pool.message
-        )
-
+    async def _write_function(self, prompt: str):
         self._action = WriteCode()
-        res = await self._action.run(prompt=self._prompt)
-        if res == 'No Need':
-            print('No need to write new function')
-            return
-        else:
-            self._context.function_pool.add_functions(res)
-            await self._write_functions()
+        await self._action.run(prompt=prompt)
+
+    async def _write_functions(self):
+        tasks = []
+        for i, function in self._context.function_pool.functions.items():
+            constraint_text = ''
+            for constraint in function.satisfying_constraints:
+                constraint_text += self._context.constraint_pool.constraints[constraint].text + '\n'
+
+            function_list = [f.content for f in self._context.function_pool.functions.values() if
+                             f.name != function.name]
+            prompt = WRITE_FUNCTION_PROMPT_TEMPLATE.format(
+                task_des=TASK_DES,
+                robot_api=ROBOT_API,
+                env_des=ENV_DES,
+                function_content=function.content,
+                constraints=constraint_text,
+                other_functions='\n\n'.join(function_list)
+
+            )
+            task = asyncio.create_task(self._write_function(prompt))
+            tasks.append(task)
+        await asyncio.gather(*tasks)
 
     async def _run(self) -> StageResult:
-        await self._design_functions()
+        # await self._design_functions()
+        # self.context.save_to_file(file_path=f'/home/derrick/catkin_ws/src/code_llm/workspace/test/design_stage.pkl')
+        await self._write_functions()
         return StageResult()
 
 
@@ -75,7 +85,8 @@ if __name__ == '__main__':
     import pickle
 
     path = '/home/derrick/catkin_ws/src/code_llm/workspace/test'
-    pkl_path = f'{path}/analysis_stage.pkl'
+    pkl_path = f'{path}/design_stage.pkl'
+    # pkl_path = f'{path}/analyze_stage.pkl'
     programmer = CodingStage(WriteCode())
     programmer.context.load_from_file(pkl_path)
 
@@ -83,3 +94,4 @@ if __name__ == '__main__':
     if os.path.exists(path + '/functions.py'):
         os.remove(path + '/functions.py')
     asyncio.run(programmer.run())
+    programmer.context.save_to_file(f'{path}/coding_stage.pkl')

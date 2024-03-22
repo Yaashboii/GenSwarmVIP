@@ -100,12 +100,12 @@ class FunctionPool(FileInfo):
         for function in function_list:
             function_name = extract_top_level_function_names(function)[0]
             _, function_content = extract_imports_and_functions(function)
-            self.functions[function_name].content = function_content
+            self.functions[function_name].content = function_content[0]
             self.functions[function_name].name = function_name
         self.update_message()
 
     def update_message(self):
-        import_str = '\n'.join(combine_unique_imports(self.import_list))
+        import_str = combine_unique_imports(self.import_list)
         self.message = f"{import_str}\n\n{self.functions_content()}"
 
     def functions_content(self):

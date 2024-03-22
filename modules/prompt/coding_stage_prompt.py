@@ -3,7 +3,7 @@ WRITE_FUNCTION_PROMPT_TEMPLATE = """
 {task_des}
 
 ## Role setting:
-- Your task is to accurately and precisely implement the functionalities planned by others, based on their descriptions, using Python code.
+- Your task is to complete this predefined function according to the description.
 
 ## These are the environment description: 
 {env_des}
@@ -14,22 +14,22 @@ WRITE_FUNCTION_PROMPT_TEMPLATE = """
 ```
 
 ## These are the functions you can call directly even if they are not implemented now:
-{}
-
-## These are the functions that have been implemented and can be called directly:
 ```python
-{existing_functions}
+{other_functions}
 ```
 
 ## These are the constraints that need to be satisfied in the implementation of the function:
 {constraints}
 
-## The output  TEXT format is as follows:
-1. explanation: think step by step. How to implement the function.
-2. python code: output the function you think should be defined in the following format. ```python\n <your response>```. 
+## The output TEXT format is as follows:
+```python
+import ...(if necessary)
+{function_content}
+    ...(function body,you need to complete it)
+```
 
 ## Notes: 
-1. The Robot API and existing functions can be called directly without the need for imports.
+1. The Robot API and existing functions can be called directly without the need  imports.
 2. Write very detailed descriptions of the function.
 3. Reduce the occurrence of errors by writing standard-compliant, correct functions.
 4. Set default value in input parameters: Any adjustable parameters should be taken as input parameters of the function. Always set a default value for each parameter.
@@ -38,7 +38,7 @@ WRITE_FUNCTION_PROMPT_TEMPLATE = """
 7. Avoid using global variables, and avoid using the same variable name as the global variable in the function.
 8. Import the required modules at the beginning of the file, and do not import them in the function. 
 9. Make sure the functions you generate meet the constraints.
-
+10. Don't complete other functions, just complete the function in the specified format.
 """.strip()
 
 WRITE_RUN_PROMPT_TEMPLATE = """
