@@ -1,4 +1,10 @@
 WRITE_FUNCTION_PROMPT_TEMPLATE = """
+## Background:
+{task_des}
+
+## Role setting:
+- Your task is to accurately and precisely implement the functionalities planned by others, based on their descriptions, using Python code.
+
 ## These are the environment description: 
 {env_des}
 
@@ -7,24 +13,32 @@ WRITE_FUNCTION_PROMPT_TEMPLATE = """
 {robot_api}
 ```
 
-## These are existing functions:
+## These are the functions you can call directly even if they are not implemented now:
+{}
+
+## These are the functions that have been implemented and can be called directly:
 ```python
-{other_functions}
+{existing_functions}
 ```
 
-## Constraints: 
-The functions you generate need to comply with the following constraints.
-1. Above functions are in the same py file as yours and can be invoked directly using their function names.
-2. Write complete code, your code will not be modified, if you can't write complete code, simplify the function
-3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. 
-4. Before using a others functions/modules, make sure to import them first.
-5. YOU MUST FOLLOW "Data structures and interface definitions". DONT CHANGE ANY DESIGN.
-6. You only need to make sure single function has correct input and output. don't need to consider complex conditions.
-7. You can only complete this one function; you cannot generate other Helper functions. If necessary, you can define functions within this function.
+## These are the constraints that need to be satisfied in the implementation of the function:
+{constraints}
 
-## Task description:
-Please finish the following function, maximizing the reuse of existing functions:
-{function}
+## The output  TEXT format is as follows:
+1. explanation: think step by step. How to implement the function.
+2. python code: output the function you think should be defined in the following format. ```python\n <your response>```. 
+
+## Notes: 
+1. The Robot API and existing functions can be called directly without the need for imports.
+2. Write very detailed descriptions of the function.
+3. Reduce the occurrence of errors by writing standard-compliant, correct functions.
+4. Set default value in input parameters: Any adjustable parameters should be taken as input parameters of the function. Always set a default value for each parameter.
+5. You can only complete this one function; you cannot generate other Helper functions. If necessary, you can define functions within this function.
+6. Consider reuse or collaboration with existing functions; this one function is just a link in the entire control system.
+7. Avoid using global variables, and avoid using the same variable name as the global variable in the function.
+8. Import the required modules at the beginning of the file, and do not import them in the function. 
+9. Make sure the functions you generate meet the constraints.
+
 """.strip()
 
 WRITE_RUN_PROMPT_TEMPLATE = """
