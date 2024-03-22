@@ -1,4 +1,5 @@
 import argparse
+import pickle
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -210,25 +211,38 @@ class FileLog(FileInfo):
 
 class WorkflowContext:
     _instance = None
-    user_command: FileInfo = FileInfo(name='command.md')
-
-    functions: FunctionPool = FunctionPool(name='functions.py')
-    constraints: ConstraintPool = ConstraintPool(name='constraints.md')
-    function_list: list[dict[str, str]] = []
-    code_files: dict[str, FileInfo] = {
-        'functions.py': FileInfo(name='functions.py'),
-        'test.py': FileInfo(name='test.py'),
-        'run.py': FileInfo(name='run.py'),
-    }
-    sequence_diagram: FileInfo = FileInfo(name='sequence_diagram.md')
-    run_result: FileInfo = FileInfo(name='run_result.md')
-    log: FileLog = FileLog(name='log.md')
-    args: argparse.Namespace = argparse.Namespace()
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super().__new__(cls)
+            cls._instance._initialize()
+
         return cls._instance
+
+    def _initialize(self):
+        self.log = FileLog(name='log.md')
+        self.user_command = FileInfo(name='command.md')
+        self.function_pool = FunctionPool(name='functions.py')
+        self.constraint_pool = ConstraintPool(name='constraints.md')
+        self.function_list = []
+        self.code_files = {
+            'functions.py': FileInfo(name='functions.py'),
+            'test.py': FileInfo(name='test.py'),
+            'run.py': FileInfo(name='run.py'),
+        }
+        self.sequence_diagram = FileInfo(name='sequence_diagram.md')
+        self.run_result = FileInfo(name='run_result.md')
+        self.args = argparse.Namespace()
+
+    @classmethod
+    def save_to_file(cls, file_path):
+        with open(file_path, 'wb') as file:
+            pickle.dump(cls._instance, file)
+
+    @classmethod
+    def load_from_file(cls, file_path):
+        with open(file_path, 'rb') as file:
+            cls._instance = pickle.load(file)
 
 
 if __name__ == "__main__":
