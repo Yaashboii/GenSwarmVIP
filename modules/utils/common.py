@@ -123,10 +123,21 @@ def extract_imports_and_functions(source_code):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imports.append(f"import {alias.name}")
+                    import_str = f"import {alias.name}"
+                    if alias.asname:
+                        import_str += f" as {alias.asname}"
+                    imports.append(import_str)
             elif isinstance(node, ast.ImportFrom):
                 module = node.module if node.module else ''
-                imports.append(f"from {module} import {', '.join(alias.name for alias in node.names)}")
+                import_from_str = "from {} import ".format(module)
+                names_with_as = []
+                for alias in node.names:
+                    if alias.asname:
+                        names_with_as.append(f"{alias.name} as {alias.asname}")
+                    else:
+                        names_with_as.append(alias.name)
+                import_from_str += ", ".join(names_with_as)
+                imports.append(import_from_str)
         elif isinstance(node, ast.FunctionDef):
             func_def = ast.unparse(node).strip()
             if func_def:
