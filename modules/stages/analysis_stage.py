@@ -22,7 +22,7 @@ class AnalysisStage(Stage):
             instruction=self._context.user_command.message,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
-            constraints=self._context.constraints.message,
+            constraints=self._context.constraint_pool.message,
             output_template=FUNCTION_TEMPLATE
         )
         self._action = AnalyzeFunctions()
@@ -58,8 +58,10 @@ class AnalysisStage(Stage):
 if __name__ == '__main__':
     analyst = AnalysisStage(AnalyzeConstraints())
     from modules.utils import root_manager
+    import pickle
 
     path = '/home/derrick/catkin_ws/src/code_llm/workspace/test'
     root_manager.update_root(path, set_data_path=False)
     analyst._context.user_command.message = 'Form a flocking formation with other robots, maintaining a 0.5m distance between each robot, moving as quickly as possible, and avoiding collisions with environmental boundaries or obstacles.'
     asyncio.run(analyst.run())
+    analyst.context.save_to_file(f'{path}/analysis_stage.pkl')

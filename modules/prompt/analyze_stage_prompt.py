@@ -42,7 +42,6 @@ ANALYZE_CONSTRAINT_PROMPT_TEMPLATE: str = """
 ## Role setting:
 - Analyze what constraints should be met by the code designed to execute the user's commands.
 - Your output will be used as a standard to check the final generated code, so you need to ensure that your constraints are checkable, feasible, and specifically targeted towards the generated code.
-## These are the basic Robot APIs:
 These APIs can be directly called by you.
 ```python
 {robot_api}
@@ -50,8 +49,7 @@ These APIs can be directly called by you.
 ## These are the environment description:
 These are the basic descriptions of the environment.
 {env_des}
-## User commands:
-{instruction}
+
 ## The output TEXT format is as follows:
 ```json
 {output_template}
