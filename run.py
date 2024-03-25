@@ -33,13 +33,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     task_list = [
-        {
-            "task": "Forming flocking with other robots, and avoid collision with obstacles and other robots.",
-            "run_times": 1
-        },
         # {
-        #     "task": "Form a circle shape flocking with other robots.",
+        #     "task": "Forming flocking with other robots, and avoid collision with obstacles and other robots.",
         #     "run_times": 1
         # },
+        {
+            "task": "Form a flocking formation with other robots, maintaining a 0.5m distance between each robot, moving as quickly as possible, and avoiding collisions with environmental boundaries or obstacles.",
+            "run_times": 1
+        },
     ]
     asyncio.run(run_all_tasks_sequentially(task_list, args))

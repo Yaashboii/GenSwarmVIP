@@ -12,7 +12,6 @@ ActionResult = namedtuple('ActionResult', ['id', 'message'])
 
 class Action(ABC):
     def __init__(self):
-        self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
         self._llm = GPT()
         self._context = WorkflowContext()
 

@@ -25,7 +25,7 @@ class TestRootManager(unittest.TestCase):
         self.assertTrue(self.root_manager.workspace_root.exists())
         self.assertTrue(self.root_manager.data_root.exists())
         self.assertTrue((self.root_manager.workspace_root / "data/frames").exists())
-        self.assertTrue((self.root_manager.workspace_root / "functions.py").exists())
+        self.assertTrue((self.root_manager.workspace_root / "apis.py").exists())
 
 if __name__ == '__main__':
     unittest.main()

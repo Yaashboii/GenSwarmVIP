@@ -16,15 +16,12 @@ from modules.utils.common import TestResult, BugSource, DesignPattern, CodeMode
 # }
 
 StageTransition = {
-    StageType.AnalyzeStage: StageType.DesignStage,
-    StageType.DesignStage: {
-        DesignPattern.FUNCTION: StageType.CodingStage,
-        DesignPattern.SEQ_DIAGRAM: StageType.CodingStage,
-    },
-    StageType.CodingStage: {
-        CodeMode.WRITE_FUNCTION: StageType.DesignStage,
-        CodeMode.WRITE_RUN: StageType.RunningStage,
-    },
+    StageType.AnalyzeStage: StageType.CodingStage,
+    # StageType.DesignStage: {
+    #     DesignPattern.FUNCTION: StageType.CodingStage,
+    #     DesignPattern.SEQ_DIAGRAM: StageType.CodingStage,
+    # },
+    StageType.CodingStage: StageType.RunningStage,
     StageType.RunningStage: StageType.FinalStage,
 
 }

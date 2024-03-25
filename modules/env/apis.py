@@ -1,6 +1,4 @@
-import numpy
 import os
-
 import numpy as np
 import rospy
 from geometry_msgs.msg import Twist
@@ -52,7 +50,7 @@ def initialize_ros_node():
     # avoid multiple initialization
     if not ros_initialized:
         # init ros node
-        robot_id = int(os.environ['ROBOT_ID'])
+        from run import robot_id
         rospy.init_node(f'robot{robot_id}_control_node', anonymous=True)
         ros_initialized = True
         rospy.Subscriber(f'/robot_{robot_id}/observation', Observations, observation_callback)

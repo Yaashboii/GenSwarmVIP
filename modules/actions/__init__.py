@@ -5,6 +5,8 @@ from modules.actions.write_code import WriteCode
 from modules.actions.design_function import DesignFunction
 from modules.actions.write_seq_diagram import WriteSeqDiagram
 from modules.actions.design_parameters import DesignParameters
+from modules.actions.criticize_functions import CriticizeFunctions
+from modules.actions.debug import Debug
 
 __all__ = [
     "Action",
@@ -15,5 +17,7 @@ __all__ = [
     "WriteCode",
     "DesignFunction",
     "WriteSeqDiagram",
-    "DesignParameters"
+    "DesignParameters",
+    "CriticizeFunctions",
+    "Debug",
 ]

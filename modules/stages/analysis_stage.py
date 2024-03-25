@@ -50,7 +50,7 @@ class AnalysisStage(Stage):
         await self._action.run(prompt=self._prompt)
 
     async def _run(self) -> StageResult:
-        await self._analyze_constraints()
+        # await self._analyze_constraints()
         await self._analyze_functions()
         return StageResult(keys=[])
 
@@ -63,5 +63,8 @@ if __name__ == '__main__':
     path = '/home/derrick/catkin_ws/src/code_llm/workspace/test'
     root_manager.update_root(path, set_data_path=False)
     analyst._context.user_command.message = 'Form a flocking formation with other robots, maintaining a 0.5m distance between each robot, moving as quickly as possible, and avoiding collisions with environmental boundaries or obstacles.'
+    analyst.context.load_from_file(f'{path}/analyze_constraints_stage.pkl')
+
     asyncio.run(analyst.run())
-    analyst.context.save_to_file(f'{path}/analysis_stage.pkl')
+    # analyst.context.save_to_file(f'{path}/analyze_constraints_stage.pkl')
+    analyst.context.save_to_file(f'{path}/analyze_functions_stage.pkl')
