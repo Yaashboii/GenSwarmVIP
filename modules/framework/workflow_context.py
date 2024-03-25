@@ -57,7 +57,7 @@ class FileInfo(BaseModel):
 
 class FunctionInfo:
     satisfying_constraints: list[str] = Field(default=[])
-    content: str = Field(default='')
+    content = None
 
     def __init__(self, description, name):
         self.name = name
@@ -75,7 +75,7 @@ class ConstraintInfo:
 
 
 class FunctionPool(FileInfo):
-    import_list: list[str] = Field(default=[])
+    import_list: list[str] = Field(default=['from apis import *'])
     functions: dict = {}
 
     def __init__(self, name: str = '', root: str = ''):
@@ -102,6 +102,7 @@ class FunctionPool(FileInfo):
             _, function_content = extract_imports_and_functions(function)
             self.functions[function_name].content = function_content[0]
             self.functions[function_name].name = function_name
+            # TODO: FunctionInfo
         self.update_message()
 
     def update_message(self):
@@ -218,14 +219,16 @@ class WorkflowContext:
         self.log = FileLog(name='log.md')
         self.user_command = FileInfo(name='command.md')
         self.function_pool = FunctionPool(name='functions.py')
+        self.design_result = FileInfo(name='design_result.py')
         self.constraint_pool = ConstraintPool(name='constraints.md')
         self.function_list = []
-        self.code_files = {
-            'functions.py': FileInfo(name='functions.py'),
-            'test.py': FileInfo(name='test.py'),
-            'run.py': FileInfo(name='run.py'),
-        }
-        self.sequence_diagram = FileInfo(name='sequence_diagram.md')
+        self.run_code = FileInfo(name='run.py', message="""import sys
+from functions import run_loop
+robot_id = sys.argv[1]
+if __name__ == '__main__':
+    run_loop()
+""")
+        # self.sequence_diagram = FileInfo(name='sequence_diagram.md')
         self.run_result = FileInfo(name='run_result.md')
         self.args = argparse.Namespace()
 

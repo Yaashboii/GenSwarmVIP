@@ -2,15 +2,20 @@ import argparse
 import asyncio
 from os import listdir
 
-from modules.actions import RunCode
+from modules.actions import RunCode, Debug
 from modules.stages.stage import Stage, StageResult
 from modules.utils import get_param, call_reset_environment
+from modules.prompt.run_code_prompt import DEBUG_PROMPT
+from modules.prompt.env_description_prompt import ENV_DES
+from modules.prompt.robot_api_prompt import ROBOT_API
+from modules.prompt.task_description import TASK_DES
 
 
 class RunningStage(Stage):
     def __init__(self, action: RunCode = None):
         super().__init__()
         self._action = action
+        self._error_message = ""
 
     async def _run_code(self, robot_id: int) -> str:
         code_info = {
@@ -32,10 +37,7 @@ class RunningStage(Stage):
             for robot_id in range(robot_num):
                 task = asyncio.create_task(self._run_code(robot_id))
                 tasks.append(task)
-            result_list = await asyncio.gather(*tasks)
-        except Exception as e:
-            self._logger.error(f"An error occurred while running the command: {e}")
-            result_list = [f"An error occurred while running the command: {e}"]
+            result_list = list(set(await asyncio.gather(*tasks)))
         finally:
             print(f"call reset environment: end")
             call_reset_environment(True)
@@ -48,11 +50,35 @@ class RunningStage(Stage):
             )
             print(f"synthesize frame{number} ---> output{number}.mp4")
             print("############END############")
-        return '\n'.join(result_list)
+
+        return result_list
+
+    async def _debug(self, error_message: str):
+        mentioned_function = ""
+        for function in self.context.function_pool.functions.values():
+            if function.name in error_message:
+                mentioned_function += "\n\n" + function.content
+        self._action = Debug()
+        prompt = DEBUG_PROMPT.format(
+            task_des=TASK_DES,
+            robot_api=ROBOT_API,
+            env_des=ENV_DES,
+            mentioned_functions=mentioned_function,
+            error_message=error_message
+
+        )
+        await self._action.run(prompt=prompt)
 
     async def _run(self) -> StageResult:
         result = await self._run_codes()
-        self._context.run_result.message = result
+        if 'NONE' in result and len(result) == 1:
+            self._error_message = "No result received"
+            return StageResult(keys=[])
+        elif 'Timeout' in result and len(result) == 1:
+            return StageResult(keys=[])
+
+        result_content = '\n'.join(result)
+        await self._debug(result_content)
         return StageResult(keys=[])
 
 
@@ -61,11 +87,11 @@ if __name__ == '__main__':
     from modules.utils import root_manager
 
     parser = argparse.ArgumentParser(description="Run simulation with custom parameters.")
-    parser.add_argument("--timeout", type=int, default=60, help="Total time for the simulation")
+    parser.add_argument("--timeout", type=int, default=30, help="Total time for the simulation")
     args = parser.parse_args()
-    context = run_test.context
-    context.args = args
-    run_test.context = context
-    path = '//home/derrick/catkin_ws/src/code_llm/workspace/2024-03-13_11-02-12'
-    root_manager.update_root(path)
+    path = '/home/derrick/catkin_ws/src/code_llm/workspace/test'
+    run_test.context.load_from_file(f'{path}/review_stage.pkl')
+    run_test.context.args = args
+    root_manager.update_root(path, set_data_path=False)
     asyncio.run(run_test.run())
+    run_test.context.save_to_file(f'{path}/running_stage.pkl')
