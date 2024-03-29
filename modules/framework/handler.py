@@ -1,14 +1,17 @@
 from abc import ABC, abstractmethod
 
 from modules.utils import setup_logger, LoggerLevel
-from modules.framework.action import ActionNode
 from modules.framework.code_error import *
+from modules.framework.action import BaseNode
 
 class Handler(ABC):
     def __init__(self):
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
         self._successor = None
-        self._action = None
+        self._next_action = None
+
+    def __str__(self) -> str:
+        return self.__class__.__name__
 
     @property
     def successor(self):
@@ -19,56 +22,53 @@ class Handler(ABC):
         self._successor = value
 
     @property
-    def action(self):
-        return self._action
+    def next_action(self):
+        return self._next_action
     
-    @action.setter
-    def action(self, value: ActionNode):
-        if isinstance(value, ActionNode):
-            self._action = value
+    @next_action.setter
+    def next_action(self, value: BaseNode):
+        if isinstance(value, BaseNode):
+            self._next_action = value
         else:
-            raise TypeError("type of action must be ActionNode")
+            raise TypeError("type of action must be BaseNode")
 
     @abstractmethod
-    def handle(self, request: CodeError):
-        if self._action:
-            self._action.run()
+    def handle(self, request: CodeError) -> BaseNode:
+        pass
 
     def display(self):
-        node = self
-        content = "Chain of Responsibility: " + self.__class__.__name__
-        while node.successor:
-            content += f" ==> {node.successor.__class__.__name__}"
-            node = node.successor
-        self._logger.debug(content)
+        content = f"\t\t{str(self)} -->|skip| {str(self._successor)}\n"
+        if self._next_action:
+            content += f"\t\t{str(self)} -->|back to| {str(self._next_action)}\n"
+        return content + (self._successor.display() if self._successor else '')
+    
+    def struct(self):
+        return f"\t{str(self)}\n" + (self._successor.struct() if self._successor else '')
 
 
 class BugLevelHandler(Handler):
-    def handle(self, request: CodeError):
+    def handle(self, request: CodeError) -> BaseNode:
         if(isinstance(request, Bug)):
             self._logger.debug("Handled by BugLevelHandler")
-            super().handle(request)
+            return self._next_action
         elif self._successor:
-            self._successor.handle(request)
-        return super().handle(request)
+            return self._successor.handle(request)
     
 class CriticLevelHandler(Handler):
-    def handle(self, request: CodeError):
+    def handle(self, request: CodeError) -> BaseNode:
         if(isinstance(request, CriticNotSatisfied)):
             self._logger.debug("Handled by CriticLevelHandler")
-            super().handle(request)
+            return self._next_action
         elif self._successor:
-            self._successor.handle(request)
-        return super().handle(request)
-    
+            return self._successor.handle(request)
+            
 class HumanFeedbackHandler(Handler):
-    def handle(self, request: CodeError):
+    def handle(self, request: CodeError) -> BaseNode:
         if(isinstance(request, HumanFeedback)):
             self._logger.debug("Handled by HumanFeedbackHandler")
-            super().handle(request)
+            return self._next_action
         elif self._successor:
-            self._successor.handle(request)
-        return super().handle(request)
+            return self._successor.handle(request)
 
 if __name__ == '__main__':
     h1 = BugLevelHandler()

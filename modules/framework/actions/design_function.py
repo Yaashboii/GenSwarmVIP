@@ -1,8 +1,18 @@
 from modules.framework.action import ActionNode
 from modules.utils import parse_code, extract_function_definitions, extract_top_level_function_names
-
+from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
+from modules.prompt.robot_api_prompt import ROBOT_API
+from modules.prompt.env_description_prompt import ENV_DES
 
 class DesignFunction(ActionNode):
+    def __init__(self, next_text: str , node_name: str = ''):
+        super(DesignFunction, self).__init__(next_text, node_name)
+        self.prompt = DesignFunction_PROMPT_TEMPLATE.format(
+            analysis=self._context.analysis.message,
+            robot_api=ROBOT_API,
+            env_des=ENV_DES
+        )
+     
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response)
         function_list = extract_function_definitions(code)

@@ -1,71 +1,72 @@
 import asyncio
 
-from modules.stages import *
-from modules.actions import *
-from modules.stages.stage import StageType, StageResult
+from modules.framework.actions import *
+from modules.framework.action import *
+from modules.framework.handler import *
+
 from modules.utils.logger import setup_logger
-from modules.framework.stage_transition import StageTransition
 from modules.framework.workflow_context import WorkflowContext
 
-
 class Workflow:
-    STAGE_POOL = {
-        StageType.AnalyzeStage: AnalyzeStage(AnalyzeReqs()),
-        StageType.DesignStage: DesignStage(DesignFunction()),
-        StageType.CodingStage: CodingStage(WriteCode()),
-        StageType.RunningStage: RunningStage(RunCode()),
-        StageType.FinalStage: FinalStage(),
-    }
-
-    # ACTION_POOL = {
-    #     ActionType.WriteCode: WriteCode(),
-    #     ActionType.RewriteCode: RewriteCode(),
-    #     ActionType.WritePrompt: WritePrompt(),
-    #     ActionType.RunCode: RunCode(),
-    # }
-
-    def __init__(self, user_command: str, init_stage: StageType = StageType.AnalyzeStage, args=None):
-        self.__stage = init_stage
+    def __init__(self, user_command: str, args=None):
         self._logger = setup_logger("Workflow")
         self._context = WorkflowContext()
-        # workflow_context = WorkflowContext()
-        # workflow_context.user_command.message = user_command
-        # workflow_context.args = args
         self._context.user_command.message = user_command
         self._context.args = args
+        self._pipeline = None
+
+        self.build_up()
+
+    def build_up(self):
+        # initialize actions
+        analyze_requirements = AnalyzeReqs('analysis')
+        design_function = DesignFunction("functions definition")
+        run_code = RunCode("pass")
+        write_functions = WriteFunctions("function.py")
+        write_run = WriteRun("run.py")
+        write_seq_diagram = WriteSeqDiagram("Sequence diagram")
+        critic_check_1 = CriticCheck("pass", node_name="Critic_1")
+        critic_check_2 = CriticCheck("pass", node_name="Critic_2")
+
+        # initialize error handlers
+        bug_handler = BugLevelHandler()
+        critic_handler = CriticLevelHandler()
+        hf_handler = HumanFeedbackHandler()
+        self._chain_of_handler = critic_handler
+        critic_handler.successor = bug_handler
+        bug_handler.successor = hf_handler
+        
+        # link actions
+        ## stage 1
+        stage_code_generation = ActionLinkedList("Code Generation", analyze_requirements)
+        stage_code_generation.add(design_function)
+        stage_code_generation.add(write_functions)
+        stage_code_generation.add(write_seq_diagram)
+        stage_code_generation.add(write_run)
+        ## stage 2
+        stage_critic_check = ActionLinkedList("Critic Check", critic_check_1)
+        stage_critic_check.add(critic_check_2)
+        ## stage 3
+        stage_code_execution = ActionLinkedList("Code Execution", run_code)
+        # combine stages
+        code_llm = ActionLinkedList("Code-LLM", stage_code_generation)
+        code_llm.add(stage_critic_check)
+        code_llm.add(stage_code_execution)
+        code_llm.add(ActionNode("","END"))
+        self._pipeline = code_llm
+        # assign error handlers to actions
+        critic_check_1.error_handler = self._chain_of_handler
+        critic_check_2.error_handler = self._chain_of_handler
+        run_code.error_handler = self._chain_of_handler
+        critic_handler.next_action= stage_code_generation
+
+
     async def run(self):
-        while self.__stage != StageType.FinalStage:
-            stage = self.create_stage(self.__stage)
-            stage_result = await stage.run()
-
-            temp = StageTransition[self.__stage]
-            for key in stage_result.keys:
-                temp = temp[key]
-
-            self.__stage = temp
-        else:
-            self._context.log.format_message("=========END=========", "success")
-
-    @staticmethod
-    def create_stage(stage_type: StageType):
-        try:
-            return Workflow.STAGE_POOL[stage_type]
-        except KeyError:
-            raise ValueError(f"Invalid stage type: {stage_type}")
-
-    # @staticmethod
-    # def create_action(action_type: ActionType):
-    #     if action_type == ActionType.WriteCode:
-    #         return Workflow.ACTION_POOL[ActionType.WriteCode]
-    #     elif action_type == ActionType.RewriteCode:
-    #         return Workflow.ACTION_POOL[ActionType.RewriteCode]
-    #     elif action_type == ActionType.WritePrompt:
-    #         return Workflow.ACTION_POOL[ActionType.WritePrompt]
-    #     elif action_type == ActionType.RunCode:
-    #         return Workflow.ACTION_POOL[ActionType.RunCode]
-    #     else:
-    #         raise ValueError("Invalid action type")
-
+        text = display_all(self._pipeline, self._chain_of_handler)
+        from modules.framework.workflow_context import FileInfo
+        flow = FileInfo(name='flow.md')
+        flow.message = text
+        
 
 if __name__ == "__main__":
     task_list = [
