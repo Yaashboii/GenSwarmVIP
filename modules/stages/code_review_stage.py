@@ -22,6 +22,10 @@ class ReviewStage(Stage):
         all_func_constraints = [function.satisfying_constraints for function in
                                 self.context.function_pool.functions.values()]
 
+        for function in self.context.function_pool.functions.values():
+            print("function.name = ", function.name)
+            print("function.satisfying_constraints = ", function.satisfying_constraints)
+
         max_length = max(len(constraints) for constraints in all_func_constraints)
 
         padded_constraints = [constraints + [None] * (max_length - len(constraints)) for constraints in
@@ -33,11 +37,14 @@ class ReviewStage(Stage):
                 constraint = padded_constraints[j][i]
                 if constraint is None:
                     continue
+                other_functions = [f.content for f in self._context.function_pool.functions.values() if
+                                 f.name != function.name]
 
                 prompt = CODE_REVIEW_PROMPT_TEMPLATE.format(
                     task_des=TASK_DES,
                     robot_api=ROBOT_API,
                     env_des=ENV_DES,
+                    other_functions='\n\n'.join(other_functions),
                     functions=function.content,
                     constraints=self.context.constraint_pool.constraints[constraint].text
                 )
@@ -54,8 +61,8 @@ class ReviewStage(Stage):
 if __name__ == '__main__':
     from modules.utils import root_manager
 
-    path = '/home/derrick/catkin_ws/src/code_llm/workspace/test'
-    pkl_path = f'{path}/write_functions_stage.pkl'
+    path = '/home/lufengxu/distributedArchitecture/src/code_llm/workspace/test'
+    pkl_path = f'{path}/coding_stage.pkl'
     reviewer = ReviewStage()
     reviewer.context.load_from_file(pkl_path)
 
