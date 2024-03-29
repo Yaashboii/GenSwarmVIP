@@ -22,7 +22,7 @@ DesignFunction_PROMPT_TEMPLATE = """
 ```python
 def {function_name}(input1, input2, ...):
     '''
-    Description:Refine this description '{function_des}' in great detail to guide the generation of the function and put it at here. 
+    Description:Refine this description '{function_des}' in detail to guide the generation of the function and put it at here. 
     
     params:
         input1: type, description
