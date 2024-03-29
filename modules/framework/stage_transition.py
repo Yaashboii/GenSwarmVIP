@@ -22,7 +22,10 @@ StageTransition = {
     #     DesignPattern.SEQ_DIAGRAM: StageType.CodingStage,
     # },
     StageType.CodingStage: StageType.RunningStage,
-    StageType.RunningStage: StageType.FinalStage,
+    StageType.RunningStage: {
+        TestResult.ALL_PASS: StageType.FinalStage,
+        TestResult.NOT_PASS: StageType.RunningStage,
+    }
 
 }
 

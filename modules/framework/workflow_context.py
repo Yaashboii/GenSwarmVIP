@@ -2,7 +2,7 @@ import argparse
 import pickle
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from collections import defaultdict, deque
 from modules.utils import read_file, write_file
 from modules.utils import setup_logger, LoggerLevel, format_log_message
 from modules.utils import extract_top_level_function_names, extract_imports_and_functions, combine_unique_imports
@@ -20,17 +20,14 @@ class RunResult(Enum):
     WITHOUT_ERROR = 2
 
 
-class FileInfo(BaseModel):
-    root: str = Field(default='')
-    name: str = Field(default='')
-    status: FileStatus = Field(default=FileStatus.NOT_WRITTEN)
-    version: int = Field(default=0)
-
+class FileInfo:
     def __init__(self, name: str = '', message: str = '', root: str = ''):
         super().__init__()
         self.name = name
         self._message = message
         self.root = root
+        self.status = FileStatus.NOT_WRITTEN
+        self.version = 0
 
     @property
     def message(self):
@@ -54,32 +51,34 @@ class FileInfo(BaseModel):
 
 
 # TODO: function pool and constraint pool should be rewrite totally
-
 class FunctionInfo:
-    satisfying_constraints: list[str] = Field(default=[])
-    content = None
-
     def __init__(self, description, name):
         self.name = name
         self.description = description
+        self.import_list = []
+        self.parameters = []
+        self.calls = []
+        self.satisfying_constraints: list[str] = []
+        self.content = None
         self.text = f"**{self.name}**: {self.description}"
 
 
 class ConstraintInfo:
-    satisfyingFuncs: list[int] = []
-
     def __init__(self, description, name):
+        self.satisfyingFuncs: list[int] = []
         self.name = name
         self.description = description
         self.text = f"**{self.name}**: {self.description}"
 
 
 class FunctionPool(FileInfo):
-    import_list: list[str] = Field(default=['from apis import *'])
-    functions: dict = {}
 
     def __init__(self, name: str = '', root: str = ''):
         super().__init__(name=name, root=root)
+        self.import_list: list[str] = ['from apis import *']
+        self.functions: dict[str, FunctionInfo] = {}
+        self.parameters: dict = {}
+        self.function_layer: list[FunctionInfo] = []
 
     def init_functions(self, content: str):
         try:
@@ -90,6 +89,9 @@ class FunctionPool(FileInfo):
                     description=function['description'],
                 )
                 self.functions[name].satisfying_constraints = function['constraints']
+                self.functions[name].calls = function['calls']
+
+            self.function_layer = self.build_layers_from_bottom()
         except Exception as e:
             print('Error in init_functions: ', e)
             raise e
@@ -99,10 +101,13 @@ class FunctionPool(FileInfo):
         self.import_list.extend(import_list)
         for function in function_list:
             function_name = extract_top_level_function_names(function)[0]
-            _, function_content = extract_imports_and_functions(function)
-            self.functions[function_name].content = function_content[0]
-            self.functions[function_name].name = function_name
-            # TODO: FunctionInfo
+            import_content, function_content = extract_imports_and_functions(function)
+            self.functions.setdefault(
+                function_name,
+                FunctionInfo(name=function_name, description='')
+            ).content = function_content[0]
+            self.functions[function_name].import_list.extend(import_content)
+        self.function_layer = self.build_layers_from_bottom()
         self.update_message()
 
     def update_message(self):
@@ -112,19 +117,40 @@ class FunctionPool(FileInfo):
     def functions_content(self):
         return '\n\n'.join([f.content for f in self.functions.values() if f.content])
 
+    def build_layers_from_bottom(self):
+        bottom_layer_functions = [
+            func for func in self.functions.values()
+            if all(called_func not in self.functions for called_func in func.calls)
+        ]
+
+        callers_of = defaultdict(list)
+        for func_name, func_info in self.functions.items():
+            for called_func in func_info.calls:
+                if called_func in self.functions:
+                    callers_of[called_func].append(func_name)
+
+        layers = [bottom_layer_functions]
+        visited = set(bottom_layer_functions)
+        current_layer = bottom_layer_functions
+
+        while current_layer:
+            next_layer = []
+            for func in current_layer:
+                for caller in callers_of[func.name]:
+                    if caller not in visited:
+                        visited.add(caller)
+                        next_layer.append(self.functions[caller])
+            if next_layer:
+                layers.append(next_layer)
+            current_layer = next_layer
+
+        return layers
+
 
 class ConstraintPool(FileInfo):
-    constraints: dict = {}
-
     def __init__(self, name: str = '', root: str = ''):
         super().__init__(name=name, root=root)
-        self.constraints = {
-            'Human Interface':
-                ConstraintInfo(
-                    name='Human Interface',
-                    description="Create a function named run_loop. The purpose of this function is to allow the user to execute their commands by calling this function. Therefore, this function will call other generated functions to accomplish this task. The function itself is not capable of performing any complex functionality."
-                )
-        }
+        self.constraints = {}
 
     def add_constraints(self, content: str):
         try:
@@ -148,7 +174,7 @@ class ConstraintPool(FileInfo):
         if constraint_name in self.constraints:
             self.constraints[constraint_name].satisfyingFuncs.extend(function_name)
         else:
-            raise SystemExit(f"Constraint {constraint_name} not found")
+            raise SystemExit(f"Constraint {constraint_name} not found,Current Existing:{self.constraints.values()}")
 
     def constraints_content(self):
         return '\n'.join([c.text for c in self.constraints.values()])
