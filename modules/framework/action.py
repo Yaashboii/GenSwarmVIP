@@ -5,40 +5,63 @@ from modules.utils import setup_logger, LoggerLevel
 from modules.llm.gpt import GPT
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-class ActionNode(ABC):
+class BaseNode(ABC):
     def __init__(self):
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
-        self._llm = GPT()
-        self._next_actions = []
-        self._prompt = None
-        self._context = WorkflowContext()
+        self.__next = None
 
     def __str__(self):
         return self.__class__.__name__
+
+    @property
+    def _next(self):
+        return self.__next
+    
+    @_next.setter
+    def _next(self, value):
+        if not isinstance(value, BaseNode):
+            raise ValueError("Value must be a BaseNode")
+        self.__next = value
+
+    @abstractmethod
+    async def run(self) -> str:
+        pass
+    
+    @abstractmethod
+    def flow_content(self, visited: set) -> str:
+        pass
+    
+    @abstractmethod
+    def graph_struct(self, level: int) -> str:
+        pass
+
+    def add(self, action: 'BaseNode'):
+        pass
+        
+class ActionNode(BaseNode):
+    def __init__(self, next_text: str, node_name: str = ''):
+        super().__init__()
+        self.__llm = GPT()
+        self.__prompt = None
+        self._context = WorkflowContext()
+        self._next_text = next_text
+        self._node_name = node_name
+
+    def __str__(self):
+        if self._node_name:
+            return self._node_name
+        else:
+            return super(ActionNode, ActionNode).__str__(self)
     
     @property
     def prompt(self):
-        return self._prompt
+        return self.__prompt
 
     @prompt.setter
     def prompt(self, value: str):
         if not isinstance(value, str):
-            raise TypeError("prompt must be a string")
-        self._prompt = value
-
-    @property
-    def next_actions(self):
-        return self._next_actions
-
-    @next_actions.setter
-    def next_actions(self, value):
-        if not isinstance(value, list):
-            raise TypeError("next_actions must be a list")
-        elif len(value) == 0:
-            raise ValueError("next_actions must not be empty")
-        elif not all(isinstance(action, ActionNode) for action in value):
-            raise TypeError("all elements in next_actions must be an instance of ActionNode")
-        self._next_actions = value
+            raise ValueError("prompt must be a string")
+        self.__prompt = value
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def run(self) -> str:
@@ -48,18 +71,23 @@ class ActionNode(ABC):
         except Exception as e:
             # self._context.log.format_message(format_log_message(str(e), "error"), "error")
             raise
-        return self._next_action()
+        if self._next:
+            return await self._next.run()
+        else:
+            return
 
     async def _run(self) -> str:
-        if not self._prompt:
-            raise ValueError("Prompt must not be empty")
-        res = await self._ask(self._prompt)
-        return res
+        # if not self.__prompt:
+        #     raise ValueError("Prompt must not be empty")
+        # res = await self._ask(self.__prompt)
+        # return res
+        self._logger.info(f"{str(self)}: running")
+
 
     async def _ask(self, prompt: str) -> str:
-        result = await self._llm.ask(prompt)
+        result = await self.__llm.ask(prompt)
         # store PROMPT and RESULT in the log.md
-        # make sure output them after _llm.ask(), for it's an asynchronize function
+        # make sure output them after __llm.ask(), for it's an asynchronize function
         # self._context.log.format_message(str(self),"action")
         # self._context.log.format_message(prompt,"prompt")
         # self._context.log.format_message(result,"response")
@@ -67,64 +95,76 @@ class ActionNode(ABC):
     
     def _process_response(self, response: str) -> str:
         return response
-
-    def _next_action(self):
-        if len(self._next_actions) == 1:
-            return self._next_actions[0]
-        else:
-            return
         
-    def add(self, action: 'ActionNode'):
-        pass
+    def add(self, action: 'BaseNode'):
+        self._logger.warn("ActionNode can't add other node")
     
     def flow_content(self, visited: set) -> str:
-        if len(self._next_actions) == 0 or self in visited: return ""
+        if not self._next or self in visited: return ""
         visited.add(self)
-        content = "\n".join([f"{str(self)} --> {str(action)}\n" for action in self.next_actions])
-        for child in self.next_actions:
-            content += child.flow_content(visited)
+        content = f"\t\t{str(self)} -->|{self._next_text}| {str(self._next)}\n"
+        content += self._next.flow_content(visited)
         return content
     
-    def graph_struct(self) -> str:
+    def graph_struct(self, level: int) -> str:
         return str(self)
         
-class CompositeAction(ActionNode):
-    def __init__(self, name: str):
+class ActionLinkedList(BaseNode):
+    def __init__(self, name: str, head: BaseNode):
         super().__init__()
-        self._pipeline = []
-        self._name = name
+        self.head = head
+        self.__name = name
 
     def __str__(self):
-        if len(self._pipeline) == 0: return
-        return str(self._pipeline[0])
+        if self.__head:
+            return str(self.__head)
 
-    def add(self, action: 'ActionNode'):
-        if isinstance(action, ActionNode):
-            self._pipeline.append(action)
+    @property
+    def head(self):
+        return self.__head
+    
+    @head.setter
+    def head(self, value):
+        if isinstance(value, BaseNode):
+            self.__head = value
+            self.__tail = value
+        else:
+            raise TypeError("head must be a BaseNode")
+        
+    @property
+    def _next(self):
+        return self.__tail._next
+    
+    @_next.setter
+    def _next(self, value):
+        self.__tail._next = value
+
+    def add(self, action: 'BaseNode'):
+        if isinstance(action, BaseNode):
+            self.__tail._next = action
+            self.__tail = self.__tail._next
         else: 
-            raise TypeError("element in CompositeAction must be type of ActionNode")
+            raise TypeError("element in ActionLinklist must be type of BaseNode")
 
     async def run(self, **kwargs):
-        next_action = None
-        for action in self._pipeline:
-            next_action = action.run()
-        return next_action
+        return await self.__head.run()
     
-    def _next_action(self):
-        if len(self._pipeline) == 0: return
-        return self._pipeline[-1]._next_action()
-    
-    def graph_struct(self) -> str:
-        content = ""
-        if len(self._pipeline) == 0: return content
-        content += f"subgraph {self._name} \n"
-        content += "\n".join([action.graph_struct() for action in self._pipeline])
-        content += "\nend\n"
+    def graph_struct(self, level: int) -> str:
+        level += 1
+        tables = "\t"
+        content =  f"subgraph {self.__name}\n"
+        node = self.__head
+        while node and node != self.__tail:
+            content += tables * (level)  + f"{node.graph_struct(level)}\n"
+            node = node._next
+        if node == self.__tail:
+            content += tables * (level) + f"{node.graph_struct(level)}\n"
+
+        content += tables * (level-1) + "end"
         return content
     
     def flow_content(self, visited: set) -> str:
-        if len(self._pipeline) == 0: return ''
-        return self._pipeline[0].flow_content(visited)
+        return self.__head.flow_content(visited)
 
 if __name__ == "__main__":
     import asyncio
@@ -142,54 +182,53 @@ if __name__ == "__main__":
 
     class WriteTest(ActionNode):
         pass
+
+    class CriticCheck(ActionNode):
+        pass
     
     def display_all(node: ActionNode):
-        graph = node.graph_struct()
+        graph = node.graph_struct(level = 1)
         visited = set()
         res = node.flow_content(visited)
         text = f"""
 ```mermaid
     graph TD;
         Start((Start)) --> {str(node)}
-        {res}
+{res}
 
-        {graph}
+    {graph}
 ```
         """
         return text
 
-    user_input = UserInput()
-    write_analysis = WriteAnalyse()
-    write_design = WriteDesign()
-    write_code = WriteCode()
-    write_test = WriteTest()
+    user_input = UserInput("command")
+    write_analysis = WriteAnalyse("analysis")
+    write_design = WriteDesign("API design")
+    write_code = WriteCode("code")
+    write_test = WriteTest("test result")
 
-    user_input.next_actions = [write_analysis]
-    write_analysis.next_actions = [write_design]
-    write_design.next_actions = [write_code]
-    a = CompositeAction("analysis and design")
-    a.add(user_input)
-    a.add(write_analysis)
+    a = ActionLinkedList("analysis and design", write_analysis)
     a.add(write_design)
-    b = CompositeAction("code and test")
-    b.add(write_code)
+    b = ActionLinkedList("code and test", write_code)
     b.add(write_test)
-    write_code.next_actions = [write_test, write_design]
-    c = CompositeAction("total")
-    c.add(a)
-    c.add(b)
-    text = display_all(c)
+    main = ActionLinkedList("total", user_input)
+    main.add(a)
+    main.add(b)
+    c1 = CriticCheck("C1 result")
+    c2 = CriticCheck("C2 result", "c2check")
+    d = ActionLinkedList("Criteria Check", c1)
+    d.add(c2)
+    main.add(d)
+    text = display_all(main)
     # print(text)
 
     import os
     current_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(current_dir, 'flow.md')
-
-    print(b.next_actions)
-    print(write_code.next_actions)
-
+    
     # 写入文本到文件
-    # with open(filepath, 'w') as file:
-    #     file.write(text)
-    # asyncio.run(action.run())
+    with open(filepath, 'w') as file:
+        file.write(text)
+
+    # asyncio.run(main.run())
     # story = action.llm.ask("tell a story")
