@@ -9,6 +9,7 @@ from modules.prompt.run_code_prompt import DEBUG_PROMPT
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.task_description import TASK_DES
+from modules.utils import TestResult
 
 
 class RunningStage(Stage):
@@ -30,6 +31,7 @@ class RunningStage(Stage):
     async def _run_codes(self):
         robot_num = get_param('robots_num')
         tasks = []
+        self._action = RunCode()
 
         try:
             print(f"call reset environment: start")
@@ -73,13 +75,13 @@ class RunningStage(Stage):
         result = await self._run_codes()
         if 'NONE' in result and len(result) == 1:
             self._error_message = "No result received"
-            return StageResult(keys=[])
+            return StageResult(keys=[TestResult.ALL_PASS])
         elif 'Timeout' in result and len(result) == 1:
-            return StageResult(keys=[])
+            return StageResult(keys=[TestResult.ALL_PASS])
 
         result_content = '\n'.join(result)
         await self._debug(result_content)
-        return StageResult(keys=[])
+        return StageResult(keys=[TestResult.NOT_PASS])
 
 
 if __name__ == '__main__':
@@ -87,11 +89,11 @@ if __name__ == '__main__':
     from modules.utils import root_manager
 
     parser = argparse.ArgumentParser(description="Run simulation with custom parameters.")
-    parser.add_argument("--timeout", type=int, default=30, help="Total time for the simulation")
+    parser.add_argument("--timeout", type=int, default=60, help="Total time for the simulation")
     args = parser.parse_args()
-    path = '/home/derrick/catkin_ws/src/code_llm/workspace/test'
-    run_test.context.load_from_file(f'{path}/review_stage.pkl')
+    path = '/home/derrick/catkin_ws/src/code_llm/workspace/2024-03-28_20-20-19'
+    # run_test.context.load_from_file(f'{path}/write_run_stage.pkl')
     run_test.context.args = args
     root_manager.update_root(path, set_data_path=False)
     asyncio.run(run_test.run())
-    run_test.context.save_to_file(f'{path}/running_stage.pkl')
+    # run_test.context.save_to_file(f'{path}/running_stage.pkl')
