@@ -23,9 +23,8 @@ class AnalyzeFunctions(Action):
         for function in self._context.function_pool.functions.values():
             for constraint in function.satisfying_constraints:
                 self._context.constraint_pool.add_sat_func(constraint_name=constraint, function_name=function.name)
-            for constraint in self._context.constraint_pool.constraints.values():
-                if not constraint.satisfyingFuncs:
-                    print(f"Constraint {constraint.name} has no satisfying function")
-                    raise SystemExit
+        for constraint in self._context.constraint_pool.constraints.values():
+            if not constraint.satisfyingFuncs:
+                raise SystemExit(f"Constraint {constraint.name} has no satisfying function")
         self._context.log.format_message(f"Analyze Functions Success", "success")
         return response
