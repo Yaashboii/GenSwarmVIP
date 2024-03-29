@@ -91,17 +91,6 @@ def get_position():
     return robot_info['position']
 
 
-def get_radius():
-    """
-    Get the radius of the robot.
-    Returns:
-    - float: The radius of the robot.
-    """
-    initialize_ros_node()
-    global robot_info
-    return robot_info['radius']
-
-
 def get_velocity():
     """
     Get the velocity of the robot.

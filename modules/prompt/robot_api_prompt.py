@@ -1,75 +1,68 @@
-ROBOT_API = """
-def get_radius():
-    '''
-    Description: Get the radius of the robot itself.
-    Returns:
-    - float: The radius of the robot itself.
-    Usage:
-    radius = get_radius()
-    '''
+from modules.utils import extract_imports_and_functions, extract_top_level_function_names
 
+robot_api = """
 def get_position():
     '''
-    Description: Get the position of robot itself.
+    Description: Get the current position of the robot itself in real-time.
     Returns:
-    - numpy.ndarray: The position of the robot itself.
-    Usage:
-    pos = get_position()
-    x, y = pos[0], pos[1]
+    - numpy.ndarray: The current, real-time position of the robot.
     '''
 
 def set_velocity(velocity):
     '''
-    Description: Set the velocity of the robot itself
+    Description: Set the velocity of the robot itself in real-time.
     Input:
-    - velocity (numpy.ndarray): The new velocity to set.
-    Usage: 
-    velocity = np.array([vx, vy])
-    set_velocity(velocity)
+    - velocity (numpy.ndarray): The new velocity to be set immediately.
     '''
 
 def get_velocity():
     '''
-    Get the velocity of the robot itself
+    Get the current velocity of the robot itself in real-time.
     Returns:
-    - numpy.ndarray: The velocity of the robot.
-    Usage:
-    vel = get_velocity()
+    - numpy.ndarray: The current, real-time velocity of the robot.
     '''
 
 def get_surrounding_robots_info():
     '''
-    Get the information of the surrounding robots.
+    Get real-time information of the surrounding robots.
     Returns:
-    - list: A list of dictionaries, each containing the position, velocity, and radius of a robot.
-        - position (numpy.ndarray): The position of the robot.
-        - velocity (numpy.ndarray): The velocity of the robot.
+    - list: A list of dictionaries, each containing the current position, velocity, and radius of a robot, reflecting real-time data.
+        - position (numpy.ndarray): The current position of the robot.
+        - velocity (numpy.ndarray): The current velocity of the robot.
         - radius (float): The radius of the robot.
-    Usage:
-    robots_info = get_surrounding_robots_info()
-    for robot_info in robots_info:
-        pos = robot_info['position']
-        vel = robot_info['velocity']
-        radius = robot_info['radius']
     '''
-
 
 def get_surrounding_obstacles_info():
     '''
-    Get the information of the surrounding obstacles.
+    Get real-time information of the surrounding obstacles.
     Returns:
-    - list: A list of dictionaries, each containing the position and radius of an obstacle.
-        - position (numpy.ndarray): The position of the obstacle.
+    - list: A list of dictionaries, each containing the current position and radius of an obstacle, reflecting real-time data.
+        - position (numpy.ndarray): The current position of the obstacle.
         - radius (float): The radius of the obstacle.
-    Usage:
-    obstacles_info = get_surrounding_obstacles_info()
-    for obstacle_info in obstacles_info:
-        pos = obstacle_info['position']
-        radius = obstacle_info['radius']
     '''
 """.strip()
 
 
-def get_robot_api(leader=False):
-    if leader:
-        return ROBOT_API
+class RobotApi:
+    def __init__(self, content):
+        self.content = content
+        _, api_list = extract_imports_and_functions(content)
+        self.apis = {}
+        for api in api_list:
+            name = extract_top_level_function_names(api)[0]
+            self.apis[name] = api
+
+    def get_prompt(self, name: list[str] | str = None) -> str:
+        if isinstance(name, str):
+            name = [name]
+        if name is None:
+            return '\n\n'.join(self.apis.values())
+        try:
+            prompts = [self.apis[n] for n in name]
+            return '\n\n'.join(prompts)
+        except Exception as e:
+            raise SystemExit(f"Error in get_prompt: {e},current existing apis:{self.apis.keys()},input name:{name}")
+
+
+robot_api = RobotApi(content=robot_api)
+ROBOT_API = robot_api.get_prompt()
