@@ -11,7 +11,7 @@ class Manager:
 
     def __init__(self, n_robots, n_obstacles, size, if_leader=False):
         self._robots = Robots(n_robots, size, if_leader=if_leader)
-        self._obstacles = Obstacles(n_obstacles, size)
+        self._obstacles = Obstacles(n_obstacles, size, robot_list=self._robots.robots)
         self._agent_num = n_robots
         self._if_leader = if_leader
         self._pub_list = []

@@ -103,6 +103,7 @@ class Env:
             print(f"Test{self._count} started!\nSave images in {self._data_path}/frames/frame{self._count}")
         else:
             print(f"Test{self._count} stopped!\n")
+            # TODO: save the history to a file
 
     def step(self):
         if self._run_test:
