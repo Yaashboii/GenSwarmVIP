@@ -14,7 +14,7 @@ class Env:
             self,
             size=(10, 10),
             n_robots=3,
-            n_obstacles=5,
+            n_obstacles=15,
             dt=0.1,
             if_leader=False,
             leader_speed=0.5,
@@ -103,6 +103,7 @@ class Env:
             print(f"Test{self._count} started!\nSave images in {self._data_path}/frames/frame{self._count}")
         else:
             print(f"Test{self._count} stopped!\n")
+            # TODO: save the history to a file
 
     def step(self):
         if self._run_test:

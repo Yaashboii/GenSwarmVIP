@@ -1,12 +1,9 @@
 ENV_DES = '''
 Environment:
-    map size: 10m x 10m
-    Obstacles: The environment contains obstacles.
-    X-axis range: -5m to 5m
-    Y-axis range: -5m to 5m
-
-Robot: 
-    Max Speed: 2m/s
-    Control: velocity control
-    Max Control Frequency: 20Hz
+    bounds:{'x_min': -5.0, 'x_max': 5.0, 'y_min': -5.0, 'y_max': 5.0}
+    
+Robot:
+    Max speed: 2m/s
+    radius: 0.2m
+    Control Method: Omnidirectional speed control
 '''.strip()

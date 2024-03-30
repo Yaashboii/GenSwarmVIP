@@ -1,19 +1,10 @@
 DesignFunction_PROMPT_TEMPLATE = """
-## Task description:
-In order to assist users in automating specific tasks, you need to design a series of decoupled Python functions based on user functional requirements and constraints.
-
-## User functional requirements:
-{analysis}
-
-## Constraints:
-1. These functions should be decoupled from each other. 
-2. Each function can utilize the existing APIs.
-3. Each function should have strong reusability and should have a sufficient number of inputs and outputs.
-4. Each function does not need to provide the content of the function body; just giving a `pass` is suffice.
-5. Every function should provide a very detailed description of its functionality.
+## Background:
+{task_des}
+## Role setting:
+- Your task is to refine the designed function based on the existing descriptions while keeping the function name unchanged.
 
 ## Existing robot APIs:
-These are the existing robot APIs, functions should try to reuse them as much as possible and refer to the design of them:
 ```python
 {robot_api}
 ```
@@ -21,23 +12,35 @@ These are the existing robot APIs, functions should try to reuse them as much as
 ## These are the environment description:
 {env_des}
 
-## The generated result should be in the following fields:
-function list: write the function list in the following format, 
-```python
-def function1(input1, input2, ...):
-    ```
-    Description: Detailed description of the function's functionality.
-    Input: Description of the function's input.
-    Returns: Description of the function's return value.
-    ```
-    pass
-    
-def function2(input1, input2, ...):
-    ...
-```
+## These are the existing functions' descriptions and names:
+{other_functions}    
+
+## These are the constraints that this function should satisfy.
+{constraints}
 
 ## The output TEXT format is as follows:
-function list: <function list>
+```python
+def {function_name}(input1, input2, ...):
+    '''
+    Description:Refine this description '{function_des}' in detail to guide the generation of the function and put it at here. 
+    
+    params:
+        input1: type, description
+        input2: type, description
+        ...
+    return:
+        type, description
+    '''
+    pass
+```
+
+## Constraints:
+- You need to enhance the existing function descriptions by adding more details.
+- Keep the function names unchanged; the number of input and output variables is set as needed.
+- All parameters required for the algorithm should be set as input variables with default values.
+- The function does not need to provide the content of the function body; just giving a `pass` is suffice.
+- Make sure the function name is {function_name}.
+- The output should be in the specified format.
 """.strip()
 
 WriteSeqDiagram_PROMPT_TEMPLATE = """

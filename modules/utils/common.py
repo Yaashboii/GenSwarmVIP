@@ -88,7 +88,8 @@ def parse_code(text: str, lang: str = "python") -> str:
     if match:
         code = match.group(1)
     else:
-        raise Exception
+        error_message = f"Error: No '{lang}' code block found in the text."
+        raise ValueError(error_message)
     return code
 
 
@@ -96,7 +97,15 @@ def extract_function_definitions(source_code):
     parsed_ast = ast.parse(source_code)
 
     def reconstruct_function_definition(function_node):
-        func_header = f"def {function_node.name}({', '.join(ast.unparse(arg) for arg in function_node.args.args)}):"
+        defaults_start_index = len(function_node.args.args) - len(function_node.args.defaults)
+
+        parameters = [
+            ast.unparse(arg) + (
+                f'={ast.unparse(function_node.args.defaults[i - defaults_start_index])}' if i >= defaults_start_index else '')
+            for i, arg in enumerate(function_node.args.args)
+        ]
+
+        func_header = f"def {function_node.name}({', '.join(parameters)}):"
         docstring = ast.get_docstring(function_node)
         docstring_part = ''
         if docstring:
@@ -121,10 +130,21 @@ def extract_imports_and_functions(source_code):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imports.append(f"import {alias.name}")
+                    import_str = f"import {alias.name}"
+                    if alias.asname:
+                        import_str += f" as {alias.asname}"
+                    imports.append(import_str)
             elif isinstance(node, ast.ImportFrom):
                 module = node.module if node.module else ''
-                imports.append(f"from {module} import {', '.join(alias.name for alias in node.names)}")
+                import_from_str = "from {} import ".format(module)
+                names_with_as = []
+                for alias in node.names:
+                    if alias.asname:
+                        names_with_as.append(f"{alias.name} as {alias.asname}")
+                    else:
+                        names_with_as.append(alias.name)
+                import_from_str += ", ".join(names_with_as)
+                imports.append(import_from_str)
         elif isinstance(node, ast.FunctionDef):
             func_def = ast.unparse(node).strip()
             if func_def:

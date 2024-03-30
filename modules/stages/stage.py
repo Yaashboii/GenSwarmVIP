@@ -20,6 +20,7 @@ class StageType(Enum):
     TestingStage = 4
     RunningStage = 5
     FinalStage = 6
+    ReviewStage = 7
 
 
 class Stage(ABC, BaseModel):
@@ -42,7 +43,10 @@ class Stage(ABC, BaseModel):
     @final
     async def run(self) -> StageResult:
         self._context.log.format_message(str(self), "stage")
-        return await self._run()
+        result = await self._run()
+        from modules.utils import root_manager
+        self._context.save_to_file(file_path=f"{root_manager.workspace_root}/{str(self)}.pkl")
+        return result
 
     async def _run(self) -> StageResult:
         return StageResult()
