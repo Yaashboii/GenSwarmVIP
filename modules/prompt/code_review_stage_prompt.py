@@ -44,3 +44,47 @@ Your output should satisfy the following notes:
 - The modified function is not allowed to change the function name.
 - The modified function absolutely must be complete and executable. You must provide a function that can be run directly, with absolutely no unfinished parts in the code.
 """.strip()
+
+HIGH_LEVEL_FUNCTION_REVIEW: str = """
+## Background:
+{task_des}
+## Role setting:
+- You are a critic, You should now check if there are any bugs in the functions written by other agents or if there have been any incorrect calls.
+
+## These are the basic Robot APIs:
+These APIs can be directly called by you.
+```python
+{robot_api}
+```
+
+## These are the existing functions that you can directly call:
+```python
+{other_functions}
+```
+
+## These are the functions that need to be checked:
+```python
+{function_content}
+```
+
+## The output TEXT format is as follows:
+
+**Reasoning**: think step by step, whether the to be checked function has any bugs or incorrect calls. If there are any,provide how to fix it.
+**Modified function**:(if the function has bugs or incorrect calls else it should not appear,only output the Reasoning part)
+```python
+import ... (import the necessary modules,if any)
+def {function_name}(...):
+    # put the modified function here
+```
+
+## Notes:
+Your output should satisfy the following notes:
+- Carefully check if there are any bugs in this function, or if there are any logical inconsistencies.
+- Check if the call to each sub-function is correct.
+- Strictly adhere to the specified format.
+- The modified function section should be filled in only when the function has bugs or incorrect calls. Otherwise, this section should not appear.
+- If the function needs to be rewritten, please ensure that the rewritten function name is {function_name}.
+- If you need to rewrite a function, please output the complete and correct function, and only modify the parts that are incorrect.
+- You should carefully consider and ensure that your revised version is correct.
+- If there is an error in this function, please provide the erroneous line of code in the "reasoning" section, along with suggestions for how it could be corrected.
+""".strip()

@@ -1,4 +1,4 @@
-from modules.utils import extract_imports_and_functions, extract_top_level_function_names
+from modules.utils import extract_function_definitions, extract_top_level_function_names, read_file
 
 robot_api = """
 def get_position():
@@ -11,6 +11,7 @@ def get_position():
 def set_velocity(velocity):
     '''
     Description: Set the velocity of the robot itself in real-time.
+    Note: This API updates at a fixed rate of 10Hz to the vehicle, so there's no need to use time.sleep to limit the frequency, as the provided API has already implemented this.
     Input:
     - velocity (numpy.ndarray): The new velocity to be set immediately.
     '''
@@ -24,7 +25,8 @@ def get_velocity():
 
 def get_surrounding_robots_info():
     '''
-    Get real-time information of the surrounding robots.
+    Get real-time information of the surrounding robots. The data provided by this function are all within the robot's sensory range.
+    Note: This API is provided by humans, and the perception data it offers are results within a 5m radius centered on the robot's position. There is no need to concern yourself with how it is implemented; you only need to call it.
     Returns:
     - list: A list of dictionaries, each containing the current position, velocity, and radius of a robot, reflecting real-time data.
         - position (numpy.ndarray): The current position of the robot.
@@ -34,7 +36,8 @@ def get_surrounding_robots_info():
 
 def get_surrounding_obstacles_info():
     '''
-    Get real-time information of the surrounding obstacles.
+    Get real-time information of the surrounding obstacles. The data provided by this function are all within the robot's sensory range.
+    Note: This API is provided by humans, and the perception data it offers are results within a 5m radius centered on the robot's position. There is no need to concern yourself with how it is implemented; you only need to call it.
     Returns:
     - list: A list of dictionaries, each containing the current position and radius of an obstacle, reflecting real-time data.
         - position (numpy.ndarray): The current position of the obstacle.
@@ -43,10 +46,13 @@ def get_surrounding_obstacles_info():
 """.strip()
 
 
+# data_api = read_file("modules/env/", filename="data_apis.py")
+
+
 class RobotApi:
     def __init__(self, content):
         self.content = content
-        _, api_list = extract_imports_and_functions(content)
+        api_list = extract_function_definitions(content)
         self.apis = {}
         for api in api_list:
             name = extract_top_level_function_names(api)[0]
@@ -66,3 +72,5 @@ class RobotApi:
 
 robot_api = RobotApi(content=robot_api)
 ROBOT_API = robot_api.get_prompt()
+# data_api = RobotApi(content=data_api)
+# DATA_API = data_api.get_prompt()

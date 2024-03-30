@@ -7,7 +7,7 @@ from obstacle import Entity
 
 
 class Robot(Entity):
-    def __init__(self, robot_id, initial_position, max_speed=2.0, communication_range=5.0, radius=0.1):
+    def __init__(self, robot_id, initial_position, radius=0.1, max_speed=2.0, communication_range=5.0):
         super().__init__(robot_id, initial_position, radius=radius)
         self._velocity = np.array([0.0, 0.0], dtype=float)
         self._max_speed = max_speed
@@ -115,7 +115,7 @@ class Robots:
         while len(robot_list) < n_robots:
             robot = Robot.create_entities(n_entities=n_robots,
                                           size=size,
-                                          radius_range=0.1,
+                                          radius_range=0.15,
                                           existing_entities=robot_list)
             if robot:
                 robot_list.extend(robot)

@@ -38,7 +38,7 @@ if __name__ == "__main__":
         #     "run_times": 1
         # },
         {
-            "task": "Form a flock with other robots, navigating together by keeping aligned, spaced out, and cohesive. Avoid collision with obstacles and other robots.",
+            "task": "Form a flock with other robots, navigating together by keeping aligned, spaced out, and cohesive.Avoid collision with obstacles and other robots.",
             "run_times": 1
         },
     ]

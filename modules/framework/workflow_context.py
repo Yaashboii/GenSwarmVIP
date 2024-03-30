@@ -107,6 +107,12 @@ class FunctionPool(FileInfo):
                 FunctionInfo(name=function_name, description='')
             ).content = function_content[0]
             self.functions[function_name].import_list.extend(import_content)
+            self.functions[function_name].calls = []
+            for other_function in self.functions.values():
+                if other_function.name != function_name and other_function.name in function_content[0]:
+                    self.functions[function_name].calls.append(other_function.name)
+            print('function_name:', function_name, 'calls:', self.functions[function_name].calls)
+
         self.function_layer = self.build_layers_from_bottom()
         self.update_message()
 
@@ -144,13 +150,14 @@ class FunctionPool(FileInfo):
                 layers.append(next_layer)
             current_layer = next_layer
 
+        print('layers:', [[f.name for f in layer] for layer in layers])
         return layers
 
 
 class ConstraintPool(FileInfo):
     def __init__(self, name: str = '', root: str = ''):
         super().__init__(name=name, root=root)
-        self.constraints = {}
+        self.constraints: dict[str, ConstraintInfo] = {}
 
     def add_constraints(self, content: str):
         try:

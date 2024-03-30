@@ -7,6 +7,8 @@ from modules.actions.write_seq_diagram import WriteSeqDiagram
 from modules.actions.design_parameters import DesignParameters
 from modules.actions.criticize_functions import CriticizeFunctions
 from modules.actions.debug import Debug
+from modules.actions.fliter_constraints import FilterConstraints
+from modules.actions.high_level_function_review import HighLevelFunctionReview
 
 __all__ = [
     "Action",
@@ -20,4 +22,6 @@ __all__ = [
     "DesignParameters",
     "CriticizeFunctions",
     "Debug",
+    "FilterConstraints",
+    "HighLevelFunctionReview"
 ]

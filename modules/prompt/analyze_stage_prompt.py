@@ -103,6 +103,7 @@ Your output should satisfy the following constraints:
 - Analyze the core tasks proposed by the user and perform a functional decomposition of these core tasks.
 - There's no need to regenerate existing constraints; you only need to consider what new constraints are required.
 - These constraints should be significant and mutually independent.
+- If the user's instruction involves specific numerical values, you should retain these values in the description of the constraints.
 - The output should strictly adhere to the specified format.
 
 """.strip()
@@ -113,7 +114,7 @@ CONSTRAIN_TEMPLATE: str = """
   "constraints": [
     {
       "name": "Constraint name",
-      "description": "Description of the constraint."
+      "description": "Description of the constraint.(If the user's requirements involve specific numerical values, they should be reflected in the description. )"
     },
   ]
 }

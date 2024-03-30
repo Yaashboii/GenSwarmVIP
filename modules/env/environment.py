@@ -14,7 +14,7 @@ class Env:
             self,
             size=(10, 10),
             n_robots=3,
-            n_obstacles=5,
+            n_obstacles=15,
             dt=0.1,
             if_leader=False,
             leader_speed=0.5,

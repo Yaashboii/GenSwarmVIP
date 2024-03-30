@@ -19,7 +19,7 @@ class Manager:
             self._pub_list.append(rospy.Publisher(f'/robot_{i}/observation', Observations, queue_size=1))
             rospy.Subscriber(f'/robot_{i}/velocity', Twist, self.velocity_callback, callback_args=i)
 
-        self._timer = rospy.Timer(rospy.Duration(0.1), self.distribute)
+        self._timer = rospy.Timer(rospy.Duration(0.01), self.distribute)
 
     @property
     def robots(self) -> Robots:

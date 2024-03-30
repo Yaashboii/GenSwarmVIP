@@ -39,6 +39,7 @@ def {function_name}(input1, input2, ...):
 - Keep the function names unchanged; the number of input and output variables is set as needed.
 - All parameters required for the algorithm should be set as input variables with default values.
 - The function does not need to provide the content of the function body; just giving a `pass` is suffice.
+- Make sure the function name is {function_name}.
 - The output should be in the specified format.
 """.strip()
 

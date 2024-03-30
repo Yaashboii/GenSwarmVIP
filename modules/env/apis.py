@@ -68,7 +68,7 @@ def initialize_ros_node():
         print(f"Observations data init successfully")
 
         # timer to publish velocity in a fixed frequency of 100Hz
-        timer = rospy.Timer(rospy.Duration(0.01), publish_velocities)
+        timer = rospy.Timer(rospy.Duration(0.1), publish_velocities)
 
 
 def publish_velocities(event):

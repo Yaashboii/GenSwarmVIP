@@ -16,17 +16,17 @@ class CodingStage(Stage):
         super().__init__()
         self._action = action
 
-    async def _design_function(self, prompt: str):
+    async def _design_function(self, prompt: str, function_name: str):
         self._action = DesignFunction()
-        await self._action.run(prompt=prompt)
+        await self._action.run(prompt=prompt, function_name=function_name)
 
     async def _design_functions(self):
         function_layers = self._context.function_pool.function_layer
-        tasks = []
-        for layer in function_layers:
-            print(f"Layer: {layer}")
+        for i, layer in enumerate(function_layers):
+            tasks = []
+            self._context.log.format_message(f"Layer: {i}", "warning")
             for function in layer:
-                print(f"Function: {function.name}")
+                self._context.log.format_message(f"Function: {function.name}", "warning")
                 constraint_text = ''
                 for constraint in function.satisfying_constraints:
                     if constraint not in self._context.constraint_pool.constraints:
@@ -36,11 +36,10 @@ class CodingStage(Stage):
 
                 function_list = [f.text if f.content is None else f.content for f in
                                  self._context.function_pool.functions.values() if f.name != function.name]
-                api_list = [name for name in function.calls if name in robot_api.apis.keys()]
 
                 prompt = DesignFunction_PROMPT_TEMPLATE.format(
                     task_des=TASK_DES,
-                    robot_api=robot_api.get_prompt(api_list),
+                    robot_api=robot_api.get_prompt(),
                     env_des=ENV_DES,
                     function_name=function.name,
                     function_des=function.description,
@@ -48,21 +47,21 @@ class CodingStage(Stage):
                     other_functions='\n'.join(function_list)
 
                 )
-                task = asyncio.create_task(self._design_function(prompt))
+                task = asyncio.create_task(self._design_function(prompt, function.name))
                 tasks.append(task)
             await asyncio.gather(*tasks)
 
-    async def _write_function(self, prompt: str):
+    async def _write_function(self, prompt: str, function_name: str):
         self._action = WriteCode()
-        await self._action.run(prompt=prompt)
+        await self._action.run(prompt=prompt, function_name=function_name)
 
     async def _write_functions(self):
         function_layers = self._context.function_pool.function_layer
-        tasks = []
-        for layer in function_layers:
-            print(f"Layer: {layer}")
+        for i, layer in enumerate(function_layers):
+            self._context.log.format_message(f"Layer: {i}", "warning")
+            tasks = []
             for function in layer:
-                print(f"Function: {function.name}")
+                self._context.log.format_message(f"Function: {function.name}", "warning")
                 constraint_text = ''
                 for constraint in function.satisfying_constraints:
                     if constraint not in self._context.constraint_pool.constraints:
@@ -76,13 +75,13 @@ class CodingStage(Stage):
                 api_list = [name for name in function.calls if name in robot_api.apis.keys()]
                 prompt = WRITE_FUNCTION_PROMPT_TEMPLATE.format(
                     task_des=TASK_DES,
-                    robot_api=robot_api.get_prompt(api_list),
+                    robot_api=robot_api.get_prompt(),
                     function_content=function.content,
                     constraints=constraint_text,
                     other_functions='\n\n'.join(function_list)
 
                 )
-                task = asyncio.create_task(self._write_function(prompt))
+                task = asyncio.create_task(self._write_function(prompt, function_name=function.name))
                 tasks.append(task)
             await asyncio.gather(*tasks)
 
@@ -95,7 +94,7 @@ class CodingStage(Stage):
             robot_api=ROBOT_API,
             functions=functions,
         )
-        await self._action.run(prompt=prompt)
+        await self._action.run(prompt=prompt, function_name='run_loop')
 
     async def _run(self) -> StageResult:
         await self._design_functions()
@@ -121,7 +120,7 @@ if __name__ == '__main__':
 
     programmer.context.function_pool.update_message()
 
-    # asyncio.run(programmer.run())
+    asyncio.run(programmer.run())
     # # programmer.context.save_to_file(f'{path}/coding_stage.pkl')
     # # programmer.context.save_to_file(f'{path}/write_functions_stage.pkl')
     # # programmer.context.save_to_file(f'{path}/design_functions_stage.pkl')

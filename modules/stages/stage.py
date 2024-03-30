@@ -20,6 +20,7 @@ class StageType(Enum):
     TestingStage = 4
     RunningStage = 5
     FinalStage = 6
+    ReviewStage = 7
 
 
 class Stage(ABC, BaseModel):

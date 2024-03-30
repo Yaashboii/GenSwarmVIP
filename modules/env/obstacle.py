@@ -24,9 +24,10 @@ class Entity:
         return self._id
 
     @classmethod
-    def is_overlapping(cls, new_entity, entities):
+    def is_overlapping(cls, new_entity, entities, min_distance=0.5):
         for entity in entities:
-            if np.linalg.norm(new_entity.position - entity.position) < (new_entity.radius + entity.radius):
+            if np.linalg.norm(new_entity.position - entity.position)  < (
+                    new_entity.radius + entity.radius+min_distance):
                 return True
         return False
 

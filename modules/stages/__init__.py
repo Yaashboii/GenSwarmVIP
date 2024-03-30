@@ -4,6 +4,7 @@ from modules.stages.final_stage import FinalStage
 from modules.stages.coding_stage import CodingStage
 from modules.stages.test_stage import TestStage
 from modules.stages.running_stage import RunningStage
+from modules.stages.code_review_stage import ReviewStage
 from modules.stages.stage import Stage, StageType
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "FinalStage",
     "TestStage",
     "RunningStage",
+    "ReviewStage",
 ]

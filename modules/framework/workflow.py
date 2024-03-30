@@ -14,6 +14,7 @@ class Workflow:
         StageType.DesignStage: DesignStage(DesignFunction()),
         StageType.CodingStage: CodingStage(WriteCode()),
         StageType.RunningStage: RunningStage(RunCode()),
+        StageType.ReviewStage: ReviewStage(),
         StageType.FinalStage: FinalStage(),
     }
 
