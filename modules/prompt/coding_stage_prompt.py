@@ -70,6 +70,6 @@ def run_loop():
 5. You can only call these existing functions and RobotApi, and you cannot define complex logic on your own.
 6. Calling time.sleep or any other method to limit frequency is not allowed, as the underlying API has determined a set frequency.
 7. Import the required modules before the function name, and do not import them in the function body.
-8. You need to ensure that the entire system can update observation data in real time and issue control speeds in real time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop.
-8. Strictly follow the specified format.
+8. You need to ensure that the entire system can update observation data in real time and issue control speeds in real time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop .
+10. Strictly follow the specified format.
 """.strip()

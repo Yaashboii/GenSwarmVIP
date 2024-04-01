@@ -19,7 +19,10 @@ DEBUG_PROMPT = """
 {error_message}
 
 ## Task
-According to the error message, make modifications based on the existing foundation, and output the modified function in its entirety. The output TEXT format is as follows:
+According to the error message, make modifications based on the existing foundation, and output the modified function in its entirety.
+The output TEXT format is as follows:
+Reasoning: what caused the error, and how did you fix it? Provide serval fixes and choose the best one.
+code:
 ```python
 import ...(if necessary)
 

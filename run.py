@@ -38,7 +38,10 @@ if __name__ == "__main__":
         #     "run_times": 1
         # },
         {
-            "task": "Form a flock with other robots, navigating together by keeping aligned, spaced out, and cohesive.Avoid collision with obstacles and other robots.",
+            "task": 'Integrate into a flock, adhering to cohesion by staying connected, alignment by moving together, and separation by maintaining at least 0.5 meters between robots.'
+                    'Additionally, avoid collisions with obstacles and boundaries.'
+                    'Keep a distance of 0.5 meters from obstacles.'
+                    'Keep a distance of 0.5 meters from boundaries.',
             "run_times": 1
         },
     ]
