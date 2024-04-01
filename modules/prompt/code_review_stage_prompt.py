@@ -81,12 +81,14 @@ def {function_name}(...):
 Your output should satisfy the following notes:
 - Carefully check if there are any bugs in this function, or if there are any logical inconsistencies.
 - Check if the call to each sub-function is correct.
+- Check that all defined variables are used.
 - Strictly adhere to the specified format.
 - The modified function section should be filled in only when the function has bugs or incorrect calls. Otherwise, this section should not appear.
 - If the function needs to be rewritten, please ensure that the rewritten function name is {function_name}.
 - If you need to rewrite a function, please output the complete and correct function, and only modify the parts that are incorrect.
 - You should carefully consider and ensure that your revised version is correct.
 - If there is an error in this function, please provide the erroneous line of code in the "reasoning" section, along with suggestions for how it could be corrected.
+- If the function outputs velocity, then this velocity must be normalized.
 - If the revised function name is run_loop,here is some special notes:
     - The run_loop function is the main function that the ser calls to run the entire task. It is the entry point for the entire task.
     - The run_loop function should contain all the necessary logic to complete the task.

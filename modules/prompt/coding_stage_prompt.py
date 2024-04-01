@@ -29,7 +29,8 @@ import ...(if necessary)
 5. Consider reuse or collaboration with existing functions; this one function is just a link in the entire control system.
 6. Avoid using global variables, and avoid using the same variable name as the global variable in the function.
 7. Import the required modules before the function name, and do not import them in the function body.
-8. Make sure the functions you generate meet the constraints.
+8. If the function outputs velocity, then this velocity must be normalized.
+9. Make sure the functions you generate meet the constraints.
 """.strip()
 
 WRITE_RUN_PROMPT_TEMPLATE = """
