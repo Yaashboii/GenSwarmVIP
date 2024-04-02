@@ -6,6 +6,7 @@ from modules.framework.workflow_context import WorkflowContext
 from modules.utils import setup_logger, LoggerLevel
 from modules.llm.gpt import GPT
 from modules.framework.code_error import CodeError
+from modules.framework.handler import Handler
 
 class BaseNode(ABC):
     def __init__(self):
@@ -78,7 +79,7 @@ class ActionNode(BaseNode):
         raise AttributeError("This property is write-only")
 
     @error_handler.setter
-    def error_handler(self, value):
+    def error_handler(self, value: Handler):
         self._error_handler = value
 
     def add(self, action: 'BaseNode'):
@@ -100,22 +101,26 @@ class ActionNode(BaseNode):
     def graph_struct(self, level: int) -> str:
         # Method for generating graph structure
         return str(self)
+    
+    @abstractmethod
+    def _can_skip(self) -> bool:
+        return False
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def run(self) -> str:
         try:
             # Run node logic and process response
-            res = await self._run()
-            res = self._process_response(res)
-            if isinstance(res, CodeError):
-                # If response is CodeError, handle it and move to next action
-                if self._error_handler:
-                    next_action = self._error_handler.handle(res)
-                    return await next_action.run()
-                else:
-                    raise ValueError("No error handler available to handle request")
-            elif self._next is not None:
-                # If no errors occur and next node exists, execute it
+            if not self._can_skip():
+                res = await self._run()
+                res = self._process_response(res)
+                if isinstance(res, CodeError):
+                    # If response is CodeError, handle it and move to next action
+                    if self._error_handler:
+                        next_action = self._error_handler.handle(res)
+                        return await next_action.run()
+                    else:
+                        raise ValueError("No error handler available to handle request")
+            if self._next is not None:
                 return await self._next.run()
         except Exception as e:
             raise

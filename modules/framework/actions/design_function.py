@@ -31,3 +31,7 @@ class DesignFunction(ActionNode):
         self._context.function_list = functions_name_and_content
         # self._context.log.format_message(f"{code}", "response")
         return str(functions_name_and_content)
+    
+    def _can_skip(self) -> bool:
+        #TODO: can skip when functions are all right
+        return False

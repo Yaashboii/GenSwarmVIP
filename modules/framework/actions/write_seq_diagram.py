@@ -23,3 +23,6 @@ class WriteSeqDiagram(ActionNode):
         self._context.sequence_diagram.message = code
         self._context.log.format_message(f"Write Sequence Diagram Success", 'success')
         return code
+    
+    def _can_skip(self) -> bool:
+        return False

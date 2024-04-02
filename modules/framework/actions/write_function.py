@@ -22,3 +22,6 @@ class WriteFunctions(ActionNode):
             raise SystemExit
 
         return code
+    
+    def _can_skip(self) -> bool:
+        return False

@@ -16,3 +16,6 @@ class AnalyzeReqs(ActionNode):
         self._context.analysis.message = response
         self._context.log.format_message(f"Analyze Requirements Success", "success")
         return response
+    
+    def _can_skip(self) -> bool:
+        return self._context.analysis.message != ''

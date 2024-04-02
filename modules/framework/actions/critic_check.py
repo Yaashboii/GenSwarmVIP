@@ -10,3 +10,7 @@ class CriticCheck(ActionNode):
             raise ValueError("Prompt must not be empty")
         res = await self._ask(self._prompt)
         return res
+    
+    def _can_skip(self) -> bool:
+        # TODO: can skip when files concerning to this critic are not changed
+        return False
