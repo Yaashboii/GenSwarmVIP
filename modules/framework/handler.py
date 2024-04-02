@@ -36,11 +36,12 @@ class Handler(ABC):
     def handle(self, request: CodeError) -> BaseNode:
         pass
 
-    def display(self):
+    def display(self, visited):
         content = f"\t\t{str(self)} -->|skip| {str(self._successor)}\n"
         if self._next_action:
-            content += f"\t\t{str(self)} -->|back to| {str(self._next_action)}\n"
-        return content + (self._successor.display() if self._successor else '')
+            content += f"\t\t{str(self)} -->|error message| {str(self._next_action)}\n"
+            content += self._next_action.flow_content(visited)
+        return content + (self._successor.display(visited) if self._successor else '')
     
     def struct(self):
         return f"\t{str(self)}\n" + (self._successor.struct() if self._successor else '')
@@ -50,6 +51,7 @@ class BugLevelHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
         if(isinstance(request, Bug)):
             self._logger.debug("Handled by BugLevelHandler")
+            self._next_action.error = request.error_msg
             return self._next_action
         elif self._successor:
             return self._successor.handle(request)
