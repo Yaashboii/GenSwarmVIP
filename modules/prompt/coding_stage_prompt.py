@@ -29,7 +29,8 @@ import ...(if necessary)
 5. Consider reuse or collaboration with existing functions; this one function is just a link in the entire control system.
 6. Avoid using global variables, and avoid using the same variable name as the global variable in the function.
 7. Import the required modules before the function name, and do not import them in the function body.
-8. Make sure the functions you generate meet the constraints.
+8. If the function outputs velocity, then this velocity must be normalized.
+9. Make sure the functions you generate meet the constraints.
 """.strip()
 
 WRITE_RUN_PROMPT_TEMPLATE = """
@@ -70,6 +71,6 @@ def run_loop():
 5. You can only call these existing functions and RobotApi, and you cannot define complex logic on your own.
 6. Calling time.sleep or any other method to limit frequency is not allowed, as the underlying API has determined a set frequency.
 7. Import the required modules before the function name, and do not import them in the function body.
-8. You need to ensure that the entire system can update observation data in real time and issue control speeds in real time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop.
-8. Strictly follow the specified format.
+8. You need to ensure that the entire system can update observation data in real time and issue control speeds in real time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop .
+10. Strictly follow the specified format.
 """.strip()
