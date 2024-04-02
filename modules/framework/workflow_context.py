@@ -2,7 +2,7 @@ import argparse
 import pickle
 from enum import Enum
 
-from collections import defaultdict, deque
+from collections import defaultdict
 from modules.utils import read_file, write_file
 from modules.utils import setup_logger, LoggerLevel, format_log_message
 from modules.utils import extract_top_level_function_names, extract_imports_and_functions, combine_unique_imports
@@ -22,7 +22,6 @@ class RunResult(Enum):
 
 class FileInfo:
     def __init__(self, name: str = '', message: str = '', root: str = ''):
-        super().__init__()
         self.name = name
         self._message = message
         self.root = root
