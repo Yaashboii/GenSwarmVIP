@@ -1,26 +1,21 @@
 import asyncio
 import os
+from os import listdir
 import sys
-import traceback
-from typing import Tuple
 
 from modules.framework.action import ActionNode
-from modules.prompt.run_code_prompt import PROMPT_TEMPLATE, CONTEXT
-
+from modules.utils.root import root_manager
+from modules.utils import get_param, call_reset_environment
+from modules.framework.code_error import Bug
 
 class RunCode(ActionNode):
-    @classmethod
-    def _run_text(cls, code) -> Tuple[str, str]:
-        try:
-            # We will document_store the result in this dictionary
-            namespace = {}
-            exec(code, namespace)
-            return namespace.get("result", ""), ""
-        except Exception:
-            # If there is an error in the code, return the error message
-            return "", traceback.format_exc()
+    def _build_prompt(self):
+        pass
 
-    async def _run_script(self, working_directory, command=[], print_output=True) -> Tuple[str, str]:
+    def setup(self, id):
+        self._id = id
+    
+    async def _run_script(self, working_directory, command=[], print_output=True) -> str:
         working_directory = str(working_directory)
         env = os.environ.copy()
 
@@ -34,7 +29,6 @@ class RunCode(ActionNode):
 
         stdout_chunks, stderr_chunks = [], []
 
-        # Simplified stream reading with direct print control
         async def read_stream(stream, accumulate, is_stdout=True):
             while True:
                 line_bytes = await stream.readline()
@@ -59,37 +53,65 @@ class RunCode(ActionNode):
                 timeout=timeout
             )
 
+            if 'WARNING: cannot load logging configuration file, logging is disabled\n' in stderr_chunks:
+                stderr_chunks.remove('WARNING: cannot load logging configuration file, logging is disabled\n')
+            if stderr_chunks:
+                return '\n'.join(stderr_chunks)
+            else:
+                return 'NONE'
+
         except asyncio.TimeoutError:
-            self._logger.info("The command did not complete within the given timeout.")
+            self._context.log.format_message(content="Timeout", style="error")
             process.kill()
-            stdout, stderr = await process.communicate()
-            return stdout.decode('utf-8'), 'The command did not complete within the given timeout: ' + stderr.decode(
-                'utf-8')
+            return "Timeout"
         except Exception as e:
-            self._logger.error(f"An error occurred while running the command: {e}")
+            self._context.log.format_message(content=f"error in run code: {e}", style="error")
             process.kill()
-            stdout, stderr = await process.communicate()
-            return stdout.decode('utf-8'), f"An error occurred while running the command: {e}"
 
-        # Join collected lines into single strings
-        stdout = ''.join(stdout_chunks)
-        stderr = ''.join(stderr_chunks)
-        return stdout, stderr
+    async def _run(self) -> str:
+        command = ["python", "run.py", str(self._id)]
+        print(f"running command: {command}")
 
-    async def _run(self, code_info, mode="script", **kwargs) -> str:
-        command = code_info["command"]
-        self._logger.info(f"Running {' '.join(command)}")
-        outs, errs = "", ""
-        if mode == "script":
-            # Note: must call call_reset_environment before and after running the script
-            from modules.utils.root import root_manager
-
-            outs, errs = await self._run_script(working_directory=root_manager.workspace_root, command=command)
-
-        self._logger.info(f"Outs: {outs}")
-        self._logger.error(f"Errs: {errs}")
-
-        return str(outs + errs)
+        result = await self._run_script(working_directory=root_manager.workspace_root, command=command)
+        return result
 
     def _process_response(self, response: str) -> str:
         return response
+    
+
+class RunCodeAsync(ActionNode):
+    async def run(self):
+        robot_num = get_param('robots_num')
+        tasks = []
+        action = RunCode()
+
+        try:
+            print(f"call reset environment: start")
+            call_reset_environment(True)
+            for robot_id in range(robot_num):
+                task = asyncio.create_task(action.run(robot_id))
+                tasks.append(task)
+            result_list = list(set(await asyncio.gather(*tasks)))
+        finally:
+            print(f"call reset environment: end")
+            call_reset_environment(True)
+            from modules.utils import generate_video_from_frames, root_manager
+            data_root = root_manager.data_root
+            number = len(listdir(f"{data_root}/frames")) - 1
+            generate_video_from_frames(
+                frames_folder=f"{data_root}/frames/frame{number}",
+                video_path=f"{data_root}/output{number}.mp4",
+            )
+            print(f"synthesize frame{number} ---> output{number}.mp4")
+            print("############END############")
+
+        return result_list
+    
+    def _process_response(self, result: str):
+        if 'NONE' in result and len(result) == 1:
+            # self._error_message = "No result received"
+            return "ALL_PASS"
+        elif 'Timeout' in result and len(result) == 1:
+            return "ALL_PASS"
+        result_content = '\n'.join(result)
+        return Bug(result_content)

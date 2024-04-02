@@ -6,7 +6,6 @@ from modules.framework.workflow_context import WorkflowContext
 from modules.utils import setup_logger, LoggerLevel
 from modules.llm.gpt import GPT
 from modules.framework.code_error import CodeError
-from modules.framework.handler import Handler
 
 class BaseNode(ABC):
     def __init__(self):
@@ -79,7 +78,7 @@ class ActionNode(BaseNode):
         raise AttributeError("This property is write-only")
 
     @error_handler.setter
-    def error_handler(self, value: Handler):
+    def error_handler(self, value: 'Handler'):
         self._error_handler = value
 
     def add(self, action: 'BaseNode'):
@@ -93,7 +92,7 @@ class ActionNode(BaseNode):
         content = f"\t\t{str(self)} -->|{self._next_text}| {str(self._next)}\n"
         if self._error_handler:
             content += f"\t\t{str(self)} -->|failed| {str(self._error_handler)}\n"
-            content += self._error_handler.display()
+            content += self._error_handler.display(visited)
 
         content += self._next.flow_content(visited)
         return content
@@ -102,14 +101,17 @@ class ActionNode(BaseNode):
         # Method for generating graph structure
         return str(self)
     
-    @abstractmethod
     def _can_skip(self) -> bool:
         return False
+    
+    def _build_prompt(self):
+        pass
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def run(self) -> str:
         try:
-            # Run node logic and process response
+            # First create a prompt, then utilize it to query the language model.
+            self._build_prompt()
             if not self._can_skip():
                 res = await self._run()
                 res = self._process_response(res)
@@ -137,7 +139,7 @@ class ActionNode(BaseNode):
     
     def _process_response(self, response: str) -> str:
         return response
-        
+    
 class ActionLinkedList(BaseNode):
     def __init__(self, name: str, head: BaseNode):
         super().__init__()
