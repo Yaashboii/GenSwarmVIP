@@ -11,7 +11,7 @@ class Manager:
 
     def __init__(self, n_robots, n_obstacles, size, if_leader=False):
         self._robots = Robots(n_robots, size, if_leader=if_leader)
-        self._obstacles = Obstacles(n_obstacles, size)
+        self._obstacles = Obstacles(n_obstacles, size, robot_list=self._robots.robots)
         self._agent_num = n_robots
         self._if_leader = if_leader
         self._pub_list = []
@@ -19,7 +19,7 @@ class Manager:
             self._pub_list.append(rospy.Publisher(f'/robot_{i}/observation', Observations, queue_size=1))
             rospy.Subscriber(f'/robot_{i}/velocity', Twist, self.velocity_callback, callback_args=i)
 
-        self._timer = rospy.Timer(rospy.Duration(0.1), self.distribute)
+        self._timer = rospy.Timer(rospy.Duration(0.01), self.distribute)
 
     @property
     def robots(self) -> Robots:

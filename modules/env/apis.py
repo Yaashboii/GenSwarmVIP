@@ -1,6 +1,4 @@
-import numpy
 import os
-
 import numpy as np
 import rospy
 from geometry_msgs.msg import Twist
@@ -52,7 +50,7 @@ def initialize_ros_node():
     # avoid multiple initialization
     if not ros_initialized:
         # init ros node
-        robot_id = int(os.environ['ROBOT_ID'])
+        from run import robot_id
         rospy.init_node(f'robot{robot_id}_control_node', anonymous=True)
         ros_initialized = True
         rospy.Subscriber(f'/robot_{robot_id}/observation', Observations, observation_callback)
@@ -70,7 +68,7 @@ def initialize_ros_node():
         print(f"Observations data init successfully")
 
         # timer to publish velocity in a fixed frequency of 100Hz
-        timer = rospy.Timer(rospy.Duration(0.01), publish_velocities)
+        timer = rospy.Timer(rospy.Duration(0.1), publish_velocities)
 
 
 def publish_velocities(event):
@@ -91,17 +89,6 @@ def get_position():
     initialize_ros_node()
     global robot_info
     return robot_info['position']
-
-
-def get_radius():
-    """
-    Get the radius of the robot.
-    Returns:
-    - float: The radius of the robot.
-    """
-    initialize_ros_node()
-    global robot_info
-    return robot_info['radius']
 
 
 def get_velocity():

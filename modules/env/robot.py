@@ -7,10 +7,9 @@ from obstacle import Entity
 
 
 class Robot(Entity):
-    def __init__(self, robot_id, initial_position, max_speed=2.0, communication_range=5.0, radius=0.1):
-        super().__init__(robot_id, initial_position)
+    def __init__(self, robot_id, initial_position, radius=0.1, max_speed=2.0, communication_range=5.0):
+        super().__init__(robot_id, initial_position, radius=radius)
         self._velocity = np.array([0.0, 0.0], dtype=float)
-        self._radius = radius
         self._max_speed = max_speed
         self._communication_range = communication_range
         self._history = [self._position.copy()]
@@ -113,10 +112,15 @@ class Robots:
     def create_robots(n_robots, size):
         # TODO: optimize this function to avoid obstacles overlapping
         robot_list = []
-        for i in range(n_robots):
-            position = np.random.uniform(-0.5, 0.5, size=2) * size
-            radius = 0.15
-            robot_list.append(Robot(i, position, radius=radius))
+        while len(robot_list) < n_robots:
+            robot = Robot.create_entities(n_entities=n_robots,
+                                          size=size,
+                                          radius_range=0.15,
+                                          existing_entities=robot_list)
+            if robot:
+                robot_list.extend(robot)
+            else:
+                print(f"Warning: Failed to place robot {len(robot_list)} after multiple attempts.")
 
         return robot_list
 

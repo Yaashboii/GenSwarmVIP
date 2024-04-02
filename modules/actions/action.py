@@ -1,3 +1,4 @@
+import traceback
 from abc import ABC, abstractmethod
 from collections import namedtuple
 
@@ -11,7 +12,6 @@ ActionResult = namedtuple('ActionResult', ['id', 'message'])
 
 class Action(ABC):
     def __init__(self):
-        self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
         self._llm = GPT()
         self._context = WorkflowContext()
 
@@ -28,7 +28,15 @@ class Action(ABC):
             res = await self._run(**kwargs)
             res = self.process_response(res, **kwargs)
         except Exception as e:
-            self._context.log.format_message(format_log_message(str(e), "error"), "error")
+            tb = traceback.format_exc()
+
+            self._context.log.format_message(
+                format_log_message(
+                    label='run & process_response',
+                    message=f"An error occurred while processing the response or call GPT: {e}\nTraceback: {tb}"
+                ),
+                "error"
+            )
             raise
         return res
 
@@ -47,9 +55,9 @@ class Action(ABC):
         result = await self._llm.ask(prompt)
         # store PROMPT and RESULT in the log.md
         # make sure output them after _llm.ask(), for it's an asynchronize function
-        self._context.log.format_message(str(self),"action")
-        self._context.log.format_message(prompt,"prompt")
-        self._context.log.format_message(result,"response")
+        self._context.log.format_message(str(self), "action")
+        self._context.log.format_message(prompt, "prompt")
+        self._context.log.format_message(result, "response")
         return result
 
 

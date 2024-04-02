@@ -20,7 +20,7 @@ class GPT:
     system_prompt = "You are a helpful assistant."
 
     def __init__(self, model: str = 'gpt-4-turbo-preview',
-                 temperature: float = 0.7) -> None:
+                 temperature: float = 0) -> None:
         self._model = model
         self._memories = []  # Current memories
         self._temperature = temperature
