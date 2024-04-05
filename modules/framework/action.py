@@ -107,31 +107,36 @@ class ActionNode(BaseNode):
     def _build_prompt(self):
         pass
 
-    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def run(self) -> str:
-        try:
-            # First create a prompt, then utilize it to query the language model.
-            self._build_prompt()
-            if not self._can_skip():
-                res = await self._run()
-                res = self._process_response(res)
-                if isinstance(res, CodeError):
-                    # If response is CodeError, handle it and move to next action
-                    if self._error_handler:
-                        next_action = self._error_handler.handle(res)
-                        return await next_action.run()
-                    else:
-                        raise ValueError("No error handler available to handle request")
-            if self._next is not None:
-                return await self._next.run()
-        except Exception as e:
-            raise
+        # First create a prompt, then utilize it to query the language model.
+        self._build_prompt()
+        if not self._can_skip():
+            res = await self._run()
+            if isinstance(res, CodeError):
+                # If response is CodeError, handle it and move to next action
+                if self._error_handler:
+                    next_action = self._error_handler.handle(res)
+                    return await next_action.run()
+                else:
+                    raise ValueError("No error handler available to handle request")
+        if self._next is not None:
+            return await self._next.run()
 
+    @retry(stop=stop_after_attempt(5), wait=wait_random_exponential(multiplier=1, max=10))
     async def _run(self) -> str:
-        if self.__prompt is None:
-            raise SystemExit("Prompt is required")
-        code = await self._ask(self.__prompt)
-        return code
+        try:
+            if self.__prompt is None:
+                raise SystemExit("Prompt is required")
+            code = await self._ask(self.__prompt)
+            self._context.logger.log(f"Action: {str(self)}", "info")
+            self._context.logger.log(f"Prompt:\n {self.__prompt}", "debug")
+            self._context.logger.log(f"Response:\n {code}", "info")
+            code = self._process_response(code)
+            return code
+        except Exception as e:
+            tb = traceback.format_exc()
+            self._context.logger.log(f"Error in {str(self)}: {e},\n {tb}", "error")
+            raise Exception
 
     async def _ask(self, prompt: str) -> str:
         result = await self.__llm.ask(prompt)
