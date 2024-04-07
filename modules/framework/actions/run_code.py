@@ -88,7 +88,7 @@ class RunCodeAsync(ActionNode):
     async def _run(self):
         robot_num = get_param('robots_num')
         tasks = []
-
+        self.context.function_pool.update_message()
         try:
             self._context.logger.log(content="call reset environment: start")
             call_reset_environment(True)

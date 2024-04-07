@@ -7,7 +7,8 @@ from modules.framework.action import BaseNode
 
 class Handler(ABC):
     def __init__(self):
-        self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
+        from modules.framework.workflow_context import logger
+        self._logger = logger
         self._successor = None
         self._next_action = None
 
@@ -51,7 +52,7 @@ class Handler(ABC):
 class BugLevelHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
         if isinstance(request, Bug):
-            self._logger.debug("Handled by BugLevelHandler")
+            self._logger.log("Handled by BugLevelHandler")
             self._next_action.error = request.error_msg
             return self._next_action
         elif self._successor:
@@ -61,7 +62,7 @@ class BugLevelHandler(Handler):
 class CriticLevelHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
         if isinstance(request, CriticNotSatisfied):
-            self._logger.debug("Handled by CriticLevelHandler")
+            self._logger.log("Handled by CriticLevelHandler")
             return self._next_action
         elif self._successor:
             return self._successor.handle(request)
@@ -70,7 +71,7 @@ class CriticLevelHandler(Handler):
 class HumanFeedbackHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
         if isinstance(request, HumanFeedback):
-            self._logger.debug("Handled by HumanFeedbackHandler")
+            self._logger.log("Handled by HumanFeedbackHandler")
             return self._next_action
         elif self._successor:
             return self._successor.handle(request)

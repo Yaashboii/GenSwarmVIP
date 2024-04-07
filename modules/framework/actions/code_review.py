@@ -71,7 +71,7 @@ class CodeReviewAsync(ActionNode):
         return super()._build_prompt()
 
     async def _run(self):
-        current_layer_index = 0
+        current_layer_index = 1
         while current_layer_index < len(self._context.function_pool.function_layer):
             tasks = []
             current_layer = self._context.function_pool.function_layer[current_layer_index]
@@ -90,6 +90,8 @@ class CodeReviewAsync(ActionNode):
                     error = self.context.function_pool.check_function_grammar(function_name=function.name)
                     errors.append(error)
             except Exception as e:
+                import traceback
+                self.context.logger.log(f"error occurred in grammar check:\n {traceback.format_exc()}", 'error')
                 raise SystemExit(f"error occurred in async write functions{e}")
             current_layer_index += 1
 

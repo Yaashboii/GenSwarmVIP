@@ -170,7 +170,7 @@ class FunctionPool(FileInfo):
 
         self.function_layer = self.build_layers_from_bottom()
 
-    def check_function_grammar(self, function_name):
+    def check_function_grammar(self, function_name: str):
         from modules.utils import check_grammar, find_function_name_from_error
         relative_function = self.extend_calls(function_name)
         logger.log(f"relative_function: {relative_function}", level='warning')
@@ -184,7 +184,7 @@ class FunctionPool(FileInfo):
                 logger.log(f"{error_function_name}: {e['error_message']}", level='error')
             logger.log(f'Grammar check failed for {function_name}', level='error')
         else:
-            logger.log(f'Grammar check passed for {function_name}', level='success')
+            logger.log(f'Grammar check passed for {function_name}', level='debug')
         return errors
 
     def extend_calls(self, function_name: str, seen: set = None):
@@ -209,8 +209,8 @@ class FunctionPool(FileInfo):
         if function_name:
             if isinstance(function_name, str):
                 function_name = [function_name]
-            return '\n\n'.join([self.functions[f].content for f in function_name])
-        return '\n\n'.join([f.content for f in self.functions.values()])
+            return '\n\n\n'.join([self.functions[f].content for f in function_name])
+        return '\n\n\n'.join([f.content for f in self.functions.values()])
 
     def build_layers_from_bottom(self):
         bottom_layer_functions = [

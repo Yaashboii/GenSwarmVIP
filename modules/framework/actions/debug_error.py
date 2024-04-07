@@ -11,6 +11,10 @@ from modules.prompt.task_description import TASK_DES
 
 
 class DebugError(ActionNode):
+    def __init__(self, next_text='', node_name=''):
+        super().__init__(next_text, node_name)
+        self.error = None
+
     def setup(self, error):
         self.error = error
 

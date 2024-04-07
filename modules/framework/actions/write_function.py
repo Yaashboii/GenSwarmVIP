@@ -91,6 +91,8 @@ class WriteFunctionsAsync(ActionNode):
                     error = self.context.function_pool.check_function_grammar(function_name=function.name)
                     errors.append(error)
             except Exception as e:
+                import traceback
+                self.context.logger.log(f"error occurred in grammar check:\n {traceback.format_exc()}", 'error')
                 raise SystemExit(f"error occurred in async write functions{e}")
             current_layer_index += 1
 
