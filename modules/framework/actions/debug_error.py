@@ -9,6 +9,7 @@ from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.task_description import TASK_DES
 
+
 class DebugError(ActionNode):
     def setup(self, error):
         self.error = error
@@ -25,7 +26,7 @@ class DebugError(ActionNode):
             mentioned_functions=mentioned_function,
             error_message=self.error
         )
-    
+
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_code(text=response)
         self._context.function_pool.add_functions(content=code)

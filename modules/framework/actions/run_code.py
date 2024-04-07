@@ -8,13 +8,18 @@ from modules.utils.root import root_manager
 from modules.utils import get_param, call_reset_environment
 from modules.framework.code_error import Bug
 
+
 class RunCode(ActionNode):
+    def __init__(self, next_text: str = '', node_name: str = ''):
+        super().__init__(next_text, node_name)
+        self._id = None
+
     def _build_prompt(self):
         pass
 
-    def setup(self, id):
-        self._id = id
-    
+    def setup(self, run_id: int):
+        self._id = run_id
+
     async def _run_script(self, working_directory, command=[], print_output=True) -> str:
         working_directory = str(working_directory)
         env = os.environ.copy()
@@ -61,11 +66,11 @@ class RunCode(ActionNode):
                 return 'NONE'
 
         except asyncio.TimeoutError:
-            self._context.log.format_message(content="Timeout", style="error")
+            self._context.logger.log(content="Timeout", level="error")
             process.kill()
             return "Timeout"
         except Exception as e:
-            self._context.log.format_message(content=f"error in run code: {e}", style="error")
+            self._context.logger.log(content=f"error in run code: {e}", level="error")
             process.kill()
 
     async def _run(self) -> str:
@@ -77,23 +82,24 @@ class RunCode(ActionNode):
 
     def _process_response(self, response: str) -> str:
         return response
-    
+
 
 class RunCodeAsync(ActionNode):
-    async def run(self):
+    async def _run(self):
         robot_num = get_param('robots_num')
         tasks = []
-        action = RunCode()
 
         try:
-            print(f"call reset environment: start")
+            self._context.logger.log(content="call reset environment: start")
             call_reset_environment(True)
             for robot_id in range(robot_num):
-                task = asyncio.create_task(action.run(robot_id))
+                action = RunCode()
+                action.setup(robot_id)
+                task = asyncio.create_task(action.run())
                 tasks.append(task)
             result_list = list(set(await asyncio.gather(*tasks)))
         finally:
-            print(f"call reset environment: end")
+            self._context.logger.log(content="call reset environment: end")
             call_reset_environment(True)
             from modules.utils import generate_video_from_frames, root_manager
             data_root = root_manager.data_root
@@ -102,16 +108,27 @@ class RunCodeAsync(ActionNode):
                 frames_folder=f"{data_root}/frames/frame{number}",
                 video_path=f"{data_root}/output{number}.mp4",
             )
-            print(f"synthesize frame{number} ---> output{number}.mp4")
-            print("############END############")
-
+            self._context.logger.log(f"synthesize frame{number} ---> output{number}.mp4")
         return result_list
-    
+
     def _process_response(self, result: str):
         if 'NONE' in result and len(result) == 1:
-            # self._error_message = "No result received"
             return "ALL_PASS"
         elif 'Timeout' in result and len(result) == 1:
             return "ALL_PASS"
         result_content = '\n'.join(result)
         return Bug(result_content)
+
+
+if __name__ == "__main__":
+    from modules.utils import root_manager
+    import asyncio
+
+    path = '../../../workspace/2024-04-07_15-09-48'
+    root_manager.update_root(path, set_data_path=False)
+
+    run_code = RunCodeAsync('run code')
+    # run_code.context.load_from_file(path + "/write_run.pkl")
+    asyncio.run(run_code.run())
+
+    run_code.context.save_to_file(f'{path}/run_code.pkl')

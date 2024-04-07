@@ -4,6 +4,7 @@ from modules.utils import setup_logger, LoggerLevel
 from modules.framework.code_error import *
 from modules.framework.action import BaseNode
 
+
 class Handler(ABC):
     def __init__(self):
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
@@ -16,7 +17,7 @@ class Handler(ABC):
     @property
     def successor(self):
         return self._successor
-    
+
     @successor.setter
     def successor(self, value):
         self._successor = value
@@ -24,7 +25,7 @@ class Handler(ABC):
     @property
     def next_action(self):
         return self._next_action
-    
+
     @next_action.setter
     def next_action(self, value: BaseNode):
         if isinstance(value, BaseNode):
@@ -42,35 +43,38 @@ class Handler(ABC):
             content += f"\t\t{str(self)} -->|error message| {str(self._next_action)}\n"
             content += self._next_action.flow_content(visited)
         return content + (self._successor.display(visited) if self._successor else '')
-    
+
     def struct(self):
         return f"\t{str(self)}\n" + (self._successor.struct() if self._successor else '')
 
 
 class BugLevelHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
-        if(isinstance(request, Bug)):
+        if isinstance(request, Bug):
             self._logger.debug("Handled by BugLevelHandler")
             self._next_action.error = request.error_msg
             return self._next_action
         elif self._successor:
             return self._successor.handle(request)
-    
+
+
 class CriticLevelHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
-        if(isinstance(request, CriticNotSatisfied)):
+        if isinstance(request, CriticNotSatisfied):
             self._logger.debug("Handled by CriticLevelHandler")
             return self._next_action
         elif self._successor:
             return self._successor.handle(request)
-            
+
+
 class HumanFeedbackHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
-        if(isinstance(request, HumanFeedback)):
+        if isinstance(request, HumanFeedback):
             self._logger.debug("Handled by HumanFeedbackHandler")
             return self._next_action
         elif self._successor:
             return self._successor.handle(request)
+
 
 if __name__ == '__main__':
     h1 = BugLevelHandler()
@@ -91,4 +95,3 @@ if __name__ == '__main__':
     errors = [e1, e2, e3]
     for error in errors:
         handle_pipeline.handle(error)
-    

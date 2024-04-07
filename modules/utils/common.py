@@ -52,16 +52,21 @@ def check_file_exists(directory, filename):
 
 
 def write_file(directory, filename, content, mode='w'):
+    from modules.framework.workflow_context import logger
+
     try:
         file_path = os.path.join(directory, filename)
+
         with open(file_path, mode) as file:
             file.write(content)
         operation = "written" if mode == 'w' else "appended"
-        print(f"File {operation}: {file_path}")
+        if operation == 'written':
+            logger.log(f"File {operation}: {file_path}", level='info')
+
     except FileNotFoundError:
-        print("Error: The specified directory does not exist.")
+        logger.log(f"File not found: {file_path}", level='error')
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logger.log(f"Error writing file: {e}", level='error')
 
 
 def copy_folder(source_folder, destination_folder):
@@ -185,12 +190,59 @@ def combine_unique_imports(import_list):
     return combined_imports
 
 
+def find_function_name_from_error(file_path, error_line):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+        error_code_line = lines[error_line - 1].strip()
+        for i in range(error_line - 2, -1, -1):
+            if lines[i].strip().startswith('def '):
+                function_name = lines[i].strip().split('(')[0].replace('def ', '')
+                return function_name, error_code_line
+    return None, error_code_line
+
+
+def check_grammar(file_path: str):
+    import subprocess
+    command = [
+        'pylint',
+        # '--disable=W,C,I,R --enable=E,W0612',
+        '--disable=W,C,I,R ',
+        file_path
+    ]
+
+    try:
+        process = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = process.stdout + process.stderr
+
+        pattern = re.compile(r"(.*?):(\d+):(\d+): (\w+): (.*) \((.*)\)")
+        matches = pattern.findall(result)
+
+        errors = []
+        for match in matches:
+            file_path, line, column, error_code, error_message, _ = match
+            errors.append({
+                "file_path": file_path,
+                "line": int(line),
+                "column": int(column),
+                "error_code": error_code,
+                "error_message": error_message
+            })
+
+        return errors
+    except Exception as e:
+        from modules.framework.workflow_context import logger
+        logger.log(f"Error occurred when check grammar: {e}", level='error')
+        raise Exception(f"Error occurred when check grammar:{e}")
+
+
 def call_reset_environment(data: bool):
     """
 
     Args:
         data (bool): Whether to render the environment
     """
+    from modules.framework.workflow_context import logger
+
     if not rospy.core.is_initialized():
         rospy.init_node('reset_environment_client', anonymous=True)
 
@@ -200,7 +252,7 @@ def call_reset_environment(data: bool):
         resp = reset_environment(data)
         return resp.success, resp.message
     except rospy.ServiceException as e:
-        print("Service call failed: %s" % e)
+        logger.log(f"Service call failed: {e}", level='error')
 
 
 def get_param(param_name):
@@ -208,23 +260,25 @@ def get_param(param_name):
 
 
 def set_param(param_name, param_value):
+    from modules.framework.workflow_context import logger
     rospy.set_param(param_name, param_value)
-    print(f"Setting param {param_name} to {param_value}")
+    logger.log(f"Parameter set: {param_name} = {param_value}", level='info')
 
 
 def generate_video_from_frames(frames_folder, video_path, fps=15):
-    print(f"Generating video from frames in {frames_folder}")
+    from modules.framework.workflow_context import logger
+    logger.log(f"Generating video from frames in {frames_folder}...")
     try:
         frame_files = sorted(
             [file for file in os.listdir(frames_folder) if re.search(r'\d+', file)],
             key=lambda x: int(re.search(r'\d+', x).group())
         )
     except Exception as e:
-        print(f"Error sorting frame files: {e}")
+        logger.log(f"Error reading frames: {e}", level='error')
         return
 
     if not frame_files:
-        print("No frames found in the folder.")
+        logger.log("No frames found", level='error')
         return
     frame_files = [os.path.join(frames_folder, file) for file in frame_files]
 
@@ -239,4 +293,4 @@ def generate_video_from_frames(frames_folder, video_path, fps=15):
 
     cv2.destroyAllWindows()
     video.release()
-    print(f"Video generated: {video_path}")
+    logger.log(f"Video generated: {video_path}", level='info')

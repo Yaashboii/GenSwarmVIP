@@ -8,12 +8,18 @@ WRITE_FUNCTION_PROMPT_TEMPLATE = """
 ```python
 {robot_api}
 ```
+
+## These are the environment description:
+These are the basic descriptions of the environment.
+{env_des}
+
 ## These are the functions you can call directly even if they are not implemented now:
 ```python
 {other_functions}
 ```
 ## These are the constraints that need to be satisfied in the implementation of the function:
 {constraints}
+
 ## Task
 Complete the following function. The output TEXT format is as follows:
 ```python
@@ -22,14 +28,17 @@ import ...(if necessary)
     ...(function body,you need to complete it)
 ```
 ## Notes:
-1. The Robot API and existing functions can be called directly without the need imports.
-2. You need to generate bug-free, directly invocable function code according to Google's coding standards.
-3. Set default value in input parameters: Any adjustable parameters should be taken as input parameters of the function. Always set a default value for each parameter.
-4. You can only complete the functions specified in Task according to the specified format; you cannot generate other Helper functions. If necessary, you can define functions within this function.
-5. Consider reuse or collaboration with existing functions; this one function is just a link in the entire control system.
-6. Avoid using global variables, and avoid using the same variable name as the global variable in the function.
-7. Import the required modules before the function name, and do not import them in the function body.
-8. Make sure the functions you generate meet the constraints.
+- The Robot API and existing functions can be called directly without the need imports.
+- You need to generate bug-free, directly invocable function code according to Google's coding standards.
+- Set default value in input parameters: Any adjustable parameters should be taken as input parameters of the function. Always set a default value for each parameter.
+- You can only complete the functions specified in Task according to the specified format; you cannot generate other Helper functions. If necessary, you can define functions within this function.
+- Consider reuse or collaboration with existing functions; this one function is just a link in the entire control system.
+- Avoid using global variables, and avoid using the same variable name as the global variable in the function.
+- If there are issues with the given function definition or docstring, you may modify them, but under no circumstances may you change the function name.
+- Import the required modules before the function name, and do not import them in the function body.
+- If the function outputs velocity, then this velocity must be normalized.
+- Make sure the functions you generate meet the constraints.
+
 """.strip()
 
 WRITE_RUN_PROMPT_TEMPLATE = """
@@ -37,6 +46,10 @@ WRITE_RUN_PROMPT_TEMPLATE = """
 {task_des}
 ## Role setting:
 - Your task is to create an interface function for users to call, based on existing functions written by other assistants. Users only need to call this function to complete the predetermined task.
+
+## These are the environment description:
+These are the basic descriptions of the environment.
+{env_des}
 
 ## These are the basic Robot APIs:
 ```python
@@ -70,6 +83,6 @@ def run_loop():
 5. You can only call these existing functions and RobotApi, and you cannot define complex logic on your own.
 6. Calling time.sleep or any other method to limit frequency is not allowed, as the underlying API has determined a set frequency.
 7. Import the required modules before the function name, and do not import them in the function body.
-8. You need to ensure that the entire system can update observation data in real time and issue control speeds in real time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop.
-8. Strictly follow the specified format.
+8. You need to ensure that the entire system can update observation data in real time and issue control speeds in real time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop .
+10. Strictly follow the specified format.
 """.strip()

@@ -83,15 +83,4 @@ def format_log_message(label: str, message: str) -> str:
 
 
 if __name__ == '__main__':
-    # 设置全局logger，日志级别为DEBUG
-    logger = setup_logger("GlobalLogger", LoggerLevel.DEBUG)
-    # 例子：记录一个DEBUG消息
-    logger.debug("这是一个DEBUG消息")
-    # 例子：记录一个INFO消息
-    logger.info("这是一个INFO消息")
-    # 例子：记录一个WARNING消息
-    logger.warning("这是一个WARNING消息")
-    # 例子：记录一个ERROR消息
-    logger.error("这是一个ERROR消息")
-    # 例子：记录一个CRITICAL消息
-    logger.critical("这是一个CRITICAL消息")
+    pass

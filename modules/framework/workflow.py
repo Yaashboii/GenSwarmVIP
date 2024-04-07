@@ -7,13 +7,15 @@ from modules.framework.handler import *
 from modules.utils.logger import setup_logger
 from modules.framework.workflow_context import WorkflowContext
 
+
 class Workflow:
     def __init__(self, user_command: str, args=None):
         self._logger = setup_logger("Workflow")
         self._context = WorkflowContext()
+        self._context.args = args
         self._context.user_command.message = user_command
-        # self._context.args = args
         self._pipeline = None
+        self._chain_of_handler = None
 
         self.build_up()
 
@@ -22,11 +24,11 @@ class Workflow:
         setup = SetupEnvironment("environment")
         analyze_constraints = AnalyzeConstraints('constraint pool')
         analyze_functions = AnalyzeFunctions('function pool')
-        design_function = DesignFunction("function definition")
+        design_functions = DesignFunctionAsync("function definition")
         write_functions = WriteFunctionsAsync("function.py")
         write_run = WriteRun("code")
         code_review = CodeReviewAsync("reviewed code")
-        run_code = RunCode("pass")
+        run_code = RunCodeAsync("pass")
         debug_code = DebugError("fixed code")
 
         # initialize error handlers
@@ -38,51 +40,47 @@ class Workflow:
         self._chain_of_handler = bug_handler
         bug_handler.successor = hf_handler
         run_code.error_handler = self._chain_of_handler
-        
+
         # link actions
-        ## stage 1
+        # stage 1
         analysis_stage = ActionLinkedList("Analysis", analyze_constraints)
         analysis_stage.add(analyze_functions)
-        ## stage 2
-        coding_stage = ActionLinkedList("Coding", design_function)
+        # stage 2
+        coding_stage = ActionLinkedList("Coding", design_functions)
         coding_stage.add(write_functions)
         coding_stage.add(write_run)
-        ## stage 3
+        # stage 3
         review_stage = ActionLinkedList("Review", code_review)
-        ## stage 4
+        # stage 4
         test_stage = ActionLinkedList("Testing", run_code)
 
         # combine stages
-        code_llm = ActionLinkedList("Code-LLM", setup)
-        code_llm.add(analysis_stage)
+        code_llm = ActionLinkedList("Code-LLM", analysis_stage)
+
+        # code_llm.add(analysis_stage)
         code_llm.add(coding_stage)
         code_llm.add(review_stage)
         code_llm.add(test_stage)
-        code_llm.add(ActionNode("","END"))
+        code_llm.add(ActionNode("", "END"))
         self._pipeline = code_llm
         # assign error handlers to actions
-
 
     async def run(self):
         text = display_all(self._pipeline, self._chain_of_handler)
         from modules.framework.workflow_context import FileInfo
         flow = FileInfo(name='flow.md')
         flow.message = text
-        
+        await self._pipeline.run()
+
 
 if __name__ == "__main__":
     task_list = [
-        "Gather these robots together at the position of leader robot",
-        "Gather the robots to point (2,3)",
-        "Gather the robots along the y=x trajectory",
-        'Move the robots to form a square formation',
-        'First, move the robot to form a square formation. Then, move the robots to form a triangle formation.Finally gather these robots together',
-        "Initially, gather all robots at the center of the environment, confirming their arrival before proceeding. Next, arrange the robots into a square formation with each side measuring exactly 1.0 meter, ensuring the formation's precision with right angles and equal sides. Once the square is confirmed, guide the robots to trace a circular path while maintaining the square formation. Constant monitoring is required to preserve the formation's integrity and the path's accuracy throughout the movement."
+        ''
     ]
     from modules.utils import root_manager
 
-    root_manager.update_root()
+    root_manager.update_root(set_data_path=False)
     root_manager.init_workspace()
-    
+
     workflow = Workflow(task_list[0])
     asyncio.run(workflow.run())

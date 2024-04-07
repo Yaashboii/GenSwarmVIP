@@ -20,36 +20,31 @@ class AnalyzeFunctions(ActionNode):
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response, lang='json')
         self._context.function_pool.init_functions(code)
+
         for function in self._context.function_pool.functions.values():
             for constraint in function.satisfying_constraints:
                 self._context.constraint_pool.add_sat_func(constraint_name=constraint, function_name=function.name)
+
         for constraint in self._context.constraint_pool.constraints.values():
             if not constraint.satisfyingFuncs:
                 raise SystemExit(f"Constraint {constraint.name} has no satisfying function")
-        self._context.log.format_message(f"Analyze Functions Success", "success")
+
+        self._context.logger.log(f"Analyze Functions Success", "success")
         return response
-    
+
     def _can_skip(self) -> bool:
         return False
 
-    
+
 if __name__ == '__main__':
-    # from modules.utils import root_manager
-    # import asyncio
-    # # for i in range(30):
+    from modules.utils import root_manager
+    import asyncio
 
-    # path = '/src/tests'
-    # root_manager.update_root(path, set_data_path=False)
-    
-    # analyze_functions = AnalyzeFunctions('functions')
-    # analyze_functions._context.load_from_file(path + "/analyze_stage.pkl")
-    # asyncio.run(analyze_functions.run())
+    path = '../../../workspace/test'
+    root_manager.update_root(path, set_data_path=False)
 
-    # analyze_functions._context.save_to_file(f'{path}/analyze_function_stage.pkl')
+    analyze_functions = AnalyzeFunctions('functions')
+    analyze_functions.context.load_from_file(path + "/analyze_constraints.pkl")
+    asyncio.run(analyze_functions.run())
 
-    import pickle
-
-    with open('/src/tests/analyze_function_stage.pkl', 'rb') as f:
-        data = pickle.load(f)
-
-    print(data.function_pool.functions_content())
+    analyze_functions.context.save_to_file(f'{path}/analyze_functions.pkl')

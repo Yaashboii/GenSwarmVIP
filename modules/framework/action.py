@@ -1,3 +1,4 @@
+import traceback
 from abc import ABC, abstractmethod
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -7,10 +8,11 @@ from modules.utils import setup_logger, LoggerLevel
 from modules.llm.gpt import GPT
 from modules.framework.code_error import CodeError
 
+
 class BaseNode(ABC):
     def __init__(self):
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
-        self.__next = None # next node
+        self.__next = None  # next node
 
     def __str__(self):
         return self.__class__.__name__
@@ -19,7 +21,7 @@ class BaseNode(ABC):
     def _next(self):
         # _ means this is protected property
         return self.__next
-    
+
     @_next.setter
     def _next(self, value):
         if not isinstance(value, BaseNode):
@@ -30,12 +32,12 @@ class BaseNode(ABC):
     async def run(self) -> str:
         # Abstract method for executing node logic
         pass
-    
+
     @abstractmethod
     def flow_content(self, visited: set) -> str:
         # Abstract method for generating flow content
         pass
-    
+
     @abstractmethod
     def graph_struct(self, level: int) -> str:
         # Abstract method for generating graph structure
@@ -43,18 +45,19 @@ class BaseNode(ABC):
 
     def add(self, action: 'BaseNode'):
         # Method for adding action to node
-        # It also provides same interface for both ActinoNode and LinkedListNode
+        # It also provides same interface for both ActionNode and LinkedListNode
         pass
-        
+
+
 class ActionNode(BaseNode):
     def __init__(self, next_text: str, node_name: str = ''):
         super().__init__()
         self.__llm = GPT()
         self.__prompt = None
         self._context = WorkflowContext()
-        self._next_text = next_text # label text rendered in mermaid graph
-        self._node_name = node_name # to distinguish objects of same class type
-        self._error_handler = None # this is a chain of handlers, see handler.py
+        self._next_text = next_text  # label text rendered in mermaid graph
+        self._node_name = node_name  # to distinguish objects of same class type
+        self._error_handler = None  # this is a chain of handlers, see handler.py
 
     def __str__(self):
         if self._node_name:
@@ -62,7 +65,17 @@ class ActionNode(BaseNode):
         else:
             # return class name when node_name is not defined
             return super(ActionNode, ActionNode).__str__(self)
-    
+
+    @property
+    def context(self):
+        return self._context
+
+    @context.setter
+    def context(self, value: WorkflowContext):
+        if not isinstance(value, WorkflowContext):
+            raise ValueError("context must be a WorkflowContext")
+        self._context = value
+
     @property
     def prompt(self):
         return self.__prompt
@@ -83,7 +96,7 @@ class ActionNode(BaseNode):
 
     def add(self, action: 'BaseNode'):
         self._logger.warn("ActionNode can't add other node")
-    
+
     def flow_content(self, visited: set) -> str:
         # generating flow content in mermaid style
         if not self._next or self in visited:
@@ -96,20 +109,21 @@ class ActionNode(BaseNode):
 
         content += self._next.flow_content(visited)
         return content
-    
+
     def graph_struct(self, level: int) -> str:
         # Method for generating graph structure
         return str(self)
-    
+
     def _can_skip(self) -> bool:
         return False
-    
+
     def _build_prompt(self):
         pass
 
     async def run(self) -> str:
         # First create a prompt, then utilize it to query the language model.
         self._build_prompt()
+        self._context.logger.log(f"Action: {str(self)}", "info")
         if not self._can_skip():
             res = await self._run()
             if isinstance(res, CodeError):
@@ -141,15 +155,16 @@ class ActionNode(BaseNode):
     async def _ask(self, prompt: str) -> str:
         result = await self.__llm.ask(prompt)
         return result
-    
+
     def _process_response(self, response: str) -> str:
         return response
-    
+
+
 class ActionLinkedList(BaseNode):
     def __init__(self, name: str, head: BaseNode):
         super().__init__()
-        self.head = head # property is used
-        self.__name = name # name of the structure
+        self.head = head  # property is used
+        self.__name = name  # name of the structure
 
     def __str__(self):
         if self.__head:
@@ -158,7 +173,7 @@ class ActionLinkedList(BaseNode):
     @property
     def head(self):
         return self.__head
-    
+
     @head.setter
     def head(self, value):
         if isinstance(value, BaseNode):
@@ -166,47 +181,56 @@ class ActionLinkedList(BaseNode):
             self.__tail = value
         else:
             raise TypeError("head must be a BaseNode")
-        
+
     @property
     def _next(self):
         return self.__tail._next
-    
+
     @_next.setter
     def _next(self, value):
         self.__tail._next = value
 
     def add(self, action: 'BaseNode'):
         if isinstance(action, BaseNode):
-            # add new node\linked list to this linked list
             self.__tail._next = action
-            self.__tail = self.__tail._next
-        else: 
-            raise TypeError("element in ActionLinklist must be type of BaseNode")
+            self.__tail = action
+        else:
+            raise ValueError("Value must be a BaseNode")
+        self.traverse()
 
     async def run(self, **kwargs):
         return await self.__head.run()
-    
+
     def graph_struct(self, level: int) -> str:
         # Method for generating graph structure in mermaid style
         level += 1
         tables = "\t"
-        content =  f"subgraph {self.__name}\n"
+        content = f"subgraph {self.__name}\n"
         node = self.__head
         while node and node != self.__tail:
-            content += tables * (level)  + f"{node.graph_struct(level)}\n"
+            content += tables * (level) + f"{node.graph_struct(level)}\n"
             node = node._next
         if node == self.__tail:
             content += tables * (level) + f"{node.graph_struct(level)}\n"
 
-        content += tables * (level-1) + "end"
+        content += tables * (level - 1) + "end"
         return content
-    
+
+    def traverse(self):
+        current = self.__head
+        i = 0
+        while current:
+            print(f'--{i}:{current}')
+            i += 1
+
+            current = current._next
+
     def flow_content(self, visited: set) -> str:
         return self.__head.flow_content(visited)
 
 
 def display_all(node: ActionNode, error_handler):
-    graph = node.graph_struct(level = 1)
+    graph = node.graph_struct(level=1)
     visited = set()
     res = node.flow_content(visited)
     text = f"""
@@ -223,6 +247,7 @@ end
 ```
     """
     return _clean_graph(text)
+
 
 def _clean_graph(graph: str):
     lines = set()

@@ -6,6 +6,7 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.task_description import TASK_DES
 from modules.utils import parse_code
 
+
 class CriticCheck(ActionNode):
     def _build_prompt(self):
         self.prompt = FILTER_CONSTRAINTS_TEMPLATE.format(
@@ -18,7 +19,7 @@ class CriticCheck(ActionNode):
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response, lang='json')
         return code
-    
+
     def _can_skip(self) -> bool:
         # TODO: can skip when files concerning to this critic are not changed
         return False

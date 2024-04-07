@@ -19,7 +19,7 @@ class GPT:
 
     system_prompt = "You are a helpful assistant."
 
-    def __init__(self, model: str = 'gpt-4-turbo-preview') -> None:
+    def __init__(self, model: str = 'gpt-3.5-turbo-0125') -> None:
         self._model = model
         self._memories = []  # Current memories
         self.key = key_manager.allocate_key()
@@ -64,5 +64,6 @@ class GPT:
             self._response = full_reply_content
             return full_reply_content
         except Exception as e:
-            print(f"Error in _ask_with_retry: {e}")
+            from modules.framework.workflow_context import logger
+            logger.log(f"Error in _ask_with_retry: {e}")
             raise  # Re-raise exception to trigger retry

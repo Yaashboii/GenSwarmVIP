@@ -47,7 +47,7 @@ class APIKeyManager:
 
 
 _current_dir = os.path.dirname(os.path.abspath(__file__))
-_config_path = os.path.join(_current_dir, '../../config/api_data/keys.yml')
+_config_path = os.path.join(_current_dir, '../../config/api_data/keys_3.yml')
 
 try:
     with open(_config_path, 'r') as config_file:

@@ -3,9 +3,6 @@ import pickle
 from enum import Enum
 
 from collections import defaultdict
-from modules.utils import read_file, write_file
-from modules.utils import setup_logger, LoggerLevel, format_log_message
-from modules.utils import extract_top_level_function_names, extract_imports_and_functions, combine_unique_imports
 
 
 class FileStatus(Enum):
@@ -31,7 +28,7 @@ class FileInfo:
     @property
     def message(self):
         if not self._message:
-            from modules.utils import root_manager
+            from modules.utils import root_manager, read_file
             self.root = root_manager.workspace_root
             try:
                 self._message = read_file(self.root, self.name)
@@ -44,9 +41,66 @@ class FileInfo:
         self._message = content
         if self.status == FileStatus.NOT_WRITTEN:
             self.status = FileStatus.NOT_TESTED
-        from modules.utils import root_manager
+        from modules.utils import root_manager, write_file
         self.root = root_manager.workspace_root
         write_file(self.root, self.name, content)
+
+
+class FileLog(FileInfo):
+    def __init__(self, name: str = '', message: str = '', root: str = ''):
+        super().__init__(name, message, root)
+        from modules.utils import setup_logger, LoggerLevel
+        self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
+
+    @property
+    def message(self):
+        return super().message
+
+    @message.setter
+    def message(self, content: str):
+        from modules.utils import root_manager
+        self.root = root_manager.workspace_root
+        from modules.utils import write_file
+        write_file(self.root, self.name, content, mode='a')
+
+    def log(self, content: str, level: str = 'info'):
+        """
+        Formats a message based on the provided style and logs the content.
+
+        :param content: The message content to be formatted and logged.
+        :param level: The style to format the message. Supported styles: stage, action,
+                      prompt, response, success, error, warning.
+        """
+        color_mapping = {
+            'stage': '***\n# <span style="color: blue;">Current Stage: *{}*</span>\n',
+            'action': '## <span style="color: purple;">Current Action: *{}*</span>\n',
+            'prompt': '### <span style="color: grey ;">Prompt: </span>\n{}\n',
+            'response': '### <span style="color: black;">Response: </span>\n{}\n',
+            'success': '#### <span style="color: gold;">Success: {}</span>\n',
+            'error': '#### <span style="color: red;">Error: </span>\n{}\n',
+            'warning': '#### <span style="color: orange;">Warning: </span>\n{}\n',
+            'info': '#### <span style="color: black;">info: </span>\n{}\n',
+            'debug': '#### <span style="color: black;">debug: </span>\n{}\n',
+        }
+
+        # Verify level is supported
+        if level not in color_mapping:
+            self._logger.error(f"Level {level} is not supported")
+        log_action = {
+            'stage': self._logger.info,
+            'action': self._logger.debug,
+            'prompt': self._logger.debug,
+            'response': self._logger.info,
+            'success': self._logger.info,
+            'error': self._logger.error,
+            'warning': self._logger.warning,
+            'info': self._logger.info,
+            'debug': self._logger.debug,
+        }.get(level, self._logger.info)
+
+        log_action(content)
+
+        self.message = color_mapping[level].format(content)
 
 
 # TODO: function pool and constraint pool should be rewrite totally
@@ -59,6 +113,7 @@ class FunctionInfo:
         self.calls = []
         self.satisfying_constraints: list[str] = []
         self.content = None
+        self.definition = None
         self.text = f"**{self.name}**: {self.description}"
 
 
@@ -92,10 +147,11 @@ class FunctionPool(FileInfo):
 
             self.function_layer = self.build_layers_from_bottom()
         except Exception as e:
-            print('Error in init_functions: ', e)
-            raise e
+            logger.log(f'Error in init_functions: {e}', level='error')
+            raise Exception
 
     def add_functions(self, content: str):
+        from modules.utils import extract_imports_and_functions, extract_top_level_function_names
         import_list, function_list = extract_imports_and_functions(content)
         self.import_list.extend(import_list)
         for function in function_list:
@@ -110,17 +166,51 @@ class FunctionPool(FileInfo):
             for other_function in self.functions.values():
                 if other_function.name != function_name and other_function.name in function_content[0]:
                     self.functions[function_name].calls.append(other_function.name)
-            print('function_name:', function_name, 'calls:', self.functions[function_name].calls)
+            logger.log(f" function_name: {function_name}, calls: {self.functions[function_name].calls}", level='info')
 
         self.function_layer = self.build_layers_from_bottom()
-        self.update_message()
 
-    def update_message(self):
+    def check_function_grammar(self, function_name):
+        from modules.utils import check_grammar, find_function_name_from_error
+        relative_function = self.extend_calls(function_name)
+        logger.log(f"relative_function: {relative_function}", level='warning')
+        self.update_message(relative_function)
+
+        errors = check_grammar(str(self.root / self.name))
+        if errors:
+            for e in errors:
+                error_function_name = find_function_name_from_error(file_path=str(self.root / self.name),
+                                                                    error_line=e['line'])
+                logger.log(f"{error_function_name}: {e['error_message']}", level='error')
+            logger.log(f'Grammar check failed for {function_name}', level='error')
+        else:
+            logger.log(f'Grammar check passed for {function_name}', level='success')
+        return errors
+
+    def extend_calls(self, function_name: str, seen: set = None):
+        if seen is None:
+            seen = set()
+
+        if function_name not in seen:
+            if function_name in self.functions.keys():
+                seen.add(function_name)
+                calls = self.functions[function_name].calls
+                for call in calls:
+                    if call not in seen:
+                        self.extend_calls(call, seen)
+        return list(seen)
+
+    def update_message(self, function_name: str | list[str] = None):
+        from modules.utils import combine_unique_imports
         import_str = combine_unique_imports(self.import_list)
-        self.message = f"{import_str}\n\n{self.functions_content()}"
+        self.message = f"{import_str}\n\n{self.functions_content(function_name)}\n"
 
-    def functions_content(self):
-        return '\n\n'.join([f.content for f in self.functions.values() if f.content])
+    def functions_content(self, function_name: str | list[str] = None):
+        if function_name:
+            if isinstance(function_name, str):
+                function_name = [function_name]
+            return '\n\n'.join([self.functions[f].content for f in function_name])
+        return '\n\n'.join([f.content for f in self.functions.values()])
 
     def build_layers_from_bottom(self):
         bottom_layer_functions = [
@@ -148,8 +238,7 @@ class FunctionPool(FileInfo):
             if next_layer:
                 layers.append(next_layer)
             current_layer = next_layer
-
-        print('layers:', [[f.name for f in layer] for layer in layers])
+        logger.log(f"layers: {[[f.name for f in layer] for layer in layers]}", level='warning')
         return layers
 
 
@@ -167,8 +256,8 @@ class ConstraintPool(FileInfo):
                     description=constraint['description']
                 )
         except Exception as e:
-            print('Error in add_constraints: ', e)
-            raise e
+            logger.log(f'Error in add_constraints: {e}', level='error')
+            raise Exception
         self.update_message()
 
     def update_message(self):
@@ -180,61 +269,12 @@ class ConstraintPool(FileInfo):
         if constraint_name in self.constraints:
             self.constraints[constraint_name].satisfyingFuncs.extend(function_name)
         else:
-            raise SystemExit(f"Constraint {constraint_name} not found,Current Existing:{self.constraints.values()}")
+            logger.log(f"Constraint {constraint_name} not found,Current Existing:{self.constraints.values()}",
+                       level='error')
+            raise SystemExit
 
     def constraints_content(self):
         return '\n'.join([c.text for c in self.constraints.values()])
-
-
-class FileLog(FileInfo):
-    def __init__(self, name: str = '', message: str = '', root: str = ''):
-        super().__init__(name, message, root)
-        self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
-
-    @property
-    def message(self):
-        return super().message
-
-    @message.setter
-    def message(self, content: str):
-        from modules.utils import root_manager
-        self.root = root_manager.workspace_root
-        write_file(self.root, self.name, content, mode='a')
-
-    def format_message(self, content: str, style: str):
-        """
-        Formats a message based on the provided style and logs the content.
-
-        :param content: The message content to be formatted and logged.
-        :param style: The style to format the message. Supported styles: stage, action,
-                      prompt, response, success, error, warning.
-        """
-        color_mapping = {
-            'stage': '***\n# <span style="color: blue;">Current Stage: *{}*</span>\n',
-            'action': '## <span style="color: purple;">Current Action: *{}*</span>\n',
-            'prompt': '### <span style="color: grey ;">Prompt: </span>\n{}\n',
-            'response': '### <span style="color: black;">Response: </span>\n{}\n',
-            'success': '#### <span style="color: gold;">Success: {}</span>\n',
-            'error': '#### <span style="color: red;">Error: </span>\n{}\n',
-            'warning': '#### <span style="color: orange;">Warning: </span>\n{}\n',
-        }
-
-        # Verify style is supported
-        if style not in color_mapping:
-            self._logger.error(f"Style {style} is not supported")
-        log_action = {
-            'stage': self._logger.info,
-            'action': self._logger.debug,
-            'prompt': self._logger.debug,
-            'response': self._logger.info,
-            'success': self._logger.info,
-            'error': self._logger.error,
-            'warning': self._logger.warning,
-        }.get(style, self._logger.info)
-
-        log_action(content)
-
-        self.message = color_mapping[style].format(content)
 
 
 class WorkflowContext:
@@ -248,7 +288,7 @@ class WorkflowContext:
         return cls._instance
 
     def _initialize(self):
-        self.log = FileLog(name='log.md')
+        self.logger = logger
         self.user_command = FileInfo(name='command.md')
         self.function_pool = FunctionPool(name='functions.py')
         self.design_result = FileInfo(name='design_result.py')
@@ -275,8 +315,4 @@ if __name__ == '__main__':
             cls._instance = pickle.load(file)
 
 
-if __name__ == "__main__":
-    # context = WorkflowContext()
-    # context.log.message = ('Hello World!', 'prompt')
-    log = FileLog(name='log.md')
-    log.format_message('a', 'prompt')
+logger = FileLog(name='log.md')

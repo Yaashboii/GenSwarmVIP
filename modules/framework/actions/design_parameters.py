@@ -18,8 +18,8 @@ class AnalyzeFunctions(ActionNode):
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response)
         self._context.parameters.message = code
-        self._context.log.format_message(f"Design Parameters success!", "success")
+        self._context.logger.logger(f"Design Parameters success!", "success")
         return response
-    
+
     def _can_skip(self) -> bool:
         return False

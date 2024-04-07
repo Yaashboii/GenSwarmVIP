@@ -1,5 +1,6 @@
 from modules.framework.action import ActionNode
 
+
 class SetupEnvironment(ActionNode):
-    def run(self):
+    async def run(self):
         pass
