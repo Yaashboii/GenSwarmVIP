@@ -2,6 +2,7 @@ import os
 import re
 import ast
 import shutil
+import time
 
 import cv2
 import rospy
@@ -256,7 +257,12 @@ def call_reset_environment(data: bool):
 
 
 def get_param(param_name):
-    return rospy.get_param(param_name)
+    try:
+        return rospy.get_param(param_name)
+    except KeyError:
+        print(f"Parameter not found: {param_name},retrying...")
+        time.sleep(1)
+        return get_param(param_name)
 
 
 def set_param(param_name, param_value):

@@ -102,6 +102,16 @@ def get_velocity():
     return robot_info['velocity']
 
 
+def get_radius():
+    """
+    Description: Get the radius of the robot itself.
+    Returns:
+    - float: The radius of the robot itself.
+    """
+    initialize_ros_node()
+    return robot_info['radius']
+
+
 def set_velocity(velocity):
     """
     Set the velocity of the robot.

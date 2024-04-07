@@ -196,7 +196,6 @@ class ActionLinkedList(BaseNode):
             self.__tail = action
         else:
             raise ValueError("Value must be a BaseNode")
-        self.traverse()
 
     async def run(self, **kwargs):
         return await self.__head.run()
@@ -216,14 +215,6 @@ class ActionLinkedList(BaseNode):
         content += tables * (level - 1) + "end"
         return content
 
-    def traverse(self):
-        current = self.__head
-        i = 0
-        while current:
-            print(f'--{i}:{current}')
-            i += 1
-
-            current = current._next
 
     def flow_content(self, visited: set) -> str:
         return self.__head.flow_content(visited)
