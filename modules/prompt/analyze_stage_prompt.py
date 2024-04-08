@@ -32,6 +32,7 @@ Your output should satisfy the following notes:
 - These functions must not have functional redundancy among them, with each function bearing distinct responsibilities.
 - You only need to analyze the constraints that the current function itself must meet; the constraints of the functions it calls are beyond the consideration of the current function.
 - Each constraint in the Constraints information should be satisfied by one of the functions generated in your function list, without any omissions.
+- If the function outputs velocity, then this velocity must be normalized.
 - The output should strictly adhere to the specified format.
 
 """.strip()
@@ -93,8 +94,8 @@ These are the basic descriptions of the environment.
 {output_template}
 ```
 
-## Constraints:
-Your output should satisfy the following constraints:
+## Notes:
+Your output should satisfy the following notes:
 - Constraints should not be too simple or too complex; the amount of code required to implement each constraint should be similar.
 - Constraints should be practical and achievable through writing code.
 - Each constraint will correspond to at least one executable function, and the combination of all constraints can meet the user's needs.

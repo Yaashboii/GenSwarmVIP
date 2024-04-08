@@ -34,7 +34,7 @@ def {function_name}(input1, input2, ...):
     pass
 ```
 
-## Constraints:
+## Notes:
 - You need to enhance the existing function descriptions by adding more details.
 - Keep the function names unchanged; the number of input and output variables is set as needed.
 - All parameters required for the algorithm should be set as input variables with default values.
