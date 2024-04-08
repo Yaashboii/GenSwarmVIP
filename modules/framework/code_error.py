@@ -19,4 +19,6 @@ class CriticNotSatisfied(CodeError):
 
 
 class HumanFeedback(CodeError):
-    pass
+    def __init__(self, feedback):
+        super().__init__()
+        self.feedback = feedback

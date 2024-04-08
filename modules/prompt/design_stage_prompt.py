@@ -19,6 +19,8 @@ DesignFunction_PROMPT_TEMPLATE = """
 {constraints}
 
 ## The output TEXT format is as follows:
+### Reasoning: (reason step by step about how to design this function)
+### Code:
 ```python
 def {function_name}(input1, input2, ...):
     '''

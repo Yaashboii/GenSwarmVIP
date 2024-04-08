@@ -51,13 +51,17 @@ class CodeReview(ActionNode):
                     "error")
                 raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
             self._context.function_pool.add_functions(content=code)
-            errors = self._context.function_pool.check_function_grammar(function_name=desired_function_name)
-            # TODO,add bug fix mechanism for such cases,rather than just raising exception to trigger retry
-            if errors:
-                self._context.logger.log(
-                    f"High Level Function Review Failed: Function {desired_function_name} has syntax error: {errors}",
-                    "error")
-                raise Exception
+            for function_name in function_list:
+                self._context.function_pool.check_function_grammar(function_name=function_name)
+                for function in self._context.function_pool.functions.values():
+                    if function_name in function.calls:
+                        self._context.function_pool.check_function_grammar(function_name=function.name)
+            # # TODO,add bug fix mechanism for such cases,rather than just raising exception to trigger retry
+            # if errors:
+            #     self._context.logger.log(
+            #         f"High Level Function Review Failed: Function {desired_function_name} has syntax error: {errors}",
+            #         "error")
+            #     raise Exception
             return code
         except ValueError as e:
             self._context.logger.log(f"No function detected in the response: {e}", 'warning')

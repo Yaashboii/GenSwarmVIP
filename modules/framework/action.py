@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from modules.framework.workflow_context import WorkflowContext
-from modules.utils import setup_logger, LoggerLevel
+from modules.utils import setup_logger, LoggerLevel, root_manager
 from modules.llm.gpt import GPT
 from modules.framework.code_error import CodeError
 
@@ -126,6 +126,7 @@ class ActionNode(BaseNode):
         self._context.logger.log(f"Action: {str(self)}", "info")
         if not self._can_skip():
             res = await self._run()
+            self.context.save_to_file(file_path=root_manager.workspace_root / f"{self}.pkl")
             if isinstance(res, CodeError):
                 # If response is CodeError, handle it and move to next action
                 if self._error_handler:
@@ -214,7 +215,6 @@ class ActionLinkedList(BaseNode):
 
         content += tables * (level - 1) + "end"
         return content
-
 
     def flow_content(self, visited: set) -> str:
         return self.__head.flow_content(visited)

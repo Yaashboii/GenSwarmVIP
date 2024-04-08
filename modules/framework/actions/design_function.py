@@ -87,8 +87,6 @@ class DesignFunctionAsync(ActionNode):
                 tasks.append(task)
             await asyncio.gather(*tasks)
 
-        pass
-
 
 if __name__ == "__main__":
     from modules.utils import root_manager

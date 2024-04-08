@@ -30,6 +30,7 @@ class Workflow:
         code_review = CodeReviewAsync("reviewed code")
         run_code = RunCodeAsync("pass")
         debug_code = DebugError("fixed code")
+        human_feedback = HumanCritic("feedback")
 
         # initialize error handlers
         bug_handler = BugLevelHandler()
@@ -37,6 +38,9 @@ class Workflow:
         debug_code._next = run_code
         # critic_handler = CriticLevelHandler()
         hf_handler = HumanFeedbackHandler()
+        hf_handler.next_action = human_feedback
+        human_feedback._next = run_code
+        # link error handlers
         self._chain_of_handler = bug_handler
         bug_handler.successor = hf_handler
         run_code.error_handler = self._chain_of_handler
@@ -61,7 +65,7 @@ class Workflow:
         code_llm.add(coding_stage)
         code_llm.add(review_stage)
         code_llm.add(test_stage)
-        code_llm.add(ActionNode("", "END"))
+        # code_llm.add(ActionNode("", "END"))
         self._pipeline = code_llm
         # assign error handlers to actions
 

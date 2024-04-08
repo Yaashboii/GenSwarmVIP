@@ -72,6 +72,7 @@ class HumanFeedbackHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
         if isinstance(request, HumanFeedback):
             self._logger.log("Handled by HumanFeedbackHandler")
+            self._next_action.feedback = request.feedback
             return self._next_action
         elif self._successor:
             return self._successor.handle(request)

@@ -6,7 +6,7 @@ import sys
 from modules.framework.action import ActionNode
 from modules.utils.root import root_manager
 from modules.utils import get_param, call_reset_environment
-from modules.framework.code_error import Bug
+from modules.framework.code_error import Bug, HumanFeedback
 
 
 class RunCode(ActionNode):
@@ -73,7 +73,7 @@ class RunCode(ActionNode):
             self._context.logger.log(content=f"error in run code: {e}", level="error")
             process.kill()
 
-    async def _run(self) -> str:
+    async def run(self) -> str:
         command = ["python", "run.py", str(self._id)]
         print(f"running command: {command}")
 
@@ -88,6 +88,7 @@ class RunCodeAsync(ActionNode):
     async def _run(self):
         robot_num = get_param('robots_num')
         tasks = []
+        result_list = []
         self.context.function_pool.update_message()
         try:
             self._context.logger.log(content="call reset environment: start")
@@ -109,13 +110,17 @@ class RunCodeAsync(ActionNode):
                 video_path=f"{data_root}/output{number}.mp4",
             )
             self._context.logger.log(f"synthesize frame{number} ---> output{number}.mp4")
-        return result_list
+            return self._process_response(result_list)
 
-    def _process_response(self, result: str):
-        if 'NONE' in result and len(result) == 1:
-            return "ALL_PASS"
-        elif 'Timeout' in result and len(result) == 1:
-            return "ALL_PASS"
+    def _process_response(self, result: list):
+        if ('NONE' in result or 'Timeout' in result) and len(result) == 1:
+            if_feedback = input("If task is done? Press y/n")
+            if if_feedback == 'y':
+                return 'NONE'
+            else:
+                feedback = input("Please provide feedback:")
+                return HumanFeedback(feedback)
+        self.context.logger.log(content=f"Run code failed,result{result}", level="error")
         result_content = '\n'.join(result)
         return Bug(result_content)
 
@@ -123,12 +128,30 @@ class RunCodeAsync(ActionNode):
 if __name__ == "__main__":
     from modules.utils import root_manager
     import asyncio
+    from modules.framework.handler import BugLevelHandler
+    from modules.framework.handler import HumanFeedbackHandler
+    from modules.framework.actions import *
 
-    path = '../../../workspace/2024-04-07_15-09-48'
+    path = '../../../workspace/2024-04-08_13-56-16'
     root_manager.update_root(path, set_data_path=False)
-
+    debug_code = DebugError("fixed code")
+    human_feedback = HumanCritic("feedback")
     run_code = RunCodeAsync('run code')
-    # run_code.context.load_from_file(path + "/write_run.pkl")
+    # initialize error handlers
+    bug_handler = BugLevelHandler()
+    bug_handler.next_action = debug_code
+    debug_code._next = run_code
+    # critic_handler = CriticLevelHandler()
+    hf_handler = HumanFeedbackHandler()
+    hf_handler.next_action = human_feedback
+    human_feedback._next = run_code
+    # link error handlers
+    chain_of_handler = bug_handler
+    bug_handler.successor = hf_handler
+    run_code.error_handler = chain_of_handler
+
+    run_code.error_handler = chain_of_handler
+    run_code.context.load_from_file(path + "/RunCodeAsync.pkl")
     asyncio.run(run_code.run())
 
     run_code.context.save_to_file(f'{path}/run_code.pkl')
