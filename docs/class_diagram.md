@@ -1,105 +1,79 @@
 ```mermaid
 classDiagram
-    class Workflow {
-        - _init_stage: Stage
-        --------------------------
-        + STAGE_POOL: Dict~Stage~
-        
-        + run()
-        + create_stage()
-    }
-    
-    class FinalStage {
+    class BaseNode {
         <<abstract>>
-        +run(): Stage
+        * _next: BaseNode
+        + run(): string
+        + flow_content(visited: set): string
+        + graph_struct(): string
+        + add(node: BaseNode)
+    }
+    class ActionNode {
+        - __llm: GPT
+        - __prompt: string
+        - __error_handler: Handler
+        + run(): string | CodeError
+        + flow_content(visited: set): string
+        + graph_struct(): string
+        * _run(): string
+        * _ask(prompt: string): string
+        * _process_response(response: string): string
+    }
+    class CompositeAction {
+        * _next: BaseNode
+        - __head: BaseNode
+        - __tail: BaseNode
+        - __name: string
+        + run(**kwargs): string
+        + add(node: BaseNode)
+        + flow_content(visited: set): string
+        + graph_struct(): string
     }
 
+    BaseNode <|-- ActionNode
+    BaseNode <|-- CompositeAction
+    BaseNode --* CompositeAction : contains
+    CodeError <|.. ActionNode
 
-    class FileInfo {
-        <<JSON>>
-        message: string
-        status: Enum
-    }
     
-    class FileLog {
-        + stage()
-        + prompt()
-        + response()
-        + warn()
-    }
-    
-    FileInfo --|> FileLog
-    
-    class WorkflowContext {
-        + user_command: string
-        + class_diagram: string
-        + sequence_diagram: string
-        + code_files: dict~string, FileInfo~
-        + log: FileLog
+     class BaseNode {
+        <<interface>>
     }
 
-	class GPT {
-        +model_name: string
-		+ask(prompt: string)：string
-	}
-
-    class Stage {
-    <<abstract>>
-        -_action: Action
-        +run(): Stage
-    }
-
-    class AnalyzeStage {
-        +run()
-    }
-
-    class DesignStage {
-        +run()
-    }
-
-    class CodingStage {
-        +run()
-    }
-
-    class TestStage {
-        +run()
-    }
-
-
-    class Action {
+    class CodeError {
         <<abstract>>
-        -_name: string
-        +run(): Message
     }
 
-    class WritePrompt {
-        +run(): Message
+    class Handler {
+        -_logger
+        -_successor
+        -_next_action
+        +successor()
+        +next_action()
+        +handle(request:CodeError)
+        +display()
+        +struct()
     }
 
-    class WriteCode {
-        +run(): Message
+    class BugLevelHandler {
+        +handle()
     }
 
-    class WriteUnitTest {
-        +run(): Message
+    class CriticLevelHandler {
+        +handle()
     }
 
-    class RunCode {
-        +run()
+    class HumanFeedbackHandler {
+        +handle()
     }
 
-    Action --> GPT
-    Workflow *-- Stage
-    AnalyzeStage --|> Stage
-    DesignStage --|> Stage
-    CodingStage --|> Stage
-    TestStage --|> Stage
-    FinalStage --|> Stage
-    Stage *-- Action
-    WritePrompt --|> Action
-    WriteCode --|> Action
-    WriteUnitTest --|> Action
-    RunCode --|> Action
-
-    WorkflowContext --* FileInfo
+    CodeError <|-- Bug
+    CodeError <|-- CriticNotSatisfied
+    CodeError <|-- HumanFeedback
+    BaseNode <|.. Handler
+    Handler --* Handler : contains
+    Handler <|-- BugLevelHandler
+    Handler <|-- CriticLevelHandler
+    Handler <|-- HumanFeedbackHandler
+    CodeError <|.. Handler
 ```
