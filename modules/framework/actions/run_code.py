@@ -131,8 +131,9 @@ if __name__ == "__main__":
     from modules.framework.handler import BugLevelHandler
     from modules.framework.handler import HumanFeedbackHandler
     from modules.framework.actions import *
+    import argparse
 
-    path = '../../../workspace/2024-04-08_13-56-16'
+    path = '../../../workspace/2024-04-09_01-25-21'
     root_manager.update_root(path, set_data_path=False)
     debug_code = DebugError("fixed code")
     human_feedback = HumanCritic("feedback")
@@ -149,9 +150,13 @@ if __name__ == "__main__":
     chain_of_handler = bug_handler
     bug_handler.successor = hf_handler
     run_code.error_handler = chain_of_handler
+    parser = argparse.ArgumentParser(description="Run simulation with custom parameters.")
 
-    run_code.error_handler = chain_of_handler
-    run_code.context.load_from_file(path + "/RunCodeAsync.pkl")
+    parser.add_argument("--timeout", type=int, default=40, help="Total time for the simulation")
+
+    args = parser.parse_args()
+    run_code.context.load_from_file(path + "/WriteRun.pkl")
+    run_code.context.args = args
     asyncio.run(run_code.run())
 
     run_code.context.save_to_file(f'{path}/run_code.pkl')

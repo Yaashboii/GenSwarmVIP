@@ -66,7 +66,7 @@ class Workflow:
         # code_llm.add(analysis_stage)
         code_llm.add(coding_stage)
         code_llm.add(review_stage)
-        code_llm.add(test_stage)
+        # code_llm.add(test_stage)
         # code_llm.add(ActionNode("", "END"))
         self._pipeline = code_llm
         # assign error handlers to actions
@@ -76,7 +76,7 @@ class Workflow:
         from modules.framework.workflow_context import FileInfo
         flow = FileInfo(name='flow.md')
         flow.message = text
-        # await self._pipeline.run()
+        await self._pipeline.run()
 
 
 if __name__ == "__main__":

@@ -93,6 +93,7 @@ Your output should satisfy the following notes:
 - You should carefully consider and ensure that your revised version is correct.
 - If there is an error in this function, please provide the erroneous line of code in the "reasoning" section, along with suggestions for how it could be corrected.
 - If the function outputs velocity, then this velocity must be normalized.
+- Preserve the function's docstring, with the option to modify its content.
 - If the revised function name is run_loop,here is some special notes:
   - The run_loop function is the main function that the ser calls to run the entire task. It is the entry point for the entire task.
   - The run_loop function should contain all the necessary logic to complete the task.

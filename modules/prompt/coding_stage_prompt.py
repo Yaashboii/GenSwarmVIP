@@ -36,6 +36,7 @@ import ...(if necessary)
 - You can only complete the functions specified in Task according to the specified format; you cannot generate other Helper functions. If necessary, you can define functions within this function.
 - Consider reuse or collaboration with existing functions; this one function is just a link in the entire control system.
 - Avoid using global variables, and avoid using the same variable name as the global variable in the function.
+- Preserve the function's docstring, with the option to modify its content.
 - If there are issues with the function definition or docstring in the task,and you need to modify them, please make sure the function name remains the same.
 - Import the required modules before the function name, and do not import them in the function body.
 - If the function outputs velocity, then this velocity must be normalized.

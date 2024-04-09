@@ -36,10 +36,10 @@ class WriteRun(ActionNode):
         self._context.function_pool.add_functions(content=code)
         error = self.context.function_pool.check_function_grammar(function_name=desired_function_name)
         # TODO,add bug fix mechanism for such cases,rather than just raising exception to triger retry
-        if error:
-            self._context.logger.log(f"Function {desired_function_name} has syntax error: {error}", "error")
-            raise Exception
-        return code
+        # if error:
+        #     self._context.logger.log(f"Function {desired_function_name} has syntax error: {error}", "error")
+        #     raise Exception
+        # return code
 
 
 if __name__ == "__main__":

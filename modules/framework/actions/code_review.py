@@ -86,7 +86,9 @@ class CodeReviewAsync(ActionNode):
                 task = asyncio.create_task(action.run())
                 tasks.append(task)
             await asyncio.gather(*tasks)
-            current_layer = self._context.function_pool.function_layer[current_layer_index]
+            layer_index = current_layer_index if current_layer_index < len(
+                self._context.function_pool.function_layer) else len(self._context.function_pool.function_layer) - 1
+            current_layer = self._context.function_pool.function_layer[layer_index]
             # TODO:add logic to rewrite function
             try:
                 errors = []
