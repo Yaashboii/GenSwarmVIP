@@ -57,6 +57,8 @@ class Workflow:
         review_stage = ActionLinkedList("Review", code_review)
         # stage 4
         test_stage = ActionLinkedList("Testing", run_code)
+        # mermaid graph would be incomplete if final action is not linked
+        run_code._next = ActionNode(next_text="pass", node_name="END")
 
         # combine stages
         code_llm = ActionLinkedList("Code-LLM", analysis_stage)
@@ -74,7 +76,7 @@ class Workflow:
         from modules.framework.workflow_context import FileInfo
         flow = FileInfo(name='flow.md')
         flow.message = text
-        await self._pipeline.run()
+        # await self._pipeline.run()
 
 
 if __name__ == "__main__":

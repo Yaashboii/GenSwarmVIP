@@ -42,7 +42,7 @@ class Handler(ABC):
         content = f"\t\t{str(self)} -->|skip| {str(self._successor)}\n"
         if self._next_action:
             content += f"\t\t{str(self)} -->|error message| {str(self._next_action)}\n"
-            content += self._next_action.flow_content(visited)
+            content += self._next_action._renderer.flow_content(visited)
         return content + (self._successor.display(visited) if self._successor else '')
 
     def struct(self):

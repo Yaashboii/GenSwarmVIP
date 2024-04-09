@@ -7,12 +7,13 @@ from modules.framework.workflow_context import WorkflowContext
 from modules.utils import setup_logger, LoggerLevel, root_manager
 from modules.llm.gpt import GPT
 from modules.framework.code_error import CodeError
-
+from modules.framework.node_renderer import *
 
 class BaseNode(ABC):
     def __init__(self):
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
         self.__next = None  # next node
+        self._renderer = None
 
     def __str__(self):
         return self.__class__.__name__
@@ -32,22 +33,10 @@ class BaseNode(ABC):
     async def run(self) -> str:
         # Abstract method for executing node logic
         pass
-
-    @abstractmethod
-    def flow_content(self, visited: set) -> str:
-        # Abstract method for generating flow content
-        pass
-
-    @abstractmethod
-    def graph_struct(self, level: int) -> str:
-        # Abstract method for generating graph structure
-        pass
-
-    def add(self, action: 'BaseNode'):
-        # Method for adding action to node
-        # It also provides same interface for both ActionNode and LinkedListNode
-        pass
-
+    
+    def _set_renderer(self, renderer):
+        self._renderer = renderer
+        renderer.set_node(self)
 
 class ActionNode(BaseNode):
     def __init__(self, next_text: str, node_name: str = ''):
@@ -58,6 +47,7 @@ class ActionNode(BaseNode):
         self._next_text = next_text  # label text rendered in mermaid graph
         self._node_name = node_name  # to distinguish objects of same class type
         self._error_handler = None  # this is a chain of handlers, see handler.py
+        self._set_renderer(ActionNodeRenderer())
 
     def __str__(self):
         if self._node_name:
@@ -93,26 +83,6 @@ class ActionNode(BaseNode):
     @error_handler.setter
     def error_handler(self, value: 'Handler'):
         self._error_handler = value
-
-    def add(self, action: 'BaseNode'):
-        self._logger.warn("ActionNode can't add other node")
-
-    def flow_content(self, visited: set) -> str:
-        # generating flow content in mermaid style
-        if not self._next or self in visited:
-            return ""
-        visited.add(self)
-        content = f"\t\t{str(self)} -->|{self._next_text}| {str(self._next)}\n"
-        if self._error_handler:
-            content += f"\t\t{str(self)} -->|failed| {str(self._error_handler)}\n"
-            content += self._error_handler.display(visited)
-
-        content += self._next.flow_content(visited)
-        return content
-
-    def graph_struct(self, level: int) -> str:
-        # Method for generating graph structure
-        return str(self)
 
     def _can_skip(self) -> bool:
         return False
@@ -165,65 +135,48 @@ class ActionLinkedList(BaseNode):
     def __init__(self, name: str, head: BaseNode):
         super().__init__()
         self.head = head  # property is used
-        self.__name = name  # name of the structure
+        self._name = name  # name of the structure
+        self._set_renderer(ActionLinkedListRenderer())
 
     def __str__(self):
-        if self.__head:
-            return str(self.__head)
+        if self._head:
+            return str(self._head)
 
     @property
     def head(self):
-        return self.__head
+        return self._head
 
     @head.setter
     def head(self, value):
         if isinstance(value, BaseNode):
-            self.__head = value
-            self.__tail = value
+            self._head = value
+            self._tail = value
         else:
             raise TypeError("head must be a BaseNode")
 
     @property
     def _next(self):
-        return self.__tail._next
+        return self._tail._next
 
     @_next.setter
     def _next(self, value):
-        self.__tail._next = value
+        self._tail._next = value
 
     def add(self, action: 'BaseNode'):
         if isinstance(action, BaseNode):
-            self.__tail._next = action
-            self.__tail = action
+            self._tail._next = action
+            self._tail = action
         else:
             raise ValueError("Value must be a BaseNode")
 
     async def run(self, **kwargs):
-        return await self.__head.run()
-
-    def graph_struct(self, level: int) -> str:
-        # Method for generating graph structure in mermaid style
-        level += 1
-        tables = "\t"
-        content = f"subgraph {self.__name}\n"
-        node = self.__head
-        while node and node != self.__tail:
-            content += tables * (level) + f"{node.graph_struct(level)}\n"
-            node = node._next
-        if node == self.__tail:
-            content += tables * (level) + f"{node.graph_struct(level)}\n"
-
-        content += tables * (level - 1) + "end"
-        return content
-
-    def flow_content(self, visited: set) -> str:
-        return self.__head.flow_content(visited)
+        return await self._head.run()
 
 
 def display_all(node: ActionNode, error_handler):
-    graph = node.graph_struct(level=1)
+    graph = node._renderer.graph_struct(level=1)
     visited = set()
-    res = node.flow_content(visited)
+    res = node._renderer.flow_content(visited)
     text = f"""
 ```mermaid
 graph TD;
