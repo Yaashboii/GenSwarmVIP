@@ -25,7 +25,7 @@ class ActionNodeRenderer(NodeRenderer):
             content += f"\t\t{str(self._node)} -->|failed| {str(self._node._error_handler)}\n"
             content += self._node._error_handler.display(visited)
 
-        content += self._node._next._renderer.flow_content(visited)
+        content += self._node._next.flow_content(visited)
         return content
 
     def graph_struct(self, level: int) -> str:
@@ -40,13 +40,13 @@ class ActionLinkedListRenderer(NodeRenderer):
         content = f"subgraph {self._node._name}\n"
         node = self._node._head
         while node and node != self._node._tail:
-            content += tables * (level) + f"{node._renderer.graph_struct(level)}\n"
+            content += tables * (level) + f"{node.graph_struct(level)}\n"
             node = node._next
         if node == self._node._tail:
-            content += tables * (level) + f"{node._renderer.graph_struct(level)}\n"
+            content += tables * (level) + f"{node.graph_struct(level)}\n"
 
         content += tables * (level - 1) + "end"
         return content
 
     def flow_content(self, visited: set) -> str:
-        return self._node._head._renderer.flow_content(visited)
+        return self._node._head.flow_content(visited)

@@ -38,6 +38,12 @@ class BaseNode(ABC):
         self._renderer = renderer
         renderer.set_node(self)
 
+    def flow_content(self, visited):
+        return self._renderer.flow_content(visited)
+    
+    def graph_struct(self, level):
+        return self._renderer.graph_struct(level)
+
 class ActionNode(BaseNode):
     def __init__(self, next_text: str, node_name: str = ''):
         super().__init__()
@@ -174,9 +180,9 @@ class ActionLinkedList(BaseNode):
 
 
 def display_all(node: ActionNode, error_handler):
-    graph = node._renderer.graph_struct(level=1)
+    graph = node.graph_struct(level=1)
     visited = set()
-    res = node._renderer.flow_content(visited)
+    res = node.flow_content(visited)
     text = f"""
 ```mermaid
 graph TD;
