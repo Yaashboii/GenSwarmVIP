@@ -26,8 +26,8 @@ class Entity:
     @classmethod
     def is_overlapping(cls, new_entity, entities, min_distance=0.5):
         for entity in entities:
-            if np.linalg.norm(new_entity.position - entity.position)  < (
-                    new_entity.radius + entity.radius+min_distance):
+            if np.linalg.norm(new_entity.position - entity.position) < (
+                    new_entity.radius + entity.radius + min_distance):
                 return True
         return False
 
@@ -77,7 +77,7 @@ class Obstacles:
         while len(obstacle_list) < n_obstacles:
             new_obstacle = Obstacle.create_entities(n_entities=n_obstacles,
                                                     size=size,
-                                                    radius_range=(0.5, 1.0),
+                                                    radius_range=(0.1, 1.0),
                                                     existing_entities=obstacle_list + robot_list)
             if new_obstacle:
                 obstacle_list.extend(new_obstacle)

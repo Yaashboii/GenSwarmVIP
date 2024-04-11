@@ -43,6 +43,7 @@ class RootManager:
             current_path = parent_path
 
     def init_workspace(self):
+        from modules.framework.context import logger
         if not os.path.exists(self.workspace_root):
             os.makedirs(self.workspace_root)
             os.makedirs(os.path.join(self.workspace_root, 'data/frames'))
@@ -51,7 +52,7 @@ class RootManager:
             run = read_file(os.path.join(self.project_root, 'modules/env'), 'run.py')
             write_file(self.workspace_root, 'run.py', run)
             set_param('data_path', str(self.data_root))
-            print(f"Workspace initialized at {self.workspace_root}")
+            logger.log(f"Workspace initialized at {self.workspace_root}")
 
 
 root_manager = RootManager()

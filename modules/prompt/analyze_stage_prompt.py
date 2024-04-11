@@ -94,8 +94,8 @@ These are the basic descriptions of the environment.
 {output_template}
 ```
 
-## Constraints:
-Your output should satisfy the following constraints:
+## Notes:
+Your output should satisfy the following notes:
 - Constraints should not be too simple or too complex; the amount of code required to implement each constraint should be similar.
 - Constraints should be practical and achievable through writing code.
 - Each constraint will correspond to at least one executable function, and the combination of all constraints can meet the user's needs.

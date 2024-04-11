@@ -57,6 +57,10 @@ These APIs can be directly called by you.
 {robot_api}
 ```
 
+## These are the environment description:
+These are the basic descriptions of the environment.
+{env_des}
+
 ## These are the existing functions that you can directly call:
 ```python
 {other_functions}
@@ -89,10 +93,11 @@ Your output should satisfy the following notes:
 - You should carefully consider and ensure that your revised version is correct.
 - If there is an error in this function, please provide the erroneous line of code in the "reasoning" section, along with suggestions for how it could be corrected.
 - If the function outputs velocity, then this velocity must be normalized.
+- Preserve the function's docstring, with the option to modify its content.
 - If the revised function name is run_loop,here is some special notes:
-    - The run_loop function is the main function that the ser calls to run the entire task. It is the entry point for the entire task.
-    - The run_loop function should contain all the necessary logic to complete the task.
-    - Calling time.sleep or any other method to limit frequency is not allowed, as the underlying API has determined a set frequency.
-    - The while loop should be used to ensure that the function is called continuously and that the robot can update its observation data in real time.If the function is not implemented in other functions,the run_loop function should be used to achieve this.
-    - The while loop must be endless, and the function must be able to run continuously.
+  - The run_loop function is the main function that the ser calls to run the entire task. It is the entry point for the entire task.
+  - The run_loop function should contain all the necessary logic to complete the task.
+  - Calling time.sleep or any other method to limit frequency is not allowed, as the underlying API has determined a set frequency.
+  - The while loop should be used to ensure that the function is called continuously and that the robot can update its observation data in real time.If the function is not implemented in other functions,the run_loop function should be used to achieve this.
+  - The while loop must be endless, and the function must be able to run continuously.
 """.strip()

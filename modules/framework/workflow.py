@@ -1,81 +1,94 @@
 import asyncio
 
-from modules.stages import *
-from modules.actions import *
-from modules.stages.stage import StageType, StageResult
+from modules.framework.actions import *
+from modules.framework.action import *
+from modules.framework.handler import *
+
 from modules.utils.logger import setup_logger
-from modules.framework.stage_transition import StageTransition
-from modules.framework.workflow_context import WorkflowContext
+from modules.framework.context import WorkflowContext
 
 
 class Workflow:
-    STAGE_POOL = {
-        StageType.AnalyzeStage: AnalysisStage(AnalyzeConstraints()),
-        StageType.DesignStage: DesignStage(DesignFunction()),
-        StageType.CodingStage: CodingStage(WriteCode()),
-        StageType.RunningStage: RunningStage(RunCode()),
-        StageType.ReviewStage: ReviewStage(),
-        StageType.FinalStage: FinalStage(),
-    }
-
-    # ACTION_POOL = {
-    #     ActionType.WriteCode: WriteCode(),
-    #     ActionType.RewriteCode: RewriteCode(),
-    #     ActionType.WritePrompt: WritePrompt(),
-    #     ActionType.RunCode: RunCode(),
-    # }
-
-    def __init__(self, user_command: str, init_stage: StageType = StageType.AnalyzeStage, args=None):
-        self.__stage = init_stage
+    def __init__(self, user_command: str, args=None):
         self._logger = setup_logger("Workflow")
         self._context = WorkflowContext()
-        # workflow_context = WorkflowContext()
-        # workflow_context.user_command.message = user_command
-        # workflow_context.args = args
-        self._context.user_command.message = user_command
-        self._context.args = args
+        self.context.args = args
+        self.context.command = user_command
+        # initialize context for all action nodes
+        ActionNode.context = self._context
+        self._pipeline = None
+        self._chain_of_handler = None
+
+        self.build_up()
+
+    def build_up(self):
+        # initialize actions
+        setup = SetupEnvironment("environment")
+        analyze_constraints = AnalyzeConstraints('constraint pool')
+        analyze_functions = AnalyzeFunctions('function pool')
+        design_functions = DesignFunctionAsync("function definition")
+        write_functions = WriteFunctionsAsync("function.py")
+        write_run = WriteRun("code")
+        code_review = CodeReviewAsync("reviewed code")
+        run_code = RunCodeAsync("pass")
+        debug_code = DebugError("fixed code")
+        human_feedback = HumanCritic("feedback")
+
+        # initialize error handlers
+        bug_handler = BugLevelHandler()
+        bug_handler.next_action = debug_code
+        debug_code._next = run_code
+        # critic_handler = CriticLevelHandler()
+        hf_handler = HumanFeedbackHandler()
+        hf_handler.next_action = human_feedback
+        human_feedback._next = run_code
+        # link error handlers
+        self._chain_of_handler = bug_handler
+        bug_handler.successor = hf_handler
+        run_code.error_handler = self._chain_of_handler
+
+        # link actions
+        # stage 1
+        analysis_stage = ActionLinkedList("Analysis", analyze_constraints)
+        analysis_stage.add(analyze_functions)
+        # stage 2
+        coding_stage = ActionLinkedList("Coding", design_functions)
+        coding_stage.add(write_functions)
+        coding_stage.add(write_run)
+        # stage 3
+        review_stage = ActionLinkedList("Review", code_review)
+        # stage 4
+        test_stage = ActionLinkedList("Testing", run_code)
+        # mermaid graph would be incomplete if final action is not linked
+        # run_code._next = ActionNode(next_text="pass", node_name="END")
+
+        # combine stages
+        code_llm = ActionLinkedList("Code-LLM", analysis_stage)
+
+        # code_llm.add(analysis_stage)
+        code_llm.add(coding_stage)
+        code_llm.add(review_stage)
+        code_llm.add(test_stage)
+        code_llm.add(ActionNode("PASS", "END"))
+        self._pipeline = code_llm
+        # assign error handlers to actions
+
     async def run(self):
-        while self.__stage != StageType.FinalStage:
-            stage = self.create_stage(self.__stage)
-            stage_result = await stage.run()
-
-            temp = StageTransition[self.__stage]
-            for key in stage_result.keys:
-                temp = temp[key]
-
-            self.__stage = temp
-        else:
-            self._context.log.format_message("=========END=========", "success")
-
-    @staticmethod
-    def create_stage(stage_type: StageType):
-        try:
-            return Workflow.STAGE_POOL[stage_type]
-        except KeyError:
-            raise ValueError(f"Invalid stage type: {stage_type}")
-
-    # @staticmethod
-    # def create_action(action_type: ActionType):
-    #     if action_type == ActionType.WriteCode:
-    #         return Workflow.ACTION_POOL[ActionType.WriteCode]
-    #     elif action_type == ActionType.RewriteCode:
-    #         return Workflow.ACTION_POOL[ActionType.RewriteCode]
-    #     elif action_type == ActionType.WritePrompt:
-    #         return Workflow.ACTION_POOL[ActionType.WritePrompt]
-    #     elif action_type == ActionType.RunCode:
-    #         return Workflow.ACTION_POOL[ActionType.RunCode]
-    #     else:
-    #         raise ValueError("Invalid action type")
+        text = display_all(self._pipeline, self._chain_of_handler)
+        from modules.framework.context import FileInfo
+        flow = FileInfo(name='flow.md')
+        flow.message = text
+        await self._pipeline.run()
 
 
 if __name__ == "__main__":
     task_list = [
-        "Gather these robots together at the position of leader robot",
-        "Gather the robots to point (2,3)",
-        "Gather the robots along the y=x trajectory",
-        'Move the robots to form a square formation',
-        'First, move the robot to form a square formation. Then, move the robots to form a triangle formation.Finally gather these robots together',
-        "Initially, gather all robots at the center of the environment, confirming their arrival before proceeding. Next, arrange the robots into a square formation with each side measuring exactly 1.0 meter, ensuring the formation's precision with right angles and equal sides. Once the square is confirmed, guide the robots to trace a circular path while maintaining the square formation. Constant monitoring is required to preserve the formation's integrity and the path's accuracy throughout the movement."
+        ''
     ]
+    from modules.utils import root_manager
+
+    root_manager.update_root(set_data_path=False)
+    root_manager.init_workspace()
+
     workflow = Workflow(task_list[0])
     asyncio.run(workflow.run())

@@ -17,7 +17,7 @@ async def run_all_tasks_sequentially(task_list, args):
         content = task["task"]
         times = task["run_times"]
         for i in range(times):
-            root_manager.update_root()
+            root_manager.update_root(set_data_path=False)
             root_manager.init_workspace()
             await run_task(content, args)
 
@@ -34,7 +34,10 @@ if __name__ == "__main__":
 
     task_list = [
         # {
-        #     "task": "Forming flocking with other robots, and avoid collision with obstacles and other robots.",
+        #     "task": 'Form a triangle with other robots within your perception range, maintaining a distance of 0.5 meters between adjacent robots.'
+        #             'Additionally, avoid collisions with obstacles and boundaries.'
+        #             'Keep a distance of 0.5 meters from obstacles.'
+        #             'Keep a distance of 0.5 meters from boundaries.',
         #     "run_times": 1
         # },
         {
