@@ -7,7 +7,7 @@ from modules.framework.action import BaseNode
 
 class Handler(ABC):
     def __init__(self):
-        from modules.framework.workflow_context import logger
+        from modules.framework.context import logger
         self._logger = logger
         self._successor = None
         self._next_action = None

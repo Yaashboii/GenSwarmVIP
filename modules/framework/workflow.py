@@ -5,7 +5,7 @@ from modules.framework.action import *
 from modules.framework.handler import *
 
 from modules.utils.logger import setup_logger
-from modules.framework.workflow_context import WorkflowContext
+from modules.framework.context import WorkflowContext
 
 
 class Workflow:
@@ -58,7 +58,7 @@ class Workflow:
         # stage 4
         test_stage = ActionLinkedList("Testing", run_code)
         # mermaid graph would be incomplete if final action is not linked
-        run_code._next = ActionNode(next_text="pass", node_name="END")
+        # run_code._next = ActionNode(next_text="pass", node_name="END")
 
         # combine stages
         code_llm = ActionLinkedList("Code-LLM", analysis_stage)
@@ -66,17 +66,17 @@ class Workflow:
         # code_llm.add(analysis_stage)
         code_llm.add(coding_stage)
         code_llm.add(review_stage)
-        # code_llm.add(test_stage)
-        # code_llm.add(ActionNode("", "END"))
+        code_llm.add(test_stage)
+        code_llm.add(ActionNode("PASS", "END"))
         self._pipeline = code_llm
         # assign error handlers to actions
 
     async def run(self):
         text = display_all(self._pipeline, self._chain_of_handler)
-        from modules.framework.workflow_context import FileInfo
+        from modules.framework.context import FileInfo
         flow = FileInfo(name='flow.md')
         flow.message = text
-        await self._pipeline.run()
+        # await self._pipeline.run()
 
 
 if __name__ == "__main__":

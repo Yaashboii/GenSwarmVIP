@@ -6,7 +6,7 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
 from modules.utils import parse_code
-
+from modules.framework.context import logger
 
 class AnalyzeConstraints(ActionNode):
     def _build_prompt(self):
@@ -30,7 +30,7 @@ class AnalyzeConstraints(ActionNode):
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response, lang='json')
         self.context.constraint_pool.add_constraints(code)
-        self.context.logger.log(f"Analyze Constraints Success", "success")
+        logger.log(f"Analyze Constraints Success", "success")
         return response
 
     def _can_skip(self) -> bool:

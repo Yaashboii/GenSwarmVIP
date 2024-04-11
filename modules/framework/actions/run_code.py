@@ -7,6 +7,7 @@ from modules.framework.action import ActionNode
 from modules.utils.root import root_manager
 from modules.utils import get_param, call_reset_environment
 from modules.framework.code_error import Bug, HumanFeedback
+from modules.framework.context import logger
 
 
 class RunCode(ActionNode):
@@ -66,11 +67,11 @@ class RunCode(ActionNode):
                 return 'NONE'
 
         except asyncio.TimeoutError:
-            self._context.logger.log(content="Timeout", level="error")
+            logger.log(content="Timeout", level="error")
             process.kill()
             return "Timeout"
         except Exception as e:
-            self._context.logger.log(content=f"error in run code: {e}", level="error")
+            logger.log(content=f"error in run code: {e}", level="error")
             process.kill()
 
     async def run(self) -> str:
@@ -91,7 +92,7 @@ class RunCodeAsync(ActionNode):
         result_list = []
         self.context.function_pool.update_message()
         try:
-            self._context.logger.log(content="call reset environment: start")
+            logger.log(content="call reset environment: start")
             call_reset_environment(True)
             for robot_id in range(robot_num):
                 action = RunCode()
@@ -100,7 +101,7 @@ class RunCodeAsync(ActionNode):
                 tasks.append(task)
             result_list = list(set(await asyncio.gather(*tasks)))
         finally:
-            self._context.logger.log(content="call reset environment: end")
+            logger.log(content="call reset environment: end")
             call_reset_environment(True)
             from modules.utils import generate_video_from_frames, root_manager
             data_root = root_manager.data_root
@@ -109,7 +110,7 @@ class RunCodeAsync(ActionNode):
                 frames_folder=f"{data_root}/frames/frame{number}",
                 video_path=f"{data_root}/output{number}.mp4",
             )
-            self._context.logger.log(f"synthesize frame{number} ---> output{number}.mp4")
+            logger.log(f"synthesize frame{number} ---> output{number}.mp4")
             return self._process_response(result_list)
 
     def _process_response(self, result: list):

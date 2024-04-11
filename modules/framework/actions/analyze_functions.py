@@ -4,7 +4,7 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
 from modules.utils import parse_code
-
+from modules.framework.context import logger
 
 class AnalyzeFunctions(ActionNode):
     def _build_prompt(self):
@@ -29,7 +29,7 @@ class AnalyzeFunctions(ActionNode):
             if not constraint.satisfyingFuncs:
                 raise SystemExit(f"Constraint {constraint.name} has no satisfying function")
 
-        self._context.logger.log(f"Analyze Functions Success", "success")
+        logger.log(f"Analyze Functions Success", "success")
         return response
 
     def _can_skip(self) -> bool:

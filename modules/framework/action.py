@@ -3,11 +3,12 @@ from abc import ABC, abstractmethod
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from modules.framework.workflow_context import WorkflowContext
+from modules.framework.context import WorkflowContext
 from modules.utils import setup_logger, LoggerLevel, root_manager
 from modules.llm.gpt import GPT
 from modules.framework.code_error import CodeError
 from modules.framework.node_renderer import *
+from modules.framework.context import logger
 
 class BaseNode(ABC):
     def __init__(self):
@@ -99,7 +100,7 @@ class ActionNode(BaseNode):
     async def run(self) -> str:
         # First create a prompt, then utilize it to query the language model.
         self._build_prompt()
-        self._context.logger.log(f"Action: {str(self)}", "info")
+        logger.log(f"Action: {str(self)}", "info")
         if not self._can_skip():
             res = await self._run()
             self.context.save_to_file(file_path=root_manager.workspace_root / f"{self}.pkl")
@@ -119,14 +120,14 @@ class ActionNode(BaseNode):
             if self.__prompt is None:
                 raise SystemExit("Prompt is required")
             code = await self._ask(self.__prompt)
-            self._context.logger.log(f"Action: {str(self)}", "info")
-            self._context.logger.log(f"Prompt:\n {self.__prompt}", "debug")
-            self._context.logger.log(f"Response:\n {code}", "info")
+            logger.log(f"Action: {str(self)}", "info")
+            logger.log(f"Prompt:\n {self.__prompt}", "debug")
+            logger.log(f"Response:\n {code}", "info")
             code = self._process_response(code)
             return code
         except Exception as e:
             tb = traceback.format_exc()
-            self._context.logger.log(f"Error in {str(self)}: {e},\n {tb}", "error")
+            logger.log(f"Error in {str(self)}: {e},\n {tb}", "error")
             raise Exception
 
     async def _ask(self, prompt: str) -> str:

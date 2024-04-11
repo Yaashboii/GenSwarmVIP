@@ -1,10 +1,12 @@
+import asyncio
+
 from modules.framework.action import ActionNode
 from modules.prompt.code_review_stage_prompt import HIGH_LEVEL_FUNCTION_REVIEW
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
 from modules.utils import parse_code, extract_function_definitions, extract_top_level_function_names
-import asyncio
+from modules.framework.context import logger
 
 
 class CodeReview(ActionNode):
@@ -27,7 +29,7 @@ class CodeReview(ActionNode):
 
     def setup(self, function):
         self._function = function
-        self._context.logger.log(f"Reviewing function: {self._function.name}", "warning")
+        logger.log(f"Reviewing function: {self._function.name}", "warning")
 
     def _process_response(self, response: str) -> str:
         try:
@@ -35,18 +37,18 @@ class CodeReview(ActionNode):
             code = parse_code(text=response)
             function_list = extract_function_definitions(code)
             if not function_list:
-                self._context.logger.log(
+                logger.log(
                     f"High Level Function Review Failed: No function detected in the response",
                     "error")
                 return ''
             if len(function_list) > 1:
-                self._context.logger.log(
+                logger.log(
                     f"High Level Function Review Failed: More than one function detected in the response",
                     "error")
                 raise Exception(f"More than one function detected in the response")
             function_name = extract_top_level_function_names(code_str=code)[0]
             if function_name != desired_function_name:
-                self._context.logger.log(
+                logger.log(
                     f"High Level Function Review Failed: Function name mismatch: {function_name} != {desired_function_name}",
                     "error")
                 raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
@@ -58,15 +60,15 @@ class CodeReview(ActionNode):
                         self._context.function_pool.check_function_grammar(function_name=function.name)
             # # TODO,add bug fix mechanism for such cases,rather than just raising exception to trigger retry
             # if errors:
-            #     self._context.logger.log(
+            #     logger.log(
             #         f"High Level Function Review Failed: Function {desired_function_name} has syntax error: {errors}",
             #         "error")
             #     raise Exception
             return code
         except ValueError as e:
-            self._context.logger.log(f"No function detected in the response: {e}", 'warning')
+            logger.log(f"No function detected in the response: {e}", 'warning')
         except Exception as e:
-            self._context.logger.log(f"High Level Function Review Failed: {e}", "error")
+            logger.log(f"High Level Function Review Failed: {e}", "error")
             raise Exception  # trigger retry
 
 
@@ -79,7 +81,7 @@ class CodeReviewAsync(ActionNode):
         while current_layer_index < len(self._context.function_pool.function_layer):
             tasks = []
             current_layer = self._context.function_pool.function_layer[current_layer_index]
-            self._context.logger.log(f"Layer: {current_layer_index}", "warning")
+            logger.log(f"Layer: {current_layer_index}", "warning")
             for function in current_layer:
                 action = CodeReview()
                 action.setup(function)

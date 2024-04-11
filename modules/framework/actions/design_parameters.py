@@ -4,7 +4,7 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
 from modules.utils import parse_code
-
+from modules.framework.context import logger
 
 class AnalyzeFunctions(ActionNode):
     def _build_prompt(self):
@@ -18,7 +18,7 @@ class AnalyzeFunctions(ActionNode):
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response)
         self._context.parameters.message = code
-        self._context.logger.logger(f"Design Parameters success!", "success")
+        logger.logger(f"Design Parameters success!", "success")
         return response
 
     def _can_skip(self) -> bool:

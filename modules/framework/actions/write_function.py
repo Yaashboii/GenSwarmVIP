@@ -6,6 +6,7 @@ from modules.prompt.coding_stage_prompt import WRITE_FUNCTION_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import robot_api
 from modules.prompt.task_description import TASK_DES
 from modules.prompt.env_description_prompt import ENV_DES
+from modules.framework.context import logger
 
 
 class WriteFunction(ActionNode):
@@ -35,17 +36,17 @@ class WriteFunction(ActionNode):
         code = parse_code(text=response)
         function_list = extract_top_level_function_names(code)
         if not function_list:
-            self._context.logger.log(f"Write Code Failed: No function detected in the response", "error")
+            logger.log(f"Write Code Failed: No function detected in the response", "error")
             raise Exception
         if len(function_list) > 1:
-            self._context.logger.log(f"Write Code Failed: More than one function detected in the response",
+            logger.log(f"Write Code Failed: More than one function detected in the response",
                                      "error")
             raise Exception
         for function_name in function_list:
             if function_name != desired_function_name:
                 raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
             if not function_name:
-                self._context.logger.log(f"Write Code Failed: No function detected in the response", "error")
+                logger.log(f"Write Code Failed: No function detected in the response", "error")
                 raise Exception
         self._context.function_pool.add_functions(content=code)
         return code
@@ -63,9 +64,9 @@ class WriteFunctionsAsync(ActionNode):
         while current_layer_index < len(self._context.function_pool.function_layer):
             tasks = []
             current_layer = self._context.function_pool.function_layer[current_layer_index]
-            self._context.logger.log(f"Layer: {current_layer_index}", "warning")
+            logger.log(f"Layer: {current_layer_index}", "warning")
             for function in current_layer:
-                self._context.logger.log(f"Function: {function.name}", "warning")
+                logger.log(f"Function: {function.name}", "warning")
                 constraint_text = ''
                 for constraint in function.satisfying_constraints:
                     if constraint not in self._context.constraint_pool.constraints:

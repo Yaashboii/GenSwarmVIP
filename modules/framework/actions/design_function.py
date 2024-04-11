@@ -6,7 +6,7 @@ from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import robot_api
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-
+from modules.framework.context import logger
 
 class DesignFunction(ActionNode):
     def __init__(self, next_text: str, node_name: str = ''):
@@ -18,9 +18,9 @@ class DesignFunction(ActionNode):
 
     def _build_prompt(self):
         if self._function is None:
-            self._context.logger.log("Function is not set", "error")
+            logger.log("Function is not set", "error")
             raise SystemExit
-        self._context.logger.log(f"Function: {self._function.name}", "warning")
+        logger.log(f"Function: {self._function.name}", "warning")
         constraint_text = ''
         for constraint in self._function.satisfying_constraints:
             if constraint not in self._context.constraint_pool.constraints:
@@ -46,10 +46,10 @@ class DesignFunction(ActionNode):
         code = parse_code(text=response)
         function_list = extract_function_definitions(code)
         if not function_list:
-            self._context.logger.log(f"Design Function Failed: No function detected in the response", "error")
+            logger.log(f"Design Function Failed: No function detected in the response", "error")
             raise Exception  # trigger retry
         if len(function_list) > 1:
-            self._context.logger.log(f"Design Function Failed: More than one function detected in the response",
+            logger.log(f"Design Function Failed: More than one function detected in the response",
                                      "error")
             raise Exception  # trigger retry
         for function in function_list:
@@ -57,7 +57,7 @@ class DesignFunction(ActionNode):
             if function_name != desired_function_name:
                 raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
             if not function_name:
-                self._context.logger.log(f"Design Function Failed: No function detected in the response",
+                logger.log(f"Design Function Failed: No function detected in the response",
                                          "error")
                 raise Exception  # trigger retry
             self._context.function_pool.functions[function_name].definition = function
@@ -75,11 +75,11 @@ class DesignFunctionAsync(ActionNode):
     async def _run(self):
         function_layers = self._context.function_pool.function_layer
         if not function_layers:
-            self._context.logger.log("No function to design", "error")
+            logger.log("No function to design", "error")
             raise SystemExit
         for i, layer in enumerate(function_layers):
             tasks = []
-            self._context.logger.log(f"Layer: {i}", "warning")
+            logger.log(f"Layer: {i}", "warning")
             for function in layer:
                 action = DesignFunction('design single function')
                 action.setup(function)
