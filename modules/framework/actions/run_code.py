@@ -47,8 +47,8 @@ class RunCode(ActionNode):
 
         try:
             # Apply timeout to the gather call using asyncio.wait_for
-            if hasattr(self._context.args, 'timeout'):
-                timeout = self._context.args.timeout
+            if hasattr(self.context.args, 'timeout'):
+                timeout = self.context.args.timeout
             else:
                 timeout = 30
             await asyncio.wait_for(
@@ -90,7 +90,7 @@ class RunCodeAsync(ActionNode):
         robot_num = get_param('robots_num')
         tasks = []
         result_list = []
-        self.context.function_pool.update_message()
+        self.context.update_message()
         try:
             logger.log(content="call reset environment: start")
             call_reset_environment(True)
@@ -121,7 +121,7 @@ class RunCodeAsync(ActionNode):
             else:
                 feedback = input("Please provide feedback:")
                 return HumanFeedback(feedback)
-        self.context.logger.log(content=f"Run code failed,result{result}", level="error")
+        logger.log(content=f"Run code failed,result{result}", level="error")
         result_content = '\n'.join(result)
         return Bug(result_content)
 

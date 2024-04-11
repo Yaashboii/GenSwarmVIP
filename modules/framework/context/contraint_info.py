@@ -1,4 +1,4 @@
-from modules.framework.context import FileInfo, logger
+from modules.framework.context.file_info import FileInfo, logger
 
 
 class ConstraintInfo:

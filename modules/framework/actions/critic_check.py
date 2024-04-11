@@ -13,13 +13,9 @@ class CriticCheck(ActionNode):
             task_des=TASK_DES,
             data_api=ROBOT_API,
             output_format=OUTPUT_FORMAT,
-            constraints='\n'.join([c.text for c in self._context.constraint_pool.constraints.values()]),
+            constraints='\n'.join([c.text for c in self.context.constraints_value]),
         )
 
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response, lang='json')
         return code
-
-    def _can_skip(self) -> bool:
-        # TODO: can skip when files concerning to this critic are not changed
-        return False

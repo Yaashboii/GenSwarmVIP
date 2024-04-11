@@ -18,7 +18,7 @@ class HumanCritic(ActionNode):
             task_des=TASK_DES,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
-            functions=self.context.function_pool.functions_content(),
+            functions=self.context.function_content(),
             feedback=self.feedback,
         )
 
@@ -27,17 +27,14 @@ class HumanCritic(ActionNode):
 
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_code(text=response)
-        self._context.function_pool.add_functions(content=code)
+        self.context.add_functions(content=code)
         function_list = extract_top_level_function_names(code)
         for function_name in function_list:
-            self._context.function_pool.check_function_grammar(function_name=function_name)
-            for function in self._context.function_pool.functions.values():
+            self.context.check_function_grammar(function_name=function_name)
+            for function in self.context.functions_value:
                 if function_name in function.calls:
-                    self._context.function_pool.check_function_grammar(function_name=function.name)
+                    self.context.check_function_grammar(function_name=function.name)
         return str(code)
-
-    def _can_skip(self) -> bool:
-        return False
 
 
 if __name__ == '__main__':

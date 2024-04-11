@@ -16,7 +16,7 @@ class DebugError(ActionNode):
 
     def _build_prompt(self):
         mentioned_function = ""
-        for function in self.context.function_pool.functions.values():
+        for function in self.context.functions_value:
             if function.name in self.error:
                 mentioned_function += "\n\n" + function.content
         self.prompt = DEBUG_PROMPT.format(
@@ -29,5 +29,5 @@ class DebugError(ActionNode):
 
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_code(text=response)
-        self._context.function_pool.add_functions(content=code)
+        self.context.add_functions(content=code)
         return str(code)

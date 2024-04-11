@@ -23,13 +23,13 @@ class DesignFunction(ActionNode):
         logger.log(f"Function: {self._function.name}", "warning")
         constraint_text = ''
         for constraint in self._function.satisfying_constraints:
-            if constraint not in self._context.constraint_pool.constraints:
-                self.context.logger.log(f"Constraint {constraint} is not in the constraint pool", 'error')
+            if constraint not in self.context.constraints_dict:
+                logger.log(f"Constraint {constraint} is not in the constraint pool", 'error')
                 raise SystemExit
-            constraint_text += self._context.constraint_pool.constraints[constraint].text + '\n'
+            constraint_text += self.context.constraints_dict[constraint].text + '\n'
 
         function_list = [f.text if f.definition is None else f.definition for f in
-                         self._context.function_pool.functions.values() if f.name != self._function.name]
+                         self.context.functions_value if f.name != self._function.name]
 
         self.prompt = DesignFunction_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
@@ -60,20 +60,15 @@ class DesignFunction(ActionNode):
                 logger.log(f"Design Function Failed: No function detected in the response",
                                          "error")
                 raise Exception  # trigger retry
-            self._context.function_pool.functions[function_name].definition = function
+            self.context.set_function_definition(function_name=function_name, definition=function)
         return str(code)
-
-    def _can_skip(self) -> bool:
-        # TODO: can skip when functions are all right
-        return False
-
 
 class DesignFunctionAsync(ActionNode):
     def _build_prompt(self):
         return super()._build_prompt()
 
     async def _run(self):
-        function_layers = self._context.function_pool.function_layer
+        function_layers = self.context.function_layer
         if not function_layers:
             logger.log("No function to design", "error")
             raise SystemExit

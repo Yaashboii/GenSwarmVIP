@@ -48,11 +48,8 @@ class WriteFunction(ActionNode):
             if not function_name:
                 logger.log(f"Write Code Failed: No function detected in the response", "error")
                 raise Exception
-        self._context.function_pool.add_functions(content=code)
+        self.context.add_functions(content=code)
         return code
-
-    def _can_skip(self) -> bool:
-        return False
 
 
 class WriteFunctionsAsync(ActionNode):
@@ -61,21 +58,21 @@ class WriteFunctionsAsync(ActionNode):
 
     async def _run(self):
         current_layer_index = 0
-        while current_layer_index < len(self._context.function_pool.function_layer):
+        while current_layer_index < len(self.context.function_layer):
             tasks = []
-            current_layer = self._context.function_pool.function_layer[current_layer_index]
+            current_layer = self.context.function_layer[current_layer_index]
             logger.log(f"Layer: {current_layer_index}", "warning")
             for function in current_layer:
                 logger.log(f"Function: {function.name}", "warning")
                 constraint_text = ''
                 for constraint in function.satisfying_constraints:
-                    if constraint not in self._context.constraint_pool.constraints:
+                    if constraint not in self.context.constraints_dict:
                         print(f"Constraint {constraint} is not in the constraint pool")
                         raise SystemExit
-                    constraint_text += self._context.constraint_pool.constraints[constraint].text + '\n'
+                    constraint_text += self.context.constraints_dict[constraint].text + '\n'
 
                 function_list = [f.definition if f.content is None else f.content for f in
-                                 self._context.function_pool.functions.values() if f.name != function.name]
+                                 self.context.functions_value() if f.name != function.name]
 
                 action = WriteFunction()
                 action.setup(function=function,
@@ -87,13 +84,13 @@ class WriteFunctionsAsync(ActionNode):
             # deal the case that after writing the function, the function layer is changed,
             # and the current layer is not exist anymore
             layer_index = current_layer_index if current_layer_index < len(
-                self._context.function_pool.function_layer) else len(self._context.function_pool.function_layer) - 1
-            current_layer = self._context.function_pool.function_layer[layer_index]
+                self.context.function_layer) else len(self.context.function_layer) - 1
+            current_layer = self.context.function_layer[layer_index]
             # TODO:add logic to rewrite function
             try:
                 errors = []
                 for function in current_layer:
-                    error = self.context.function_pool.check_function_grammar(function_name=function.name)
+                    error = self.context.check_function_grammar(function_name=function.name)
                     errors.append(error)
             except Exception as e:
                 import traceback

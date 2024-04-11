@@ -3,12 +3,11 @@ from abc import ABC, abstractmethod
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from modules.framework.context import WorkflowContext
 from modules.utils import setup_logger, LoggerLevel, root_manager
 from modules.llm.gpt import GPT
 from modules.framework.code_error import CodeError
 from modules.framework.node_renderer import *
-from modules.framework.context import logger
+from modules.framework.context import logger, WorkflowContext
 
 class BaseNode(ABC):
     def __init__(self):
@@ -35,7 +34,7 @@ class BaseNode(ABC):
         # Abstract method for executing node logic
         pass
     
-    def _set_renderer(self, renderer):
+    def set_renderer(self, renderer):
         self._renderer = renderer
         renderer.set_node(self)
 
@@ -46,15 +45,16 @@ class BaseNode(ABC):
         return self._renderer.graph_struct(level)
 
 class ActionNode(BaseNode):
+    context : WorkflowContext = None
+
     def __init__(self, next_text: str, node_name: str = ''):
         super().__init__()
         self.__llm = GPT()
-        self.__prompt = None
-        self._context = WorkflowContext()
+        self.prompt = None
         self._next_text = next_text  # label text rendered in mermaid graph
         self._node_name = node_name  # to distinguish objects of same class type
-        self._error_handler = None  # this is a chain of handlers, see handler.py
-        self._set_renderer(ActionNodeRenderer())
+        self.error_handler = None  # this is a chain of handlers, see handler.py
+        # self._set_renderer(ActionNodeRenderer())
 
     def __str__(self):
         if self._node_name:
@@ -63,37 +63,6 @@ class ActionNode(BaseNode):
             # return class name when node_name is not defined
             return super(ActionNode, ActionNode).__str__(self)
 
-    @property
-    def context(self):
-        return self._context
-
-    @context.setter
-    def context(self, value: WorkflowContext):
-        if not isinstance(value, WorkflowContext):
-            raise ValueError("context must be a WorkflowContext")
-        self._context = value
-
-    @property
-    def prompt(self):
-        return self.__prompt
-
-    @prompt.setter
-    def prompt(self, value: str):
-        if not isinstance(value, str):
-            raise ValueError("prompt must be a string")
-        self.__prompt = value
-
-    @property
-    def error_handler(self):
-        raise AttributeError("This property is write-only")
-
-    @error_handler.setter
-    def error_handler(self, value: 'Handler'):
-        self._error_handler = value
-
-    def _can_skip(self) -> bool:
-        return False
-
     def _build_prompt(self):
         pass
 
@@ -101,27 +70,26 @@ class ActionNode(BaseNode):
         # First create a prompt, then utilize it to query the language model.
         self._build_prompt()
         logger.log(f"Action: {str(self)}", "info")
-        if not self._can_skip():
-            res = await self._run()
-            self.context.save_to_file(file_path=root_manager.workspace_root / f"{self}.pkl")
-            if isinstance(res, CodeError):
-                # If response is CodeError, handle it and move to next action
-                if self._error_handler:
-                    next_action = self._error_handler.handle(res)
-                    return await next_action.run()
-                else:
-                    raise ValueError("No error handler available to handle request")
+        res = await self._run()
+        self.context.save_to_file(file_path=root_manager.workspace_root / f"{self}.pkl")
+        if isinstance(res, CodeError):
+            # If response is CodeError, handle it and move to next action
+            if self.error_handler:
+                next_action = self.error_handler.handle(res)
+                return await next_action.run()
+            else:
+                raise ValueError("No error handler available to handle request")
         if self._next is not None:
             return await self._next.run()
 
     @retry(stop=stop_after_attempt(5), wait=wait_random_exponential(multiplier=1, max=10))
     async def _run(self) -> str:
         try:
-            if self.__prompt is None:
+            if self.prompt is None:
                 raise SystemExit("Prompt is required")
-            code = await self._ask(self.__prompt)
+            code = await self.__llm.ask(self.prompt)
             logger.log(f"Action: {str(self)}", "info")
-            logger.log(f"Prompt:\n {self.__prompt}", "debug")
+            logger.log(f"Prompt:\n {self.prompt}", "debug")
             logger.log(f"Response:\n {code}", "info")
             code = self._process_response(code)
             return code
@@ -130,20 +98,16 @@ class ActionNode(BaseNode):
             logger.log(f"Error in {str(self)}: {e},\n {tb}", "error")
             raise Exception
 
-    async def _ask(self, prompt: str) -> str:
-        result = await self.__llm.ask(prompt)
-        return result
-
     def _process_response(self, response: str) -> str:
         return response
-
+  
 
 class ActionLinkedList(BaseNode):
     def __init__(self, name: str, head: BaseNode):
         super().__init__()
         self.head = head  # property is used
         self._name = name  # name of the structure
-        self._set_renderer(ActionLinkedListRenderer())
+        # self._set_renderer(ActionLinkedListRenderer())
 
     def __str__(self):
         if self._head:

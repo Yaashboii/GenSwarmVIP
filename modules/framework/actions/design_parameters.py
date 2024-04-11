@@ -10,16 +10,15 @@ class AnalyzeFunctions(ActionNode):
     def _build_prompt(self):
         self.prompt = PARAMETER_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
-            function_des='\n'.join([f.text for f in self._context.function_pool.functions.values()]),
+            function_des='\n'.join([f.text for f in self.context.functions_value()]),
             env_des=ENV_DES,
             robot_api=ROBOT_API,
         )
 
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response)
-        self._context.parameters.message = code
+        self.context.parameters = code
         logger.logger(f"Design Parameters success!", "success")
         return response
 
-    def _can_skip(self) -> bool:
-        return False
+    

@@ -9,7 +9,7 @@ from modules.prompt.task_description import TASK_DES
 class WriteRun(ActionNode):
     def _build_prompt(self):
         functions = '\n\n'.join(
-            [f.content for f in self._context.function_pool.functions.values() if f.content is not None])
+            [f.content for f in self.context.functions_value if f.content is not None])
         self.prompt = WRITE_RUN_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             env_des=ENV_DES,
@@ -33,8 +33,8 @@ class WriteRun(ActionNode):
             if not function_name:
                 logger.log(f"Write Code Failed: No function detected in the response", "error")
                 raise Exception
-        self._context.function_pool.add_functions(content=code)
-        error = self.context.function_pool.check_function_grammar(function_name=desired_function_name)
+        self.context.add_functions(content=code)
+        error = self.context.check_function_grammar(function_name=desired_function_name)
         # TODO,add bug fix mechanism for such cases,rather than just raising exception to triger retry
         # if error:
         #     logger.log(f"Function {desired_function_name} has syntax error: {error}", "error")

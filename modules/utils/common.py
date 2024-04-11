@@ -53,7 +53,7 @@ def check_file_exists(directory, filename):
 
 
 def write_file(directory, filename, content, mode='w'):
-    from modules.framework.workflow_context import logger
+    from modules.framework.context import logger
 
     try:
         file_path = os.path.join(directory, filename)
@@ -231,7 +231,7 @@ def check_grammar(file_path: str):
 
         return errors
     except Exception as e:
-        from modules.framework.workflow_context import logger
+        from modules.framework.context import logger
         logger.log(f"Error occurred when check grammar: {e}", level='error')
         raise Exception(f"Error occurred when check grammar:{e}")
 
@@ -242,7 +242,7 @@ def call_reset_environment(data: bool):
     Args:
         data (bool): Whether to render the environment
     """
-    from modules.framework.workflow_context import logger
+    from modules.framework.context import logger
 
     if not rospy.core.is_initialized():
         rospy.init_node('reset_environment_client', anonymous=True)
@@ -266,13 +266,13 @@ def get_param(param_name):
 
 
 def set_param(param_name, param_value):
-    from modules.framework.workflow_context import logger
+    from modules.framework.context import logger
     rospy.set_param(param_name, param_value)
     logger.log(f"Parameter set: {param_name} = {param_value}", level='info')
 
 
 def generate_video_from_frames(frames_folder, video_path, fps=15):
-    from modules.framework.workflow_context import logger
+    from modules.framework.context import logger
     logger.log(f"Generating video from frames in {frames_folder}...")
     try:
         frame_files = sorted(

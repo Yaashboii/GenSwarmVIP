@@ -12,8 +12,10 @@ class Workflow:
     def __init__(self, user_command: str, args=None):
         self._logger = setup_logger("Workflow")
         self._context = WorkflowContext()
-        self._context.args = args
-        self._context.user_command.message = user_command
+        self.context.args = args
+        self.context.command = user_command
+        # initialize context for all action nodes
+        ActionNode.context = self._context
         self._pipeline = None
         self._chain_of_handler = None
 
@@ -76,7 +78,7 @@ class Workflow:
         from modules.framework.context import FileInfo
         flow = FileInfo(name='flow.md')
         flow.message = text
-        # await self._pipeline.run()
+        await self._pipeline.run()
 
 
 if __name__ == "__main__":

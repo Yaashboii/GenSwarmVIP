@@ -10,31 +10,27 @@ class AnalyzeFunctions(ActionNode):
     def _build_prompt(self):
         self.prompt = ANALYZE_FUNCTION_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
-            instruction=self._context.user_command.message,
+            instruction=self.context.command,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
-            constraints=self._context.constraint_pool.message,
+            constraints=self.context.constraints,
             output_template=FUNCTION_TEMPLATE
         )
 
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response, lang='json')
-        self._context.function_pool.init_functions(code)
+        self.context.init_functions(code)
 
-        for function in self._context.function_pool.functions.values():
+        for function in self.context.functions_value(code):
             for constraint in function.satisfying_constraints:
-                self._context.constraint_pool.add_sat_func(constraint_name=constraint, function_name=function.name)
+                self.context.add_sat_func(constraint_name=constraint, function_name=function.name)
 
-        for constraint in self._context.constraint_pool.constraints.values():
+        for constraint in self.context.constraints_value:
             if not constraint.satisfyingFuncs:
                 raise SystemExit(f"Constraint {constraint.name} has no satisfying function")
 
         logger.log(f"Analyze Functions Success", "success")
         return response
-
-    def _can_skip(self) -> bool:
-        return False
-
 
 if __name__ == '__main__':
     from modules.utils import root_manager

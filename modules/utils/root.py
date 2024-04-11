@@ -43,7 +43,7 @@ class RootManager:
             current_path = parent_path
 
     def init_workspace(self):
-        from modules.framework.workflow_context import logger
+        from modules.framework.context import logger
         if not os.path.exists(self.workspace_root):
             os.makedirs(self.workspace_root)
             os.makedirs(os.path.join(self.workspace_root, 'data/frames'))

@@ -11,7 +11,7 @@ from modules.framework.context import logger
 class AnalyzeConstraints(ActionNode):
     def _build_prompt(self):
         user_constraints = {"constraints": []}
-        for constraint in self.context.constraint_pool.constraints.values():
+        for constraint in self.context.constraints_value:
             user_constraints["constraints"].append(
                 {
                     "name": constraint.name,
@@ -20,7 +20,7 @@ class AnalyzeConstraints(ActionNode):
             )
         self.prompt = ANALYZE_CONSTRAINT_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
-            instruction=self.context.user_command.message,
+            instruction=self.context.command,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
             output_template=CONSTRAIN_TEMPLATE,
@@ -29,13 +29,9 @@ class AnalyzeConstraints(ActionNode):
 
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response, lang='json')
-        self.context.constraint_pool.add_constraints(code)
+        self.context.add_constraint(code)
         logger.log(f"Analyze Constraints Success", "success")
         return response
-
-    def _can_skip(self) -> bool:
-        return False
-
 
 if __name__ == '__main__':
     analyst = AnalyzeConstraints("constraints")
@@ -44,7 +40,7 @@ if __name__ == '__main__':
 
     path = '../../../workspace/test'
     root_manager.update_root(path, set_data_path=False)
-    analyst.context.user_command.message = (
+    analyst.context.command = (
         "Form a flock with other robots, navigating together by keeping aligned, spaced out, "
         "and cohesive. Avoid obstacles and stay away from the environment's edges and obstacles."
     )

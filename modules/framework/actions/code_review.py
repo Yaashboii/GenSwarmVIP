@@ -22,7 +22,7 @@ class CodeReview(ActionNode):
             function_name=self._function.name,
             other_functions='\n\n'.join(
                 ['\n'.join(f.import_list) + f.content
-                 for f in self._context.function_pool.functions.values() if
+                 for f in self.context.functions_value if
                  f.name != self._function.name]),
             function_content=self._function.content,
         )
@@ -52,12 +52,12 @@ class CodeReview(ActionNode):
                     f"High Level Function Review Failed: Function name mismatch: {function_name} != {desired_function_name}",
                     "error")
                 raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
-            self._context.function_pool.add_functions(content=code)
+            self.context.add_functions(content=code)
             for function_name in function_list:
-                self._context.function_pool.check_function_grammar(function_name=function_name)
-                for function in self._context.function_pool.functions.values():
+                self.context.check_function_grammar(function_name=function_name)
+                for function in self.context.functions_value:
                     if function_name in function.calls:
-                        self._context.function_pool.check_function_grammar(function_name=function.name)
+                        self.context.check_function_grammar(function_name=function.name)
             # # TODO,add bug fix mechanism for such cases,rather than just raising exception to trigger retry
             # if errors:
             #     logger.log(
@@ -78,9 +78,9 @@ class CodeReviewAsync(ActionNode):
 
     async def _run(self):
         current_layer_index = 1
-        while current_layer_index < len(self._context.function_pool.function_layer):
+        while current_layer_index < len(self.context.function_layer):
             tasks = []
-            current_layer = self._context.function_pool.function_layer[current_layer_index]
+            current_layer = self.context.function_layer[current_layer_index]
             logger.log(f"Layer: {current_layer_index}", "warning")
             for function in current_layer:
                 action = CodeReview()
@@ -89,17 +89,17 @@ class CodeReviewAsync(ActionNode):
                 tasks.append(task)
             await asyncio.gather(*tasks)
             layer_index = current_layer_index if current_layer_index < len(
-                self._context.function_pool.function_layer) else len(self._context.function_pool.function_layer) - 1
-            current_layer = self._context.function_pool.function_layer[layer_index]
+                self.context.function_layer) else len(self.context.function_layer) - 1
+            current_layer = self.context.function_layer[layer_index]
             # TODO:add logic to rewrite function
             try:
                 errors = []
                 for function in current_layer:
-                    error = self.context.function_pool.check_function_grammar(function_name=function.name)
+                    error = self.context.check_function_grammar(function_name=function.name)
                     errors.append(error)
             except Exception as e:
                 import traceback
-                self.context.logger.log(f"error occurred in grammar check:\n {traceback.format_exc()}", 'error')
+                logger.log(f"error occurred in grammar check:\n {traceback.format_exc()}", 'error')
                 raise SystemExit(f"error occurred in async write functions{e}")
             current_layer_index += 1
 

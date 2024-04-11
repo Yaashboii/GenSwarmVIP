@@ -1,5 +1,5 @@
 from collections import defaultdict
-from modules.framework.context import FileInfo, logger
+from modules.framework.context.file_info import FileInfo, logger
 
 # TODO: function pool and constraint pool should be rewrite totally
 class FunctionInfo:

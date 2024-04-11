@@ -8,9 +8,18 @@ from modules.framework.context.function_info import FunctionPool
 
 class Context(ABC):
     @abstractmethod
-    def foo():
+    def save_to_file(self, filename):
         pass
-
+    
+    @abstractmethod
+    def load_from_file(self, filename):
+        pass
+    
+    @abstractmethod
+    @property
+    def command():
+        pass
+    
 
 class WorkflowContext(Context):
     _instance = None
@@ -38,13 +47,75 @@ if __name__ == '__main__':
         self.run_result = FileInfo(name='run_result.md')
         self.args = argparse.Namespace()
 
-    @classmethod
-    def save_to_file(cls, file_path):
+    def save_to_file(self, file_path):
         with open(file_path, 'wb') as file:
-            pickle.dump(cls._instance, file)
+            pickle.dump(self._instance, file)
 
-    @classmethod
-    def load_from_file(cls, file_path):
+    def load_from_file(self, file_path):
         with open(file_path, 'rb') as file:
-            cls._instance = pickle.load(file)
+            self._instance = pickle.load(file)
 
+    @property
+    def command(self):
+        return self._instance.user_command.message
+    
+    @command.setter
+    def command(self, value):
+        self._instance.user_command.message = value
+
+    @property
+    def constraints_value(self):
+        return self._instance.constraint_pool.constraints.values()
+    
+    @property
+    def constraints_dict(self):
+        return self._instance.constraint_pool.constraints
+
+    @property
+    def constraints(self):
+        return self._instance.constraint_pool.message
+      
+    @property
+    def functions_value(self):
+        self._instance.function_pool.functions.values()
+
+    @property
+    def function_layer(self):
+        self._instance.function_pool.function_layer
+
+    @property
+    def parameters(self):
+        return self._instance.parameters.message
+    
+    @parameters.setter
+    def parameters(self, value):
+        self._instance.parameters.message = value
+
+    @property
+    def function_content(self):
+        return self._instance.function_pool.functions_content()
+
+    def add_constraint(self, constraint):
+        self._instance.constraint_pool.add_constraints(constraint)
+
+    def init_functions(self, code):
+        self._instance.function_pool.init_functions(code)
+
+    def add_functions(self, content):
+        self._instance.function_pool.add_functions(content)
+
+    def check_function_grammar(self, function_name):
+        self._instance.function_pool.check_function_grammar(function_name)
+
+    def add_sat_func(self, constraint_name, function_name):
+        self._instance.constraint_pool.add_sat_func(constraint_name, function_name)
+
+    def update_message(self):
+        self._instance.function_pool.update_message()
+
+    def set_function_definition(self, function_name, definition):
+        self._instance.function_pool.functions[function_name].definition = function
+
+
+if __name__ == '__main__':
+    context = WorkflowContext()
