@@ -54,7 +54,7 @@ class ActionNode(BaseNode):
         self._next_text = next_text  # label text rendered in mermaid graph
         self._node_name = node_name  # to distinguish objects of same class type
         self.error_handler = None  # this is a chain of handlers, see handler.py
-        # self._set_renderer(ActionNodeRenderer())
+        self._set_renderer(ActionNodeRenderer())
 
     def __str__(self):
         if self._node_name:
@@ -107,7 +107,7 @@ class ActionLinkedList(BaseNode):
         super().__init__()
         self.head = head  # property is used
         self._name = name  # name of the structure
-        # self._set_renderer(ActionLinkedListRenderer())
+        self._set_renderer(ActionLinkedListRenderer())
 
     def __str__(self):
         if self._head:
