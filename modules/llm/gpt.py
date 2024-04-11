@@ -19,11 +19,9 @@ class GPT:
 
     system_prompt = "You are a helpful assistant."
 
-    def __init__(self, model: str = 'gpt-4-turbo-preview',
-                 temperature: float = 0.7) -> None:
+    def __init__(self, model: str = 'gpt-4-turbo-preview') -> None:
         self._model = model
         self._memories = []  # Current memories
-        self._temperature = temperature
         self.key = key_manager.allocate_key()
         self._client = AsyncOpenAI(api_key=self.key, base_url=api_base)
         self._response: str
@@ -39,20 +37,33 @@ class GPT:
         self._memories.append({"role": "user", "content": prompt})
         return await self._ask_with_retry(temperature)
 
-    @retry(stop=(stop_after_attempt(5) | stop_after_delay(120)), wait=wait_random_exponential(multiplier=1, max=60))
+    @retry(stop=(stop_after_attempt(5) | stop_after_delay(500)), wait=wait_random_exponential(multiplier=1, max=60))
     async def _ask_with_retry(self, temperature: float) -> str:
         """
         Helper function to perform the actual call to the GPT model with retry logic.
         """
         try:
-            response = await self._client.chat.completions.create(  # 确保这个调用是异步的
+            response = await self._client.chat.completions.create(
                 model=self._model,
                 messages=self._memories,
-                temperature=temperature
+                temperature=temperature,
+                stream=True
             )
-            content = response.choices[0].message.content
-            self._response = content
-            return content
+            collected_chunks = []
+            collected_messages = []
+            async for chunk in response:
+                collected_chunks.append(chunk)
+                choices = chunk.choices if hasattr(chunk, 'choices') else []
+                if len(choices) > 0:
+                    chunk_message = choices[0].delta if hasattr(choices[0], 'delta') else {}
+                    collected_messages.append(chunk_message)
+
+            full_reply_content = "".join(
+                [m.content if hasattr(m, 'content') and m.content is not None else ""
+                 for m in collected_messages])
+            self._response = full_reply_content
+            return full_reply_content
         except Exception as e:
-            print(f"Error in _ask_with_retry: {e}")
+            from modules.framework.context import logger
+            logger.log(f"Error in _ask_with_retry: {e}", level='error')
             raise  # Re-raise exception to trigger retry

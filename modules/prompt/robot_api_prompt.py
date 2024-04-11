@@ -1,62 +1,83 @@
-ROBOT_API = """
+from modules.utils import extract_function_definitions, extract_top_level_function_names, read_file
+
+robot_api = """
 def get_position():
     '''
-    Description: Get the position of robot itself.
+    Description: Get the current position of the robot itself in real-time.
     Returns:
-    - numpy.ndarray: The position of the robot itself.
-    Usage:
-    pos = get_position()
-    x, y = pos[0], pos[1]
+    - numpy.ndarray: The current, real-time position of the robot.
     '''
-
 
 def set_velocity(velocity):
     '''
-    Description: Set the velocity of the robot itself
+    Description: Set the velocity of the robot itself in real-time.
+    Note: This API updates at a fixed rate of 10Hz to the vehicle, so there's no need to use time.sleep to limit the frequency, as the provided API has already implemented this.
     Input:
-    - velocity (numpy.ndarray): The new velocity to set.
-    Usage: 
-    velocity = [vx, vy]
-    set_velocity(velocity)
+    - velocity (numpy.ndarray): The new velocity to be set immediately.
     '''
-
 
 def get_velocity():
     '''
-    Get the velocity of the robot.
+    Get the current velocity of the robot itself in real-time.
     Returns:
-    - numpy.ndarray: The velocity of the robot.
+    - numpy.ndarray: The current, real-time velocity of the robot.
     '''
 
-
-def gather_field_view_data():
+def get_radius():
     '''
-    Description: Get the other robots' positions and velocities within the field of view.
+    Description: Get the radius of the robot itself.
     Returns:
-    - A list of dictionaries, each containing:
-      - 'position': A numpy array representing the robot's 2D position (x, y coordinates).
-      - 'velocity': A numpy array representing the robot's 2D velocity (x, y components).
-    if the robot is not able to observe any other robots, an empty list is returned.
-    Usage: 
-    robots = gather_field_view_data()
-    if robots:
-        for robot in robots:
-            pos = robot['position']
-            vel = robot['velocity']       
+    - float: The radius of the robot itself.
+    '''
+
+def get_surrounding_robots_info():
+    '''
+    Get real-time information of the surrounding robots. The data provided by this function are all within the robot's sensory range.
+    Note: This API is provided by humans, and the perception data it offers are results within a 5m radius centered on the robot's position. There is no need to concern yourself with how it is implemented; you only need to call it.
+    Returns:
+    - list: A list of dictionaries, each containing the current position, velocity, and radius of a robot, reflecting real-time data.
+        - position (numpy.ndarray): The current position of the robot.
+        - velocity (numpy.ndarray): The current velocity of the robot.
+        - radius (float): The radius of the robot.
+    '''
+
+def get_surrounding_obstacles_info():
+    '''
+    Get real-time information of the surrounding obstacles. The data provided by this function are all within the robot's sensory range.
+    Note: This API is provided by humans, and the perception data it offers are results within a 5m radius centered on the robot's position. There is no need to concern yourself with how it is implemented; you only need to call it.
+    Returns:
+    - list: A list of dictionaries, each containing the current position and radius of an obstacle, reflecting real-time data.
+        - position (numpy.ndarray): The current position of the obstacle.
+        - radius (float): The radius of the obstacle.
     '''
 """.strip()
 
-LEADER_API = """
-def get_leader_position():
-    '''
-    Get the position of the leader robot.
 
-    Returns:
-    - numpy.ndarray: The position of the leader robot.
-    '''
-""".strip()
+# data_api = read_file("modules/env/", filename="data_apis.py")
 
 
-def get_robot_api(leader=False):
-    if leader:
-        return ROBOT_API + LEADER_API
+class RobotApi:
+    def __init__(self, content):
+        self.content = content
+        api_list = extract_function_definitions(content)
+        self.apis = {}
+        for api in api_list:
+            name = extract_top_level_function_names(api)[0]
+            self.apis[name] = api
+
+    def get_prompt(self, name: list[str] | str = None) -> str:
+        if isinstance(name, str):
+            name = [name]
+        if name is None:
+            return '\n\n'.join(self.apis.values())
+        try:
+            prompts = [self.apis[n] for n in name]
+            return '\n\n'.join(prompts)
+        except Exception as e:
+            raise SystemExit(f"Error in get_prompt: {e},current existing apis:{self.apis.keys()},input name:{name}")
+
+
+robot_api = RobotApi(content=robot_api)
+ROBOT_API = robot_api.get_prompt()
+# data_api = RobotApi(content=data_api)
+# DATA_API = data_api.get_prompt()

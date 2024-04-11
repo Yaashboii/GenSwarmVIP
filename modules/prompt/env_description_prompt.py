@@ -1,13 +1,10 @@
 ENV_DES = '''
-below are the basic information of the environment and robot:
 Environment:
-    size: 10m x 10m
-    Obstacles: None
-    X-axis: -5m to 5m
-    Y-axis: -5m to 5m
-
-Robot: 
-    Max Speed: 2m/s
-    Control: velocity control
-    Max Control Frequency: 20Hz
+    bounds:{'x_min': -5.0, 'x_max': 5.0, 'y_min': -5.0, 'y_max': 5.0}
+    
+Robot:
+    max_speed: 1m/s (constant)
+    Control Method: Omnidirectional speed control
+    Initial position: random position in the environment
+    Initial speed: np.array([0, 0])
 '''.strip()

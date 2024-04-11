@@ -2,42 +2,13 @@ import os
 import re
 import ast
 import shutil
+import time
+
+import cv2
 import rospy
 from typing import Any
 from enum import Enum
 from std_srvs.srv import SetBool
-import datetime
-import threading
-from pathlib import Path
-
-
-def get_project_root():
-    """Search upwards to find the project root directory."""
-    current_path = Path.cwd()
-    while True:
-        if (
-                (current_path / ".git").exists()
-                or (current_path / ".project_root").exists()
-                or (current_path / ".gitignore").exists()
-        ):
-            # use metagpt with git clone will land here
-            return current_path
-        parent_path = current_path.parent
-        if parent_path == current_path:
-            # use metagpt with pip install will land here
-            cwd = Path.cwd()
-            return cwd
-        current_path = parent_path
-
-
-current_datetime = datetime.datetime.now()
-formatted_date = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
-PROJECT_ROOT = get_project_root()
-WORKSPACE_ROOT = PROJECT_ROOT / f"workspace/{formatted_date}"
-DATA_PATH = WORKSPACE_ROOT / "data"
-ENV_PATH = WORKSPACE_ROOT / "env"
-
-GLOBAL_LOCK = threading.Lock()
 
 
 class TestResult(Enum):
@@ -78,17 +49,25 @@ def any_to_str(val: Any) -> str:
 
 def check_file_exists(directory, filename):
     file_path = os.path.join(directory, filename)
-    return os.path.exists(file_path)
+    return os.path.isfile(file_path)
 
 
 def write_file(directory, filename, content, mode='w'):
-    file_path = os.path.join(directory, filename)
-    with open(file_path, mode) as file:
-        file.write(content)
+    from modules.framework.context import logger
 
-    operation = "written" if mode == 'w' else "appended"
-    print(f"File {operation}: {file_path}")
-    return file_path
+    try:
+        file_path = os.path.join(directory, filename)
+
+        with open(file_path, mode) as file:
+            file.write(content)
+        operation = "written" if mode == 'w' else "appended"
+        if operation == 'written':
+            logger.log(f"File {operation}: {file_path}", level='info')
+
+    except FileNotFoundError:
+        logger.log(f"File not found: {file_path}", level='error')
+    except Exception as e:
+        logger.log(f"Error writing file: {e}", level='error')
 
 
 def copy_folder(source_folder, destination_folder):
@@ -97,17 +76,6 @@ def copy_folder(source_folder, destination_folder):
         shutil.copytree(source_folder, destination_folder)
     except Exception as e:
         raise Exception(f"Error copying folder: {e}")
-
-
-def init_workspace():
-    global WORKSPACE_ROOT, PROJECT_ROOT
-    if not os.path.exists(WORKSPACE_ROOT):
-        os.makedirs(WORKSPACE_ROOT)
-        os.makedirs(os.path.join(WORKSPACE_ROOT, 'data/frames'))
-        utils = read_file(os.path.join(PROJECT_ROOT, 'modules/env'), 'functions.py')
-        write_file(WORKSPACE_ROOT, 'functions.py', utils)
-        set_param('data_path', str(DATA_PATH))
-    print(f"Workspace initialized at {WORKSPACE_ROOT}")
 
 
 def read_file(directory, filename):
@@ -126,7 +94,8 @@ def parse_code(text: str, lang: str = "python") -> str:
     if match:
         code = match.group(1)
     else:
-        raise Exception
+        error_message = f"Error: No '{lang}' code block found in the text."
+        raise ValueError(error_message)
     return code
 
 
@@ -134,7 +103,15 @@ def extract_function_definitions(source_code):
     parsed_ast = ast.parse(source_code)
 
     def reconstruct_function_definition(function_node):
-        func_header = f"def {function_node.name}({', '.join(ast.unparse(arg) for arg in function_node.args.args)}):"
+        defaults_start_index = len(function_node.args.args) - len(function_node.args.defaults)
+
+        parameters = [
+            ast.unparse(arg) + (
+                f'={ast.unparse(function_node.args.defaults[i - defaults_start_index])}' if i >= defaults_start_index else '')
+            for i, arg in enumerate(function_node.args.args)
+        ]
+
+        func_header = f"def {function_node.name}({', '.join(parameters)}):"
         docstring = ast.get_docstring(function_node)
         docstring_part = ''
         if docstring:
@@ -159,16 +136,46 @@ def extract_imports_and_functions(source_code):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imports.append(f"import {alias.name}")
+                    import_str = f"import {alias.name}"
+                    if alias.asname:
+                        import_str += f" as {alias.asname}"
+                    imports.append(import_str)
             elif isinstance(node, ast.ImportFrom):
                 module = node.module if node.module else ''
-                imports.append(f"from {module} import {', '.join(alias.name for alias in node.names)}")
+                import_from_str = "from {} import ".format(module)
+                names_with_as = []
+                for alias in node.names:
+                    if alias.asname:
+                        names_with_as.append(f"{alias.name} as {alias.asname}")
+                    else:
+                        names_with_as.append(alias.name)
+                import_from_str += ", ".join(names_with_as)
+                imports.append(import_from_str)
         elif isinstance(node, ast.FunctionDef):
             func_def = ast.unparse(node).strip()
             if func_def:
                 functions.append(func_def)
 
     return imports, functions
+
+
+def extract_top_level_function_names(code_str: str) -> list[str]:
+    tree = ast.parse(code_str)
+
+    def add_parent_references(node, parent=None):
+        node.parent = parent
+        for child in ast.iter_child_nodes(node):
+            add_parent_references(child, node)
+
+    add_parent_references(tree)
+
+    function_names = []
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and isinstance(node.parent, ast.Module):
+            function_names.append(node.name)
+
+    return function_names
 
 
 def combine_unique_imports(import_list):
@@ -184,12 +191,59 @@ def combine_unique_imports(import_list):
     return combined_imports
 
 
+def find_function_name_from_error(file_path, error_line):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+        error_code_line = lines[error_line - 1].strip()
+        for i in range(error_line - 2, -1, -1):
+            if lines[i].strip().startswith('def '):
+                function_name = lines[i].strip().split('(')[0].replace('def ', '')
+                return function_name, error_code_line
+    return None, error_code_line
+
+
+def check_grammar(file_path: str):
+    import subprocess
+    command = [
+        'pylint',
+        # '--disable=W,C,I,R --enable=E,W0612',
+        '--disable=W,C,I,R ',
+        file_path
+    ]
+
+    try:
+        process = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = process.stdout + process.stderr
+
+        pattern = re.compile(r"(.*?):(\d+):(\d+): (\w+): (.*) \((.*)\)")
+        matches = pattern.findall(result)
+
+        errors = []
+        for match in matches:
+            file_path, line, column, error_code, error_message, _ = match
+            errors.append({
+                "file_path": file_path,
+                "line": int(line),
+                "column": int(column),
+                "error_code": error_code,
+                "error_message": error_message
+            })
+
+        return errors
+    except Exception as e:
+        from modules.framework.context import logger
+        logger.log(f"Error occurred when check grammar: {e}", level='error')
+        raise Exception(f"Error occurred when check grammar:{e}")
+
+
 def call_reset_environment(data: bool):
     """
 
     Args:
         data (bool): Whether to render the environment
     """
+    from modules.framework.context import logger
+
     if not rospy.core.is_initialized():
         rospy.init_node('reset_environment_client', anonymous=True)
 
@@ -199,24 +253,50 @@ def call_reset_environment(data: bool):
         resp = reset_environment(data)
         return resp.success, resp.message
     except rospy.ServiceException as e:
-        print("Service call failed: %s" % e)
+        logger.log(f"Service call failed: {e}", level='error')
 
 
 def get_param(param_name):
-    return rospy.get_param(param_name)
+    try:
+        return rospy.get_param(param_name)
+    except KeyError:
+        print(f"Parameter not found: {param_name},retrying...")
+        time.sleep(1)
+        return get_param(param_name)
 
 
 def set_param(param_name, param_value):
+    from modules.framework.context import logger
     rospy.set_param(param_name, param_value)
-    print(f"Setting param {param_name} to {param_value}")
+    logger.log(f"Parameter set: {param_name} = {param_value}", level='info')
 
 
-def set_workspace_root(workspace_root: str):
-    global WORKSPACE_ROOT, DATA_PATH, ENV_PATH
+def generate_video_from_frames(frames_folder, video_path, fps=15):
+    from modules.framework.context import logger
+    logger.log(f"Generating video from frames in {frames_folder}...")
+    try:
+        frame_files = sorted(
+            [file for file in os.listdir(frames_folder) if re.search(r'\d+', file)],
+            key=lambda x: int(re.search(r'\d+', x).group())
+        )
+    except Exception as e:
+        logger.log(f"Error reading frames: {e}", level='error')
+        return
 
-    # 创建一个PosixPath对象
-    WORKSPACE_ROOT = Path(workspace_root)
+    if not frame_files:
+        logger.log("No frames found", level='error')
+        return
+    frame_files = [os.path.join(frames_folder, file) for file in frame_files]
 
-    # 使用Path对象的操作来设置DATA_PATH和ENV_PATH
-    DATA_PATH = WORKSPACE_ROOT / "data"
-    ENV_PATH = WORKSPACE_ROOT / "env"
+    frame = cv2.imread(frame_files[0])
+    height, width, layers = frame.shape
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+
+    video = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
+
+    for frame_file in frame_files:
+        video.write(cv2.imread(frame_file))
+
+    cv2.destroyAllWindows()
+    video.release()
+    logger.log(f"Video generated: {video_path}", level='info')
