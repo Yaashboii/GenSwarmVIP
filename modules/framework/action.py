@@ -54,7 +54,7 @@ class ActionNode(BaseNode):
         self._next_text = next_text  # label text rendered in mermaid graph
         self._node_name = node_name  # to distinguish objects of same class type
         self.error_handler = None  # this is a chain of handlers, see handler.py
-        self._set_renderer(ActionNodeRenderer())
+        self.set_renderer(ActionNodeRenderer())
 
     def __str__(self):
         if self._node_name:
@@ -107,7 +107,7 @@ class ActionLinkedList(BaseNode):
         super().__init__()
         self.head = head  # property is used
         self._name = name  # name of the structure
-        self._set_renderer(ActionLinkedListRenderer())
+        self.set_renderer(ActionLinkedListRenderer())
 
     def __str__(self):
         if self._head:
@@ -142,39 +142,6 @@ class ActionLinkedList(BaseNode):
 
     async def run(self, **kwargs):
         return await self._head.run()
-
-
-def display_all(node: ActionNode, error_handler):
-    graph = node.graph_struct(level=1)
-    visited = set()
-    res = node.flow_content(visited)
-    text = f"""
-```mermaid
-graph TD;
-    Start((Start)) --> {str(node)}
-{res}
-
-{graph}
-
-subgraph chain of handlers
-{error_handler.struct()}
-end
-```
-    """
-    return _clean_graph(text)
-
-
-def _clean_graph(graph: str):
-    lines = set()
-    unique_lines = []
-    for line in graph.split('\n'):
-        content = line.strip()
-        if content not in lines or content == "end":
-            unique_lines.append(line)
-            lines.add(line.strip())
-
-    return '\n'.join(unique_lines)
-
 
 if __name__ == "__main__":
     pass

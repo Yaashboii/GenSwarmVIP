@@ -15,10 +15,9 @@ class Context(ABC):
     def load_from_file(self, filename):
         pass
     
-    @abstractmethod
     @property
     def command():
-        pass
+        raise NotImplementedError
     
 
 class WorkflowContext(Context):

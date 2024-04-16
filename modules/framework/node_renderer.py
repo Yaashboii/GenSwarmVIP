@@ -21,9 +21,9 @@ class ActionNodeRenderer(NodeRenderer):
             return ""
         visited.add(self._node)
         content = f"\t\t{str(self._node)} -->|{self._node._next_text}| {str(self._node._next)}\n"
-        if self._node._error_handler:
-            content += f"\t\t{str(self._node)} -->|failed| {str(self._node._error_handler)}\n"
-            content += self._node._error_handler.display(visited)
+        if self._node.error_handler:
+            content += f"\t\t{str(self._node)} -->|failed| {str(self._node.error_handler)}\n"
+            content += self._node.error_handler.display(visited)
 
         content += self._node._next.flow_content(visited)
         return content
@@ -50,3 +50,34 @@ class ActionLinkedListRenderer(NodeRenderer):
 
     def flow_content(self, visited: set) -> str:
         return self._node._head.flow_content(visited)
+    
+def display_all(node, error_handler):
+    graph = node.graph_struct(level=1)
+    visited = set()
+    res = node.flow_content(visited)
+    text = f"""
+```mermaid
+graph TD;
+    Start((Start)) --> {str(node)}
+{res}
+
+{graph}
+
+subgraph chain of handlers
+{error_handler.struct()}
+end
+```
+    """
+    return _clean_graph(text)
+
+
+def _clean_graph(graph: str):
+    lines = set()
+    unique_lines = []
+    for line in graph.split('\n'):
+        content = line.strip()
+        if content not in lines or content == "end":
+            unique_lines.append(line)
+            lines.add(line.strip())
+
+    return '\n'.join(unique_lines)

@@ -12,8 +12,8 @@ class Workflow:
     def __init__(self, user_command: str, args=None):
         self._logger = setup_logger("Workflow")
         self._context = WorkflowContext()
-        self.context.args = args
-        self.context.command = user_command
+        self._context.args = args
+        self._context.command = user_command
         # initialize context for all action nodes
         ActionNode.context = self._context
         self._pipeline = None
