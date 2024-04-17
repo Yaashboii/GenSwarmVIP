@@ -10,6 +10,7 @@ from modules.framework.context import logger
 
 class AnalyzeConstraints(ActionNode):
     def _build_prompt(self):
+        # constraints predefined
         user_constraints = {"constraints": []}
         for constraint in self.context.constraints_value:
             user_constraints["constraints"].append(

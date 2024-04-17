@@ -1,5 +1,5 @@
 from collections import defaultdict
-from modules.framework.context.file_info import FileInfo, logger
+from modules.framework.context.file_info import File, logger
 
 # TODO: function pool and constraint pool should be rewrite totally
 class FunctionInfo:
@@ -14,7 +14,7 @@ class FunctionInfo:
         self.definition = None
         self.text = f"**{self.name}**: {self.description}"
 
-class FunctionPool(FileInfo):
+class FunctionPool(File):
 
     def __init__(self, name: str = '', root: str = ''):
         super().__init__(name=name, root=root)

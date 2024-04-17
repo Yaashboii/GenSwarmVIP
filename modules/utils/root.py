@@ -2,14 +2,16 @@ import datetime
 import os
 from pathlib import Path
 
-from modules.utils import read_file, write_file, set_param
+class _RootManager:
+    _instance = None
 
-
-class RootManager:
-    def __init__(self):
-        self.project_root = None
-        self.workspace_root = None
-        self.data_root = None
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+            cls.project_root = None
+            cls.workspace_root = None
+            cls.data_root = None
+        return cls._instance
 
     def update_root(self, workspace_root: str = None, set_data_path: bool = True) -> None:
         if workspace_root is None:
@@ -20,18 +22,14 @@ class RootManager:
         else:
             self.workspace_root = Path(workspace_root)
         self.data_root = self.workspace_root / "data"
-        if set_data_path:
-            set_param('data_path', str(self.data_root))  # this is important
 
-    @staticmethod
-    def get_project_root():
+    def get_project_root(self):
         """Search upwards to find the project root directory."""
         current_path = Path.cwd()
         while True:
-            if (
-                    (current_path / ".git").exists()
-                    or (current_path / ".project_root").exists()
-                    or (current_path / ".gitignore").exists()
+            if ((current_path / ".git").exists()
+                or (current_path / ".project_root").exists()
+                or (current_path / ".gitignore").exists()
             ):
                 # use metagpt with git clone will land here
                 return current_path
@@ -42,17 +40,4 @@ class RootManager:
                 return cwd
             current_path = parent_path
 
-    def init_workspace(self):
-        from modules.framework.context import logger
-        if not os.path.exists(self.workspace_root):
-            os.makedirs(self.workspace_root)
-            os.makedirs(os.path.join(self.workspace_root, 'data/frames'))
-            utils = read_file(os.path.join(self.project_root, 'modules/env'), 'apis.py')
-            write_file(self.workspace_root, 'apis.py', utils)
-            run = read_file(os.path.join(self.project_root, 'modules/env'), 'run.py')
-            write_file(self.workspace_root, 'run.py', run)
-            set_param('data_path', str(self.data_root))
-            logger.log(f"Workspace initialized at {self.workspace_root}")
-
-
-root_manager = RootManager()
+root_manager = _RootManager()

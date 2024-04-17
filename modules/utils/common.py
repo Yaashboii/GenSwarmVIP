@@ -52,41 +52,12 @@ def check_file_exists(directory, filename):
     return os.path.isfile(file_path)
 
 
-def write_file(directory, filename, content, mode='w'):
-    from modules.framework.context import logger
-
-    try:
-        file_path = os.path.join(directory, filename)
-
-        with open(file_path, mode) as file:
-            file.write(content)
-        operation = "written" if mode == 'w' else "appended"
-        if operation == 'written':
-            logger.log(f"File {operation}: {file_path}", level='info')
-
-    except FileNotFoundError:
-        logger.log(f"File not found: {file_path}", level='error')
-    except Exception as e:
-        logger.log(f"Error writing file: {e}", level='error')
-
-
 def copy_folder(source_folder, destination_folder):
     try:
         # Copy the entire folder and its contents
         shutil.copytree(source_folder, destination_folder)
     except Exception as e:
         raise Exception(f"Error copying folder: {e}")
-
-
-def read_file(directory, filename):
-    file_path = os.path.join(directory, filename)
-    try:
-        with open(file_path, 'r') as file:
-            file_content = file.read()
-        return file_content
-    except FileNotFoundError:
-        return f"File not found: {file_path}"
-
 
 def parse_code(text: str, lang: str = "python") -> str:
     pattern = rf"```{lang}.*?\s+(.*?)```"

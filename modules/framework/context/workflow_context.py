@@ -2,7 +2,7 @@ import argparse
 import pickle
 from abc import ABC, abstractmethod
 
-from modules.framework.context.file_info import FileInfo, logger
+from modules.framework.context.file_info import File
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.framework.context.function_info import FunctionPool
 
@@ -18,7 +18,6 @@ class Context(ABC):
     @property
     def command():
         raise NotImplementedError
-    
 
 class WorkflowContext(Context):
     _instance = None
@@ -31,19 +30,19 @@ class WorkflowContext(Context):
         return cls._instance
 
     def _initialize(self):
-        self.user_command = FileInfo(name='command.md')
+        self.user_command = File(name='command.md')
         self.function_pool = FunctionPool(name='functions.py')
-        self.design_result = FileInfo(name='design_result.py')
+        self.design_result = File(name='design_result.py')
         self.constraint_pool = ConstraintPool(name='constraints.md')
         self.function_list = []
-        self.run_code = FileInfo(name='run.py', message="""import sys
+        self.run_code = File(name='run.py', message="""import sys
 from functions import run_loop
 robot_id = sys.argv[1]
 if __name__ == '__main__':
     run_loop()
 """)
         # self.sequence_diagram = FileInfo(name='sequence_diagram.md')
-        self.run_result = FileInfo(name='run_result.md')
+        self.run_result = File(name='run_result.md')
         self.args = argparse.Namespace()
 
     def save_to_file(self, file_path):

@@ -1,23 +1,23 @@
-from modules.framework.context.file_info import FileInfo, logger
+from modules.framework.context.file_info import File, logger
 
 
-class ConstraintInfo:
+class _ConstraintInfo:
     def __init__(self, description, name):
         self.satisfyingFuncs: list[int] = []
         self.name = name
         self.description = description
         self.text = f"**{self.name}**: {self.description}"
 
-class ConstraintPool(FileInfo):
+class ConstraintPool(File):
     def __init__(self, name: str = '', root: str = ''):
         super().__init__(name=name, root=root)
-        self.constraints: dict[str, ConstraintInfo] = {}
+        self.constraints: dict[str, _ConstraintInfo] = {}
 
     def add_constraints(self, content: str):
         try:
             for constraint in eval(content)['constraints']:
                 name = constraint['name']
-                self.constraints[name] = ConstraintInfo(
+                self.constraints[name] = _ConstraintInfo(
                     name=name,
                     description=constraint['description']
                 )
@@ -41,3 +41,5 @@ class ConstraintPool(FileInfo):
 
     def constraints_content(self):
         return '\n'.join([c.text for c in self.constraints.values()])
+
+__all__ = ['ConstraintPool']
