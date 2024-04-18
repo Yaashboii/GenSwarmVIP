@@ -87,7 +87,7 @@ if __name__ == "__main__":
     from modules.utils import root_manager
 
     path = '../../../workspace/test'
-    root_manager.update_root(path, set_data_path=False)
+    root_manager.update_root(path)
 
     design_functions = DesignFunctionAsync('design functions async')
     design_functions.context.load_from_file(path + "/analyze_functions.pkl")

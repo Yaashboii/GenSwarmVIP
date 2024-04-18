@@ -43,7 +43,7 @@ if __name__ == '__main__':
     import asyncio
 
     path = '../../../workspace/test'
-    root_manager.update_root(path, set_data_path=False)
+    root_manager.update_root(path)
     critic.context.load_from_file(path + "/run_code.pkl")
     asyncio.run(critic.run())
     critic.context.save_to_file(f'{path}/analyze_constraints.pkl')

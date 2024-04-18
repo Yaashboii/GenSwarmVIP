@@ -13,7 +13,7 @@ class _RootManager:
             cls.data_root = None
         return cls._instance
 
-    def update_root(self, workspace_root: str = None, set_data_path: bool = True) -> None:
+    def update_root(self, workspace_root: str = None) -> None:
         if workspace_root is None:
             self.project_root = self.get_project_root()
             current_datetime = datetime.datetime.now()

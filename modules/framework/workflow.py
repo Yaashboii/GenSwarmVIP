@@ -6,7 +6,7 @@ from modules.framework.action import *
 from modules.framework.handler import *
 
 from modules.utils.logger import setup_logger
-from modules.framework.context import WorkflowContext, File
+from modules.framework.context import WorkflowContext, File, logger
 from modules.utils.root import root_manager
 
 class Workflow:
@@ -21,7 +21,11 @@ class Workflow:
         self._chain_of_handler = None
 
         self.init_workspace()
+        self.init_log_file()
         self.build_up()
+
+    def init_log_file(self):
+        logger.set_file(File("log.md"))
 
     def init_workspace(self):
         workspace_root = root_manager.workspace_root
@@ -102,7 +106,7 @@ if __name__ == "__main__":
     ]
     from modules.utils import root_manager
 
-    root_manager.update_root(set_data_path=False)
+    root_manager.update_root()
 
     workflow = Workflow(task_list[0])
     asyncio.run(workflow.run())

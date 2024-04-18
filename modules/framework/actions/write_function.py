@@ -106,7 +106,7 @@ if __name__ == "__main__":
     # for i in range(30):
 
     path = '../../../workspace/test'
-    root_manager.update_root(path, set_data_path=False)
+    root_manager.update_root(path)
 
     write_function = WriteFunctionsAsync('design functions async')
     write_function.context.load_from_file(path + "/design_functions.pkl")

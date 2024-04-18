@@ -40,7 +40,7 @@ if __name__ == '__main__':
     import asyncio
 
     path = '../../../workspace/test'
-    root_manager.update_root(path, set_data_path=False)
+    root_manager.update_root(path)
     analyst.context.command = (
         "Form a flock with other robots, navigating together by keeping aligned, spaced out, "
         "and cohesive. Avoid obstacles and stay away from the environment's edges and obstacles."

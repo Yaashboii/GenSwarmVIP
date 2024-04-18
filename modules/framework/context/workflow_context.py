@@ -2,7 +2,7 @@ import argparse
 import pickle
 from abc import ABC, abstractmethod
 
-from modules.framework.context.file_info import File
+from modules.framework.files.file import File
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.framework.context.function_info import FunctionPool
 
