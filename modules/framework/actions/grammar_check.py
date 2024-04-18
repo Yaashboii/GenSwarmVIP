@@ -1,9 +1,10 @@
 from modules.framework.action import ActionNode
+from modules.framework.code.code import Code
 from modules.prompt.run_code_prompt import HUMAN_FEEDBACK_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.utils import parse_code, extract_top_level_function_names
+from modules.utils.common import parse_code
 
 
 class GrammarFeedback(ActionNode):
@@ -25,7 +26,8 @@ class GrammarFeedback(ActionNode):
 
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_code(text=response)
-        function_list = extract_top_level_function_names(code)
+        code_obj = Code(code)
+        function_list = code_obj.extract_top_level_function_names()
         self.context.add_functions(content=code)
 
         for function_name in function_list:

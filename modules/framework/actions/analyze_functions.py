@@ -3,13 +3,15 @@ from modules.prompt.analyze_stage_prompt import ANALYZE_FUNCTION_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.utils import parse_code
-from modules.framework.context import logger, ConstraintPool
+from modules.utils.common import parse_code
+from modules.framework.context import ConstraintPool, FunctionPool
+from modules.file.log_file import logger
 
 class AnalyzeFunctions(ActionNode):
     def __init__(self, next_text, node_name = ''):
         super().__init__(next_text, node_name)
         self._constraint_pool : ConstraintPool = ConstraintPool()
+        self._function_pool = FunctionPool()
 
     def _build_prompt(self):
         self.prompt = ANALYZE_FUNCTION_PROMPT_TEMPLATE.format(
@@ -23,14 +25,9 @@ class AnalyzeFunctions(ActionNode):
 
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response, lang='json')
-        self.context.init_functions(code)
-
-        for function in self.context.functions_value(code):
-            for constraint in function.satisfying_constraints:
-                self._constraint_pool.add_satisfying_func(constraint_name=constraint, function_name=function.name)
-
+        self._function_pool.init_functions(code)
+        self._function_pool.sync_constraints_to(self._constraint_pool)
         self._constraint_pool.check_invalid_constraints()
-
         logger.log(f"Analyze Functions Success", "success")
         return response
 

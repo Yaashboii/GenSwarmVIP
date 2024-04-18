@@ -30,6 +30,10 @@ class File(BaseFile):
                 self._message = ''
         return self._message
     
+    @property
+    def name(self):
+        return self._name
+    
     @message.setter
     def message(self, content: str):
         self._message = content

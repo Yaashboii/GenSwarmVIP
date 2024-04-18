@@ -1,12 +1,13 @@
 import asyncio
 
 from modules.framework.action import ActionNode
+from modules.framework.code.code import Code
 from modules.prompt.code_review_stage_prompt import HIGH_LEVEL_FUNCTION_REVIEW
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.utils import parse_code, extract_function_definitions, extract_top_level_function_names
-from modules.framework.context import logger
+from modules.utils.common import parse_code, extract_function_definitions
+from modules.file.log_file import logger
 
 
 class CodeReview(ActionNode):
@@ -46,7 +47,8 @@ class CodeReview(ActionNode):
                     f"High Level Function Review Failed: More than one function detected in the response",
                     "error")
                 raise Exception(f"More than one function detected in the response")
-            function_name = extract_top_level_function_names(code_str=code)[0]
+            code_obj = Code(code)
+            function_name = code_obj.extract_top_level_function_names()[0]
             if function_name != desired_function_name:
                 logger.log(
                     f"High Level Function Review Failed: Function name mismatch: {function_name} != {desired_function_name}",

@@ -9,6 +9,7 @@ import rospy
 from typing import Any
 from enum import Enum
 from std_srvs.srv import SetBool
+from modules.file.log_file import logger
 
 
 class TestResult(Enum):
@@ -97,58 +98,6 @@ def extract_function_definitions(source_code):
     return function_definitions
 
 
-def extract_imports_and_functions(source_code):
-    parsed_ast = ast.parse(source_code)
-
-    imports = []
-    functions = []
-
-    for node in parsed_ast.body:
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    import_str = f"import {alias.name}"
-                    if alias.asname:
-                        import_str += f" as {alias.asname}"
-                    imports.append(import_str)
-            elif isinstance(node, ast.ImportFrom):
-                module = node.module if node.module else ''
-                import_from_str = "from {} import ".format(module)
-                names_with_as = []
-                for alias in node.names:
-                    if alias.asname:
-                        names_with_as.append(f"{alias.name} as {alias.asname}")
-                    else:
-                        names_with_as.append(alias.name)
-                import_from_str += ", ".join(names_with_as)
-                imports.append(import_from_str)
-        elif isinstance(node, ast.FunctionDef):
-            func_def = ast.unparse(node).strip()
-            if func_def:
-                functions.append(func_def)
-
-    return imports, functions
-
-
-def extract_top_level_function_names(code_str: str) -> list[str]:
-    tree = ast.parse(code_str)
-
-    def add_parent_references(node, parent=None):
-        node.parent = parent
-        for child in ast.iter_child_nodes(node):
-            add_parent_references(child, node)
-
-    add_parent_references(tree)
-
-    function_names = []
-
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and isinstance(node.parent, ast.Module):
-            function_names.append(node.name)
-
-    return function_names
-
-
 def combine_unique_imports(import_list):
     unique_imports = set()
 
@@ -202,7 +151,6 @@ def check_grammar(file_path: str):
 
         return errors
     except Exception as e:
-        from modules.framework.context import logger
         logger.log(f"Error occurred when check grammar: {e}", level='error')
         raise Exception(f"Error occurred when check grammar:{e}")
 
@@ -213,8 +161,6 @@ def call_reset_environment(data: bool):
     Args:
         data (bool): Whether to render the environment
     """
-    from modules.framework.context import logger
-
     if not rospy.core.is_initialized():
         rospy.init_node('reset_environment_client', anonymous=True)
 
@@ -237,13 +183,11 @@ def get_param(param_name):
 
 
 def set_param(param_name, param_value):
-    from modules.framework.context import logger
     rospy.set_param(param_name, param_value)
     logger.log(f"Parameter set: {param_name} = {param_value}", level='info')
 
 
 def generate_video_from_frames(frames_folder, video_path, fps=15):
-    from modules.framework.context import logger
     logger.log(f"Generating video from frames in {frames_folder}...")
     try:
         frame_files = sorted(

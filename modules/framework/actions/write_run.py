@@ -1,10 +1,11 @@
 from modules.framework.action import ActionNode
-from modules.utils import parse_code, extract_top_level_function_names
+from modules.framework.code.code import Code
+from modules.utils.common import parse_code
 from modules.prompt.coding_stage_prompt import WRITE_RUN_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-
+from modules.file.log_file import logger
 
 class WriteRun(ActionNode):
     def _build_prompt(self):
@@ -20,7 +21,8 @@ class WriteRun(ActionNode):
     def _process_response(self, response: str) -> str:
         desired_function_name = "run_loop"
         code = parse_code(text=response)
-        function_list = extract_top_level_function_names(code)
+        code_obj = Code(code)
+        function_list = code_obj.extract_top_level_function_names()
         if not function_list:
             logger.log(f"Write Code Failed: No function detected in the response", "error")
             raise Exception

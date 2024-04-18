@@ -1,7 +1,6 @@
 from modules.file.base_file import BaseFile
 from modules.utils.logger import setup_logger, LoggerLevel
 
-
 class _Logger:
     _instance = None
 

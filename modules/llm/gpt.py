@@ -64,6 +64,6 @@ class GPT:
             self._response = full_reply_content
             return full_reply_content
         except Exception as e:
-            from modules.framework.context import logger
+            from modules.file.log_file import logger
             logger.log(f"Error in _ask_with_retry: {e}", level='error')
             raise  # Re-raise exception to trigger retry

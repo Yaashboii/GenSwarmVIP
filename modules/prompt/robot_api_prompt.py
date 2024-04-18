@@ -1,4 +1,5 @@
-from modules.utils import extract_function_definitions, extract_top_level_function_names, read_file
+from modules.framework.code.code import Code
+from modules.utils import extract_function_definitions, read_file
 
 robot_api = """
 def get_position():
@@ -62,7 +63,8 @@ class RobotApi:
         api_list = extract_function_definitions(content)
         self.apis = {}
         for api in api_list:
-            name = extract_top_level_function_names(api)[0]
+            code_obj = Code(api)
+            name = code_obj.extract_top_level_function_names(api)[0]
             self.apis[name] = api
 
     def get_prompt(self, name: list[str] | str = None) -> str:

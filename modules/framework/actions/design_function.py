@@ -1,12 +1,13 @@
 import asyncio
 
 from modules.framework.action import ActionNode
-from modules.utils import parse_code, extract_function_definitions, extract_top_level_function_names
+from modules.framework.code.code import Code
+from modules.utils.common import parse_code, extract_function_definitions
 from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import robot_api
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.framework.context import logger, ConstraintPool
+from modules.file.log_file import logger, ConstraintPool
 
 class DesignFunction(ActionNode):
     def __init__(self, next_text: str, node_name: str = ''):
@@ -51,7 +52,8 @@ class DesignFunction(ActionNode):
                                      "error")
             raise Exception  # trigger retry
         for function in function_list:
-            function_name = extract_top_level_function_names(code_str=function)[0]
+            code_obj = Code(function)
+            function_name = code_obj.extract_top_level_function_names()[0]
             if function_name != desired_function_name:
                 raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
             if not function_name:

@@ -7,7 +7,7 @@ from modules.framework.action import ActionNode
 from modules.utils.root import root_manager
 from modules.utils import get_param, call_reset_environment
 from modules.framework.code_error import Bug, HumanFeedback
-from modules.framework.context import logger
+from modules.file.log_file import logger
 
 
 class RunCode(ActionNode):

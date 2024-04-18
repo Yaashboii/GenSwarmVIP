@@ -7,7 +7,7 @@ from modules.utils import setup_logger, LoggerLevel, root_manager
 from modules.llm.gpt import GPT
 from modules.framework.code_error import CodeError
 from modules.framework.node_renderer import *
-from modules.framework.context import logger, WorkflowContext
+from modules.file.log_file import logger, WorkflowContext
 
 class BaseNode(ABC):
     def __init__(self):

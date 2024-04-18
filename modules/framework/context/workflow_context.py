@@ -30,7 +30,7 @@ class WorkflowContext(Context):
 
     def _initialize(self):
         self.user_command = File(name='command.md')
-        self.function_pool = FunctionPool(name='functions.py')
+        self.function_pool = FunctionPool()
         self.design_result = File(name='design_result.py')
         self.function_list = []
         self.run_code = File(name='run.py', message="""import sys
@@ -61,11 +61,11 @@ if __name__ == '__main__':
 
     @property
     def functions_value(self):
-        self._instance.function_pool.functions.values()
+        self._instance.function_pool._functions.values()
 
     @property
     def function_layer(self):
-        self._instance.function_pool.function_layer
+        self._instance.function_pool._function_layer
 
     @property
     def parameters(self):
@@ -92,7 +92,7 @@ if __name__ == '__main__':
         self._instance.function_pool.update_message()
 
     def set_function_definition(self, function_name, definition):
-        self._instance.function_pool.functions[function_name].definition = function
+        self._instance.function_pool._functions[function_name]._definition = function
 
 
 if __name__ == '__main__':

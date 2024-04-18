@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 
-from modules.utils import setup_logger, LoggerLevel
 from modules.framework.code_error import *
 from modules.framework.action import BaseNode
+from modules.file.log_file import logger
 
 
 class Handler(ABC):
     def __init__(self):
-        from modules.framework.context import logger
         self._logger = logger
         self._successor = None
         self._next_action = None
