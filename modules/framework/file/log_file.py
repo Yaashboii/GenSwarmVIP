@@ -1,11 +1,16 @@
-from modules.framework.context.file_info import BaseFile
-from modules.utils import setup_logger, LoggerLevel
+from modules.framework.files.base_file import BaseFile
+from modules.utils.logger import setup_logger, LoggerLevel
 
 
-class FileLog:
-    def __init__(self):
-        self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
-        self._file = None
+class _Logger:
+    _instance = None
+
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+            cls._logger = setup_logger(cls.__class__.__name__, LoggerLevel.DEBUG)
+            cls._file = None
+        return cls._instance
 
     def set_file(self, file: BaseFile):
         self._file = file
@@ -57,4 +62,4 @@ class FileLog:
 
         self.message = color_mapping[level].format(content)
 
-# logger = FileLog()
+logger = _Logger()

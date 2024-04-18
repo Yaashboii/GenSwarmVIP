@@ -1,35 +1,17 @@
 import os
 from enum import Enum
-from abc import ABC, abstractmethod
+from abc import ABC
 
+from modules.framework.files.base_file import BaseFile
 from modules.utils import root_manager
 
-from modules.framework.context import Filelog
-
-logger = Filelog()
+from modules.framework.files.log_file import logger
 
 class FileStatus(Enum):
     NOT_WRITTEN = 0
     NOT_TESTED = 1
     TESTED_FAIL = 2
     TESTED_PASS = 3
-
-class BaseFile:
-    @abstractmethod
-    def read(self):
-        pass
-
-    @abstractmethod
-    def wrtie(self, content):
-        pass
-
-    @property
-    def message(self):
-        pass
-
-    @message.setter
-    def message(self, value):
-        pass
 
 class File(BaseFile):
     def __init__(self, name: str = '', message: str = '', root: str = ''):
