@@ -4,16 +4,20 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
 from modules.utils import parse_code
-from modules.framework.context import logger
+from modules.framework.context import logger, ConstraintPool
 
 class AnalyzeFunctions(ActionNode):
+    def __init__(self, next_text, node_name = ''):
+        super().__init__(next_text, node_name)
+        self._constraint_pool : ConstraintPool = ConstraintPool()
+
     def _build_prompt(self):
         self.prompt = ANALYZE_FUNCTION_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             instruction=self.context.command,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
-            constraints=self.context.constraints,
+            constraints=str(self._constraint_pool),
             output_template=FUNCTION_TEMPLATE
         )
 
@@ -23,11 +27,9 @@ class AnalyzeFunctions(ActionNode):
 
         for function in self.context.functions_value(code):
             for constraint in function.satisfying_constraints:
-                self.context.add_sat_func(constraint_name=constraint, function_name=function.name)
+                self._constraint_pool.add_satisfying_func(constraint_name=constraint, function_name=function.name)
 
-        for constraint in self.context.constraints_value:
-            if not constraint.satisfyingFuncs:
-                raise SystemExit(f"Constraint {constraint.name} has no satisfying function")
+        self._constraint_pool.check_invalid_constraints()
 
         logger.log(f"Analyze Functions Success", "success")
         return response

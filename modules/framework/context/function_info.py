@@ -1,5 +1,5 @@
 from collections import defaultdict
-from modules.framework.files.file import File, logger
+from modules.file.file import File, logger
 
 # TODO: function pool and constraint pool should be rewrite totally
 class FunctionInfo:
@@ -65,10 +65,10 @@ class FunctionPool(File):
         logger.log(f"relative_function: {relative_function}", level='warning')
         self.update_message(relative_function)
 
-        errors = check_grammar(str(self.root / self.name))
+        errors = check_grammar(str(self._root / self._name))
         if errors:
             for e in errors:
-                error_function_name = find_function_name_from_error(file_path=str(self.root / self.name),
+                error_function_name = find_function_name_from_error(file_path=str(self._root / self._name),
                                                                     error_line=e['line'])
                 logger.log(f"{error_function_name}: {e['error_message']}", level='error')
             logger.log(f'Grammar check failed for {function_name}', level='error')

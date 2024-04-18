@@ -1,4 +1,4 @@
-from modules.framework.files.base_file import BaseFile
+from modules.file.base_file import BaseFile
 from modules.utils.logger import setup_logger, LoggerLevel
 
 
@@ -9,19 +9,14 @@ class _Logger:
         if not cls._instance:
             cls._instance = super().__new__(cls)
             cls._logger = setup_logger(cls.__class__.__name__, LoggerLevel.DEBUG)
-            cls._file = None
+            cls._file : BaseFile = None
         return cls._instance
 
     def set_file(self, file: BaseFile):
         self._file = file
 
-    @property
-    def message(self):
-        return self._file.message
-
-    @message.setter
-    def message(self, content: str):
-        self._file.message = content
+    def is_file_exists(self):
+        return self._file is not None
 
     def log(self, content: str, level: str = 'info'):
         """
@@ -60,6 +55,6 @@ class _Logger:
 
         log_action(content)
 
-        self.message = color_mapping[level].format(content)
+        self._file.write(color_mapping[level].format(content), mode='a')
 
 logger = _Logger()

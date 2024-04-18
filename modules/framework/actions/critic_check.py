@@ -5,15 +5,16 @@ from modules.prompt.data_critic_stage_prompt import FILTER_CONSTRAINTS_TEMPLATE,
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.task_description import TASK_DES
 from modules.utils import parse_code
-
+from modules.framework.context import ConstraintPool
 
 class CriticCheck(ActionNode):
     def _build_prompt(self):
+        constraint_pool = ConstraintPool()
         self.prompt = FILTER_CONSTRAINTS_TEMPLATE.format(
             task_des=TASK_DES,
             data_api=ROBOT_API,
             output_format=OUTPUT_FORMAT,
-            constraints='\n'.join([c.text for c in self.context.constraints_value]),
+            constraints=str(constraint_pool),
         )
 
     def _process_response(self, response: str) -> str:

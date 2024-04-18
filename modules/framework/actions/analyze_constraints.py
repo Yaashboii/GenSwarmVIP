@@ -6,19 +6,18 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
 from modules.utils import parse_code
-from modules.framework.context import logger
+from modules.framework.context import logger, ConstraintPool
 
 class AnalyzeConstraints(ActionNode):
+    def __init__(self, next_text, node_name = ''):
+        super().__init__(next_text, node_name)
+        self._constraint_pool : ConstraintPool = ConstraintPool()
+    
     def _build_prompt(self):
         # constraints predefined
-        user_constraints = {"constraints": []}
-        for constraint in self.context.constraints_value:
-            user_constraints["constraints"].append(
-                {
-                    "name": constraint.name,
-                    "description": constraint.description
-                }
-            )
+        user_constraints = {
+            "constraints": self._constraint_pool.constaint_list
+        }
         self.prompt = ANALYZE_CONSTRAINT_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             instruction=self.context.command,
@@ -30,7 +29,7 @@ class AnalyzeConstraints(ActionNode):
 
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response, lang='json')
-        self.context.add_constraint(code)
+        self._constraint_pool.add_constraint(code)
         logger.log(f"Analyze Constraints Success", "success")
         return response
 

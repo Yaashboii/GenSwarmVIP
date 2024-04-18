@@ -6,7 +6,7 @@ from modules.prompt.coding_stage_prompt import WRITE_FUNCTION_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import robot_api
 from modules.prompt.task_description import TASK_DES
 from modules.prompt.env_description_prompt import ENV_DES
-from modules.framework.context import logger
+from modules.framework.context import logger, ConstraintPool
 
 
 class WriteFunction(ActionNode):
@@ -58,18 +58,13 @@ class WriteFunctionsAsync(ActionNode):
 
     async def _run(self):
         current_layer_index = 0
+        constraint_pool : ConstraintPool = ConstraintPool()
         while current_layer_index < len(self.context.function_layer):
             tasks = []
             current_layer = self.context.function_layer[current_layer_index]
             logger.log(f"Layer: {current_layer_index}", "warning")
             for function in current_layer:
                 logger.log(f"Function: {function.name}", "warning")
-                constraint_text = ''
-                for constraint in function.satisfying_constraints:
-                    if constraint not in self.context.constraints_dict:
-                        print(f"Constraint {constraint} is not in the constraint pool")
-                        raise SystemExit
-                    constraint_text += self.context.constraints_dict[constraint].text + '\n'
 
                 function_list = [f.definition if f.content is None else f.content for f in
                                  self.context.functions_value() if f.name != function.name]
@@ -77,7 +72,7 @@ class WriteFunctionsAsync(ActionNode):
                 action = WriteFunction()
                 action.setup(function=function,
                              function_list=function_list,
-                             constraint_text=constraint_text)
+                             constraint_text=constraint_pool.filtered_constaints(function.satisfying_constraints))
                 task = asyncio.create_task(action.run())
                 tasks.append(task)
             await asyncio.gather(*tasks)

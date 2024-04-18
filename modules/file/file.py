@@ -2,10 +2,10 @@ import os
 from enum import Enum
 from abc import ABC
 
-from modules.framework.files.base_file import BaseFile
+from modules.file.base_file import BaseFile
 from modules.utils import root_manager
 
-from modules.framework.files.log_file import logger
+from modules.file.log_file import logger
 
 class FileStatus(Enum):
     NOT_WRITTEN = 0
@@ -16,15 +16,14 @@ class FileStatus(Enum):
 class File(BaseFile):
     def __init__(self, name: str = '', message: str = '', root: str = ''):
         self.version = 0
-        self.name = name
-        self.root = root
-        self.status = FileStatus.NOT_WRITTEN
+        self._name = name
+        self._root = root if root else root_manager.workspace_root
+        self._status = FileStatus.NOT_WRITTEN
         self._message = message
     
     @property
     def message(self):
         if not self._message:
-            self.root = root_manager.workspace_root
             try:
                 self._message = self.read()
             except FileNotFoundError:
@@ -34,14 +33,13 @@ class File(BaseFile):
     @message.setter
     def message(self, content: str):
         self._message = content
-        if self.status == FileStatus.NOT_WRITTEN:
-            self.status = FileStatus.NOT_TESTED
-        self.root = root_manager.workspace_root
+        if self._status == FileStatus.NOT_WRITTEN:
+            self._status = FileStatus.NOT_TESTED
         self.write(content)
 
     @property
     def file_path(self):
-        return os.path.join(self.root, self.name)
+        return os.path.join(self._root, self._name)
 
     def read(self):
         try:
@@ -52,6 +50,8 @@ class File(BaseFile):
             return f"File not found: {self.file_path}"
 
     def write(self, content, mode='w'):
+        if not logger.is_file_exists():
+            logger.set_file(File("log.md"))
         try:
             with open(self.file_path, mode) as file:
                 file.write(content)
@@ -62,9 +62,10 @@ class File(BaseFile):
             logger.log(f"File not found: {self.file_path}", level='error')
         except Exception as e:
             logger.log(f"Error writing file: {e}", level='error')
+    
 
     def copy(self, root, name=''):
-        new_name = name if name else self.name
+        new_name = name if name else self._name
         new_file = File(root=root, name=new_name)
         new_file.message = self.message
         return new_file

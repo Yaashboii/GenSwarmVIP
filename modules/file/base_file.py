@@ -7,7 +7,7 @@ class BaseFile:
         pass
 
     @abstractmethod
-    def wrtie(self, content):
+    def write(self, content):
         pass
 
     @property

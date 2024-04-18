@@ -6,7 +6,7 @@ from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import robot_api
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.framework.context import logger
+from modules.framework.context import logger, ConstraintPool
 
 class DesignFunction(ActionNode):
     def __init__(self, next_text: str, node_name: str = ''):
@@ -16,17 +16,15 @@ class DesignFunction(ActionNode):
     def setup(self, function):
         self._function = function
 
-    def _build_prompt(self):
+    def _check_function(self):
         if self._function is None:
             logger.log("Function is not set", "error")
             raise SystemExit
         logger.log(f"Function: {self._function.name}", "warning")
-        constraint_text = ''
-        for constraint in self._function.satisfying_constraints:
-            if constraint not in self.context.constraints_dict:
-                logger.log(f"Constraint {constraint} is not in the constraint pool", 'error')
-                raise SystemExit
-            constraint_text += self.context.constraints_dict[constraint].text + '\n'
+
+    def _build_prompt(self):
+        self._check_function()
+        constraint_pool : ConstraintPool = ConstraintPool()
 
         function_list = [f.text if f.definition is None else f.definition for f in
                          self.context.functions_value if f.name != self._function.name]
@@ -37,7 +35,7 @@ class DesignFunction(ActionNode):
             env_des=ENV_DES,
             function_name=self._function.name,
             function_des=self._function.description,
-            constraints=constraint_text,
+            constraints=constraint_pool.filtered_constaints(keys=self._function.satisfying_constraints),
             other_functions='\n'.join(function_list)
         )
 
