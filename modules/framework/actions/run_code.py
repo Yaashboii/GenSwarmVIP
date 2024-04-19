@@ -8,7 +8,7 @@ from modules.utils.root import root_manager
 from modules.utils import get_param, call_reset_environment
 from modules.framework.code_error import Bug, HumanFeedback
 from modules.file.log_file import logger
-
+from modules.framework.context import FunctionPool
 
 class RunCode(ActionNode):
     def __init__(self, next_text: str = '', node_name: str = ''):
@@ -90,7 +90,7 @@ class RunCodeAsync(ActionNode):
         robot_num = get_param('robots_num')
         tasks = []
         result_list = []
-        self.context.update_message()
+        FunctionPool().update_message()
         try:
             logger.log(content="call reset environment: start")
             call_reset_environment(True)

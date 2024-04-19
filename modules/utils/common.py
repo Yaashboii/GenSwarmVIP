@@ -1,6 +1,5 @@
 import os
 import re
-import ast
 import shutil
 import time
 
@@ -69,91 +68,6 @@ def parse_code(text: str, lang: str = "python") -> str:
         error_message = f"Error: No '{lang}' code block found in the text."
         raise ValueError(error_message)
     return code
-
-
-def extract_function_definitions(source_code):
-    parsed_ast = ast.parse(source_code)
-
-    def reconstruct_function_definition(function_node):
-        defaults_start_index = len(function_node.args.args) - len(function_node.args.defaults)
-
-        parameters = [
-            ast.unparse(arg) + (
-                f'={ast.unparse(function_node.args.defaults[i - defaults_start_index])}' if i >= defaults_start_index else '')
-            for i, arg in enumerate(function_node.args.args)
-        ]
-
-        func_header = f"def {function_node.name}({', '.join(parameters)}):"
-        docstring = ast.get_docstring(function_node)
-        docstring_part = ''
-        if docstring:
-            indented_docstring = '\n'.join('    ' + line for line in docstring.split('\n'))
-            docstring_part = f'    """\n{indented_docstring}\n    """\n'
-        body_part = ''
-        return f"{func_header}\n{docstring_part}{body_part}"
-
-    function_definitions = [reconstruct_function_definition(node) for node in ast.walk(parsed_ast) if
-                            isinstance(node, ast.FunctionDef)]
-
-    return function_definitions
-
-
-def combine_unique_imports(import_list):
-    unique_imports = set()
-
-    for import_str in import_list:
-        import_lines = import_str.splitlines()
-        for import_line in import_lines:
-            unique_imports.add(import_line.strip())
-
-    combined_imports = "\n".join(sorted(unique_imports))
-
-    return combined_imports
-
-
-def find_function_name_from_error(file_path, error_line):
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-        error_code_line = lines[error_line - 1].strip()
-        for i in range(error_line - 2, -1, -1):
-            if lines[i].strip().startswith('def '):
-                function_name = lines[i].strip().split('(')[0].replace('def ', '')
-                return function_name, error_code_line
-    return None, error_code_line
-
-
-def check_grammar(file_path: str):
-    import subprocess
-    command = [
-        'pylint',
-        # '--disable=W,C,I,R --enable=E,W0612',
-        '--disable=W,C,I,R ',
-        file_path
-    ]
-
-    try:
-        process = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        result = process.stdout + process.stderr
-
-        pattern = re.compile(r"(.*?):(\d+):(\d+): (\w+): (.*) \((.*)\)")
-        matches = pattern.findall(result)
-
-        errors = []
-        for match in matches:
-            file_path, line, column, error_code, error_message, _ = match
-            errors.append({
-                "file_path": file_path,
-                "line": int(line),
-                "column": int(column),
-                "error_code": error_code,
-                "error_message": error_message
-            })
-
-        return errors
-    except Exception as e:
-        logger.log(f"Error occurred when check grammar: {e}", level='error')
-        raise Exception(f"Error occurred when check grammar:{e}")
-
 
 def call_reset_environment(data: bool):
     """

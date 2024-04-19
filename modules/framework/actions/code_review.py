@@ -1,42 +1,42 @@
 import asyncio
 
 from modules.framework.action import ActionNode
-from modules.framework.code.code import Code
+from modules.framework.code.code import Code, extract_function_definitions
+from modules.framework.context.node import FunctionNode
 from modules.prompt.code_review_stage_prompt import HIGH_LEVEL_FUNCTION_REVIEW
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.utils.common import parse_code, extract_function_definitions
+from modules.utils.common import parse_code
 from modules.file.log_file import logger
+from modules.framework.context.function_info import FunctionPool
 
 
 class CodeReview(ActionNode):
     def __init__(self, next_text='', node_name=''):
         super().__init__(next_text, node_name)
-        self._function = None
+        self._function : FunctionNode = None
+        self._function_pool = FunctionPool()
 
     def _build_prompt(self):
+        other_functions = '\n\n'.join(
+            self._function_pool.filtered_function_content(exclude_function_name=self._function)
+        )
         self.prompt = HIGH_LEVEL_FUNCTION_REVIEW.format(
             task_des=TASK_DES,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
-            function_name=self._function.name,
-            other_functions='\n\n'.join(
-                ['\n'.join(f.import_list) + f.content
-                 for f in self.context.functions_value if
-                 f.name != self._function.name]),
-            function_content=self._function.content,
+            function_name=self._function._name,
+            other_functions=other_functions,
+            function_content=self._function._content,
         )
 
-    def setup(self, function):
+    def setup(self, function: FunctionNode):
         self._function = function
-        logger.log(f"Reviewing function: {self._function.name}", "warning")
+        logger.log(f"Reviewing function: {self._function._name}", "warning")
 
     def _process_response(self, response: str) -> str:
-        try:
-            desired_function_name = self._function.name
-            code = parse_code(text=response)
-            function_list = extract_function_definitions(code)
+        def check_error(function_list):
             if not function_list:
                 logger.log(
                     f"High Level Function Review Failed: No function detected in the response",
@@ -47,19 +47,26 @@ class CodeReview(ActionNode):
                     f"High Level Function Review Failed: More than one function detected in the response",
                     "error")
                 raise Exception(f"More than one function detected in the response")
-            code_obj = Code(code)
-            function_name = code_obj.extract_top_level_function_names()[0]
+            
+        def check_function_name(function_name, desired_function_name):
             if function_name != desired_function_name:
                 logger.log(
                     f"High Level Function Review Failed: Function name mismatch: {function_name} != {desired_function_name}",
                     "error")
                 raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
-            self.context.add_functions(content=code)
+        try:
+            desired_function_name = self._function._name
+            code = parse_code(text=response)
+            code_obj = Code(code)
+            function_list = code_obj.extract_function_definitions()
+            check_error(function_list)
+            function_name = code_obj.extract_top_level_function_names()[0]
+            check_function_name(function_name, desired_function_name)
+            
+            self._function_pool.add_functions(content=code)
             for function_name in function_list:
-                self.context.check_function_grammar(function_name=function_name)
-                for function in self.context.functions_value:
-                    if function_name in function.calls:
-                        self.context.check_function_grammar(function_name=function.name)
+                self._function_pool.check_function_grammar(function_name)
+                self._function_pool.check_caller_function_grammer(function_name)
             # # TODO,add bug fix mechanism for such cases,rather than just raising exception to trigger retry
             # if errors:
             #     logger.log(
@@ -75,36 +82,20 @@ class CodeReview(ActionNode):
 
 
 class CodeReviewAsync(ActionNode):
+    def __init__(self, next_text='', node_name=''):
+        super().__init__(next_text, node_name)
+        self._function_pool = FunctionPool()
+
     def _build_prompt(self):
         return super()._build_prompt()
 
     async def _run(self):
-        current_layer_index = 1
-        while current_layer_index < len(self.context.function_layer):
-            tasks = []
-            current_layer = self.context.function_layer[current_layer_index]
-            logger.log(f"Layer: {current_layer_index}", "warning")
-            for function in current_layer:
-                action = CodeReview()
-                action.setup(function)
-                task = asyncio.create_task(action.run())
-                tasks.append(task)
-            await asyncio.gather(*tasks)
-            layer_index = current_layer_index if current_layer_index < len(
-                self.context.function_layer) else len(self.context.function_layer) - 1
-            current_layer = self.context.function_layer[layer_index]
-            # TODO:add logic to rewrite function
-            try:
-                errors = []
-                for function in current_layer:
-                    error = self.context.check_function_grammar(function_name=function.name)
-                    errors.append(error)
-            except Exception as e:
-                import traceback
-                logger.log(f"error occurred in grammar check:\n {traceback.format_exc()}", 'error')
-                raise SystemExit(f"error occurred in async write functions{e}")
-            current_layer_index += 1
-
+        async def operation(function):
+            action = CodeReview()
+            action.setup(function)
+            return await action.run()
+        self._function_pool.async_handle_function_by_layer(operation, start_layer_index=1)
+        
 
 if __name__ == "__main__":
     from modules.utils import root_manager

@@ -6,11 +6,15 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
 from modules.file.log_file import logger
+from modules.framework.context import FunctionPool
 
 class WriteRun(ActionNode):
+    def __init__(self, next_text, node_name = ''):
+        super().__init__(next_text, node_name)
+        self._function_pool = FunctionPool()
+
     def _build_prompt(self):
-        functions = '\n\n'.join(
-            [f.content for f in self.context.functions_value if f.content is not None])
+        functions = '\n\n'.join(self._function_pool.function_valid_content)
         self.prompt = WRITE_RUN_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             env_des=ENV_DES,
@@ -35,8 +39,8 @@ class WriteRun(ActionNode):
             if not function_name:
                 logger.log(f"Write Code Failed: No function detected in the response", "error")
                 raise Exception
-        self.context.add_functions(content=code)
-        error = self.context.check_function_grammar(function_name=desired_function_name)
+        self._function_pool.add_functions(content=code)
+        error = self._function_pool.check_function_grammar(function_name=desired_function_name)
         # TODO,add bug fix mechanism for such cases,rather than just raising exception to triger retry
         # if error:
         #     logger.log(f"Function {desired_function_name} has syntax error: {error}", "error")

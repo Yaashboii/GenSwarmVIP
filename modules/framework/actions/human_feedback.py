@@ -7,19 +7,20 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
 from modules.utils.common import parse_code
-
+from modules.framework.context import FunctionPool
 
 class HumanCritic(ActionNode):
     def __init__(self, next_text: str = '', node_name: str = ''):
         super().__init__(next_text, node_name)
         self.feedback = None
+        self.function_pool = FunctionPool()
 
     def _build_prompt(self):
         self.prompt = HUMAN_FEEDBACK_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
-            functions=self.context.function_content(),
+            functions=self.function_pool.function_contents(),
             feedback=self.feedback,
         )
 
@@ -28,14 +29,12 @@ class HumanCritic(ActionNode):
 
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_code(text=response)
-        self.context.add_functions(content=code)
+        self.function_pool.add_functions(content=code)
         code_obj = Code(code)
         function_list = code_obj.extract_top_level_function_names()
         for function_name in function_list:
-            self.context.check_function_grammar(function_name=function_name)
-            for function in self.context.functions_value:
-                if function_name in function.calls:
-                    self.context.check_function_grammar(function_name=function.name)
+            self.function_pool.check_function_grammar(function_name)
+            self.function_pool.check_caller_function_grammer(function_name)
         return str(code)
 
 

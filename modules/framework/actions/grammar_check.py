@@ -5,19 +5,20 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
 from modules.utils.common import parse_code
-
+from modules.framework.context import FunctionPool
 
 class GrammarFeedback(ActionNode):
     def __init__(self, next_text: str = '', node_name: str = ''):
         super().__init__(next_text, node_name)
         self.feedback = None
+        self._function_pool = FunctionPool()
 
     def _build_prompt(self):
         self.prompt = HUMAN_FEEDBACK_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
-            functions=self.context.function_content,
+            functions=self._function_pool.functions_content(),
             feedback=self.feedback,
         )
 
@@ -28,13 +29,11 @@ class GrammarFeedback(ActionNode):
         code = parse_code(text=response)
         code_obj = Code(code)
         function_list = code_obj.extract_top_level_function_names()
-        self.context.add_functions(content=code)
+        self._function_pool.add_functions(content=code)
 
         for function_name in function_list:
-            self.context.check_function_grammar(function_name=function_name)
-            for function in self.context.functions_value:
-                if function_name in function.calls:
-                    self.context.check_function_grammar(function_name=function.name)
+            self._function_pool.check_function_grammar(function_name)
+            self._function_pool.check_caller_function_grammer(function_name)
         return str(code)
 
 if __name__ == '__main__':

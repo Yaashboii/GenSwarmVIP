@@ -26,8 +26,7 @@ class AnalyzeFunctions(ActionNode):
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response, lang='json')
         self._function_pool.init_functions(code)
-        self._function_pool.sync_constraints_to(self._constraint_pool)
-        self._constraint_pool.check_invalid_constraints()
+        self._constraint_pool.check_constraints_satisfaction()
         logger.log(f"Analyze Functions Success", "success")
         return response
 

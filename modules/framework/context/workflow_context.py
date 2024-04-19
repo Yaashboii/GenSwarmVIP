@@ -33,6 +33,7 @@ class WorkflowContext(Context):
         self.function_pool = FunctionPool()
         self.design_result = File(name='design_result.py')
         self.function_list = []
+        self.parameters = File(name="parameters.md")
         self.run_code = File(name='run.py', message="""import sys
 from functions import run_loop
 robot_id = sys.argv[1]
@@ -60,40 +61,12 @@ if __name__ == '__main__':
         self._instance.user_command.message = value
 
     @property
-    def functions_value(self):
-        self._instance.function_pool._functions.values()
-
-    @property
-    def function_layer(self):
-        self._instance.function_pool._function_layer
-
-    @property
     def parameters(self):
         return self._instance.parameters.message
     
     @parameters.setter
     def parameters(self, value):
         self._instance.parameters.message = value
-
-    @property
-    def function_content(self):
-        return self._instance.function_pool.functions_content()
-
-    def init_functions(self, code):
-        self._instance.function_pool.init_functions(code)
-
-    def add_functions(self, content):
-        self._instance.function_pool.add_functions(content)
-
-    def check_function_grammar(self, function_name):
-        self._instance.function_pool.check_function_grammar(function_name)
-
-    def update_message(self):
-        self._instance.function_pool.update_message()
-
-    def set_function_definition(self, function_name, definition):
-        self._instance.function_pool._functions[function_name]._definition = function
-
 
 if __name__ == '__main__':
     context = WorkflowContext()

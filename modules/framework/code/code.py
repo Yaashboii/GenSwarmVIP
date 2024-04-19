@@ -51,3 +51,33 @@ class Code:
                 function_names.append(node.name)
 
         return function_names
+
+
+    def extract_function_definitions(self):
+        parsed_ast = ast.parse(self._code_str)
+
+        def reconstruct_function_definition(function_node):
+            defaults_start_index = len(function_node.args.args) - len(function_node.args.defaults)
+
+            parameters = [
+                ast.unparse(arg) + (
+                    f'={ast.unparse(function_node.args.defaults[i - defaults_start_index])}' if i >= defaults_start_index else '')
+                for i, arg in enumerate(function_node.args.args)
+            ]
+
+            func_header = f"def {function_node.name}({', '.join(parameters)}):"
+            docstring = ast.get_docstring(function_node)
+            docstring_part = ''
+            if docstring:
+                indented_docstring = '\n'.join('    ' + line for line in docstring.split('\n'))
+                docstring_part = f'    """\n{indented_docstring}\n    """\n'
+            body_part = ''
+            return f"{func_header}\n{docstring_part}{body_part}"
+
+        function_definitions = [reconstruct_function_definition(node) for node in ast.walk(parsed_ast) if
+                                isinstance(node, ast.FunctionDef)]
+        
+
+        return function_definitions
+
+

@@ -6,7 +6,8 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
 from modules.utils.common import parse_code
-from modules.file.log_file import logger, ConstraintPool
+from modules.file.log_file import logger
+from modules.framework.context import ConstraintPool
 
 class AnalyzeConstraints(ActionNode):
     def __init__(self, next_text, node_name = ''):
@@ -29,7 +30,7 @@ class AnalyzeConstraints(ActionNode):
 
     def _process_response(self, response: str) -> str:
         code = parse_code(text=response, lang='json')
-        self._constraint_pool.add_constraint(code)
+        self._constraint_pool.init_constraints(code)
         logger.log(f"Analyze Constraints Success", "success")
         return response
 
