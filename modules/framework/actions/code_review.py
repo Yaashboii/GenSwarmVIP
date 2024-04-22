@@ -19,16 +19,15 @@ class CodeReview(ActionNode):
         self._function_pool = FunctionPool()
 
     def _build_prompt(self):
-        other_functions = '\n\n'.join(
-            self._function_pool.filtered_function_content(exclude_function_name=self._function)
-        )
+        other_functions : list[FunctionNode] = self._function_pool.filtered_functions(self._function)
+        other_functions_str = '\n\n'.join([f.function_body for f in other_functions])
         self.prompt = HIGH_LEVEL_FUNCTION_REVIEW.format(
             task_des=TASK_DES,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
             function_name=self._function._name,
-            other_functions=other_functions,
-            function_content=self._function._content,
+            other_functions=other_functions_str,
+            function_content=self._function.content,
         )
 
     def setup(self, function: FunctionNode):
@@ -94,7 +93,7 @@ class CodeReviewAsync(ActionNode):
             action = CodeReview()
             action.setup(function)
             return await action.run()
-        self._function_pool.async_handle_function_by_layer(operation, start_layer_index=1)
+        self._function_pool.process_function_layers(operation, start_layer_index=1)
         
 
 if __name__ == "__main__":

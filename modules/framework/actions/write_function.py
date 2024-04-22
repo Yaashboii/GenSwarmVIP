@@ -69,15 +69,16 @@ class WriteFunctionsAsync(ActionNode):
     async def _run(self):
         constraint_pool : ConstraintPool = ConstraintPool()
         async def operation(function: FunctionNode):
-            logger.log(f"Function: {function._name}", "warning")
-            other_functions = self._function_pool.filtered_function_definition(function)
+            logger.log(f"Function: {function.name}", "warning")
+            other_functions : list[FunctionNode] = self._function_pool.filtered_functions(function)
+            other_functions_str = '\n\n'.join([f.content for f in other_functions])
 
             action = WriteFunction()
             action.setup(function=function,
-                         other_functions=other_functions,
-                         constraint_text=constraint_pool.filtered_constaints(function._satisfying_constraints))
+                         other_functions=other_functions_str,
+                         constraint_text=constraint_pool.filtered_constaints(function.connections))
             return await action.run()
-        self._function_pool.async_handle_function_by_layer(operation, start_layer_index=1)      
+        self._function_pool.process_function_layers(operation, start_layer_index=1)      
          
 
 

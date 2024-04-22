@@ -17,6 +17,10 @@ class Node(ABC):
     @property
     def name(self):
         return self._name
+    
+    @property
+    def description(self):
+        return self._description
 
     def connect_to(self, node: 'Node'):
         if node not in self._connections:
@@ -42,24 +46,35 @@ class FunctionNode(Node):
     def __init__(self, name, description):
         super().__init__(name, description)
         self._import_list : list[str] = []
-        self._reference_functions : set[FunctionNode] = []
-        self._content = None
+        self._callees : set[FunctionNode] = []
+        self._callers : set[FunctionNode] = []
+        self.content = None
         self._definition = None
 
     @property
-    def calls(self):
-        return self._reference_functions
+    def callees(self):
+        return self._callees
+    
+    @property
+    def callers(self):
+        return self._callers
 
     @property
     def function_body(self):
-        return '\n'.join(self._import_list) + self._content
-
-    @calls.setter
-    def calls(self, value):
-        self._reference_functions = value
+        return '\n'.join(self._import_list) + self.content
 
     def add_import(self, import_content):
         self._import_list.extend(import_content)
 
-    def add_reference_function(self, function : 'FunctionNode'):
-        self._reference_functions.add(function)
+    def add_callee(self, function : 'FunctionNode'):
+        if function not in self._callees:
+            self._callees.add(function)
+            function.add_caller(self)
+
+    def add_caller(self, function : 'FunctionNode'):
+        if function not in self._callers:
+            self._callers.add(function)
+            function.add_callee(self)
+
+
+    

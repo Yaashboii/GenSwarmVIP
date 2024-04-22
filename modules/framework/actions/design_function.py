@@ -28,16 +28,17 @@ class DesignFunction(ActionNode):
         logger.log(f"Function: {self._function._name}", "warning")
 
         constraint_pool : ConstraintPool = ConstraintPool()
-        function_list = self._function_pool.filtered_function_info(self._function)
-
+        other_functions : list[FunctionNode] = self._function_pool.filtered_functions(function)
+        other_functions_str = '\n\n'.join([f.brief for f in other_functions])
+        
         self.prompt = DesignFunction_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
-            function_name=self._function._name,
-            function_des=self._function._description,
-            constraints=constraint_pool.filtered_constaints(keys=self._function._satisfying_constraints),
-            other_functions='\n'.join(function_list)
+            function_name=self._function.name,
+            function_des=self._function.description,
+            constraints=constraint_pool.filtered_constaints(keys=self._function.connections),
+            other_functions='\n'.join(other_functions_str)
         )
 
     def _process_response(self, response: str) -> str:
@@ -79,7 +80,7 @@ class DesignFunctionAsync(ActionNode):
             action = DesignFunction('design single function')
             action.setup(function)
             return await action.run()
-        function_pool.async_handle_function_by_layer(operation, start_layer_index=0, check_grammer=False)   
+        function_pool.process_function_layers(operation, start_layer_index=0, check_grammer=False)   
 
 
 if __name__ == "__main__":

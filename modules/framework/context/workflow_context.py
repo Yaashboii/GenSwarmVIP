@@ -3,7 +3,6 @@ import pickle
 from abc import ABC, abstractmethod
 
 from modules.file.file import File
-from modules.framework.context.function_info import FunctionPool
 
 class Context(ABC):
     @abstractmethod
@@ -30,10 +29,8 @@ class WorkflowContext(Context):
 
     def _initialize(self):
         self.user_command = File(name='command.md')
-        self.function_pool = FunctionPool()
         self.design_result = File(name='design_result.py')
-        self.function_list = []
-        self.parameters = File(name="parameters.md")
+        self.parameters : File = File(name="parameters.md")
         self.run_code = File(name='run.py', message="""import sys
 from functions import run_loop
 robot_id = sys.argv[1]

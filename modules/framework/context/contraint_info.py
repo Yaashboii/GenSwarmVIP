@@ -1,6 +1,6 @@
 from modules.file.file import File, logger
 from modules.framework.context.node import ConstraintNode
-from modules.framework.context import FunctionNode, ConstraintNode
+from modules.framework.context import ConstraintNode
 
 class ConstraintPool():
     _instance = None
