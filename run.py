@@ -17,7 +17,7 @@ async def run_all_tasks_sequentially(task_list, args):
         content = task["task"]
         times = task["run_times"]
         for i in range(times):
-            root_manager.update_root()
+            # root_manager.update_root()
             await run_task(content, args)
 
 

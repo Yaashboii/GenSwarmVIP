@@ -1,6 +1,5 @@
 import os
 from enum import Enum
-from abc import ABC
 
 from modules.file.base_file import BaseFile
 from modules.utils import root_manager
@@ -56,6 +55,8 @@ class File(BaseFile):
     def write(self, content, mode='w'):
         if not logger.is_file_exists():
             logger.set_file(File("log.md"))
+        if not os.path.exists(self._root):
+            os.makedirs(self._root)
         try:
             with open(self.file_path, mode) as file:
                 file.write(content)
@@ -67,10 +68,8 @@ class File(BaseFile):
         except Exception as e:
             logger.log(f"Error writing file: {e}", level='error')
     
-
     def copy(self, root, name=''):
         new_name = name if name else self._name
         new_file = File(root=root, name=new_name)
         new_file.message = self.message
         return new_file
-

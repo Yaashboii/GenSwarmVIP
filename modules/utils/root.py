@@ -11,6 +11,7 @@ class _RootManager:
             cls.project_root = None
             cls.workspace_root = None
             cls.data_root = None
+            cls._instance.update_root()
         return cls._instance
 
     def update_root(self, workspace_root: str = None) -> None:
