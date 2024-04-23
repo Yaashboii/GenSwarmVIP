@@ -60,12 +60,12 @@ class DesignFunction(ActionNode):
         desired_function_name = self._function._name
         code = parse_code(text=response)
         code_obj = AstParser(code)
-        definition_list = code_obj.extract_function_definitions()
+        definition_list = code_obj.function_defs
         check_error(definition_list)
 
         for definition in definition_list:
             code_obj = AstParser(definition)
-            function_name = code_obj.extract_top_level_function_names()[0]
+            function_name = code_obj.function_names[0]
             check_function(function_name, desired_function_name)
             self._function_pool.set_definiton(function_name, definition)
         return str(code)

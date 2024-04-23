@@ -1,7 +1,7 @@
 import asyncio
 
 from modules.framework.action import ActionNode
-from modules.framework.code.code import AstParser, extract_function_definitions
+from modules.framework.code.code import AstParser
 from modules.framework.context.node import FunctionNode
 from modules.prompt.code_review_stage_prompt import HIGH_LEVEL_FUNCTION_REVIEW
 from modules.prompt.robot_api_prompt import ROBOT_API
@@ -57,9 +57,9 @@ class CodeReview(ActionNode):
             desired_function_name = self._function._name
             code = parse_code(text=response)
             code_obj = AstParser(code)
-            function_list = code_obj.extract_function_definitions()
+            function_list = code_obj.function_defs
             check_error(function_list)
-            function_name = code_obj.extract_top_level_function_names()[0]
+            function_name = code_obj.function_names[0]
             check_function_name(function_name, desired_function_name)
             
             self._function_pool.add_functions(content=code)

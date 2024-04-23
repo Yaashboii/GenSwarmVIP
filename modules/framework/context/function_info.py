@@ -63,19 +63,17 @@ class FunctionPool():
 
     def add_functions(self, content: str):
         code = AstParser(content)
-        import_list, function_list = code.extract_imports_and_functions(content)
-        self._import_list.extend(import_list)
-        for function in function_list:
+        self._import_list.extend(code.imports)
+        for function in code.function_contents:
             code_obj = AstParser(function)
-            function_name = code_obj.extract_top_level_function_names()[0]
-            import_content, function_content = code_obj.extract_imports_and_functions(function)
-            self._function_tree[function_name].content = function_content[0]
+            function_name = code_obj.function_names()[0]
+            self._function_tree[function_name].content = code_obj.function_contents[0]
 
-            self._function_tree[function_name].add_import(import_content)
+            self._function_tree[function_name].add_import(code_obj.imports)
             self._function_tree[function_name].callees = []
             for other_function in self._function_tree.nodes:
                 if (other_function._name != function_name and 
-                    other_function._name in function_content[0]):
+                    other_function._name in code_obj.function_contents[0]):
                     self._function_tree[function_name].add_callee(other_function)
             logger.log(f" function_name: {function_name}, "
                        f"calls: {self._function_tree[function_name].callees}", 

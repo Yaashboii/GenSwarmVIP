@@ -1,46 +1,52 @@
 import unittest
 
-from modules.framework.code.code import AstParser 
+from modules.framework.code.code import AstParser, parse_code
 
-class TestCode(unittest.TestCase):
-    
+class TestAstParser(unittest.TestCase):
+
     def setUp(self):
         self.code_str = """
 import math
-from os import path
+from collections import deque as d
 
-def add(a, b):
+def add(a, b=0):
+    \"\"\"This function adds two numbers.\"\"\"
     return a + b
-def subtract(a, b):
-    return a - b
+
+def subtract(x, y=0):
+    \"\"\"This function subtracts two numbers.\"\"\"
+    return x - y
         """
-        self.code = AstParser(self.code_str)
 
-    def test_extract_imports_and_functions(self):
-        expected_imports = ['import math', 'from os import path']
-        expected_functions = ['def add(a, b):\n    return a + b', 'def subtract(a, b):\n    return a - b']
-        
-        imports, functions = self.code.extract_imports_and_functions()
-        
-        self.assertEqual(imports, expected_imports)
-        self.assertEqual(functions, expected_functions)
+        self.parser = AstParser(self.code_str)
 
-    def test_extract_top_level_function_names(self):
-        expected_function_names = ['add', 'subtract']
-        
-        function_names = self.code.extract_top_level_function_names()
-        
-        self.assertEqual(function_names, expected_function_names)
+    def test_imports(self):
+        expected_imports = {"import math", "from collections import deque as d"}
+        self.assertEqual(self.parser.imports, expected_imports)
 
-    def test_extract_function_definitions(self):
-        expected_definitions = [
-            "def add(a, b):\n",
-            "def subtract(a, b):\n"
+    def test_function_names(self):
+        expected_function_names = {"add", "subtract"}
+        self.assertEqual(set(self.parser.function_names), expected_function_names)
+
+    def test_function_contents(self):
+        expected_function_contents = [
+            'def add(a, b=0):\n    """This function adds two numbers."""\n    return a + b',
+            'def subtract(x, y=0):\n    """This function subtracts two numbers."""\n    return x - y'
         ]
-        
-        definitions = self.code.extract_function_definitions()
-        
-        self.assertEqual(definitions, expected_definitions)
+        self.assertEqual(list(self.parser.function_contents), expected_function_contents)
+
+    def test_function_defs(self):
+        expected_function_defs = [
+            'def add(a, b=0):\n    """\n    This function adds two numbers.\n    """\n',
+            'def subtract(x, y=0):\n    """\n    This function subtracts two numbers.\n    """\n'
+        ]
+        self.assertEqual(self.parser.function_defs, expected_function_defs)
+
+    def test_parse_code(self):
+        text = "```python\nprint('Hello, World!')\n```"
+        expected_code = "print('Hello, World!')\n"
+        parsed_code = parse_code(text)
+        self.assertEqual(parsed_code, expected_code)
 
 if __name__ == '__main__':
     unittest.main()

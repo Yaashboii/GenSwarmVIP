@@ -28,7 +28,7 @@ class GrammarFeedback(ActionNode):
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_code(text=response)
         code_obj = AstParser(code)
-        function_list = code_obj.extract_top_level_function_names()
+        function_list = code_obj.function_names
         self._function_pool.add_functions(content=code)
 
         for function_name in function_list:

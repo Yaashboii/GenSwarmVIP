@@ -40,7 +40,7 @@ class WriteFunction(ActionNode):
         desired_function_name = self._function.name
         code = parse_code(text=response)
         code_obj = AstParser(code)
-        function_list = code_obj.extract_top_level_function_names()
+        function_list = code_obj.function_names
         if not function_list:
             logger.log(f"Write Code Failed: No function detected in the response", "error")
             raise Exception

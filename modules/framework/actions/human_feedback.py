@@ -31,7 +31,7 @@ class HumanCritic(ActionNode):
         code = parse_code(text=response)
         self.function_pool.add_functions(content=code)
         code_obj = AstParser(code)
-        function_list = code_obj.extract_top_level_function_names()
+        function_list = code_obj.function_names
         for function_name in function_list:
             self.function_pool.check_function_grammar(function_name)
             self.function_pool.check_caller_function_grammer(function_name)

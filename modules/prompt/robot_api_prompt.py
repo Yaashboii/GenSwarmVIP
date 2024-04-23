@@ -1,5 +1,5 @@
 from modules.framework.code.code import AstParser
-from modules.utils import extract_function_definitions, read_file
+from modules.utils import extract_function_definitions,
 
 robot_api = """
 def get_position():
@@ -56,15 +56,14 @@ def get_surrounding_obstacles_info():
 
 # data_api = read_file("modules/env/", filename="data_apis.py")
 
-
 class RobotApi:
     def __init__(self, content):
         self.content = content
-        api_list = extract_function_definitions(content)
+        code_obj = AstParser(content)
         self.apis = {}
-        for api in api_list:
+        for api in code_obj.function_defs:
             code_obj = AstParser(api)
-            name = code_obj.extract_top_level_function_names(api)[0]
+            name = code_obj.function_names()[0]
             self.apis[name] = api
 
     def get_prompt(self, name: list[str] | str = None) -> str:
@@ -77,7 +76,6 @@ class RobotApi:
             return '\n\n'.join(prompts)
         except Exception as e:
             raise SystemExit(f"Error in get_prompt: {e},current existing apis:{self.apis.keys()},input name:{name}")
-
 
 robot_api = RobotApi(content=robot_api)
 ROBOT_API = robot_api.get_prompt()
