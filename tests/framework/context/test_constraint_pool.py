@@ -1,0 +1,112 @@
+import unittest
+from unittest.mock import patch, PropertyMock, Mock
+from modules.framework.context.node import ConstraintNode
+from modules.file.file import File
+from modules.framework.context import ConstraintPool
+
+
+class TestConstraintPool(unittest.TestCase):
+
+    def setUp(self):
+        self.constraint_pool = ConstraintPool()
+        self.constraint_pool._constraint_nodes = {}
+
+    @patch('modules.file.file.logger.log')
+    def test_getitem_with_existing_constraint(self, mock_logger):
+        constraint_node = ConstraintNode(name='constraint1', description='desc1')
+        self.constraint_pool._constraint_nodes['constraint1'] = constraint_node
+
+        result = self.constraint_pool['constraint1']
+        
+        self.assertEqual(result, constraint_node)
+        mock_logger.assert_not_called()
+
+    @patch('modules.file.file.logger.log')
+    def test_getitem_with_non_existing_constraint(self, mock_logger):
+        with self.assertRaises(SystemExit):
+            self.constraint_pool['non_existing_constraint']
+        
+        mock_logger.assert_called_once()
+
+    def test_str_method(self):
+        constraint_node = ConstraintNode(name='constraint1', description='desc1')
+        self.constraint_pool._constraint_nodes['constraint1'] = constraint_node
+
+        result = str(self.constraint_pool)
+        
+        self.assertEqual(result, '**constraint1**: desc1')
+
+    def test_constaint_list_property(self):
+        constraint_node = ConstraintNode(name='constraint1', description='desc1')
+        self.constraint_pool._constraint_nodes['constraint1'] = constraint_node
+
+        result = self.constraint_pool.constaint_list
+        
+        self.assertEqual(result, [{"name": "constraint1", "description": "desc1"}])
+
+    @patch('modules.file.file.File.message', new_callable=PropertyMock)
+    def test_init_constraints(self, mock_file_message):
+        content = '{"constraints": [{"name": "constraint1", "description": "desc1"}]}'
+        self.constraint_pool.init_constraints(content)
+        
+        self.assertTrue('constraint1' in self.constraint_pool._constraint_nodes)
+        self.assertEqual(self.constraint_pool._constraint_nodes['constraint1'].description, 'desc1')
+        mock_file_message.assert_called_once()
+
+    def test_check_constraints_satisfaction_with_satisfied_constraints(self):
+        constraint_node = ConstraintNode(name='constraint1', description='desc1')
+        constraint_node.connect_to(Mock())
+        self.constraint_pool._constraint_nodes['constraint1'] = constraint_node
+
+        self.constraint_pool.check_constraints_satisfaction()
+        
+
+    @patch('modules.file.file.File.message', new_callable=Mock())
+    def test_check_constraints_satisfaction_with_unsatisfied_constraints(self, mock_file_message):
+        constraint_node = ConstraintNode(name='constraint1', description='desc1')
+        self.constraint_pool._constraint_nodes['constraint1'] = constraint_node
+
+        with self.assertRaises(SystemExit):
+            self.constraint_pool.check_constraints_satisfaction()
+
+    def test_filtered_constraints(self):
+        constraint_node = ConstraintNode(name="constraint1", description='desc1')
+        self.constraint_pool._constraint_nodes["constraint1"] = constraint_node
+
+        result = self.constraint_pool.filtered_constaints(['constraint1'])
+        self.assertEqual(result, '**constraint1**: desc1')
+
+        constraint_node_2 = ConstraintNode(name="constraint2", description='desc2')
+        self.constraint_pool._constraint_nodes["constraint2"] = constraint_node_2
+        result_2 = self.constraint_pool.filtered_constaints(['constraint1', 'constraint2'])
+
+        self.assertEqual(result_2, '**constraint1**: desc1\n**constraint2**: desc2')
+
+    @patch('modules.file.file.logger.log')
+    def test_filtered_non_existed_constraints(self, mock_logger):
+        with self.assertRaises(SystemExit):
+            self.constraint_pool.filtered_constaints(['constraint9'])
+
+        mock_logger.assert_called_with("Constraint constraint9 is not in the constraint pool", 'error')
+
+    @patch('modules.file.file.logger.log')
+    def test_getitem_with_existing_constraint(self, mock_logger):
+        constraint_node = ConstraintNode(name='constraint1', description='desc1')
+        self.constraint_pool._constraint_nodes['constraint1'] = constraint_node
+
+        result = self.constraint_pool['constraint1']
+        
+        self.assertEqual(result, constraint_node)
+        mock_logger.assert_not_called()
+        
+
+    @patch('modules.file.file.logger.log')
+    def test_getitem_with_non_existing_constraint(self, mock_logger):
+        with self.assertRaises(SystemExit):
+            self.constraint_pool['non_existing_constraint']
+        
+        mock_logger.assert_called_once()
+
+
+if __name__ == '__main__':
+    unittest.main()
