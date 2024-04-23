@@ -1,7 +1,7 @@
 import asyncio
 
 from modules.framework.action import ActionNode
-from modules.framework.code.code import Code
+from modules.framework.code.code import AstParser
 from modules.framework.context.node import FunctionNode
 from modules.framework.code.code import parse_code
 from modules.prompt.coding_stage_prompt import WRITE_FUNCTION_PROMPT_TEMPLATE
@@ -39,7 +39,7 @@ class WriteFunction(ActionNode):
     def _process_response(self, response: str) -> str:
         desired_function_name = self._function.name
         code = parse_code(text=response)
-        code_obj = Code(code)
+        code_obj = AstParser(code)
         function_list = code_obj.extract_top_level_function_names()
         if not function_list:
             logger.log(f"Write Code Failed: No function detected in the response", "error")

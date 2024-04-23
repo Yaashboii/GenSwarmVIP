@@ -1,5 +1,5 @@
 from modules.file.file import File, logger
-from modules.framework.code.code import Code  
+from modules.framework.code.code import AstParser  
 from modules.framework.context.node import FunctionNode
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.framework.context.tree import FunctionTree
@@ -12,7 +12,6 @@ class FunctionPool():
         if not cls._instance:
             cls._instance = super().__new__()
             cls._import_list: list[str] = ['from apis import *']
-            cls._functions_dict: dict[str, FunctionNode] = {}
             cls._function_tree = FunctionTree()
             cls._file = File(name='functions.py')
             cls._grammar_checker = GrammarChecker()
@@ -20,21 +19,21 @@ class FunctionPool():
     
     @property
     def function_contents(self):
-        result = [f.function_body for f in self._functions_dict.values()]
+        result = [f.function_body for f in self._function_tree.nodes]
         return result
     
     @property
     def function_infos(self):
-        result = [f.brief for f in self._functions_dict.values()]
+        result = [f.brief for f in self._function_tree.nodes]
         return result
     
     @property
     def function_valid_content(self):
-        result = [f.content for f in self._functions_dict.values() if f.content]
+        result = [f.content for f in self._function_tree.nodes if f.content]
         return result
     
     def filtered_functions(self, exclude_function: FunctionNode):
-        result = [value for value in self._functions_dict.values()
+        result = [value for value in self._function_tree.nodes
                   if value != exclude_function.name]
         return result
     
@@ -47,41 +46,42 @@ class FunctionPool():
         try:
             for function in eval(content)['functions']:
                 name = function['name']
-                self._functions_dict[name] = FunctionNode(
+                self._function_tree[name] = FunctionNode(
                     name=name,
                     description=function['description'],
                 )
 
-                [self._functions_dict[name].connect_to(constraint_pool[constraint_name]) 
+                [self._function_tree[name].connect_to(constraint_pool[constraint_name]) 
                  for constraint_name in function["constraints"]]
                 
-                [self._functions_dict[name].add_callee(call) for call in function['calls']] 
+                [self._function_tree[name].add_callee(call) for call in function['calls']] 
 
-            self._function_tree.update(self._functions_dict)
+            self._function_tree.update()
         except Exception as e:
             logger.log(f'Error in init_functions: {e}', level='error')
             raise Exception
 
     def add_functions(self, content: str):
-        code = Code(content)
+        code = AstParser(content)
         import_list, function_list = code.extract_imports_and_functions(content)
         self._import_list.extend(import_list)
         for function in function_list:
-            code_obj = Code(function)
+            code_obj = AstParser(function)
             function_name = code_obj.extract_top_level_function_names()[0]
-            import_content, function_content = code.extract_imports_and_functions(function)
-            self._functions_dict.setdefault(
-                function_name,
-                FunctionNode(name=function_name, description='')
-            ).content = function_content[0]
-            self._functions_dict[function_name].add_import(import_content)
-            self._functions_dict[function_name].callees = []
-            for other_function in self._functions_dict.values():
-                if other_function._name != function_name and other_function._name in function_content[0]:
-                    self._functions_dict[function_name].add_callee(other_function)
-            logger.log(f" function_name: {function_name}, calls: {self._functions_dict[function_name].callees}", level='info')
+            import_content, function_content = code_obj.extract_imports_and_functions(function)
+            self._function_tree[function_name].content = function_content[0]
 
-        self._function_tree.update(self._functions_dict)
+            self._function_tree[function_name].add_import(import_content)
+            self._function_tree[function_name].callees = []
+            for other_function in self._function_tree.nodes:
+                if (other_function._name != function_name and 
+                    other_function._name in function_content[0]):
+                    self._function_tree[function_name].add_callee(other_function)
+            logger.log(f" function_name: {function_name}, "
+                       f"calls: {self._function_tree[function_name].callees}", 
+                       level='info')
+
+        self._function_tree.update()
 
     def check_function_grammar(self, function: FunctionNode):
         function_name = function.name
@@ -99,9 +99,9 @@ class FunctionPool():
     def extend_calls(self, function_name: str, seen: set = None):
         if seen is None:
             seen = set()
-        if function_name not in seen and function_name in self._functions_dict:
+        if function_name not in seen and function_name in self._function_tree.keys():
             seen.add(function_name)
-            calls = self._functions_dict[function_name].callees
+            calls = self._function_tree[function_name].callees
             [self.extend_calls(call, seen) for call in calls if call not in seen]
         return list(seen)
 
@@ -122,16 +122,16 @@ class FunctionPool():
         if function_name:
             if isinstance(function_name, str):
                 function_name = [function_name]
-            return '\n\n\n'.join([self._functions_dict[f].content for f in function_name])
-        return '\n\n\n'.join([f.content for f in self._functions_dict.values()])
+            return '\n\n\n'.join([self._function_tree[f].content for f in function_name])
+        return '\n\n\n'.join([f.content for f in self._function_tree.nodes])
 
     def check_caller_function_grammer(self, function_name):
         [self.check_function_grammar(f._name) 
-         for f in self._functions_dict.values() 
+         for f in self._function_tree.nodes
          if function_name in f._callees]
     
     def set_definiton(self, function_name, definition):
-        self._functions_dict[function_name]._definition = definition
+        self._function_tree[function_name]._definition = definition
 
     def process_function_layers(self, operation, start_layer_index=0, check_grammer=True):
         import asyncio

@@ -1,6 +1,6 @@
 import unittest
 
-from modules.framework.code.code import Code 
+from modules.framework.code.code import AstParser 
 
 class TestCode(unittest.TestCase):
     
@@ -14,7 +14,7 @@ def add(a, b):
 def subtract(a, b):
     return a - b
         """
-        self.code = Code(self.code_str)
+        self.code = AstParser(self.code_str)
 
     def test_extract_imports_and_functions(self):
         expected_imports = ['import math', 'from os import path']

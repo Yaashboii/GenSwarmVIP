@@ -1,7 +1,7 @@
 import asyncio
 
 from modules.framework.action import ActionNode
-from modules.framework.code.code import Code
+from modules.framework.code.code import AstParser
 from modules.framework.context.node import FunctionNode
 from modules.framework.code.code import parse_code
 from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
@@ -59,12 +59,12 @@ class DesignFunction(ActionNode):
                 raise Exception  # trigger retry
         desired_function_name = self._function._name
         code = parse_code(text=response)
-        code_obj = Code(code)
+        code_obj = AstParser(code)
         definition_list = code_obj.extract_function_definitions()
         check_error(definition_list)
 
         for definition in definition_list:
-            code_obj = Code(definition)
+            code_obj = AstParser(definition)
             function_name = code_obj.extract_top_level_function_names()[0]
             check_function(function_name, desired_function_name)
             self._function_pool.set_definiton(function_name, definition)

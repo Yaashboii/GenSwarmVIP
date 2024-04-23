@@ -2,21 +2,22 @@ import ast
 import re
 
 
-class Code:
+class AstParser:
     def __init__(self, code_str) -> None:
         self._code_str = code_str
-        self._imports = []
+        self._imports = set()
         self._functions = []
 
     def extract_imports_and_functions(self):
         parsed_ast = ast.parse(self._code_str)
         for node in parsed_ast.body:
-            if isinstance(node, (ast.Import, ast.ImportFrom)) and isinstance(node, ast.Import):
+            if isinstance(node, ast.Import):
                 for alias in node.names:
                     import_str = f"import {alias.name}"
                     if alias.asname:
                         import_str += f" as {alias.asname}"
-                    self._imports.append(import_str)
+                    self._imports.add(import_str)
+                
             elif isinstance(node, ast.ImportFrom):
                 module = node.module if node.module else ''
                 import_from_str = "from {} import ".format(module)
@@ -27,7 +28,8 @@ class Code:
                     else:
                         names_with_as.append(alias.name)
                 import_from_str += ", ".join(names_with_as)
-                self._imports.append(import_from_str)
+                self._imports.add(import_from_str)
+            
             elif isinstance(node, ast.FunctionDef):
                 func_def = ast.unparse(node).strip()
                 if func_def:
@@ -62,7 +64,8 @@ class Code:
 
             parameters = [
                 ast.unparse(arg) + (
-                    f'={ast.unparse(function_node.args.defaults[i - defaults_start_index])}' if i >= defaults_start_index else '')
+                    f'={ast.unparse(function_node.args.defaults[i - defaults_start_index])}' 
+                        if i >= defaults_start_index else '')
                 for i, arg in enumerate(function_node.args.args)
             ]
 
@@ -75,8 +78,9 @@ class Code:
             body_part = ''
             return f"{func_header}\n{docstring_part}{body_part}"
 
-        function_definitions = [reconstruct_function_definition(node) for node in ast.walk(parsed_ast) if
-                                isinstance(node, ast.FunctionDef)]
+        function_definitions = [reconstruct_function_definition(node) 
+                                for node in ast.walk(parsed_ast) 
+                                if isinstance(node, ast.FunctionDef)]
         
 
         return function_definitions

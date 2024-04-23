@@ -73,11 +73,26 @@ class FunctionTree:
             start, stop, step = key.indices(len(self._layers))
             sliced_layers = [self._layers[i] for i in range(start, stop, step)]
             return sliced_layers 
+        elif isinstance(key, str):
+            if key not in self._function_nodes:
+                return FunctionNode(name=key, description='')
+            return self._function_nodes[key]
         else:
             raise TypeError("Invalid index type")
+        
+    def __setitem__(self, key, value):
+        if isinstance(key, str):
+            self._function_nodes[key] = value
+
+    @property
+    def nodes(self):
+        return self._function_nodes.values()
     
-    def update(self, function_dict):
-        self._function_nodes = function_dict
+    @property
+    def keys(self):
+        return self._function_nodes.keys()
+    
+    def update(self):
         self._layer_head =  self._get_bottom_layer()
         self._current_layer = self._layer_head
         self._build_up(self._layer_head)

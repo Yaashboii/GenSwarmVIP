@@ -1,7 +1,7 @@
 import json
 
 from modules.framework.action import ActionNode
-from modules.framework.code.code import Code
+from modules.framework.code.code import AstParser
 from modules.prompt.run_code_prompt import HUMAN_FEEDBACK_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
@@ -30,7 +30,7 @@ class HumanCritic(ActionNode):
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_code(text=response)
         self.function_pool.add_functions(content=code)
-        code_obj = Code(code)
+        code_obj = AstParser(code)
         function_list = code_obj.extract_top_level_function_names()
         for function_name in function_list:
             self.function_pool.check_function_grammar(function_name)

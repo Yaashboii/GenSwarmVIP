@@ -1,4 +1,4 @@
-from modules.framework.code.code import Code
+from modules.framework.code.code import AstParser
 from modules.utils import extract_function_definitions, read_file
 
 robot_api = """
@@ -63,7 +63,7 @@ class RobotApi:
         api_list = extract_function_definitions(content)
         self.apis = {}
         for api in api_list:
-            code_obj = Code(api)
+            code_obj = AstParser(api)
             name = code_obj.extract_top_level_function_names(api)[0]
             self.apis[name] = api
 
