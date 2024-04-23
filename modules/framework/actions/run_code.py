@@ -5,10 +5,11 @@ import sys
 
 from modules.framework.action import ActionNode
 from modules.utils.root import root_manager
-from modules.utils import get_param, call_reset_environment
+from modules.utils.common import get_param, call_reset_environment, generate_video_from_frames
 from modules.framework.code_error import Bug, HumanFeedback
 from modules.file.log_file import logger
 from modules.framework.context import FunctionPool
+
 
 class RunCode(ActionNode):
     def __init__(self, next_text: str = '', node_name: str = ''):
@@ -103,7 +104,6 @@ class RunCodeAsync(ActionNode):
         finally:
             logger.log(content="call reset environment: end")
             call_reset_environment(True)
-            from modules.utils import generate_video_from_frames, root_manager
             data_root = root_manager.data_root
             number = len(listdir(f"{data_root}/frames")) - 1
             generate_video_from_frames(

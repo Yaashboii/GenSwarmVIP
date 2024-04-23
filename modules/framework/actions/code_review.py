@@ -7,7 +7,7 @@ from modules.prompt.code_review_stage_prompt import HIGH_LEVEL_FUNCTION_REVIEW
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.utils.common import parse_code
+from modules.framework.code.code import parse_code
 from modules.file.log_file import logger
 from modules.framework.context.function_info import FunctionPool
 

@@ -1,5 +1,5 @@
 from modules.framework.action import ActionNode
-from modules.utils.common import parse_code
+from modules.framework.code.code import parse_code
 from modules.prompt.run_code_prompt import DEBUG_PROMPT
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.robot_api_prompt import ROBOT_API

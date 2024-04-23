@@ -1,6 +1,6 @@
 from modules.framework.action import ActionNode
 from modules.framework.code.code import Code
-from modules.utils.common import parse_code
+from modules.framework.code.code import parse_code
 from modules.prompt.coding_stage_prompt import WRITE_RUN_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES

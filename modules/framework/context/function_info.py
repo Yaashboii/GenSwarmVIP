@@ -19,14 +19,6 @@ class FunctionPool():
         return cls._instance
     
     @property
-    def message(self):
-        return self._file.message
-    
-    @message.setter
-    def message(self, value):
-        self._file.message = value
-    
-    @property
     def function_contents(self):
         result = [f.function_body for f in self._functions_dict.values()]
         return result
@@ -42,7 +34,7 @@ class FunctionPool():
         return result
     
     def filtered_functions(self, exclude_function: FunctionNode):
-        result = [value for key, value in self._functions_dict 
+        result = [value for value in self._functions_dict.values()
                   if value != exclude_function.name]
         return result
     
@@ -124,7 +116,7 @@ class FunctionPool():
             return combined_imports
         
         import_str = combine_unique_imports(self._import_list)
-        self.message = f"{import_str}\n\n{self.functions_content(function_name)}\n"
+        self._file.message = f"{import_str}\n\n{self.functions_content(function_name)}\n"
 
     def functions_content(self, function_name: str | list[str] = None):
         if function_name:

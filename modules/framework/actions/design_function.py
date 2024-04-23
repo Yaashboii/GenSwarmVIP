@@ -3,7 +3,7 @@ import asyncio
 from modules.framework.action import ActionNode
 from modules.framework.code.code import Code
 from modules.framework.context.node import FunctionNode
-from modules.utils.common import parse_code
+from modules.framework.code.code import parse_code
 from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES

@@ -1,4 +1,6 @@
 import ast
+import re
+
 
 class Code:
     def __init__(self, code_str) -> None:
@@ -9,24 +11,23 @@ class Code:
     def extract_imports_and_functions(self):
         parsed_ast = ast.parse(self._code_str)
         for node in parsed_ast.body:
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
-                if isinstance(node, ast.Import):
-                    for alias in node.names:
-                        import_str = f"import {alias.name}"
-                        if alias.asname:
-                            import_str += f" as {alias.asname}"
-                        self._imports.append(import_str)
-                elif isinstance(node, ast.ImportFrom):
-                    module = node.module if node.module else ''
-                    import_from_str = "from {} import ".format(module)
-                    names_with_as = []
-                    for alias in node.names:
-                        if alias.asname:
-                            names_with_as.append(f"{alias.name} as {alias.asname}")
-                        else:
-                            names_with_as.append(alias.name)
-                    import_from_str += ", ".join(names_with_as)
-                    self._imports.append(import_from_str)
+            if isinstance(node, (ast.Import, ast.ImportFrom)) and isinstance(node, ast.Import):
+                for alias in node.names:
+                    import_str = f"import {alias.name}"
+                    if alias.asname:
+                        import_str += f" as {alias.asname}"
+                    self._imports.append(import_str)
+            elif isinstance(node, ast.ImportFrom):
+                module = node.module if node.module else ''
+                import_from_str = "from {} import ".format(module)
+                names_with_as = []
+                for alias in node.names:
+                    if alias.asname:
+                        names_with_as.append(f"{alias.name} as {alias.asname}")
+                    else:
+                        names_with_as.append(alias.name)
+                import_from_str += ", ".join(names_with_as)
+                self._imports.append(import_from_str)
             elif isinstance(node, ast.FunctionDef):
                 func_def = ast.unparse(node).strip()
                 if func_def:
@@ -79,5 +80,15 @@ class Code:
         
 
         return function_definitions
+
+def parse_code(text: str, lang: str = "python") -> str:
+    pattern = rf"```{lang}.*?\s+(.*?)```"
+    match = re.search(pattern, text, re.DOTALL)
+    if match:
+        code = match.group(1)
+    else:
+        error_message = f"Error: No '{lang}' code block found in the text."
+        raise ValueError(error_message)
+    return code
 
 
