@@ -106,7 +106,5 @@ if __name__ == "__main__":
     ]
     from modules.utils import root_manager
 
-    root_manager.update_root()
-
     workflow = Workflow(task_list[0])
     asyncio.run(workflow.run())

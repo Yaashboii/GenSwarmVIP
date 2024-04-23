@@ -1,6 +1,5 @@
 from modules.file.file import File, logger
 from modules.framework.context.node import ConstraintNode
-from modules.framework.context import ConstraintNode
 
 class ConstraintPool():
     _instance = None
@@ -21,8 +20,9 @@ class ConstraintPool():
             return self._constraint_nodes[constraint_name]
         else:
             logger.log(
-                (f"Constraint {constraint_name} not found,Current Existing:")
-                ("{self._constraint_nodes.values()}",level='error')
+                f"Constraint {constraint_name} not found,Current Existing:"
+                f"{self._constraint_nodes.values()}",
+                level='error'
             )
             raise SystemExit
     
@@ -31,14 +31,14 @@ class ConstraintPool():
         result = [constraint.to_json() for constraint in self._constraint_nodes.values()]
         return result
     
-    def filtered_constaints(self, keys):
+    def filtered_constaints(self, keys: list):
         def check(constraint):
             if constraint not in self._constraint_nodes:
                 logger.log(f"Constraint {constraint} is not in the constraint pool", 'error')
                 raise SystemExit
             
         [check(key) for key in keys]
-        result = '\n'.join([c.brief for c in self._constraint_nodes.values() if c in keys])
+        result = '\n'.join([value.brief for key, value in self._constraint_nodes.items() if key in keys])
         return result
     
     def init_constraints(self, content: str):

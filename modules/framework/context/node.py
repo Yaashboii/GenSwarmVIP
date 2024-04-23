@@ -4,7 +4,7 @@ class Node(ABC):
     def __init__(self, name, description):
         self._name = name
         self._description = description
-        self._connections : list[Node] = set()
+        self._connections : set[Node] = set()
 
     @property
     def brief(self):
@@ -46,8 +46,8 @@ class FunctionNode(Node):
     def __init__(self, name, description):
         super().__init__(name, description)
         self._import_list : list[str] = []
-        self._callees : set[FunctionNode] = []
-        self._callers : set[FunctionNode] = []
+        self._callees : set[FunctionNode] = set()
+        self._callers : set[FunctionNode] = set()
         self.content = None
         self._definition = None
 
@@ -61,7 +61,7 @@ class FunctionNode(Node):
 
     @property
     def function_body(self):
-        return '\n'.join(self._import_list) + self.content
+        return '\n'.join(self._import_list + [self.content])
 
     def add_import(self, import_content):
         self._import_list.extend(import_content)
@@ -75,6 +75,3 @@ class FunctionNode(Node):
         if function not in self._callers:
             self._callers.add(function)
             function.add_callee(self)
-
-
-    

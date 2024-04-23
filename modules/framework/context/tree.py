@@ -2,7 +2,9 @@ from modules.framework.context import FunctionNode
 from modules.file.log_file import logger
 
 class FunctionLayer:
-    def __init__(self, function_set=()):
+    def __init__(self, function_set: set = None):
+        if function_set is None:
+            function_set = set()
         self._layer : set[FunctionNode] = function_set
         self._next : FunctionLayer = None
         self._index = 0
@@ -20,7 +22,7 @@ class FunctionLayer:
         self._next = value
 
     def __len__(self):
-        return len(self._layer)
+        return len(self.functions)
 
     def __iter__(self):
         return self
@@ -83,16 +85,18 @@ class FunctionTree:
         
 
     def _build_up(self, current_layer : FunctionLayer):
+        if len(current_layer) > 0:
+            self._layers.append(current_layer)
+        else:
+            return
         next_layer = FunctionLayer()
+
         for function_node in current_layer:
             for caller in function_node.callers:
                 if caller not in self._visited_nodes:
                     self._visited_nodes.add(caller)
                     next_layer.add_function(self._function_nodes[caller.name])
-        if len(next_layer) > 0:
-            self._layers.append(next_layer)
-            self._build_up(next_layer)
-        current_layer = next_layer
+        self._build_up(next_layer)
 
     def _get_bottom_layer(self):
         bottom_layer = [
