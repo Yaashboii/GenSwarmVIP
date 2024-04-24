@@ -17,6 +17,13 @@ class FunctionLayer:
     def functions(self):
         return list(self._layer)
     
+    @property
+    def set_callers(self):
+        result = set()
+        for function_node in self._layer:
+            result |= function_node.callers
+        return result
+    
     @next.setter
     def next(self, value: 'FunctionLayer'):
         self._next = value
@@ -41,11 +48,11 @@ class FunctionLayer:
 class FunctionTree:
     def __init__(self):
         self._function_nodes : dict[str, FunctionNode] = {}
-        self._visited_nodes = set()
         self._layers : list[FunctionLayer] = []
         self._layer_head : FunctionLayer =  None
         self._current_layer : FunctionLayer = None 
         self._index = 0
+        self._keys_set = set()
             
     def __iter__(self):
         return self
@@ -92,26 +99,34 @@ class FunctionTree:
     def keys(self):
         return self._function_nodes.keys()
     
+    @property
+    def keys_set(self):
+        return self.keys_set or set(self.keys)
+    
+    def _reset(self):
+        self._layers.clear()
+        self._layer_head = None
+    
     def update(self):
+        self._reset()
         self._layer_head =  self._get_bottom_layer()
         self._current_layer = self._layer_head
-        self._build_up(self._layer_head)
+        set_visited_nodes = set()
+        self._build_up(self._layer_head, set_visited_nodes)
         logger.log(f"layers: {[[f.name for f in layer] for layer in self._layers]}", level='warning')
         
 
-    def _build_up(self, current_layer : FunctionLayer):
+    def _build_up(self, current_layer : FunctionLayer, set_visited_nodes: set):
         if len(current_layer) > 0:
             self._layers.append(current_layer)
         else:
             return
         next_layer = FunctionLayer()
 
-        for function_node in current_layer:
-            for caller in function_node.callers:
-                if caller not in self._visited_nodes:
-                    self._visited_nodes.add(caller)
-                    next_layer.add_function(self._function_nodes[caller.name])
-        self._build_up(next_layer)
+        for caller in current_layer.set_callers - set_visited_nodes:
+            set_visited_nodes.add(caller)
+            next_layer.add_function(self._function_nodes[caller.name])
+        self._build_up(next_layer, set_visited_nodes)
 
     def _get_bottom_layer(self):
         bottom_layer = [

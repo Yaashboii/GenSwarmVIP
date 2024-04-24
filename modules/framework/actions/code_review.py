@@ -1,13 +1,12 @@
 import asyncio
 
 from modules.framework.action import ActionNode
-from modules.framework.code.code import AstParser
 from modules.framework.context.node import FunctionNode
 from modules.prompt.code_review_stage_prompt import HIGH_LEVEL_FUNCTION_REVIEW
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.framework.code.code import parse_text
+from modules.framework.code.code import parse_text, SingleFunctionParser
 from modules.file.log_file import logger
 from modules.framework.context.function_info import FunctionPool
 
@@ -35,38 +34,14 @@ class CodeReview(ActionNode):
         logger.log(f"Reviewing function: {self._function._name}", "warning")
 
     def _process_response(self, response: str) -> str:
-        def check_error(function_list):
-            if not function_list:
-                logger.log(
-                    f"High Level Function Review Failed: No function detected in the response",
-                    "error")
-                return ''
-            if len(function_list) > 1:
-                logger.log(
-                    f"High Level Function Review Failed: More than one function detected in the response",
-                    "error")
-                raise Exception(f"More than one function detected in the response")
-            
-        def check_function_name(function_name, desired_function_name):
-            if function_name != desired_function_name:
-                logger.log(
-                    f"High Level Function Review Failed: Function name mismatch: {function_name} != {desired_function_name}",
-                    "error")
-                raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
         try:
             desired_function_name = self._function._name
             code = parse_text(text=response)
-            code_obj = AstParser(code)
+            code_obj = SingleFunctionParser(code)
             code_obj.parse_code(code)
-            function_list = code_obj.function_defs
-            check_error(function_list)
-            function_name = code_obj.function_names[0]
-            check_function_name(function_name, desired_function_name)
-            
+            code_obj.check_function_name(desired_function_name)
             code_obj.save_to_pool()
-            for function_name in function_list:
-                self._function_pool.check_function_grammar(function_name)
-                self._function_pool.check_caller_function_grammer(function_name)
+            self._function_pool.save_and_check_functions([desired_function_name])
             # # TODO,add bug fix mechanism for such cases,rather than just raising exception to trigger retry
             # if errors:
             #     logger.log(

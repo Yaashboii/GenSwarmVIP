@@ -12,7 +12,7 @@ class AnalyzeFunctions(ActionNode):
         function_pool = FunctionPool()
         self.prompt = PARAMETER_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
-            function_des='\n'.join(function_pool.function_infos),
+            function_des='\n'.join(function_pool.functions_brief),
             env_des=ENV_DES,
             robot_api=ROBOT_API,
         )

@@ -13,14 +13,14 @@ class HumanCritic(ActionNode):
     def __init__(self, next_text: str = '', node_name: str = ''):
         super().__init__(next_text, node_name)
         self.feedback = None
-        self.function_pool = FunctionPool()
+        self._function_pool = FunctionPool()
 
     def _build_prompt(self):
         self.prompt = HUMAN_FEEDBACK_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
-            functions=self.function_pool.function_contents(),
+            functions=self._function_pool.functions_body(),
             feedback=self.feedback,
         )
 
@@ -33,9 +33,7 @@ class HumanCritic(ActionNode):
         code_obj.parse_code(code)
         function_list = code_obj.function_names
         code_obj.save_to_pool()        
-        for function_name in function_list:
-            self.function_pool.check_function_grammar(function_name)
-            self.function_pool.check_caller_function_grammer(function_name)
+        self._function_pool.save_and_check_functions(function_list)
         return str(code)
 
 

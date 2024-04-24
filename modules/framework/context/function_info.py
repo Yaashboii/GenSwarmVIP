@@ -1,5 +1,4 @@
 from modules.file.file import File, logger
-from modules.framework.code.code import AstParser  
 from modules.framework.context.node import FunctionNode
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.framework.context.tree import FunctionTree
@@ -18,12 +17,12 @@ class FunctionPool():
         return cls._instance
     
     @property
-    def function_contents(self):
+    def functions_body(self):
         result = [f.function_body for f in self._function_tree.nodes]
         return result
     
     @property
-    def function_infos(self):
+    def functions_brief(self):
         result = [f.brief for f in self._function_tree.nodes]
         return result
     
@@ -38,7 +37,7 @@ class FunctionPool():
         return result
     
     def related_function_content(self, content):
-        result = list(filter(lambda f: f.name in content == 0, self.function_contents))
+        result = list(filter(lambda f: f.name in content == 0, self.functions_body))
         return result
 
     def init_functions(self, content: str):
@@ -72,53 +71,11 @@ class FunctionPool():
                        f"calls: {self._function_tree[name].callees}", 
                        level='info')
         self._function_tree.update()
-
-    def check_function_grammar(self, function: FunctionNode):
-        function_name = function.name
-        relative_function = self.extend_calls(function_name)
-        logger.log(f"relative_function: {relative_function}", level='warning')
-        self.update_message(relative_function)
-
-        errors = self._grammar_checker.check_code_errors(self._file.file_path)
-        if errors:
-            logger.log(f'Grammar check failed for {function_name}', level='error')
-        else:
-            logger.log(f'Grammar check passed for {function_name}', level='debug')
-        return errors
-
-    def extend_calls(self, function_name: str, seen: set = None):
-        if seen is None:
-            seen = set()
-        if function_name not in seen and function_name in self._function_tree.keys():
-            seen.add(function_name)
-            calls = self._function_tree[function_name].callees
-            [self.extend_calls(call, seen) for call in calls if call not in seen]
-        return list(seen)
-
-    def update_message(self, function_name: str | list[str] = None):
-        def combine_unique_imports(import_list):
-            unique_imports = set()
-            for import_str in import_list:
-                for import_line in import_str.splitlines():
-                    unique_imports.add(import_line.strip())
-
-            combined_imports = "\n".join(sorted(unique_imports))
-            return combined_imports
-        
-        import_str = combine_unique_imports(self.import_list)
-        self._file.message = f"{import_str}\n\n{self.functions_content(function_name)}\n"
-
-    def functions_content(self, function_name: str | list[str] = None):
-        if function_name:
-            if isinstance(function_name, str):
-                function_name = [function_name]
-            return '\n\n\n'.join([self._function_tree[f].content for f in function_name])
-        return '\n\n\n'.join([f.content for f in self._function_tree.nodes])
-
-    def check_caller_function_grammer(self, function_name):
-        [self.check_function_grammar(f._name) 
-         for f in self._function_tree.nodes
-         if function_name in f._callees]
+    
+    def save_and_check_functions(self, function_list: list):
+        for function_name in function_list:
+            self._check_function_grammar(function_name)
+            self._check_caller_function_grammer(function_name)
     
     def set_definiton(self, function_name, definition):
         self._function_tree[function_name]._definition = definition
@@ -137,12 +94,58 @@ class FunctionPool():
             # current_layer = self._function_layer[layer_index]
             if check_grammer: 
                 self._check_function_grammer_by_layer(layer)
+        
+
+    def _save_by_function(self, function: FunctionNode):
+        relative_function = self._find_all_relative_functions(function)
+        logger.log(f"relative_function: {relative_function}", level='warning')
+        self._save_functions_to_file(relative_function)
+
+    def _check_function_grammar(self, function_name):
+        self._save_by_function(self._function_tree[function_name])
+
+        errors = self._grammar_checker.check_code_errors(self._file.file_path)
+        if errors:
+            logger.log(f'Grammar check failed for {function_name}', level='error')
+        else:
+            logger.log(f'Grammar check passed for {function_name}', level='debug')
+        return errors
+    
+    def _check_caller_function_grammer(self, function_name):
+        [self._check_function_grammar(f.name) 
+         for f in self._function_tree[function_name].callers]
+
+    def _find_all_relative_functions(self, function: FunctionNode, seen: set = None):
+        if seen is None:
+            seen = set()     
+        f_name = function.name   
+
+        if function not in seen and function in self._function_tree.nodes:
+            seen.add(function)
+            calls = self._function_tree[f_name].callees
+            [self._find_all_relative_functions(call, seen) for call in calls]
+            
+        return list(seen)
+
+    def _save_functions_to_file(self, functions: list[FunctionNode] = None):
+        # def combine_unique_imports(import_list):
+        #     unique_imports = set()
+        #     for import_str in import_list:
+        #         for import_line in import_str.splitlines():
+        #             unique_imports.add(import_line.strip())
+
+        #     combined_imports = "\n".join(sorted(unique_imports))
+        #     return combined_imports
+        
+        import_str = "\n".join(sorted(self.import_list))
+        content = '\n\n\n'.join([f.content for f in functions])
+        self._file.message = f"{import_str}\n\n{content}\n"
 
     def _check_function_grammer_by_layer(self, current_layer):
         try:
             errors = []
             for function in current_layer:
-                error = self.check_function_grammar(function)
+                error = self._check_function_grammar(function)
                 errors.append(error)
         except Exception as e:
             import traceback

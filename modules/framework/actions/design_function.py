@@ -1,9 +1,8 @@
 import asyncio
 
 from modules.framework.action import ActionNode
-from modules.framework.code.code import AstParser
 from modules.framework.context.node import FunctionNode
-from modules.framework.code.code import parse_text
+from modules.framework.code.code import parse_text, SingleFunctionParser
 from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
@@ -42,32 +41,11 @@ class DesignFunction(ActionNode):
         )
 
     def _process_response(self, response: str) -> str:
-        def check_error(function_list):
-            if not function_list:
-                logger.log(f"Design Function Failed: No function detected in the response", "error")
-                raise Exception  # trigger retry
-            if len(function_list) > 1:
-                logger.log(f"Design Function Failed: More than one function detected in the response",
-                                        "error")
-                raise Exception  # trigger retry
-        def check_function(function_name, desired_function_name):
-            if function_name != desired_function_name:
-                raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
-            if not function_name:
-                logger.log(f"Design Function Failed: No function detected in the response",
-                                         "error")
-                raise Exception  # trigger retry
         desired_function_name = self._function._name
         code = parse_text(text=response)
-        code_obj = AstParser(code)
-        definition_list = code_obj.function_defs
-        check_error(definition_list)
-
-        for definition in definition_list:
-            code_obj = AstParser(definition)
-            function_name = code_obj.function_names[0]
-            check_function(function_name, desired_function_name)
-            self._function_pool.set_definiton(function_name, definition)
+        code_obj = SingleFunctionParser(code)
+        code_obj.check_function_name(desired_function_name)
+        code_obj.update_definition()
         return str(code)
 
 class DesignFunctionAsync(ActionNode):

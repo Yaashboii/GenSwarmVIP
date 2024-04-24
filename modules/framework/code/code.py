@@ -1,6 +1,6 @@
 import ast
 import re
-from modules.framework.context.function_info import FunctionPool
+from modules.framework.context.function_info import FunctionPool, FunctionNode
 from modules.file.log_file import logger
 
 
@@ -9,7 +9,6 @@ class AstParser(ast.NodeVisitor):
         self._imports = set()
         self._function_dict : dict[str, str] = {}
         self._function_defs = []
-        self._code_to_parse = code_str
         self._function_pool = FunctionPool()
         
     @property
@@ -60,7 +59,7 @@ class AstParser(ast.NodeVisitor):
             self._imports.add(import_str)
 
     def visit_FunctionDef(self, node: ast.FunctionDef):
-        def reconstruct_function_definition(function_node):
+        def reconstruct_function_definition(function_node: FunctionNode):
             defaults_start_index = len(function_node.args.args) - len(function_node.args.defaults)
 
             parameters = [
@@ -82,7 +81,6 @@ class AstParser(ast.NodeVisitor):
         self._function_dict[node.name] = ast.unparse(node).strip()
         self._function_defs.append(reconstruct_function_definition(node))
 
-
 def parse_text(text: str, lang: str = "python") -> str:
     pattern = rf"```{lang}.*?\s+(.*?)```"
     match = re.search(pattern, text, re.DOTALL)
@@ -94,3 +92,33 @@ def parse_text(text: str, lang: str = "python") -> str:
     return code
 
 
+class SingleFunctionParser(AstParser):    
+    def parse_code(self, code_str):
+        super().parse_code(code_str)
+        self._check_error()
+
+    def _check_error(self):
+        if not self._function_dict:
+            logger.log("Failed: No function detected in the response", "error")
+            return ''
+        if len(self._function_dict) > 1:
+            logger.log("Failed: More than one function detected in the response", "error")
+            raise Exception("More than one function detected in the response")
+        
+    def check_function_name(self, desired_function_name):
+        function_name = self._function_dict.keys()[0]
+        if function_name != desired_function_name:
+            raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
+        if not function_name:
+            logger.log(f"Failed: No function detected in the response",
+                        "error")
+            raise Exception 
+    
+    def update_definition(self):
+        self._function_pool.set_definiton(self._function_dict.keys()[0], 
+                                          self._function_defs[0])
+
+
+
+        
+    

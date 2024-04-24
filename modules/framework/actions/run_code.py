@@ -91,7 +91,7 @@ class RunCodeAsync(ActionNode):
         robot_num = get_param('robots_num')
         tasks = []
         result_list = []
-        FunctionPool().update_message()
+        # FunctionPool().save_to_file_xx()
         try:
             logger.log(content="call reset environment: start")
             call_reset_environment(True)

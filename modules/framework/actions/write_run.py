@@ -1,6 +1,5 @@
 from modules.framework.action import ActionNode
-from modules.framework.code.code import AstParser
-from modules.framework.code.code import parse_text
+from modules.framework.code.code import parse_text, SingleFunctionParser
 from modules.prompt.coding_stage_prompt import WRITE_RUN_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
@@ -25,23 +24,14 @@ class WriteRun(ActionNode):
     def _process_response(self, response: str) -> str:
         desired_function_name = "run_loop"
         code = parse_text(text=response)
-        code_obj = AstParser(code)
+        code_obj = SingleFunctionParser(code)
         code_obj.parse_code(code)
-        function_list = code_obj.function_names
-        if not function_list:
-            logger.log(f"Write Code Failed: No function detected in the response", "error")
-            raise Exception
-        if len(function_list) > 1:
-            logger.log(f"Write Code Failed: More than one function detected in the response", "error")
-            raise Exception
-        for function_name in function_list:
-            if function_name != desired_function_name:
-                raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
-            if not function_name:
-                logger.log(f"Write Code Failed: No function detected in the response", "error")
-                raise Exception
+        if code_obj.function_names[0] != desired_function_name:
+            raise Exception(f"Function name mismatch: {code_obj.function_names[0]} != {desired_function_name}")
+ 
         code_obj.save_to_pool()
-        error = self._function_pool.check_function_grammar(function_name=desired_function_name)
+        self._function_pool.save_and_check_functions([desired_function_name])
+
         # TODO,add bug fix mechanism for such cases,rather than just raising exception to triger retry
         # if error:
         #     logger.log(f"Function {desired_function_name} has syntax error: {error}", "error")
