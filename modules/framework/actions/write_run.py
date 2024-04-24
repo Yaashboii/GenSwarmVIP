@@ -26,6 +26,7 @@ class WriteRun(ActionNode):
         desired_function_name = "run_loop"
         code = parse_code(text=response)
         code_obj = AstParser(code)
+        code_obj.parse(code)
         function_list = code_obj.function_names
         if not function_list:
             logger.log(f"Write Code Failed: No function detected in the response", "error")
@@ -39,7 +40,7 @@ class WriteRun(ActionNode):
             if not function_name:
                 logger.log(f"Write Code Failed: No function detected in the response", "error")
                 raise Exception
-        self._function_pool.add_functions(content=code)
+        code_obj.save_to_pool()
         error = self._function_pool.check_function_grammar(function_name=desired_function_name)
         # TODO,add bug fix mechanism for such cases,rather than just raising exception to triger retry
         # if error:

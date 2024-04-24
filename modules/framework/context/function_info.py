@@ -11,7 +11,7 @@ class FunctionPool():
     def __new__(cls):
         if not cls._instance:
             cls._instance = super().__new__()
-            cls._import_list: list[str] = ['from apis import *']
+            cls.import_list: set[str] = {'from apis import *'}
             cls._function_tree = FunctionTree()
             cls._file = File(name='functions.py')
             cls._grammar_checker = GrammarChecker()
@@ -61,26 +61,6 @@ class FunctionPool():
             logger.log(f'Error in init_functions: {e}', level='error')
             raise Exception
 
-    def add_functions(self, content: str):
-        code = AstParser(content)
-        self._import_list.extend(code.imports)
-        for function in code.function_contents:
-            code_obj = AstParser(function)
-            function_name = code_obj.function_names()[0]
-            self._function_tree[function_name].content = code_obj.function_contents[0]
-
-            self._function_tree[function_name].add_import(code_obj.imports)
-            self._function_tree[function_name].callees = []
-            for other_function in self._function_tree.nodes:
-                if (other_function._name != function_name and 
-                    other_function._name in code_obj.function_contents[0]):
-                    self._function_tree[function_name].add_callee(other_function)
-            logger.log(f" function_name: {function_name}, "
-                       f"calls: {self._function_tree[function_name].callees}", 
-                       level='info')
-
-        self._function_tree.update()
-
     def check_function_grammar(self, function: FunctionNode):
         function_name = function.name
         relative_function = self.extend_calls(function_name)
@@ -113,7 +93,7 @@ class FunctionPool():
             combined_imports = "\n".join(sorted(unique_imports))
             return combined_imports
         
-        import_str = combine_unique_imports(self._import_list)
+        import_str = combine_unique_imports(self.import_list)
         self._file.message = f"{import_str}\n\n{self.functions_content(function_name)}\n"
 
     def functions_content(self, function_name: str | list[str] = None):

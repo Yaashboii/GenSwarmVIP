@@ -5,7 +5,7 @@ from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.task_description import TASK_DES
 from modules.framework.context import FunctionPool
-
+from modules.framework.code.code import AstParser
 
 class DebugError(ActionNode):
     def __init__(self, next_text='', node_name=''):
@@ -28,5 +28,7 @@ class DebugError(ActionNode):
 
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_code(text=response)
-        self._function_pool.add_functions(content=code)
+        code_obj = AstParser(code)
+        code_obj.parse(code)
+        code_obj.save_to_pool()
         return str(code)

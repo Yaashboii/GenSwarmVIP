@@ -1,13 +1,58 @@
 import ast
 import re
+from modules.framework.context.function_info import FunctionPool
+from modules.file.log_file import logger
+
 
 class AstParser(ast.NodeVisitor):
     def __init__(self, code_str) -> None:
-        self._tree = ast.parse(code_str)
         self._imports = set()
-        self._function_dict = {}
+        self._function_dict : dict[str, str] = {}
         self._function_defs = []
-        self.visit(self._tree)
+        self._code_to_parse = code_str
+        self._function_pool = FunctionPool()
+        
+    @property
+    def imports(self):
+        return self._imports
+    
+    @property
+    def function_contents(self):
+        return self._function_dict.values()
+    
+    @property
+    def function_names(self):
+        return self._function_dict.keys()
+
+    @property
+    def function_defs(self):
+        return self._function_defs
+
+    def parse(self, code_str):
+        tree = ast.parse(code_str)
+        self.visit(tree)
+
+    def save_to_pool(self):
+        self._save_imports()
+        self._save_function_dict()
+
+    def _save_imports(self):
+        self._function_pool.import_list |= self._imports
+
+    def _save_function_dict(self):
+        function_node_dict = {}
+        for name, content in self._function_dict.items():
+            self._function_pool._function_tree[name].content = content
+            self._function_pool._function_tree[name].add_import(self._imports)
+
+            for other_function in self._function_pool._function_tree.nodes:
+                if (other_function._name != name and 
+                    other_function._name in content):
+                    self._function_pool._function_tree[name].add_callee(other_function)
+            logger.log(f" function_name: {name}, "
+                       f"calls: {self._function_pool._function_tree[name].callees}", 
+                       level='info')
+        self._function_pool._function_tree.update()
 
     # visit_xxx functions are automatically executed in visit()
     # see details in ast.NodeVisitor
@@ -48,22 +93,7 @@ class AstParser(ast.NodeVisitor):
         
         self._function_dict[node.name] = ast.unparse(node).strip()
         self._function_defs.append(reconstruct_function_definition(node))
-    
-    @property
-    def imports(self):
-        return self._imports
-    
-    @property
-    def function_contents(self):
-        return self._function_dict.values()
-    
-    @property
-    def function_names(self):
-        return self._function_dict.keys()
 
-    @property
-    def function_defs(self):
-        return self._function_defs
 
 def parse_code(text: str, lang: str = "python") -> str:
     pattern = rf"```{lang}.*?\s+(.*?)```"

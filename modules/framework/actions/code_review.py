@@ -57,12 +57,13 @@ class CodeReview(ActionNode):
             desired_function_name = self._function._name
             code = parse_code(text=response)
             code_obj = AstParser(code)
+            code_obj.parse(code)
             function_list = code_obj.function_defs
             check_error(function_list)
             function_name = code_obj.function_names[0]
             check_function_name(function_name, desired_function_name)
             
-            self._function_pool.add_functions(content=code)
+            code_obj.save_to_pool()
             for function_name in function_list:
                 self._function_pool.check_function_grammar(function_name)
                 self._function_pool.check_caller_function_grammer(function_name)
