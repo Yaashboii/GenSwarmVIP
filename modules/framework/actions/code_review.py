@@ -7,7 +7,7 @@ from modules.prompt.code_review_stage_prompt import HIGH_LEVEL_FUNCTION_REVIEW
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.framework.code.code import parse_code
+from modules.framework.code.code import parse_text
 from modules.file.log_file import logger
 from modules.framework.context.function_info import FunctionPool
 
@@ -55,9 +55,9 @@ class CodeReview(ActionNode):
                 raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
         try:
             desired_function_name = self._function._name
-            code = parse_code(text=response)
+            code = parse_text(text=response)
             code_obj = AstParser(code)
-            code_obj.parse(code)
+            code_obj.parse_code(code)
             function_list = code_obj.function_defs
             check_error(function_list)
             function_name = code_obj.function_names[0]

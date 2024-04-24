@@ -28,7 +28,7 @@ class AstParser(ast.NodeVisitor):
     def function_defs(self):
         return self._function_defs
 
-    def parse(self, code_str):
+    def parse_code(self, code_str):
         tree = ast.parse(code_str)
         self.visit(tree)
 
@@ -40,19 +40,7 @@ class AstParser(ast.NodeVisitor):
         self._function_pool.import_list |= self._imports
 
     def _save_function_dict(self):
-        function_node_dict = {}
-        for name, content in self._function_dict.items():
-            self._function_pool._function_tree[name].content = content
-            self._function_pool._function_tree[name].add_import(self._imports)
-
-            for other_function in self._function_pool._function_tree.nodes:
-                if (other_function._name != name and 
-                    other_function._name in content):
-                    self._function_pool._function_tree[name].add_callee(other_function)
-            logger.log(f" function_name: {name}, "
-                       f"calls: {self._function_pool._function_tree[name].callees}", 
-                       level='info')
-        self._function_pool._function_tree.update()
+        self._function_pool.update_function_tree(self._function_dict)
 
     # visit_xxx functions are automatically executed in visit()
     # see details in ast.NodeVisitor
@@ -95,7 +83,7 @@ class AstParser(ast.NodeVisitor):
         self._function_defs.append(reconstruct_function_definition(node))
 
 
-def parse_code(text: str, lang: str = "python") -> str:
+def parse_text(text: str, lang: str = "python") -> str:
     pattern = rf"```{lang}.*?\s+(.*?)```"
     match = re.search(pattern, text, re.DOTALL)
     if match:

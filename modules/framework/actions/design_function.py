@@ -3,7 +3,7 @@ import asyncio
 from modules.framework.action import ActionNode
 from modules.framework.code.code import AstParser
 from modules.framework.context.node import FunctionNode
-from modules.framework.code.code import parse_code
+from modules.framework.code.code import parse_text
 from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
@@ -58,7 +58,7 @@ class DesignFunction(ActionNode):
                                          "error")
                 raise Exception  # trigger retry
         desired_function_name = self._function._name
-        code = parse_code(text=response)
+        code = parse_text(text=response)
         code_obj = AstParser(code)
         definition_list = code_obj.function_defs
         check_error(definition_list)

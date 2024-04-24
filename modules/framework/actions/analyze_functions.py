@@ -3,7 +3,7 @@ from modules.prompt.analyze_stage_prompt import ANALYZE_FUNCTION_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.framework.code.code import parse_code
+from modules.framework.code.code import parse_text
 from modules.framework.context import ConstraintPool, FunctionPool
 from modules.file.log_file import logger
 
@@ -24,7 +24,7 @@ class AnalyzeFunctions(ActionNode):
         )
 
     def _process_response(self, response: str) -> str:
-        code = parse_code(text=response, lang='json')
+        code = parse_text(text=response, lang='json')
         self._function_pool.init_functions(code)
         self._constraint_pool.check_constraints_satisfaction()
         logger.log(f"Analyze Functions Success", "success")

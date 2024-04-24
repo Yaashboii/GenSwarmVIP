@@ -4,7 +4,7 @@ from modules.prompt.run_code_prompt import HUMAN_FEEDBACK_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.framework.code.code import parse_code
+from modules.framework.code.code import parse_text
 from modules.framework.context import FunctionPool
 
 class GrammarFeedback(ActionNode):
@@ -26,9 +26,9 @@ class GrammarFeedback(ActionNode):
         self.feedback = feedback
 
     def _process_response(self, response: str, **kwargs) -> str:
-        code = parse_code(text=response)
+        code = parse_text(text=response)
         code_obj = AstParser(code)
-        code_obj.parse(code)
+        code_obj.parse_code(code)
         function_list = code_obj.function_names
         code_obj.save_to_pool()
 

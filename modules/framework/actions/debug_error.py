@@ -1,5 +1,5 @@
 from modules.framework.action import ActionNode
-from modules.framework.code.code import parse_code
+from modules.framework.code.code import parse_text
 from modules.prompt.run_code_prompt import DEBUG_PROMPT
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.robot_api_prompt import ROBOT_API
@@ -27,8 +27,8 @@ class DebugError(ActionNode):
         )
 
     def _process_response(self, response: str, **kwargs) -> str:
-        code = parse_code(text=response)
+        code = parse_text(text=response)
         code_obj = AstParser(code)
-        code_obj.parse(code)
+        code_obj.parse_code(code)
         code_obj.save_to_pool()
         return str(code)

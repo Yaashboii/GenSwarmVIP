@@ -60,6 +60,18 @@ class FunctionPool():
         except Exception as e:
             logger.log(f'Error in init_functions: {e}', level='error')
             raise Exception
+        
+    def update_function_tree(self, function_dict: dict[str, str]):
+        for name, content in function_dict.items():
+            self._function_tree[name].content = content
+            # self._function_tree[name].add_import(self._imports)
+            for other_function in self._function_tree.nodes:
+                if (other_function._name != name and other_function._name in content):
+                    self._function_tree[name].add_callee(other_function)
+            logger.log(f" function_name: {name}, "
+                       f"calls: {self._function_tree[name].callees}", 
+                       level='info')
+        self._function_tree.update()
 
     def check_function_grammar(self, function: FunctionNode):
         function_name = function.name

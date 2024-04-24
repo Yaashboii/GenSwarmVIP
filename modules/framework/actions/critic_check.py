@@ -4,7 +4,7 @@ from modules.framework.action import ActionNode
 from modules.prompt.data_critic_stage_prompt import FILTER_CONSTRAINTS_TEMPLATE, OUTPUT_FORMAT
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.task_description import TASK_DES
-from modules.framework.code.code import parse_code
+from modules.framework.code.code import parse_text
 from modules.framework.context import ConstraintPool
 
 class CriticCheck(ActionNode):
@@ -18,5 +18,5 @@ class CriticCheck(ActionNode):
         )
 
     def _process_response(self, response: str) -> str:
-        code = parse_code(text=response, lang='json')
+        code = parse_text(text=response, lang='json')
         return code
