@@ -1,4 +1,4 @@
-from modules.framework.code.parser import AstParser
+from modules.framework.code.parser import _AstParser
 from modules.utils import extract_function_definitions,
 
 robot_api = """
@@ -59,10 +59,10 @@ def get_surrounding_obstacles_info():
 class RobotApi:
     def __init__(self, content):
         self.content = content
-        code_obj = AstParser(content)
+        code_obj = _AstParser(content)
         self.apis = {}
         for api in code_obj.function_defs:
-            code_obj = AstParser(api)
+            code_obj = _AstParser(api)
             name = code_obj.function_names()[0]
             self.apis[name] = api
 

@@ -9,7 +9,7 @@ class FunctionPool():
 
     def __new__(cls):
         if not cls._instance:
-            cls._instance = super().__new__()
+            cls._instance = super().__new__(cls)
             cls.import_list: set[str] = {'from apis import *'}
             cls._function_tree = FunctionTree()
             cls._file = File(name='functions.py')

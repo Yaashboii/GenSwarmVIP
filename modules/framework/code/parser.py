@@ -1,11 +1,28 @@
 import ast
 import re
+from abc import ABC, abstractmethod
 from modules.framework.code.function_node import FunctionNode
 from modules.framework.context.function_info import FunctionPool, FunctionTree
 from modules.file.log_file import logger
 
+class Parser(ABC):
+    def __init__(self):
+        self._next_parser: Parser = None
 
-class AstParser(ast.NodeVisitor):
+    def set_next_parser(self, parser: 'Parser'):
+        self._next_parser = parser
+
+    @abstractmethod
+    def parse(self, content):
+        pass
+
+class TextParser(Parser):
+    def parse(self):
+        return super().parse()
+
+
+
+class _AstParser(ast.NodeVisitor):
     def __init__(self, code_str) -> None:
         self._imports = set()
         self._function_dict : dict[str, str] = {}
@@ -94,7 +111,7 @@ def parse_text(text: str, lang: str = "python") -> str:
     return code
 
 
-class SingleFunctionParser(AstParser):    
+class SingleFunctionParser(_AstParser):    
     def parse_code(self, code_str):
         super().parse_code(code_str)
         self._check_error()

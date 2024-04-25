@@ -19,7 +19,6 @@ def subtract(x, y=0):
         """
 
         self.parser = _AstParser(self.code_str)
-        self.parser.parse_code(self.code_str)
 
     def test_imports(self):
         expected_imports = {"import math", "from collections import deque as d"}
