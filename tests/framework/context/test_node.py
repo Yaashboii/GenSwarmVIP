@@ -30,9 +30,9 @@ class TestNodes(unittest.TestCase):
         self.assertFalse(self.function_node1.has_no_connections())
 
     def test_add_import(self):
-        imports = ["import module1", "from module2 import function"]
+        imports = {"import module1", "from module2 import function"}
         self.function_node1.add_import(imports)
-        self.assertListEqual(self.function_node1._import_list, imports)
+        self.assertListEqual(list(self.function_node1._import_list), list(imports))
 
     def test_add_callee_and_caller(self):
         self.function_node1.add_callee(self.function_node2)
@@ -40,7 +40,7 @@ class TestNodes(unittest.TestCase):
         self.assertIn(self.function_node1, self.function_node2.callers)
 
     def test_function_body(self):
-        self.function_node1.add_import(["import module1"])
+        self.function_node1.add_import({"import module1"})
         self.function_node1.content = "def test_function():\n    pass"
         expected_body = "import module1\ndef test_function():\n    pass"
         self.assertEqual(self.function_node1.function_body, expected_body)
