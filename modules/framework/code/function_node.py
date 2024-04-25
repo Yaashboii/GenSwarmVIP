@@ -3,11 +3,11 @@ from modules.framework.context.node import Node
 class FunctionNode(Node):
     def __init__(self, name, description):
         super().__init__(name, description)
-        self._import_list : list[str] = []
+        self._import_list : set[str] = set()
         self._callees : set[FunctionNode] = set()
         self._callers : set[FunctionNode] = set()
-        self.content = None
-        self._definition = None
+        self.content : str = None
+        self._definition: str = None
 
     @property
     def callees(self):
@@ -19,10 +19,10 @@ class FunctionNode(Node):
 
     @property
     def function_body(self):
-        return '\n'.join(self._import_list + [self.content])
+        return '\n'.join(list(self._import_list) + [self.content])
 
-    def add_import(self, import_content):
-        self._import_list.extend(import_content)
+    def add_import(self, import_content: set):
+        self._import_list |= import_content
 
     def add_callee(self, function : 'FunctionNode'):
         if function not in self._callees:

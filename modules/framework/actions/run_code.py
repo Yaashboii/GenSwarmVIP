@@ -8,7 +8,7 @@ from modules.utils.root import root_manager
 from modules.utils.common import get_param, call_reset_environment, generate_video_from_frames
 from modules.framework.code_error import Bug, HumanFeedback
 from modules.file.log_file import logger
-from modules.framework.context.function_info import FunctionPool
+from modules.framework.code.function_tree import FunctionTree
 
 
 class RunCode(ActionNode):

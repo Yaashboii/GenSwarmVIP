@@ -5,14 +5,17 @@ from modules.prompt.analyze_stage_prompt import ANALYZE_CONSTRAINT_PROMPT_TEMPLA
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.framework.code.parser import parse_text
+from modules.framework.response.text_parser import parse_text
 from modules.file.log_file import logger
 from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.response import *
+
 
 class AnalyzeConstraints(ActionNode):
     def __init__(self, next_text, node_name = ''):
         super().__init__(next_text, node_name)
         self._constraint_pool : ConstraintPool = ConstraintPool()
+        
     
     def _build_prompt(self):
         # constraints predefined
@@ -29,10 +32,9 @@ class AnalyzeConstraints(ActionNode):
         )
 
     def _process_response(self, response: str) -> str:
-        code = parse_text(text=response, lang='json')
-        self._constraint_pool.init_constraints(code)
+        content = parse_text(response, 'json')
+        self._constraint_pool.init_constraints(content)
         logger.log(f"Analyze Constraints Success", "success")
-        return response
 
 if __name__ == '__main__':
     analyst = AnalyzeConstraints("constraints")

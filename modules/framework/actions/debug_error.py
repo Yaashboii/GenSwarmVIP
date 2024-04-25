@@ -1,17 +1,18 @@
+
 from modules.framework.action import ActionNode
-from modules.framework.code.parser import parse_text
+from modules.framework.response.parser import parse_text
 from modules.prompt.run_code_prompt import DEBUG_PROMPT
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.task_description import TASK_DES
-from modules.framework.context.function_info import FunctionPool
-from modules.framework.code.parser import _AstParser
+from modules.framework.code.function_tree import FunctionTree
+from modules.framework.response.code_parser import AstParser
 
 class DebugError(ActionNode):
     def __init__(self, next_text='', node_name=''):
         super().__init__(next_text, node_name)
         self.error = None
-        self._function_pool = FunctionPool()
+        self._function_pool = FunctionTree()
 
     def setup(self, error):
         self.error = error
@@ -28,7 +29,7 @@ class DebugError(ActionNode):
 
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_text(text=response)
-        code_obj = _AstParser(code)
+        code_obj = AstParser()
         code_obj.parse_code(code)
         code_obj.save_to_pool()
         return str(code)

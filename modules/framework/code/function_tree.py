@@ -1,48 +1,31 @@
 from modules.framework.code.function_layer import FunctionLayer
 from modules.framework.code.function_node import FunctionNode
+from modules.framework.context.contraint_info import ConstraintPool
 from modules.file.log_file import logger
+from modules.file.file import File
 
 class FunctionTree:
-    def __init__(self):
-        self._function_nodes : dict[str, FunctionNode] = {}
-        self._layers : list[FunctionLayer] = []
-        self._layer_head : FunctionLayer =  None
-        self._current_layer : FunctionLayer = None 
-        self._index = 0
-        self._keys_set = set()
-            
-    def __iter__(self):
-        return self
+    _instance = None
 
-    def __next__(self):
-        if self._index >= len(self._layers):
-            self._index = 0
-            raise StopIteration
-        value = self._layers[self._index]
-        self._index += 1
-        return value    
-        # if not self._current_layer.next:
-        #     self._current_layer = self._layer_head
-        #     raise StopIteration
-        # value = self._current_layer
-        # self._current_layer = self._current_layer.next
-        # return value
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+            cls._function_nodes : dict[str, FunctionNode] = {}
+            cls.import_list: set[str] = {'from apis import *'}
+            cls._layers : list[FunctionLayer] = []
+            cls._layer_head : FunctionLayer =  None
+            cls._current_layer : FunctionLayer = None 
+            cls._index = 0
+            cls._keys_set = set()
+            cls._file = File(name='functions.py')
+        return cls._instance
 
-    def __getitem__(self, key):
-        if isinstance(key, int):
-            if key >= len(self._layers) or key < -len(self._layers):
-                raise IndexError("Index out of range")
-            return self._layers[key]
-        elif isinstance(key, slice):
-            start, stop, step = key.indices(len(self._layers))
-            sliced_layers = [self._layers[i] for i in range(start, stop, step)]
-            return sliced_layers 
-        elif isinstance(key, str):
-            if key not in self._function_nodes:
-                return FunctionNode(name=key, description='')
-            return self._function_nodes[key]
-        else:
-            raise TypeError("Invalid index type")
+    def __getitem__(self, key: str):
+        if key not in self._function_nodes:
+            return FunctionNode(name=key, description='')
+        return self._function_nodes[key]
+        # else:
+        #     raise TypeError("Invalid index type")
         
     def __setitem__(self, key, value):
         if isinstance(key, str):
@@ -53,12 +36,36 @@ class FunctionTree:
         return self._function_nodes.values()
     
     @property
-    def keys(self):
+    def names(self):
         return self._function_nodes.keys()
     
     @property
     def keys_set(self):
-        return self.keys_set or set(self.keys)
+        return self.keys_set or set(self.names)
+    
+    @property
+    def functions_body(self):
+        result = [f.function_body for f in self._function_nodes.values()]
+        return result
+    
+    @property
+    def functions_brief(self):
+        result = [f.brief for f in self._function_nodes.values()]
+        return result
+    
+    @property
+    def function_valid_content(self):
+        result = [f.content for f in self._function_nodes.values() if f.content]
+        return result
+    
+    def filtered_functions(self, exclude_function: FunctionNode):
+        result = [value for value in self._function_nodes.values()
+                  if value != exclude_function.name]
+        return result
+    
+    def related_function_content(self, content):
+        result = list(filter(lambda f: f.name in content == 0, self.functions_body))
+        return result
     
     def _reset(self):
         self._layers.clear()
@@ -71,6 +78,35 @@ class FunctionTree:
         set_visited_nodes = set()
         self._build_up(self._layer_head, set_visited_nodes)
         logger.log(f"layers: {[[f.name for f in layer] for layer in self._layers]}", level='warning')
+
+    def init_functions(self, content: str):
+        constraint_pool = ConstraintPool()
+        try:
+            for function in eval(content)['functions']:
+                name = function['name']
+                self[name] = FunctionNode(name, function['description'])
+                [self[name].connect_to(constraint_pool[constraint_name]) 
+                 for constraint_name in function["constraints"]]
+                [self[name].add_callee(call) for call in function['calls']] 
+            self.update()
+        except Exception as e:
+            logger.log(f'Error in init_functions: {e}', level='error')
+            raise Exception
+        
+    def process_function_layers(self, operation, start_layer_index=0, check_grammer=True):
+        import asyncio
+        for index, layer in enumerate(self._layers[start_layer_index:]):
+            tasks = []
+            logger.log(f"Layer: {start_layer_index+index}", "warning")
+            for function_node in layer:
+                task = asyncio.create_task(operation(function_node))
+                tasks.append(task)
+            asyncio.gather(*tasks)
+            # layer_index = current_layer_index if current_layer_index < len(
+                # self._function_layer) else len(self._function_layer) - 1
+            # current_layer = self._function_layer[layer_index]
+        # if check_grammer: 
+            # self._check_function_grammer_by_layer(layer)
         
 
     def _build_up(self, current_layer : FunctionLayer, set_visited_nodes: set):
@@ -91,3 +127,54 @@ class FunctionTree:
             if func.callees.isdisjoint(set(self._function_nodes.values()))
         ]
         return FunctionLayer(bottom_layer)
+    
+    def set_definiton(self, function_name, definition):
+        self._function_nodes[function_name]._definition = definition
+    
+    # def _check_function_grammer_by_layer(self, current_layer):
+    #     try:
+    #         errors = []
+    #         for function in current_layer:
+    #             error = self._check_function_grammar(function)
+    #             errors.append(error)
+    #     except Exception as e:
+    #         import traceback
+    #         logger.log(f"error occurred in grammar check:\n {traceback.format_exc()}", 'error')
+    #         raise SystemExit(f"error occurred in async write functions{e}")
+
+    def _find_all_relative_functions(self, function: FunctionNode, seen: set = None):
+        if seen is None:
+            seen = set()     
+        f_name = function.name   
+
+        if function not in seen and function in self._function_nodes:
+            seen.add(function)
+            calls = self._function_nodes[f_name].callees
+            [self._find_all_relative_functions(call, seen) for call in calls]
+            
+        return list(seen)
+    
+    def _save_functions_to_file(self, functions: list[FunctionNode] = None):
+        import_str = "\n".join(sorted(self.import_list))
+        content = '\n\n\n'.join([f.content for f in functions])
+        self._file.message = f"{import_str}\n\n{content}\n"
+
+    def _save_by_function(self, function: FunctionNode):
+        relative_function = self._find_all_relative_functions(function)
+        logger.log(f"relative_function: {relative_function}", level='warning')
+        self._save_functions_to_file(relative_function)
+
+    def _save_imports(self, imports):
+        self.import_list |= imports
+
+    def _save_function_dict(self, function_dict: dict[str, str]):
+        for name, content in function_dict.items():
+            self._function_nodes[name].content = content
+            # self._function_tree[name].add_import(self._imports)
+            for other_function in self._function_nodes.values():
+                if (other_function._name != name and other_function._name in content):
+                    self._function_nodes[name].add_callee(other_function)
+            # logger.log(f" function_name: {name}, "
+            #            f"calls: {self._function_tree[name].callees}", 
+            #            level='info')
+        self.update()

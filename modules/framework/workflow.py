@@ -10,6 +10,7 @@ from modules.framework.context.workflow_context import WorkflowContext
 from modules.file import File, logger
 from modules.utils.root import root_manager
 
+
 class Workflow:
     def __init__(self, user_command: str, args=None):
         self._logger = setup_logger("Workflow")
@@ -39,11 +40,10 @@ class Workflow:
             util_file.copy(root=workspace_root)
 
             run_file = File(root=os.path.join(project_root, 'modules/env'), name='run.py')
-            run_file.copy(root=workspace_root)
+            run_file.copy(root=workspace_root)        
             
     def build_up(self):
         # initialize actions
-        setup = SetupEnvironment("environment")
         analyze_constraints = AnalyzeConstraints('constraint pool')
         analyze_functions = AnalyzeFunctions('function pool')
         design_functions = DesignFunctionAsync("function definition")

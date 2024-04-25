@@ -10,6 +10,7 @@ from modules.framework.node_renderer import *
 from modules.file.log_file import logger
 from modules.framework.context.workflow_context import WorkflowContext
 
+
 class BaseNode(ABC):
     def __init__(self):
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
@@ -67,6 +68,10 @@ class ActionNode(BaseNode):
     def _build_prompt(self):
         pass
 
+    def _build_parser(self):
+        pass
+    
+
     async def run(self) -> str:
         # First create a prompt, then utilize it to query the language model.
         self._build_prompt()
@@ -99,8 +104,8 @@ class ActionNode(BaseNode):
             logger.log(f"Error in {str(self)}: {e},\n {tb}", "error")
             raise Exception
 
-    def _process_response(self, response: str) -> str:
-        return response
+    def _process_response(self, content: str) -> str:
+        return content
   
 
 class ActionLinkedList(BaseNode):
