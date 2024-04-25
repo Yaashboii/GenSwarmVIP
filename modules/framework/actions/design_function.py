@@ -5,7 +5,7 @@ import asyncio
 from modules.framework.action import ActionNode
 from modules.framework.response.code_parser import SingleFunctionParser
 from modules.framework.code.function_node import FunctionNode
-from modules.framework.response.parser import parse_text
+from modules.framework.response.text_parser import parse_text
 from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES

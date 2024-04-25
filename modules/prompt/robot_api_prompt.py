@@ -1,4 +1,4 @@
-from modules.framework.response.code_parser import AstParser
+from modules.framework.response.code_parser import CodeParser
 
 robot_api = """
 def get_position():
@@ -58,12 +58,9 @@ def get_surrounding_obstacles_info():
 class RobotApi:
     def __init__(self, content):
         self.content = content
-        code_obj = AstParser(content)
-        self.apis = {}
-        for api in code_obj.function_defs:
-            code_obj = AstParser(api)
-            name = code_obj.function_names()[0]
-            self.apis[name] = api
+        code_obj = CodeParser()
+        code_obj.parse_code(content)
+        self.apis = code_obj.function_defs
 
     def get_prompt(self, name: list[str] | str = None) -> str:
         if isinstance(name, str):
