@@ -1,7 +1,7 @@
 from modules.file.file import File, logger
-from modules.framework.context.node import FunctionNode
+from modules.framework.code.function_node import FunctionNode
 from modules.framework.context.contraint_info import ConstraintPool
-from modules.framework.context.tree import FunctionTree
+from modules.framework.code.function_tree import FunctionTree
 from modules.framework.code.grammer_checker import GrammarChecker
 
 class FunctionPool():

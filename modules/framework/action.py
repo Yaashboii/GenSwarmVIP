@@ -8,7 +8,7 @@ from modules.llm.gpt import GPT
 from modules.framework.code_error import CodeError
 from modules.framework.node_renderer import *
 from modules.file.log_file import logger
-from modules.framework.context import WorkflowContext
+from modules.framework.context.workflow_context import WorkflowContext
 
 class BaseNode(ABC):
     def __init__(self):

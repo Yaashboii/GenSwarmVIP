@@ -6,7 +6,8 @@ from modules.framework.action import *
 from modules.framework.handler import *
 
 from modules.utils.logger import setup_logger
-from modules.framework.context import WorkflowContext, File, logger
+from modules.framework.context.workflow_context import WorkflowContext
+from modules.file import File, logger
 from modules.utils.root import root_manager
 
 class Workflow:
@@ -94,7 +95,6 @@ class Workflow:
 
     async def run(self):
         text = display_all(self._pipeline, self._chain_of_handler)
-        from modules.framework.context import File
         flow = File(name='flow.md')
         flow.message = text
         await self._pipeline.run()

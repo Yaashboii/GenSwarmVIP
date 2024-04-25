@@ -1,11 +1,11 @@
 from modules.framework.action import ActionNode
-from modules.framework.code.code import parse_text
+from modules.framework.code.parser import parse_text
 from modules.prompt.run_code_prompt import DEBUG_PROMPT
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.task_description import TASK_DES
-from modules.framework.context import FunctionPool
-from modules.framework.code.code import AstParser
+from modules.framework.context.function_info import FunctionPool
+from modules.framework.code.parser import AstParser
 
 class DebugError(ActionNode):
     def __init__(self, next_text='', node_name=''):

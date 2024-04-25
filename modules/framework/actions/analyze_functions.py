@@ -3,8 +3,9 @@ from modules.prompt.analyze_stage_prompt import ANALYZE_FUNCTION_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.framework.code.code import parse_text
-from modules.framework.context import ConstraintPool, FunctionPool
+from modules.framework.code.parser import parse_text
+from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.context.function_info import FunctionPool
 from modules.file.log_file import logger
 
 class AnalyzeFunctions(ActionNode):

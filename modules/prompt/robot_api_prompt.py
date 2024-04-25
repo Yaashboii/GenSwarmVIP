@@ -1,4 +1,4 @@
-from modules.framework.code.code import AstParser
+from modules.framework.code.parser import AstParser
 from modules.utils import extract_function_definitions,
 
 robot_api = """

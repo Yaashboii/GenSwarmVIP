@@ -5,9 +5,9 @@ from modules.prompt.analyze_stage_prompt import ANALYZE_CONSTRAINT_PROMPT_TEMPLA
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.framework.code.code import parse_text
+from modules.framework.code.parser import parse_text
 from modules.file.log_file import logger
-from modules.framework.context import ConstraintPool
+from modules.framework.context.contraint_info import ConstraintPool
 
 class AnalyzeConstraints(ActionNode):
     def __init__(self, next_text, node_name = ''):

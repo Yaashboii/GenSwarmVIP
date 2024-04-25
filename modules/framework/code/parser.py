@@ -1,6 +1,7 @@
 import ast
 import re
-from modules.framework.context.function_info import FunctionPool, FunctionNode
+from modules.framework.code.function_node import FunctionNode
+from modules.framework.context.function_info import FunctionPool, FunctionTree
 from modules.file.log_file import logger
 
 
@@ -10,6 +11,7 @@ class AstParser(ast.NodeVisitor):
         self._function_dict : dict[str, str] = {}
         self._function_defs = []
         self._function_pool = FunctionPool()
+        self._functiono_tree = FunctionTree()
         
     @property
     def imports(self):
@@ -118,7 +120,3 @@ class SingleFunctionParser(AstParser):
         self._function_pool.set_definiton(self._function_dict.keys()[0], 
                                           self._function_defs[0])
 
-
-
-        
-    
