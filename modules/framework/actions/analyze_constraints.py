@@ -35,17 +35,3 @@ class AnalyzeConstraints(ActionNode):
         content = parse_text(response, 'json')
         self._constraint_pool.init_constraints(content)
         logger.log(f"Analyze Constraints Success", "success")
-
-if __name__ == '__main__':
-    analyst = AnalyzeConstraints("constraints")
-    from modules.utils import root_manager
-    import asyncio
-
-    path = '../../../workspace/test'
-    root_manager.update_root(path)
-    analyst.context.command = (
-        "Form a flock with other robots, navigating together by keeping aligned, spaced out, "
-        "and cohesive. Avoid obstacles and stay away from the environment's edges and obstacles."
-    )
-    asyncio.run(analyst.run())
-    analyst.context.save_to_file(f'{path}/analyze_constraints.pkl')

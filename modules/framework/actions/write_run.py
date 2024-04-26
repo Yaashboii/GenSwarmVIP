@@ -39,16 +39,3 @@ class WriteRun(ActionNode):
         #     raise Exception
         # return code
 
-
-if __name__ == "__main__":
-    from modules.utils import root_manager
-    import asyncio
-
-    path = '../../../workspace/test'
-    root_manager.update_root(path)
-
-    write_run = WriteRun('write run')
-    write_run.context.load_from_file(path + "/write_functions.pkl")
-    asyncio.run(write_run.run())
-
-    write_run.context.save_to_file(f'{path}/write_run.pkl')

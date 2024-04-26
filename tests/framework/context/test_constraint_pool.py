@@ -9,7 +9,13 @@ class TestConstraintPool(unittest.TestCase):
 
     def setUp(self):
         self.constraint_pool = ConstraintPool()
-        self.constraint_pool._constraint_nodes = {}
+        self.constraint_pool.reset()
+
+    def tearDown(self):
+        self.constraint_pool.reset()
+
+    def test_initial_status(self):
+        self.assertEqual(len(self.constraint_pool._constraint_nodes), 0)
 
     @patch('modules.file.file.logger.log')
     def test_getitem_with_existing_constraint(self, mock_logger):
@@ -106,7 +112,6 @@ class TestConstraintPool(unittest.TestCase):
             self.constraint_pool['non_existing_constraint']
         
         mock_logger.assert_called_once()
-
 
 if __name__ == '__main__':
     unittest.main()

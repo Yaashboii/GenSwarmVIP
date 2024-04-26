@@ -1,7 +1,5 @@
 import asyncio
 
-
-
 from modules.framework.action import ActionNode
 from modules.framework.response.code_parser import SingleFunctionParser
 from modules.framework.code.function_node import FunctionNode
@@ -31,7 +29,7 @@ class DesignFunction(ActionNode):
         logger.log(f"Function: {self._function._name}", "warning")
 
         constraint_pool : ConstraintPool = ConstraintPool()
-        other_functions : list[FunctionNode] = self._function_pool.filtered_functions(function)
+        other_functions : list[FunctionNode] = self._function_pool.filtered_functions(self._function)
         other_functions_str = '\n\n'.join([f.brief for f in other_functions])
         
         self.prompt = DesignFunction_PROMPT_TEMPLATE.format(
@@ -40,16 +38,19 @@ class DesignFunction(ActionNode):
             env_des=ENV_DES,
             function_name=self._function.name,
             function_des=self._function.description,
-            constraints=constraint_pool.filtered_constaints(keys=self._function.connections),
+            constraints=constraint_pool.filtered_constaints(related_constraints=self._function.connections),
             other_functions='\n'.join(other_functions_str)
         )
 
     def _process_response(self, response: str) -> str:
         desired_function_name = self._function._name
         code = parse_text(text=response)
-        code_obj = SingleFunctionParser(code)
-        code_obj.check_function_name(desired_function_name)
-        code_obj.update_definition()
+        parser = SingleFunctionParser()
+        parser.parse_code(code)
+        parser.check_function_name(desired_function_name)
+        new_definition = parser.function_definition
+        function_name = parser.function_name
+        self._function_pool.set_definiton(function_name, new_definition)
         return str(code)
 
 class DesignFunctionAsync(ActionNode):
@@ -62,17 +63,4 @@ class DesignFunctionAsync(ActionNode):
             action = DesignFunction('design single function')
             action.setup(function)
             return await action.run()
-        function_pool.process_function_layers(operation, start_layer_index=0, check_grammer=False)   
-
-
-if __name__ == "__main__":
-    from modules.utils import root_manager
-
-    path = '../../../workspace/test'
-    root_manager.update_root(path)
-
-    design_functions = DesignFunctionAsync('design functions async')
-    design_functions.context.load_from_file(path + "/analyze_functions.pkl")
-    asyncio.run(design_functions.run())
-
-    design_functions.context.save_to_file(f'{path}/design_functions.pkl')
+        await function_pool.process_function_layers(operation, start_layer_index=0, check_grammer=False)  

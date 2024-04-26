@@ -30,6 +30,17 @@ class FunctionTree:
     def __setitem__(self, key, value):
         if isinstance(key, str):
             self._function_nodes[key] = value
+    
+    def reset(self):
+        self._function_nodes : dict[str, FunctionNode] = {}
+        self.import_list: set[str] = {'from apis import *'}
+        self._layers : list[FunctionLayer] = []
+        self._layer_head : FunctionLayer =  None
+        self._current_layer : FunctionLayer = None 
+        self._index = 0
+        self._keys_set = set()
+        self._file = File(name='functions.py')
+
 
     @property
     def nodes(self):
@@ -41,7 +52,7 @@ class FunctionTree:
     
     @property
     def keys_set(self):
-        return self.keys_set or set(self.names)
+        return self._keys_set or set(self.names)
     
     @property
     def functions_body(self):
@@ -59,20 +70,17 @@ class FunctionTree:
         return result
     
     def filtered_functions(self, exclude_function: FunctionNode):
-        result = [value for value in self._function_nodes.values()
-                  if value != exclude_function.name]
+        result = [value for key, value in self._function_nodes.items()
+                  if key != exclude_function.name]
         return result
     
-    def related_function_content(self, content):
-        result = list(filter(lambda f: f.name in content == 0, self.functions_body))
+    def related_function_content(self, error_msg: str):
+        result = [value.content for key, value in self._function_nodes.items()
+                  if key in error_msg]
         return result
-    
-    def _reset(self):
-        self._layers.clear()
-        self._layer_head = None
     
     def update(self):
-        self._reset()
+        self._reset_layers()
         self._layer_head =  self._get_bottom_layer()
         self._current_layer = self._layer_head
         set_visited_nodes = set()
@@ -87,13 +95,13 @@ class FunctionTree:
                 self[name] = FunctionNode(name, function['description'])
                 [self[name].connect_to(constraint_pool[constraint_name]) 
                  for constraint_name in function["constraints"]]
-                [self[name].add_callee(call) for call in function['calls']] 
+                [self[name].add_callee(self[call]) for call in function['calls']] 
             self.update()
         except Exception as e:
             logger.log(f'Error in init_functions: {e}', level='error')
             raise Exception
         
-    def process_function_layers(self, operation, start_layer_index=0, check_grammer=True):
+    async def process_function_layers(self, operation, start_layer_index=0, check_grammer=True):
         import asyncio
         for index, layer in enumerate(self._layers[start_layer_index:]):
             tasks = []
@@ -101,13 +109,17 @@ class FunctionTree:
             for function_node in layer:
                 task = asyncio.create_task(operation(function_node))
                 tasks.append(task)
-            asyncio.gather(*tasks)
+            await asyncio.gather(*tasks)
             # layer_index = current_layer_index if current_layer_index < len(
                 # self._function_layer) else len(self._function_layer) - 1
             # current_layer = self._function_layer[layer_index]
         # if check_grammer: 
             # self._check_function_grammer_by_layer(layer)
-        
+
+    def _reset_layers(self):
+        self._layers.clear()
+        self._layer_head = None
+    
 
     def _build_up(self, current_layer : FunctionLayer, set_visited_nodes: set):
         if len(current_layer) > 0:
@@ -147,10 +159,12 @@ class FunctionTree:
             seen = set()     
         f_name = function.name   
 
-        if function not in seen and function in self._function_nodes:
+        print(list(seen))
+
+        if function not in seen and f_name in self._function_nodes:
             seen.add(function)
-            calls = self._function_nodes[f_name].callees
-            [self._find_all_relative_functions(call, seen) for call in calls]
+            callees = self._function_nodes[f_name].callees
+            [self._find_all_relative_functions(callee, seen) for callee in callees]
             
         return list(seen)
     

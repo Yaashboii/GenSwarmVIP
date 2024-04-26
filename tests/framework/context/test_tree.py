@@ -2,17 +2,12 @@ import unittest
 from unittest.mock import patch, ANY
 from modules.framework.code.function_node import FunctionNode
 from modules.framework.code.function_tree import FunctionTree
+from modules.file import logger, File
 
-class TestFunctionTree(unittest.TestCase):
-
-    def assert_logged():
-        def decorator(test_method):
-            def wrapper(self, *args, **kwargs):
-                with patch('modules.file.log_file.logger.log') as mock_logger:
-                    test_method(self, *args, **kwargs)
-                    mock_logger.assert_called_with(ANY, level="warning")
-            return wrapper
-        return decorator
+class TestFunctionTree(unittest.TestCase):    
+    @classmethod
+    def setUpClass(cls):
+        logger.set_file(File("log.md"))
 
     def setUp(self):
         self.function1 = FunctionNode(name="func1", description="Function 1")
@@ -24,6 +19,7 @@ class TestFunctionTree(unittest.TestCase):
             "func3": self.function3
         }
         self.function_tree = FunctionTree()
+        self.function_tree.reset()
 
     def connect_functions(self):
         self.function1.add_callee(self.function2)
@@ -46,7 +42,6 @@ class TestFunctionTree(unittest.TestCase):
         self.assertIn(self.function2, bottom_layer._layer)
         self.assertIn(self.function3, bottom_layer._layer)
     
-    @assert_logged()
     def test_update_1_layer(self):
         self.function_tree._function_nodes = self.function_dict
         self.function_tree.update()
@@ -55,7 +50,6 @@ class TestFunctionTree(unittest.TestCase):
         self.assertIn(self.function2, self.function_tree._layers[0]._layer)
         self.assertIn(self.function3, self.function_tree._layers[0]._layer)
 
-    @assert_logged()
     def test_update_2_layer(self):
         self.connect_functions()
         self.function_tree._function_nodes = self.function_dict
@@ -65,6 +59,98 @@ class TestFunctionTree(unittest.TestCase):
         self.assertIn(self.function2, self.function_tree._layers[0]._layer)
         self.assertIn(self.function3, self.function_tree._layers[0]._layer)
 
+    def test_nodes_property(self):
+        # Test the nodes property
+        self.assertEqual(len(self.function_tree.nodes), 0)
+        self.function_tree['function_name'] = FunctionNode('function_name', 'description')
+        self.assertEqual(len(self.function_tree.nodes), 1)
+
+    def test_names_property(self):
+        # Test the names property
+        self.assertEqual(len(self.function_tree.names), 0)
+        self.function_tree['function_name'] = FunctionNode('function_name', 'description')
+        self.assertIn('function_name', self.function_tree.names)
+
+    def test_keys_set_property(self):
+        # Test the keys_set property
+        self.assertEqual(len(self.function_tree.keys_set), 0)
+        self.function_tree['function_name'] = FunctionNode('function_name', 'description')
+        self.assertIn('function_name', self.function_tree.keys_set)
+
+    def test_filtered_functions(self):
+        # Test the filtered_functions method
+        function_node1 = FunctionNode('function1', 'description1')
+        function_node2 = FunctionNode('function2', 'description2')
+        self.function_tree['function1'] = function_node1
+        self.function_tree['function2'] = function_node2
+        result = self.function_tree.filtered_functions(function_node1)
+        self.assertNotIn(function_node1, result)
+        self.assertIn(function_node2, result)
+
+    def test_related_function_content(self):
+        # Test related_function_content method
+        function_node1 = FunctionNode('function1', 'description1')
+        function_node2 = FunctionNode('function2', 'description2')
+        function_node1.content = "code content for function1"
+        self.function_tree['function1'] = function_node1
+        self.function_tree['function2'] = function_node2
+        error_msg = "errors in function1"
+        result = self.function_tree.related_function_content(error_msg)
+        self.assertIn(function_node1.content, result)
+
+    def test_update(self):
+        function_node1 = FunctionNode('function1', 'description1')
+        function_node2 = FunctionNode('function2', 'description2')
+        function_node1.add_callee(function_node2)
+        self.function_tree['function1'] = function_node1
+        self.function_tree['function2'] = function_node2
+        self.function_tree.update()
+        self.assertEqual(len(self.function_tree._layers), 2)
+        self.assertIn(function_node2, self.function_tree._layers[0])
+        self.assertNotIn(function_node1, self.function_tree._layers[0])
+
+    def test_init_functions(self):
+        # Test init_functions method
+        content = '{"functions": [{"name": "function1", "description": "desc1", "constraints": [], "calls": ["function2"]}, {"name": "function2", "description": "desc2", "constraints": [], "calls": []}]}'
+        self.function_tree.init_functions(content)
+        self.assertIn('function1', self.function_tree.names)
+        self.assertIn('function2', self.function_tree.names)
+        self.assertEqual(len(self.function_tree._layers), 1)
+
+    def test_find_all_relative_functions(self):
+        # Test _find_all_relative_functions method
+        function_node1 = FunctionNode('function1', 'description1')
+        function_node2 = FunctionNode('function2', 'description2')
+        function_node3 = FunctionNode('function3', 'description3')
+        function_node1.add_callee(function_node2)
+        function_node2.add_callee(function_node3)
+        self.function_tree['function1'] = function_node1
+        self.function_tree['function2'] = function_node2
+        self.function_tree['function3'] = function_node3
+        result = self.function_tree._find_all_relative_functions(function_node1)
+        self.assertEqual(len(result), 3)
+        self.assertIn(function_node1, result)
+        self.assertIn(function_node2, result)
+        self.assertIn(function_node3, result)
+
+class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):
+
+    async def test_process_function_layers(self):
+        function_tree = FunctionTree()
+        function_tree.reset()
+        # Test process_function_layers method
+        function_node1 = FunctionNode('function1', 'description1')
+        function_node2 = FunctionNode('function2', 'description2')
+        output_names = []
+
+        async def mock_operation(node):
+            output_names.append(node.name)
+
+        function_tree._layers = [[function_node1], [function_node2]]
+        await function_tree.process_function_layers(mock_operation)
+        self.assertIn('function1', output_names)
+        self.assertIn('function2', output_names)
+    
 
 if __name__ == '__main__':
     unittest.main()

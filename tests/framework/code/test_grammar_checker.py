@@ -12,7 +12,6 @@ class TestGrammarChecker(unittest.TestCase):
         self.grammar_checker = GrammarChecker()
         self.file_path =  'tests/framework/code/example.py'
 
-        print("============================", self.file_path)
         self.errors = [
             {
                 "file_path": self.file_path,

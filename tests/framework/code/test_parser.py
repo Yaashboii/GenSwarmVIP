@@ -1,8 +1,8 @@
 import unittest
 
-from modules.framework.response.code_parser import CodeParser
+from modules.framework.response.code_parser import CodeParser, SingleFunctionParser
 from modules.framework.response.text_parser import parse_text
-
+from modules.framework.error import CodeParseError
 
 class TestAstParser(unittest.TestCase):
 
@@ -39,10 +39,10 @@ def subtract(x, y=0):
         self.assertEqual(list(self.parser._function_dict.values()), expected_function_contents)
 
     def test_function_defs(self):
-        expected_function_defs = [
-            'def add(a, b=0):\n    """\n    This function adds two numbers.\n    """\n',
-            'def subtract(x, y=0):\n    """\n    This function subtracts two numbers.\n    """\n'
-        ]
+        expected_function_defs = {
+            'add': 'def add(a, b=0):\n    """\n    This function adds two numbers.\n    """\n',
+            'subtract': 'def subtract(x, y=0):\n    """\n    This function subtracts two numbers.\n    """\n'
+                }        
         self.assertEqual(self.parser._function_defs, expected_function_defs)
 
 
@@ -52,6 +52,41 @@ class TestTextParser(unittest.TestCase):
         expected_code = "print('Hello, World!')\n"
         parsed_code = parse_text(text=text)
         self.assertEqual(parsed_code, expected_code)
+
+class TestSingleFunctionParser(unittest.TestCase):
+    def setUp(self):
+        self.parser = SingleFunctionParser()
+
+    def test_parse_code(self):
+        code_str = """
+def my_function(x):
+    return x * x
+        """
+        self.parser.parse_code(code_str)
+        self.assertIn('my_function', self.parser.function_names)
+        self.assertIn('def my_function(x):\n', self.parser.function_defs.values())
+
+    def test_check_function_name(self):
+        code_str = """
+def my_function(x):
+    return x * x
+        """
+        self.parser.parse_code(code_str)
+        self.assertRaises(CodeParseError, self.parser.check_function_name, 'other_function')
+        self.parser = SingleFunctionParser()
+
+    def test_check_error(self):
+        code_str = "" # No function in the code
+        self.assertRaises(CodeParseError, self.parser.parse_code, code_str)
+        code_str = """
+def function1(x):
+    return x * x
+
+def function2(y):
+    return y + y
+        """
+        self.assertRaises(CodeParseError, self.parser.parse_code, code_str)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,3 +1,4 @@
+from typing import Any
 from modules.file.file import File, logger
 from modules.framework.context.node import ConstraintNode
 
@@ -11,6 +12,10 @@ class ConstraintPool():
             cls._file = File("constraints.md")
         return cls._instance
     
+    def reset(self):
+        self._constraint_nodes = {}
+        self._file = File("constraints.md")
+
     def __str__(self) -> str:
         result = '\n'.join([c.brief for c in self._constraint_nodes.values()])
         return result
@@ -31,14 +36,14 @@ class ConstraintPool():
         result = [constraint.to_json() for constraint in self._constraint_nodes.values()]
         return result
     
-    def filtered_constaints(self, keys: list):
+    def filtered_constaints(self, related_constraints: list):
         def check(constraint):
-            if constraint not in self._constraint_nodes:
+            if constraint.name not in self._constraint_nodes:
                 logger.log(f"Constraint {constraint} is not in the constraint pool", 'error')
                 raise SystemExit
             
-        [check(key) for key in keys]
-        result = '\n'.join([value.brief for key, value in self._constraint_nodes.items() if key in keys])
+        [check(key) for key in related_constraints]
+        result = '\n'.join([value.brief for key, value in self._constraint_nodes.items() if key in related_constraints])
         return result
     
     def init_constraints(self, content: str):

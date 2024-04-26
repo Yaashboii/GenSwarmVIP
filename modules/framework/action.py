@@ -47,8 +47,6 @@ class BaseNode(ABC):
         return self._renderer.graph_struct(level)
 
 class ActionNode(BaseNode):
-    context : WorkflowContext = None
-
     def __init__(self, next_text: str, node_name: str = ''):
         super().__init__()
         self.__llm = GPT()
@@ -57,6 +55,7 @@ class ActionNode(BaseNode):
         self._node_name = node_name  # to distinguish objects of same class type
         self.error_handler = None  # this is a chain of handlers, see handler.py
         self.set_renderer(ActionNodeRenderer())
+        self.context : WorkflowContext = WorkflowContext()
 
     def __str__(self):
         if self._node_name:
@@ -67,10 +66,6 @@ class ActionNode(BaseNode):
 
     def _build_prompt(self):
         pass
-
-    def _build_parser(self):
-        pass
-    
 
     async def run(self) -> str:
         # First create a prompt, then utilize it to query the language model.

@@ -73,16 +73,3 @@ class CodeReviewAsync(ActionNode):
             action.setup(function)
             return await action.run()
         self._function_pool.process_function_layers(operation, start_layer_index=1)
-        
-
-if __name__ == "__main__":
-    from modules.utils import root_manager
-
-    path = '../../../workspace/test'
-    root_manager.update_root(path)
-
-    code_review = CodeReviewAsync("code review")
-    code_review.context.load_from_file(path + "/write_run.pkl")
-    asyncio.run(code_review.run())
-
-    code_review.context.save_to_file(f'{path}/code_review.pkl')

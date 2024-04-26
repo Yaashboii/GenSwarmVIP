@@ -71,6 +71,17 @@ class CodeParser(ast.NodeVisitor):
         self._function_defs[node.name] = reconstruct_function_definition(node)
 
 class SingleFunctionParser(CodeParser):
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def function_name(self):
+        return list(self.function_names)[0]
+    
+    @property
+    def function_definition(self):
+        return list(self._function_defs)[0]
+        
     def parse_code(self, code_str):
         super().parse_code(code_str)
         self._check_error()
@@ -83,13 +94,8 @@ class SingleFunctionParser(CodeParser):
             raise CodeParseError("Failed: More than one function detected in the response")
 
     def check_function_name(self, desired_function_name):
-        function_name = self._function_dict.keys()[0]
+        function_name = list(self._function_dict.keys())[0]
         if function_name != desired_function_name:
             raise CodeParseError(f"Function name mismatch: {function_name} != {desired_function_name}")
         if not function_name:
             raise CodeParseError(f"Failed: No function detected in the response")
-
-    # def update_definition(self):
-    #     self._function_pool.set_definiton(self._function_dict.keys()[0],
-                                        #   self._function_defs[0])
-    

@@ -1,7 +1,7 @@
 import asyncio
 
 from modules.framework.action import ActionNode
-from modules.framework.response.code_parser import CodeParser
+from modules.framework.response.code_parser import SingleFunctionParser
 from modules.framework.code.function_node import FunctionNode
 from modules.framework.response.text_parser import parse_text
 from modules.prompt.coding_stage_prompt import WRITE_FUNCTION_PROMPT_TEMPLATE
@@ -23,7 +23,7 @@ class WriteFunction(ActionNode):
 
 
     def setup(self, function, constraint_text, other_functions):
-        self._function = function
+        self._function : FunctionNode = function
         self._constraint_text = constraint_text
         self._other_functions = other_functions
 
@@ -32,7 +32,7 @@ class WriteFunction(ActionNode):
             task_des=TASK_DES,
             env_des=ENV_DES,
             robot_api=robot_api.get_prompt(),
-            function_content=self._function.definition,
+            function_content=self._function._definition,
             constraints=self._constraint_text,
             other_functions='\n\n'.join(self._other_functions)
         )
@@ -40,23 +40,10 @@ class WriteFunction(ActionNode):
     def _process_response(self, response: str) -> str:
         desired_function_name = self._function.name
         code = parse_text(text=response)
-        code_obj = AstParser()
-        code_obj.parse_code(code)
-        function_list = code_obj.function_names
-        if not function_list:
-            logger.log(f"Write Code Failed: No function detected in the response", "error")
-            raise Exception
-        if len(function_list) > 1:
-            logger.log(f"Write Code Failed: More than one function detected in the response",
-                                     "error")
-            raise Exception
-        for function_name in function_list:
-            if function_name != desired_function_name:
-                raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
-            if not function_name:
-                logger.log(f"Write Code Failed: No function detected in the response", "error")
-                raise Exception
-        code_obj.save_to_pool()
+        parser = SingleFunctionParser()
+        parser.parse_code(code)
+        parser.check_function_name(desired_function_name)
+        parser.save_to_pool()
         return code
 
 
@@ -80,21 +67,4 @@ class WriteFunctionsAsync(ActionNode):
                          other_functions=other_functions_str,
                          constraint_text=constraint_pool.filtered_constaints(function.connections))
             return await action.run()
-        self._function_pool.process_function_layers(operation, start_layer_index=1)      
-         
-
-
-if __name__ == "__main__":
-    from modules.utils import root_manager
-    import asyncio
-
-    # for i in range(30):
-
-    path = '../../../workspace/test'
-    root_manager.update_root(path)
-
-    write_function = WriteFunctionsAsync('design functions async')
-    write_function.context.load_from_file(path + "/design_functions.pkl")
-    asyncio.run(write_function.run())
-
-    write_function.context.save_to_file(f'{path}/write_functions.pkl')
+        await self._function_pool.process_function_layers(operation, start_layer_index=1)

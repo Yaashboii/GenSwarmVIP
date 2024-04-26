@@ -22,5 +22,3 @@ class AnalyzeFunctions(ActionNode):
         self.context.parameters = code
         logger.logger(f"Design Parameters success!", "success")
         return response
-
-    

@@ -5,7 +5,7 @@ import sys
 
 from modules.framework.action import ActionNode
 from modules.utils.root import root_manager
-from modules.utils.common import get_param, call_reset_environment, generate_video_from_frames
+from modules.utils.common import get_param, call_reset_environment
 from modules.framework.code_error import Bug, HumanFeedback
 from modules.file.log_file import logger
 from modules.framework.code.function_tree import FunctionTree
@@ -88,6 +88,8 @@ class RunCode(ActionNode):
 
 class RunCodeAsync(ActionNode):
     async def _run(self):
+        from modules.utils.media import generate_video_from_frames
+        
         robot_num = get_param('robots_num')
         tasks = []
         result_list = []
