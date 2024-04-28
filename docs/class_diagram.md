@@ -1,6 +1,6 @@
 ```mermaid
 classDiagram
-    namespace action{
+    namespace core {
         class BaseNode {
             <<abstract>>
             * _next: BaseNode
@@ -9,6 +9,44 @@ classDiagram
             + graph_struct(): string
             + add(node: BaseNode)
         }
+            
+        class BaseNode {
+            <<interface>>
+        }
+
+        class CodeError {
+            <<abstract>>
+        }
+
+
+        class Handler {
+            -_logger
+            -_successor
+            -_next_action
+            +successor()
+            +next_action()
+            +handle(request:CodeError)
+            +display()
+            +struct()
+        }
+            
+        class Context {
+            <<abstract>>
+            + save_to_file(flie_path)
+            + load_from_file(file_path)
+        }
+    
+    }
+
+    class Node {
+        - name: String
+        - description: String
+        - connections: list[Node]
+        + connect_to(node: Node)
+        + has_no_connections: boolean
+    }
+    
+    namespace action{
         class ActionNode {
             - __llm: GPT
             - __prompt: string
@@ -36,53 +74,29 @@ classDiagram
     BaseNode <|-- CompositeAction : inherit
     BaseNode --* CompositeAction : contains
 
-    
-    class BaseNode {
-        <<interface>>
-    }
+    namespace handler {
+        class BugLevelHandler {
+            +handle()
+        }
 
-    class CodeError {
-        <<abstract>>
-    }
+        class CriticLevelHandler {
+            +handle()
+        }
 
-    class Handler {
-        -_logger
-        -_successor
-        -_next_action
-        +successor()
-        +next_action()
-        +handle(request:CodeError)
-        +display()
-        +struct()
-    }
-
-    class BugLevelHandler {
-        +handle()
-    }
-
-    class CriticLevelHandler {
-        +handle()
-    }
-
-    class HumanFeedbackHandler {
-        +handle()
+        class HumanFeedbackHandler {
+            +handle()
+        }
     }
 
     CodeError <|-- Bug : inherit
     CodeError <|-- CriticNotSatisfied : inherit
-    CodeError <|-- HumanFeedback : inherit
-    BaseNode <|.. Handler : depends
+    CodeError <|-- HumanFeedbackError : inherit
+    BaseNode <.. Handler : depends
     Handler --* Handler : contains
     Handler <|-- BugLevelHandler : inherit
     Handler <|-- CriticLevelHandler : inherit
     Handler <|-- HumanFeedbackHandler : inherit
-    
-    
-    class Context {
-        + save_to_file(flie_path)
-        + load_from_file(file_path)
-    }
-    
+
     
     class WorkflowContext {
         + user_command: File
@@ -103,51 +117,43 @@ classDiagram
         + version
         - message
     }
-
-    class BaseFile {
-        <<abstract>>
-        + read()
-        + write(content: str)
-    }
     
     class Logger {
         - _file: BaseFile
         + set_file(file: BaseFile)
         + log(content: str, level: str)
     }
+
+    class BaseFile {
+        <<abstract>>
+        + read()
+        + write(content: str)
+    }
+
     }
 
     File --|> BaseFile  : inherits  
     Logger --> BaseFile : associates
     File ..> Logger
 
-    namespace node {
-    class Node {
-        - name: String
-        - description: String
-        - connections: list[Node]
-        + connect_to(node: Node)
-        + has_no_connections: boolean
-    }
-    
-    class FunctionNode {
-        + name
-        + description
-        + import_list
-        + parameters
-        + calls
-        + satisfying_constraints
-        + content
-        + definiton
-    }
+    namespace constraint {
+
     
     class ConstraintNode {
         + satisfyingFuncs
         + name
         + description
     }
+    class ConstraintPool {
+        - constraint_nodes : dict[str, ConstraintNode]
+        - -file : File
+        + filtered_constaints(keys)
+        + init_constraints(content)
+        + check_constraints_satisfaction()
+    }
     }
 
+    
     ConstraintNode --|> Node  : inherits  
     FunctionNode --|> Node : inherits 
 
@@ -170,6 +176,18 @@ classDiagram
         - build_up(current_layer: FunctionLayer)
         - get_bottom_layer()
     }
+    
+    class FunctionNode {
+        + name
+        + description
+        + import_list
+        + parameters
+        + calls
+        + satisfying_constraints
+        + content
+        + definiton
+    }
+    
     }
 
     FunctionTree *--> FunctionLayer : contains
@@ -196,17 +214,8 @@ classDiagram
 
     }
     
-    FunctionPool --|> File
-    
-    class ConstraintPool {
-        - constraint_nodes : dict[str, ConstraintNode]
-        - -file : File
-        + filtered_constaints(keys)
-        + init_constraints(content)
-        + check_constraints_satisfaction()
-    }
-    
-    ConstraintPool --> File
+    FunctionPool --> File : associates
+    ConstraintPool --> File : associates
     
     WorkflowContext *--> File : contains
     ConstraintPool *--> ConstraintNode : contains
@@ -220,5 +229,26 @@ classDiagram
         -_run_pylint_check(file_path: str): list
         -_find_function_name_from_error(file_path, error_line): tuple
     }
+    
+    ActionNode ..> CodeError : depends
+
+    Actions --|> ActionNode  : inherits
+    
+    namespace actions{
+        class Actions {
+
+        }
+    }
+    Actions: actions to do different task
+
+    class Code {
+        -_code_str: str
+        -_imports: list[str]
+        -_functions: list[str]
+        +extract_imports_and_functions(): tuple[list[str], list[str]]
+        +extract_top_level_function_names(): list[str]
+        +extract_function_definitions(): list[str]
+    }
+
 
 ```
