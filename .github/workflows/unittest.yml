@@ -38,7 +38,7 @@ jobs:
         API_KEY: ${{ secrets.LLM_API_KEY }}
         API_BASE: ${{ secrets.LLM_API_BASE }}
       run: |
-        docker run -v .:/src -e API_KEY=$API_KEY API_BASE=$API_BASE huabench/code-llm /bin/bash -c "\
+        docker run -v .:/src -e API_KEY=$API_KEY -e API_BASE=$API_BASE huabench/code-llm /bin/bash -c "\
         roscore & \
         sleep 5; \
         conda run --no-capture-output -n py310 coverage run -m unittest discover -v"
