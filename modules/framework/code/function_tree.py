@@ -24,8 +24,6 @@ class FunctionTree:
 
     def __getitem__(self, key: str):
         return self._function_nodes[key]
-        # else:
-        #     raise TypeError("Invalid index type")
         
     def __setitem__(self, key, value):
         if isinstance(key, str):
@@ -145,13 +143,17 @@ class FunctionTree:
 
         self.update()
 
-    def save_and_check(self, function_names):
+    def save_code(self, function_names):
+        for function_name in function_names:
+            self._save_by_function(self._function_nodes[function_name])
+
+
+    def check_grammar(self, function_names):
         for function_name in function_names:
             self._check_function_grammar(function_name)
             self._check_caller_function_grammer(function_name)
 
     def _check_function_grammar(self, function_name):
-        self._save_by_function(self._function_nodes[function_name])
         errors = self._grammar_checker.check_code_errors(self._file.file_path)
         status = 'passed' if errors else 'failed'
         raise GrammarError(message=f'Grammar check {status} for {function_name}',
@@ -186,7 +188,7 @@ class FunctionTree:
     
     def _save_functions_to_file(self, functions: list[FunctionNode] = None):
         import_str = "\n".join(sorted(self.import_list))
-        content = '\n\n\n'.join([f.content or '' for f in functions])
+        content = '\n\n\n'.join([f.content for f in functions])
         self._file.message = f"{import_str}\n\n{content}\n"
 
     def _save_by_function(self, function: FunctionNode):

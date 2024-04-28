@@ -29,8 +29,9 @@ class WriteRun(ActionNode):
         parser.parse_code(code)
         parser.check_function_name(desired_function_name)
 
-        self._function_pool.update_from_parser(parser.function_names, parser.function_dict)
-        self._function_pool.save_and_check([desired_function_name])
+        self._function_pool.update_from_parser(parser.imports, parser.function_dict)
+        self._function_pool.save_code([desired_function_name])
+        # self._function_pool.check_grammar([desired_function_name])
 
         # TODO,add bug fix mechanism for such cases,rather than just raising exception to triger retry
         # if error:

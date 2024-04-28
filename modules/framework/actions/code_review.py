@@ -40,11 +40,11 @@ class CodeReview(ActionNode):
         try:
             desired_function_name = self._function._name
             code = parse_text(text=response)
-            code_obj = SingleFunctionParser(code)
-            code_obj.parse_code(code)
-            code_obj.check_function_name(desired_function_name)
-            code_obj.save_to_pool()
-            self._function_pool.save_and_check_functions([desired_function_name])
+            parser = SingleFunctionParser()
+            parser.parse_code(code)
+            parser.check_function_name(desired_function_name)
+            self._function_pool.update_from_parser(parser.imports, parser.function_dict)
+            self._function_pool.save_code([desired_function_name])
             # # TODO,add bug fix mechanism for such cases,rather than just raising exception to trigger retry
             # if errors:
             #     logger.log(
@@ -72,4 +72,4 @@ class CodeReviewAsync(ActionNode):
             action = CodeReview()
             action.setup(function)
             return await action.run()
-        self._function_pool.process_function_layers(operation, start_layer_index=1)
+        await self._function_pool.process_function_layers(operation, start_layer_index=1)

@@ -59,7 +59,7 @@ class WriteFunctionsAsync(ActionNode):
         async def operation(function: FunctionNode):
             logger.log(f"Function: {function.name}", "warning")
             other_functions = self._function_pool.filtered_functions(function)
-            other_functions_str = '\n\n'.join([f.content for f in other_functions])
+            other_functions_str = '\n\n'.join([f.body for f in other_functions])
 
             action = WriteFunction()
             action.setup(function=function,

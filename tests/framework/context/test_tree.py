@@ -87,6 +87,7 @@ class TestFunctionTree(unittest.TestCase):
         self.assertNotIn(function_node1, result)
         self.assertIn(function_node2, result)
 
+
     def test_related_function_content(self):
         # Test related_function_content method
         function_node1 = FunctionNode('function1', 'description1')
@@ -115,7 +116,7 @@ class TestFunctionTree(unittest.TestCase):
         self.function_tree.init_functions(content)
         self.assertIn('function1', self.function_tree.names)
         self.assertIn('function2', self.function_tree.names)
-        self.assertEqual(len(self.function_tree._layers), 1)
+        self.assertEqual(len(self.function_tree._layers), 2)
 
     def test_find_all_relative_functions(self):
         # Test _find_all_relative_functions method
@@ -132,6 +133,27 @@ class TestFunctionTree(unittest.TestCase):
         self.assertIn(function_node1, result)
         self.assertIn(function_node2, result)
         self.assertIn(function_node3, result)
+
+    def test_obtain_node(self):
+        self.function_tree._obtain_node(name="function1", content="a = b + c")
+        self.assertEqual(self.function_tree["function1"].content, "a = b + c")
+        for body in self.function_tree.functions_body:
+            self.assertIsNotNone(body)
+
+    def test_update_function_dict(self):
+        function_dict = {
+            'function1': 'a = b + c'
+        }
+        self.function_tree._update_function_dict(function_dict)
+        self.assertEqual(self.function_tree["function1"].content, "a = b + c")
+
+    def test_update_from_parser(self):
+        function_dict = {
+            'function1': "a = b + c"
+        }
+        self.function_tree.update_from_parser(set(), function_dict)
+        self.assertEqual(self.function_tree["function1"].content, "a = b + c")
+
 
 class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):
 

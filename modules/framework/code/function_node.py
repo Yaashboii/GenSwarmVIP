@@ -6,7 +6,7 @@ class FunctionNode(Node):
         self._import_list : set[str] = set()
         self._callees : set[FunctionNode] = set()
         self._callers : set[FunctionNode] = set()
-        self._content : str = ''
+        self.content : str = ''
         self._definition: str = ''
 
     @property
@@ -30,12 +30,12 @@ class FunctionNode(Node):
         self._description = value
 
     @property
-    def content(self):
-        return self._content or self._definition
+    def body(self):
+        return self.content or self._definition
     
-    @content.setter
-    def content(self, value):
-        self._content = value
+    @body.setter
+    def body(self, value):
+        self.content = value
 
     @property
     def function_body(self):

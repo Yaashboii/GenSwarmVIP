@@ -45,5 +45,10 @@ class TestNodes(unittest.TestCase):
         expected_body = "import module1\ndef test_function():\n    pass"
         self.assertEqual(self.function_node1.function_body, expected_body)
 
+    def test_content(self):
+        function_node = FunctionNode("function1", "descption1")
+        function_node._definition = "def function1():"
+        self.assertEqual(function_node.content, "def function1():")
+
 if __name__ == '__main__':
     unittest.main()

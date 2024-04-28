@@ -12,11 +12,11 @@ import math
 from collections import deque as d
 
 def add(a, b=0):
-    \"\"\"This function adds two numbers.\"\"\"
+    '''This function adds two numbers.'''
     return a + b
 
 def subtract(x, y=0):
-    \"\"\"This function subtracts two numbers.\"\"\"
+    '''This function subtracts two numbers.'''
     return x - y
         """
 
@@ -86,6 +86,19 @@ def function2(y):
     return y + y
         """
         self.assertRaises(CodeParseError, self.parser.parse_code, code_str)
+
+    def test_function_definiton(self):
+        code_str = """
+import math
+from collections import deque as d
+
+def add(a, b=0):
+    '''This function adds two numbers.'''
+    return a + b
+        """
+        self.parser.parse_code(code_str)
+        expect_res = 'def add(a, b=0):\n    """\n    This function adds two numbers.\n    """\n'
+        self.assertEqual(self.parser.function_definition, expect_res)
 
 
 if __name__ == '__main__':
