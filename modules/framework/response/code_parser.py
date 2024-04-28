@@ -13,6 +13,10 @@ class CodeParser(ast.NodeVisitor):
     @property
     def imports(self):
         return self._imports
+    
+    @property
+    def function_dict(self):
+        return self._function_dict
 
     @property
     def function_contents(self):
@@ -70,6 +74,7 @@ class CodeParser(ast.NodeVisitor):
         self._function_dict[node.name] = ast.unparse(node).strip()
         self._function_defs[node.name] = reconstruct_function_definition(node)
 
+
 class SingleFunctionParser(CodeParser):
     def __init__(self):
         super().__init__()
@@ -80,7 +85,7 @@ class SingleFunctionParser(CodeParser):
     
     @property
     def function_definition(self):
-        return list(self._function_defs)[0]
+        return list(self._function_defs.values())[0]
         
     def parse_code(self, code_str):
         super().parse_code(code_str)

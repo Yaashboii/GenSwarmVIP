@@ -6,16 +6,36 @@ class FunctionNode(Node):
         self._import_list : set[str] = set()
         self._callees : set[FunctionNode] = set()
         self._callers : set[FunctionNode] = set()
-        self.content : str = None
-        self._definition: str = None
+        self._content : str = ''
+        self._definition: str = ''
 
     @property
     def callees(self):
         return self._callees
+    
+    @property
+    def callee_names(self):
+        return [c.name for c in self._callees]
 
     @property
     def callers(self):
         return self._callers
+    
+    @property
+    def description(self):
+        return self._description
+    
+    @description.setter
+    def description(self, value):
+        self._description = value
+
+    @property
+    def content(self):
+        return self._content or self._definition
+    
+    @content.setter
+    def content(self, value):
+        self._content = value
 
     @property
     def function_body(self):

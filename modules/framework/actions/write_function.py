@@ -18,14 +18,14 @@ class WriteFunction(ActionNode):
         super().__init__(next_text, node_name)
         self._function = None
         self._constraint_text = ''
-        self._other_functions = []
+        self._other_functions_str = ''
         self._function_pool = FunctionTree()
 
 
-    def setup(self, function, constraint_text, other_functions):
+    def setup(self, function, constraint_text, other_functions_str):
         self._function : FunctionNode = function
         self._constraint_text = constraint_text
-        self._other_functions = other_functions
+        self._other_functions_str = other_functions_str
 
     def _build_prompt(self):
         self.prompt = WRITE_FUNCTION_PROMPT_TEMPLATE.format(
@@ -34,7 +34,7 @@ class WriteFunction(ActionNode):
             robot_api=robot_api.get_prompt(),
             function_content=self._function._definition,
             constraints=self._constraint_text,
-            other_functions='\n\n'.join(self._other_functions)
+            other_functions=self._other_functions_str
         )
 
     def _process_response(self, response: str) -> str:
@@ -43,9 +43,8 @@ class WriteFunction(ActionNode):
         parser = SingleFunctionParser()
         parser.parse_code(code)
         parser.check_function_name(desired_function_name)
-        parser.save_to_pool()
+        self._function_pool.update_from_parser(parser.imports, parser.function_dict)
         return code
-
 
 class WriteFunctionsAsync(ActionNode):
     def __init__(self, next_text: str, node_name: str = ''):
@@ -59,12 +58,12 @@ class WriteFunctionsAsync(ActionNode):
         constraint_pool : ConstraintPool = ConstraintPool()
         async def operation(function: FunctionNode):
             logger.log(f"Function: {function.name}", "warning")
-            other_functions : list[FunctionNode] = self._function_pool.filtered_functions(function)
+            other_functions = self._function_pool.filtered_functions(function)
             other_functions_str = '\n\n'.join([f.content for f in other_functions])
 
             action = WriteFunction()
             action.setup(function=function,
-                         other_functions=other_functions_str,
+                         other_functions_str=other_functions_str,
                          constraint_text=constraint_pool.filtered_constaints(function.connections))
             return await action.run()
-        await self._function_pool.process_function_layers(operation, start_layer_index=1)
+        await self._function_pool.process_function_layers(operation)

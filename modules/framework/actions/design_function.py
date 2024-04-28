@@ -30,7 +30,7 @@ class DesignFunction(ActionNode):
 
         constraint_pool : ConstraintPool = ConstraintPool()
         other_functions : list[FunctionNode] = self._function_pool.filtered_functions(self._function)
-        other_functions_str = '\n\n'.join([f.brief for f in other_functions])
+        other_functions_str = '\n'.join([f.brief for f in other_functions])
         
         self.prompt = DesignFunction_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
@@ -39,7 +39,7 @@ class DesignFunction(ActionNode):
             function_name=self._function.name,
             function_des=self._function.description,
             constraints=constraint_pool.filtered_constaints(related_constraints=self._function.connections),
-            other_functions='\n'.join(other_functions_str)
+            other_functions=other_functions_str
         )
 
     def _process_response(self, response: str) -> str:
@@ -51,6 +51,7 @@ class DesignFunction(ActionNode):
         new_definition = parser.function_definition
         function_name = parser.function_name
         self._function_pool.set_definiton(function_name, new_definition)
+        logger.log(f"new definition: {new_definition}")
         return str(code)
 
 class DesignFunctionAsync(ActionNode):

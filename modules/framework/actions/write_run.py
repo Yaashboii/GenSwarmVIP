@@ -25,13 +25,12 @@ class WriteRun(ActionNode):
     def _process_response(self, response: str) -> str:
         desired_function_name = "run_loop"
         code = parse_text(text=response)
-        code_obj = SingleFunctionParser(code)
-        code_obj.parse_code(code)
-        if code_obj.function_names[0] != desired_function_name:
-            raise Exception(f"Function name mismatch: {code_obj.function_names[0]} != {desired_function_name}")
- 
-        code_obj.save_to_pool()
-        self._function_pool.save_and_check_functions([desired_function_name])
+        parser = SingleFunctionParser()
+        parser.parse_code(code)
+        parser.check_function_name(desired_function_name)
+
+        self._function_pool.update_from_parser(parser.function_names, parser.function_dict)
+        self._function_pool.save_and_check([desired_function_name])
 
         # TODO,add bug fix mechanism for such cases,rather than just raising exception to triger retry
         # if error:

@@ -3,6 +3,9 @@ from modules.framework.code.function_node import FunctionNode
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.file.log_file import logger
 from modules.file.file import File
+from modules.framework.error import GrammarError
+from modules.framework.code.grammer_checker import GrammarChecker
+
 
 class FunctionTree:
     _instance = None
@@ -13,16 +16,13 @@ class FunctionTree:
             cls._function_nodes : dict[str, FunctionNode] = {}
             cls.import_list: set[str] = {'from apis import *'}
             cls._layers : list[FunctionLayer] = []
-            cls._layer_head : FunctionLayer =  None
-            cls._current_layer : FunctionLayer = None 
             cls._index = 0
             cls._keys_set = set()
             cls._file = File(name='functions.py')
+            cls._grammar_checker = GrammarChecker()
         return cls._instance
 
     def __getitem__(self, key: str):
-        if key not in self._function_nodes:
-            return FunctionNode(name=key, description='')
         return self._function_nodes[key]
         # else:
         #     raise TypeError("Invalid index type")
@@ -35,12 +35,9 @@ class FunctionTree:
         self._function_nodes : dict[str, FunctionNode] = {}
         self.import_list: set[str] = {'from apis import *'}
         self._layers : list[FunctionLayer] = []
-        self._layer_head : FunctionLayer =  None
-        self._current_layer : FunctionLayer = None 
         self._index = 0
         self._keys_set = set()
         self._file = File(name='functions.py')
-
 
     @property
     def nodes(self):
@@ -81,10 +78,9 @@ class FunctionTree:
     
     def update(self):
         self._reset_layers()
-        self._layer_head =  self._get_bottom_layer()
-        self._current_layer = self._layer_head
+        layer_head =  self._get_bottom_layer()
         set_visited_nodes = set()
-        self._build_up(self._layer_head, set_visited_nodes)
+        self._build_up(layer_head, set_visited_nodes)
         logger.log(f"layers: {[[f.name for f in layer] for layer in self._layers]}", level='warning')
 
     def init_functions(self, content: str):
@@ -92,10 +88,11 @@ class FunctionTree:
         try:
             for function in eval(content)['functions']:
                 name = function['name']
-                self[name] = FunctionNode(name, function['description'])
-                [self[name].connect_to(constraint_pool[constraint_name]) 
+                new_node = self._obtain_node(name, description=function['description'])
+                [new_node.connect_to(constraint_pool[constraint_name]) 
                  for constraint_name in function["constraints"]]
-                [self[name].add_callee(self[call]) for call in function['calls']] 
+                [new_node.add_callee(self._obtain_node(name=call)) 
+                 for call in function['calls']] 
             self.update()
         except Exception as e:
             logger.log(f'Error in init_functions: {e}', level='error')
@@ -118,9 +115,7 @@ class FunctionTree:
 
     def _reset_layers(self):
         self._layers.clear()
-        self._layer_head = None
     
-
     def _build_up(self, current_layer : FunctionLayer, set_visited_nodes: set):
         if len(current_layer) > 0:
             self._layers.append(current_layer)
@@ -130,7 +125,7 @@ class FunctionTree:
 
         for caller in current_layer.set_callers - set_visited_nodes:
             set_visited_nodes.add(caller)
-            next_layer.add_function(self._function_nodes[caller.name])
+            next_layer.add_function(self[caller.name])
         self._build_up(next_layer, set_visited_nodes)
 
     def _get_bottom_layer(self):
@@ -142,6 +137,29 @@ class FunctionTree:
     
     def set_definiton(self, function_name, definition):
         self._function_nodes[function_name]._definition = definition
+
+    def update_from_parser(self, imports: set, function_dict: dict):
+        self._update_imports(imports)
+        self._update_function_dict(function_dict)
+        logger.log(self.functions_body)
+
+        self.update()
+
+    def save_and_check(self, function_names):
+        for function_name in function_names:
+            self._check_function_grammar(function_name)
+            self._check_caller_function_grammer(function_name)
+
+    def _check_function_grammar(self, function_name):
+        self._save_by_function(self._function_nodes[function_name])
+        errors = self._grammar_checker.check_code_errors(self._file.file_path)
+        status = 'passed' if errors else 'failed'
+        raise GrammarError(message=f'Grammar check {status} for {function_name}',
+                           grammar_error=errors)
+    
+    def _check_caller_function_grammer(self, function_name):
+        [self._check_function_grammar(f.name) 
+         for f in self._function_nodes[function_name].callers]
     
     # def _check_function_grammer_by_layer(self, current_layer):
     #     try:
@@ -159,8 +177,6 @@ class FunctionTree:
             seen = set()     
         f_name = function.name   
 
-        print(list(seen))
-
         if function not in seen and f_name in self._function_nodes:
             seen.add(function)
             callees = self._function_nodes[f_name].callees
@@ -170,7 +186,7 @@ class FunctionTree:
     
     def _save_functions_to_file(self, functions: list[FunctionNode] = None):
         import_str = "\n".join(sorted(self.import_list))
-        content = '\n\n\n'.join([f.content for f in functions])
+        content = '\n\n\n'.join([f.content or '' for f in functions])
         self._file.message = f"{import_str}\n\n{content}\n"
 
     def _save_by_function(self, function: FunctionNode):
@@ -178,17 +194,26 @@ class FunctionTree:
         logger.log(f"relative_function: {relative_function}", level='warning')
         self._save_functions_to_file(relative_function)
 
-    def _save_imports(self, imports):
+    def _update_imports(self, imports: set):
         self.import_list |= imports
 
-    def _save_function_dict(self, function_dict: dict[str, str]):
+    def _update_function_dict(self, function_dict: dict[str, str]):
         for name, content in function_dict.items():
-            self._function_nodes[name].content = content
+            node = self._obtain_node(name, content=content)
             # self._function_tree[name].add_import(self._imports)
             for other_function in self._function_nodes.values():
                 if (other_function._name != name and other_function._name in content):
-                    self._function_nodes[name].add_callee(other_function)
-            # logger.log(f" function_name: {name}, "
-            #            f"calls: {self._function_tree[name].callees}", 
-            #            level='info')
-        self.update()
+                    node.add_callee(other_function)
+            logger.log(f" function_name: {name}, calls: {self[name].callee_names}", 
+                       level='info')
+            
+    def _obtain_node(self, name, description='', content=''):
+        if name in self._function_nodes:
+            node = self._function_nodes[name]
+        else:           
+            node = FunctionNode(name=name, description=description)
+            self._function_nodes[name]= node
+        node.content = content or node.content
+        node.description = description or node.description
+
+        return node
