@@ -36,14 +36,14 @@ class ConstraintPool():
         result = [constraint.to_json() for constraint in self._constraint_nodes.values()]
         return result
     
-    def filtered_constaints(self, related_constraints: list):
-        def check(constraint):
+    def filtered_constaints(self, related_constraints: list[ConstraintNode]):
+        def check(constraint: ConstraintNode):
             if constraint.name not in self._constraint_nodes:
-                logger.log(f"Constraint {constraint} is not in the constraint pool", 'error')
+                logger.log(f"Constraint {constraint.name} is not in the constraint pool", 'error')
                 raise SystemExit
             
         [check(key) for key in related_constraints]
-        result = '\n'.join([value.brief for key, value in self._constraint_nodes.items() if key in related_constraints])
+        result = '\n'.join([value.brief for key, value in self._constraint_nodes.items() if value in related_constraints])
         return result
     
     def init_constraints(self, content: str):

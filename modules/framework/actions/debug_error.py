@@ -29,7 +29,7 @@ class DebugError(ActionNode):
 
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_text(text=response)
-        code_obj = CodeParser()
-        code_obj.parse_code(code)
-        # code_obj.save_to_pool()
+        parser = CodeParser()
+        parser.parse_code(code)
+        self._function_pool.update_from_parser(parser.imports, parser.function_dict)
         return str(code)

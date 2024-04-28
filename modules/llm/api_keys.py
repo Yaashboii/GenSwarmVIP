@@ -58,7 +58,7 @@ except FileNotFoundError:
     print(f"Error: Configuration file '{_config_path}' not found.")
     api_base = os.getenv('API_BASE')
     _api_key = os.getenv('API_KEY')
-    _keys_dict = {}
+    _keys_dict = {0: _api_key}
 
 key_manager = APIKeyManager(_keys_dict)
 

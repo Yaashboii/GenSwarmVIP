@@ -44,12 +44,14 @@ class TestAction(unittest.TestCase):
         self._function_pool = FunctionTree()
         self._constraint_pool.reset()
         self._function_pool.reset()
+        print("Running test:", self._testMethodName)
+
 
     def tearDown(self) -> None:
         self._constraint_pool.reset()
         self._function_pool.reset()
 
-    def test_analyze_constraint(self):
+    def test_1_analyze_constraint(self):
         empty_folder(self._path)
         copy_files(self._path)
         analyst = AnalyzeConstraints("constraints")
@@ -63,7 +65,7 @@ class TestAction(unittest.TestCase):
         self.assertGreater(len(self._constraint_pool._constraint_nodes), 0)
         analyst.context.save_to_file(f'{self._path}/analyze_constraints.pkl')
 
-    def test_analyze_functions(self):
+    def test_2_analyze_functions(self):
         self.assertEqual(len(self._function_pool._function_nodes), 0)
 
         analyze_functions = AnalyzeFunctions('functions')
@@ -73,7 +75,7 @@ class TestAction(unittest.TestCase):
         self.assertGreater(len(self._constraint_pool._constraint_nodes), 0)
         analyze_functions.context.save_to_file(f'{self._path}/analyze_functions.pkl')
 
-    def test_design_functions(self):
+    def test_3_design_functions(self):
         design_functions = DesignFunctionAsync('design functions async')
         design_functions.context.load_from_file(self._path + "/analyze_functions.pkl")
 
@@ -81,7 +83,7 @@ class TestAction(unittest.TestCase):
 
         design_functions.context.save_to_file(f'{self._path}/design_functions.pkl')
     
-    def test_write_functions(self):
+    def test_4_write_functions(self):
         write_function = WriteFunctionsAsync('design functions async')
         write_function.context.load_from_file(self._path + "/design_functions.pkl")
 
@@ -91,14 +93,14 @@ class TestAction(unittest.TestCase):
         for body in self._function_pool.functions_body:
             self.assertIsNotNone(body)
 
-    def test_write_run(self):
+    def test_5_write_run(self):
         write_run = WriteRun('write run')
         write_run.context.load_from_file(self._path + "/write_functions.pkl")
         # print([body for body in self._function_pool.functions_body])
         asyncio.run(write_run.run())
         write_run.context.save_to_file(f'{self._path}/write_run.pkl')
 
-    def test_code_review(self):
+    def test_6_code_review(self):
         code_review = CodeReviewAsync("code review")
         code_review.context.load_from_file(self._path + "/write_run.pkl")
         asyncio.run(code_review.run())
@@ -108,10 +110,10 @@ class TestAction(unittest.TestCase):
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     # execute in such order
-    # suite.addTest(TestAction('test_analyze_constraint'))
-    # suite.addTest(TestAction('test_analyze_functions'))
-    # suite.addTest(TestAction('test_design_functions'))
-    # suite.addTest(TestAction('test_write_functions'))
-    # suite.addTest(TestAction('test_write_run'))
-    suite.addTest(TestAction('test_code_review'))
+    # suite.addTest(TestAction('test_1_analyze_constraint'))
+    suite.addTest(TestAction('test_2_analyze_functions'))
+    suite.addTest(TestAction('test_3_design_functions'))
+    # suite.addTest(TestAction('test_4_write_functions'))
+    # suite.addTest(TestAction('test_5_write_run'))
+    # suite.addTest(TestAction('test_6_code_review'))
     unittest.TextTestRunner().run(suite)

@@ -30,11 +30,11 @@ class HumanCritic(ActionNode):
 
     def _process_response(self, response: str, **kwargs) -> str:
         code = parse_text(text=response)
-        code_obj = CodeParser()
-        code_obj.parse_code(code)
-        function_list = code_obj.function_names
-        # code_obj.save_to_pool()        
-        # self._function_pool.save_and_check_functions(function_list)
+        parser = CodeParser()
+        parser.parse_code(code)
+        function_list = parser.function_names
+        self._function_pool.update_from_parser(parser.imports, parser.function_dict)        
+        # self._function_pool.save_code(function_list)
         return str(code)
 
 

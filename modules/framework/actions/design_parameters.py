@@ -20,5 +20,5 @@ class AnalyzeFunctions(ActionNode):
     def _process_response(self, response: str) -> str:
         code = parse_text(text=response)
         self.context.parameters = code
-        logger.logger(f"Design Parameters success!", "success")
+        logger.log(f"Design Parameters success!", "success")
         return response
