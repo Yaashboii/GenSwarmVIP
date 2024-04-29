@@ -37,6 +37,10 @@ RUN conda create -y --name py310 python=3.10
 SHELL ["/bin/bash", "-c"]
 RUN echo "conda activate py310" >> ~/.bashrc
 
+RUN apt-get update && apt-get install -y libgl1-mesa-glx openssh-client iputils-ping ansible
+RUN pip install ansible
+RUN apt-get update && apt-get install -y sshpass
+
 # Install Python packages from requirements.txt
 COPY requirements.txt requirements.txt
 RUN /bin/bash -c "source activate py310 && pip3 install --no-cache-dir -r requirements.txt \
@@ -46,9 +50,6 @@ RUN /bin/bash -c "source activate py310 && pip3 install --no-cache-dir -r requir
 RUN echo "source /usr/local/miniconda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     echo "conda activate py310" >> ~/.bashrc
 
-RUN apt-get update && apt-get install -y libgl1-mesa-glx openssh-client iputils-ping ansible
-RUN pip install ansible
-RUN apt-get update && apt-get install -y sshpass
 # Build connection between host and docker container
 RUN echo 'export ROS_MASTER_URI=http://$(hostname):11311' >> ~/.bashrc
 

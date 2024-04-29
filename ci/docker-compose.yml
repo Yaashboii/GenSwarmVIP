@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  unittest:
+    image: huabench/code-llm
+    command:
+      # - /bin/bash 
+      - /bin/bash 
+      - -c
+      - |
+        conda run --no-capture-output -n py310 coverage run -m unittest discover && \
+        conda run --no-capture-output -n py310 coverage report && \
+        conda run --no-capture-output -n py310 coverage xml
+    volumes:
+      - ..:/src
+    environment:
+      - API_KEY=  ${API_KEY}
+      - API_BASE=  ${API_BASE}
+
+    network_mode: host
+    stdin_open: true
+    tty: true
