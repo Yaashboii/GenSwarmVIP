@@ -1,4 +1,3 @@
-
 from modules.framework.action import ActionNode
 from modules.prompt.analyze_stage_prompt import ANALYZE_FUNCTION_PROMPT_TEMPLATE, FUNCTION_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
@@ -11,9 +10,9 @@ from modules.framework.response import *
 
 
 class AnalyzeFunctions(ActionNode):
-    def __init__(self, next_text, node_name = ''):
+    def __init__(self, next_text, node_name=''):
         super().__init__(next_text, node_name)
-        self._constraint_pool : ConstraintPool = ConstraintPool()
+        self._constraint_pool: ConstraintPool = ConstraintPool()
         self._function_pool = FunctionTree()
 
     def _build_prompt(self):

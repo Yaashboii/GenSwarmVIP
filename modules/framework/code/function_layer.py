@@ -5,8 +5,8 @@ class FunctionLayer:
     def __init__(self, function_set: set = None):
         if function_set is None:
             function_set = set()
-        self._layer : set[FunctionNode] = function_set
-        self._next : FunctionLayer = None
+        self._layer: set[FunctionNode] = function_set
+        self._next: FunctionLayer = None
         self._index = 0
 
     @property

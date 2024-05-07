@@ -35,16 +35,17 @@ class BaseNode(ABC):
     async def run(self) -> str:
         # Abstract method for executing node logic
         pass
-    
+
     def set_renderer(self, renderer):
         self._renderer = renderer
         renderer.set_node(self)
 
     def flow_content(self, visited):
         return self._renderer.flow_content(visited)
-    
+
     def graph_struct(self, level):
         return self._renderer.graph_struct(level)
+
 
 class ActionNode(BaseNode):
     def __init__(self, next_text: str, node_name: str = ''):
@@ -55,7 +56,7 @@ class ActionNode(BaseNode):
         self._node_name = node_name  # to distinguish objects of same class type
         self.error_handler = None  # this is a chain of handlers, see handler.py
         self.set_renderer(ActionNodeRenderer())
-        self.context : WorkflowContext = WorkflowContext()
+        self.context: WorkflowContext = WorkflowContext()
 
     def __str__(self):
         if self._node_name:
@@ -72,7 +73,7 @@ class ActionNode(BaseNode):
         self._build_prompt()
         logger.log(f"Action: {str(self)}", "info")
         res = await self._run()
-        # self.context.save_to_file(file_path=root_manager.workspace_root / f"{self}.pkl")
+        self.context.save_to_file(file_path=root_manager.workspace_root / f"{self}.pkl")
         if isinstance(res, CodeError):
             # If response is CodeError, handle it and move to next action
             if self.error_handler:
@@ -101,7 +102,7 @@ class ActionNode(BaseNode):
 
     def _process_response(self, content: str) -> str:
         return content
-  
+
 
 class ActionLinkedList(BaseNode):
     def __init__(self, name: str, head: BaseNode):
@@ -143,6 +144,7 @@ class ActionLinkedList(BaseNode):
 
     async def run(self, **kwargs):
         return await self._head.run()
+
 
 if __name__ == "__main__":
     pass

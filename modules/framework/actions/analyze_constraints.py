@@ -12,15 +12,14 @@ from modules.framework.response import *
 
 
 class AnalyzeConstraints(ActionNode):
-    def __init__(self, next_text, node_name = ''):
+    def __init__(self, next_text, node_name=''):
         super().__init__(next_text, node_name)
-        self._constraint_pool : ConstraintPool = ConstraintPool()
-        
-    
+        self._constraint_pool: ConstraintPool = ConstraintPool()
+
     def _build_prompt(self):
         # constraints predefined
         user_constraints = {
-            "constraints": self._constraint_pool.constaint_list
+            "constraints": self._constraint_pool.constraint_list
         }
         self.prompt = ANALYZE_CONSTRAINT_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
@@ -35,3 +34,7 @@ class AnalyzeConstraints(ActionNode):
         content = parse_text(response, 'json')
         self._constraint_pool.init_constraints(content)
         logger.log(f"Analyze Constraints Success", "success")
+
+
+
+# if __name__ == '__main__':

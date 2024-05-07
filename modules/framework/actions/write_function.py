@@ -21,9 +21,8 @@ class WriteFunction(ActionNode):
         self._other_functions_str = ''
         self._function_pool = FunctionTree()
 
-
     def setup(self, function, constraint_text, other_functions_str):
-        self._function : FunctionNode = function
+        self._function: FunctionNode = function
         self._constraint_text = constraint_text
         self._other_functions_str = other_functions_str
 
@@ -46,6 +45,7 @@ class WriteFunction(ActionNode):
         self._function_pool.update_from_parser(parser.imports, parser.function_dict)
         return code
 
+
 class WriteFunctionsAsync(ActionNode):
     def __init__(self, next_text: str, node_name: str = ''):
         super().__init__(next_text, node_name)
@@ -55,7 +55,8 @@ class WriteFunctionsAsync(ActionNode):
         return super()._build_prompt()
 
     async def _run(self):
-        constraint_pool : ConstraintPool = ConstraintPool()
+        constraint_pool: ConstraintPool = ConstraintPool()
+
         async def operation(function: FunctionNode):
             logger.log(f"Function: {function.name}", "warning")
             other_functions = self._function_pool.filtered_functions(function)
@@ -64,6 +65,8 @@ class WriteFunctionsAsync(ActionNode):
             action = WriteFunction()
             action.setup(function=function,
                          other_functions_str=other_functions_str,
-                         constraint_text=constraint_pool.filtered_constaints(function.connections))
+                         constraint_text=constraint_pool.filtered_constraints(function.connections))
             return await action.run()
+
         await self._function_pool.process_function_layers(operation)
+        self._function_pool.save_functions_to_file()

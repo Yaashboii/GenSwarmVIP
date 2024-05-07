@@ -46,7 +46,7 @@ class TestConstraintPool(unittest.TestCase):
         constraint_node = ConstraintNode(name='constraint1', description='desc1')
         self.constraint_pool._constraint_nodes['constraint1'] = constraint_node
 
-        result = self.constraint_pool.constaint_list
+        result = self.constraint_pool.constraint_list
         
         self.assertEqual(result, [{"name": "constraint1", "description": "desc1"}])
 
@@ -79,12 +79,12 @@ class TestConstraintPool(unittest.TestCase):
         constraint_node = ConstraintNode(name="constraint1", description='desc1')
         self.constraint_pool._constraint_nodes["constraint1"] = constraint_node
 
-        result = self.constraint_pool.filtered_constaints([constraint_node])
+        result = self.constraint_pool.filtered_constraints([constraint_node])
         self.assertEqual(result, '**constraint1**: desc1')
 
         constraint_node_2 = ConstraintNode(name="constraint2", description='desc2')
         self.constraint_pool._constraint_nodes["constraint2"] = constraint_node_2
-        result_2 = self.constraint_pool.filtered_constaints([constraint_node, constraint_node_2])
+        result_2 = self.constraint_pool.filtered_constraints([constraint_node, constraint_node_2])
 
         self.assertEqual(result_2, '**constraint1**: desc1\n**constraint2**: desc2')
 
@@ -93,7 +93,7 @@ class TestConstraintPool(unittest.TestCase):
         constraint_node_9 = ConstraintNode(name="constraint9", description='desc2')
 
         with self.assertRaises(SystemExit):
-            self.constraint_pool.filtered_constaints([constraint_node_9])
+            self.constraint_pool.filtered_constraints([constraint_node_9])
 
         mock_logger.assert_called_with("Constraint constraint9 is not in the constraint pool", 'error')
 

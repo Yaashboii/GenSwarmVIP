@@ -6,18 +6,20 @@ from modules.file.file import File
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.framework.code.function_tree import FunctionTree
 
+
 class Context(ABC):
     @abstractmethod
     def save_to_file(self, filename):
         pass
-    
+
     @abstractmethod
     def load_from_file(self, filename):
         pass
-    
+
     @property
     def command():
         raise NotImplementedError
+
 
 class WorkflowContext(Context):
     _instance = None
@@ -32,7 +34,7 @@ class WorkflowContext(Context):
     def _initialize(self):
         self.user_command = File(name='command.md')
         self.design_result = File(name='design_result.py')
-        self._parameters : File = File(name="parameters.md")
+        self._parameters: File = File(name="parameters.md")
         self.run_code = File(name='run.py', message="""import sys
 from functions import run_loop
 robot_id = sys.argv[1]
@@ -56,7 +58,7 @@ if __name__ == '__main__':
     @property
     def command(self):
         return self._instance.user_command.message
-    
+
     @command.setter
     def command(self, value):
         self._instance.user_command.message = value
@@ -64,10 +66,11 @@ if __name__ == '__main__':
     @property
     def parameters(self):
         return self._instance.parameters.message
-    
+
     @parameters.setter
     def parameters(self, value):
         self._instance.parameters.message = value
+
 
 if __name__ == '__main__':
     context = WorkflowContext()

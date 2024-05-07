@@ -2,6 +2,7 @@ import datetime
 import os
 from pathlib import Path
 
+
 class _RootManager:
     _instance = None
 
@@ -29,8 +30,8 @@ class _RootManager:
         current_path = Path.cwd()
         while True:
             if ((current_path / ".git").exists()
-                or (current_path / ".project_root").exists()
-                or (current_path / ".gitignore").exists()
+                    or (current_path / ".project_root").exists()
+                    or (current_path / ".gitignore").exists()
             ):
                 # use metagpt with git clone will land here
                 return current_path
@@ -40,5 +41,6 @@ class _RootManager:
                 cwd = Path.cwd()
                 return cwd
             current_path = parent_path
+
 
 root_manager = _RootManager()

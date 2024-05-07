@@ -12,10 +12,11 @@ from modules.file.log_file import logger
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.framework.code.function_tree import FunctionTree
 
+
 class DesignFunction(ActionNode):
     def __init__(self, next_text: str, node_name: str = ''):
         super().__init__(next_text, node_name)
-        self._function : FunctionNode = None
+        self._function: FunctionNode = None
         self._function_pool = FunctionTree()
 
     def setup(self, function):
@@ -25,20 +26,20 @@ class DesignFunction(ActionNode):
         if self._function is None:
             logger.log("Function is not set", "error")
             raise SystemExit
-        
+
         logger.log(f"Function: {self._function._name}", "warning")
 
-        constraint_pool : ConstraintPool = ConstraintPool()
-        other_functions : list[FunctionNode] = self._function_pool.filtered_functions(self._function)
+        constraint_pool: ConstraintPool = ConstraintPool()
+        other_functions: list[FunctionNode] = self._function_pool.filtered_functions(self._function)
         other_functions_str = '\n'.join([f.brief for f in other_functions])
-        
+
         self.prompt = DesignFunction_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
             function_name=self._function.name,
             function_des=self._function.description,
-            constraints=constraint_pool.filtered_constaints(related_constraints=self._function.connections),
+            constraints=constraint_pool.filtered_constraints(related_constraints=self._function.connections),
             other_functions=other_functions_str
         )
 
@@ -50,9 +51,10 @@ class DesignFunction(ActionNode):
         parser.check_function_name(desired_function_name)
         new_definition = parser.function_definition
         function_name = parser.function_name
-        self._function_pool.set_definiton(function_name, new_definition)
-        logger.log(f"new definition: {new_definition}")
+        self._function_pool.set_definition(function_name, new_definition)
+        # logger.log(f"new definition: {new_definition}")
         return str(code)
+
 
 class DesignFunctionAsync(ActionNode):
     def _build_prompt(self):
@@ -60,8 +62,10 @@ class DesignFunctionAsync(ActionNode):
 
     async def _run(self):
         function_pool = FunctionTree()
+
         async def operation(function: FunctionNode):
             action = DesignFunction('design single function')
             action.setup(function)
             return await action.run()
-        await function_pool.process_function_layers(operation, start_layer_index=0, check_grammer=False)  
+
+        await function_pool.process_function_layers(operation, start_layer_index=0, check_grammar=False)
