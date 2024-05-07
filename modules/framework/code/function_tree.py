@@ -23,7 +23,7 @@ class FunctionTree:
     def __setitem__(self, key, value):
         if isinstance(key, str):
             self._function_nodes[key] = value
-    
+
     def reset(self):
         self._function_nodes: dict[str, FunctionNode] = {}
         self.import_list: set[str] = {'from apis import *'}
@@ -82,10 +82,11 @@ class FunctionTree:
             for function in eval(content)['functions']:
                 name = function['name']
                 new_node = self._obtain_node(name, description=function['description'])
-                [new_node.connect_to(constraint_pool[constraint_name]) 
+                [new_node.connect_to(constraint_pool[constraint_name])
                  for constraint_name in function["constraints"]]
-                [new_node.add_callee(self._obtain_node(name=call)) 
-                 for call in function['calls']] 
+                from modules.prompt.robot_api_prompt import robot_api
+                [new_node.add_callee(self._obtain_node(name=call))
+                 for call in function['calls'] if call not in robot_api.apis.keys()]
             self.update()
         except Exception as e:
             logger.log(f'Error in init_functions: {e}', level='error')
@@ -179,10 +180,13 @@ class FunctionTree:
             [self._find_all_relative_functions(callee, seen) for callee in callees]
 
         return list(seen)
-    
-    def _save_functions_to_file(self, functions: list[FunctionNode] = None):
+
+    def save_functions_to_file(self, functions: list[FunctionNode] = None):
         import_str = "\n".join(sorted(self.import_list))
-        content = '\n\n\n'.join([f.content for f in functions])
+        if not functions:
+            content = '\n\n\n'.join([f.content for f in self._function_nodes.values()])
+        else:
+            content = '\n\n\n'.join([f.content for f in functions])
         self._file.message = f"{import_str}\n\n{content}\n"
 
     def _save_by_function(self, function: FunctionNode):
