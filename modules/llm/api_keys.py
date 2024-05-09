@@ -13,6 +13,7 @@ class APIKeyManager:
     Methods:
         allocate_key(): Allocate a random API key from the available keys.
     """
+
     _instance = None
 
     def __new__(cls, keys_dict):
@@ -47,17 +48,17 @@ class APIKeyManager:
 
 
 _current_dir = os.path.dirname(os.path.abspath(__file__))
-_config_path = os.path.join(_current_dir, '../../config/api_data/keys_2.yml')
+_config_path = os.path.join(_current_dir, "../../config/api_data/keys_2.yml")
 
 try:
-    with open(_config_path, 'r') as config_file:
+    with open(_config_path, "r") as config_file:
         _config = yaml.safe_load(config_file)
-        api_base = _config.get('api_base', '')
-        _keys_dict = _config.get('api_keys', '')
+        api_base = _config.get("api_base", "")
+        _keys_dict = _config.get("api_keys", "")
 except FileNotFoundError:
     print(f"Error: Configuration file '{_config_path}' not found.")
-    api_base = os.getenv('API_BASE')
-    _api_key = os.getenv('API_KEY')
+    api_base = os.getenv("API_BASE")
+    _api_key = os.getenv("API_KEY")
     _keys_dict = {0: _api_key}
 
 key_manager = APIKeyManager(_keys_dict)

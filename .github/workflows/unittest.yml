@@ -14,13 +14,13 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-      
+
     - name: Run unit tests in Docker container
       env:
         API_KEY: ${{ secrets.LLM_API_KEY }}
         API_BASE: ${{ secrets.LLM_API_BASE }}
       run: docker-compose -f ci/docker-compose.yml up
-      
+
     - uses: codecov/codecov-action@v4
       with:
         fail_ci_if_error: true # optional (default = false)
@@ -29,4 +29,3 @@ jobs:
         # name: codecov-umbrella # optional
         token: ${{ secrets.CODECOV_TOKEN }} # required
         # verbose: true # optional (default = false)
-  

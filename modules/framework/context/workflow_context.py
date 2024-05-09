@@ -32,27 +32,30 @@ class WorkflowContext(Context):
         return cls._instance
 
     def _initialize(self):
-        self.user_command = File(name='command.md')
-        self.design_result = File(name='design_result.py')
+        self.user_command = File(name="command.md")
+        self.design_result = File(name="design_result.py")
         self._parameters: File = File(name="parameters.md")
-        self.run_code = File(name='run.py', message="""import sys
+        self.run_code = File(
+            name="run.py",
+            message="""import sys
 from functions import run_loop
 robot_id = sys.argv[1]
 if __name__ == '__main__':
     run_loop()
-""")
+""",
+        )
         # self.sequence_diagram = FileInfo(name='sequence_diagram.md')
-        self.run_result = File(name='run_result.md')
+        self.run_result = File(name="run_result.md")
         self.args = argparse.Namespace()
         self._constraint_pool = ConstraintPool()
         self._function_pool = FunctionTree()
 
     def save_to_file(self, file_path):
-        with open(file_path, 'wb') as file:
+        with open(file_path, "wb") as file:
             pickle.dump(self._instance, file)
 
     def load_from_file(self, file_path):
-        with open(file_path, 'rb') as file:
+        with open(file_path, "rb") as file:
             self._instance = pickle.load(file)
 
     @property
@@ -72,5 +75,5 @@ if __name__ == '__main__':
         self._instance.parameters.message = value
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     context = WorkflowContext()

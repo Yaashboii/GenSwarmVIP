@@ -25,7 +25,7 @@ class FunctionLayer:
         return result
 
     @next.setter
-    def next(self, value: 'FunctionLayer'):
+    def next(self, value: "FunctionLayer"):
         self._next = value
 
     def __len__(self):

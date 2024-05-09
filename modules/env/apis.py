@@ -7,9 +7,9 @@ from code_llm.msg import Observations
 ros_initialized = False
 velocity_publisher: rospy.Publisher
 robot_info: dict = {
-    'position': np.array([0.0, 0.0]),
-    'radius': 0.0,
-    'velocity': np.array([0.0, 0.0])
+    "position": np.array([0.0, 0.0]),
+    "radius": 0.0,
+    "velocity": np.array([0.0, 0.0]),
 }
 timer: rospy.Timer
 
@@ -23,24 +23,28 @@ def observation_callback(msg: Observations):
     obstacles_info = []
     other_robots_info = []
     for obj in msg.observations:
-        if obj.type == 'self':
+        if obj.type == "self":
             self_info = obj
-            robot_info['position'] = np.array([self_info.position.x, self_info.position.y])
-            robot_info['radius'] = self_info.radius
-            robot_info['velocity'] = np.array([0.0, 0.0])
-        elif obj.type == 'robot':
+            robot_info["position"] = np.array(
+                [self_info.position.x, self_info.position.y]
+            )
+            robot_info["radius"] = self_info.radius
+            robot_info["velocity"] = np.array([0.0, 0.0])
+        elif obj.type == "robot":
             other_robots_info.append(
                 {
-                    'position': np.array([obj.position.x, obj.position.y]),
-                    'velocity': np.array([obj.velocity.linear.x, obj.velocity.linear.y]),
-                    'radius': obj.radius,
+                    "position": np.array([obj.position.x, obj.position.y]),
+                    "velocity": np.array(
+                        [obj.velocity.linear.x, obj.velocity.linear.y]
+                    ),
+                    "radius": obj.radius,
                 }
             )
-        elif obj.type == 'obstacle':
+        elif obj.type == "obstacle":
             obstacles_info.append(
                 {
-                    'position': np.array([obj.position.x, obj.position.y]),
-                    'radius': obj.radius
+                    "position": np.array([obj.position.x, obj.position.y]),
+                    "radius": obj.radius,
                 }
             )
 
@@ -51,19 +55,24 @@ def initialize_ros_node():
     if not ros_initialized:
         # init ros node
         from run import robot_id
-        rospy.init_node(f'robot{robot_id}_control_node', anonymous=True)
-        ros_initialized = True
-        rospy.Subscriber(f'/robot_{robot_id}/observation', Observations, observation_callback)
 
-        velocity_publisher = rospy.Publisher(f'/robot_{robot_id}/velocity', Twist, queue_size=1)
+        rospy.init_node(f"robot{robot_id}_control_node", anonymous=True)
+        ros_initialized = True
+        rospy.Subscriber(
+            f"/robot_{robot_id}/observation", Observations, observation_callback
+        )
+
+        velocity_publisher = rospy.Publisher(
+            f"/robot_{robot_id}/velocity", Twist, queue_size=1
+        )
 
         # TODO: 每个节点都会set一遍，但是这个路径现在是一样的，可以优化。如果后续考虑每个机器人的数据单独保存，这一段代码可以保留
         current_folder = os.path.dirname(os.path.abspath(__file__))
-        rospy.set_param('data_path', str(current_folder) + '/data')
+        rospy.set_param("data_path", str(current_folder) + "/data")
 
         # make sure the position is received
         print(f"Waiting for position message from /robot_{robot_id}/observation...")
-        msg = rospy.wait_for_message(f'/robot_{robot_id}/observation', Observations)
+        msg = rospy.wait_for_message(f"/robot_{robot_id}/observation", Observations)
         observation_callback(msg)
         print(f"Observations data init successfully")
 
@@ -74,8 +83,8 @@ def initialize_ros_node():
 def publish_velocities(event):
     global robot_info, velocity_publisher
     velocity_msg = Twist()
-    velocity_msg.linear.x = robot_info['velocity'][0]
-    velocity_msg.linear.y = robot_info['velocity'][1]
+    velocity_msg.linear.x = robot_info["velocity"][0]
+    velocity_msg.linear.y = robot_info["velocity"][1]
     velocity_publisher.publish(velocity_msg)
 
 
@@ -88,7 +97,7 @@ def get_position():
     """
     initialize_ros_node()
     global robot_info
-    return robot_info['position']
+    return robot_info["position"]
 
 
 def get_velocity():
@@ -99,7 +108,7 @@ def get_velocity():
     """
     initialize_ros_node()
     global robot_info
-    return robot_info['velocity']
+    return robot_info["velocity"]
 
 
 def get_radius():
@@ -109,7 +118,7 @@ def get_radius():
     - float: The radius of the robot itself.
     """
     initialize_ros_node()
-    return robot_info['radius']
+    return robot_info["radius"]
 
 
 def set_velocity(velocity):
@@ -121,7 +130,7 @@ def set_velocity(velocity):
     """
     global robot_info
     initialize_ros_node()
-    robot_info['velocity'] = np.array(velocity)
+    robot_info["velocity"] = np.array(velocity)
 
 
 def get_surrounding_robots_info():

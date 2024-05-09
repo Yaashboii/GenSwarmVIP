@@ -5,8 +5,9 @@ from modules.framework.context.workflow_context import WorkflowContext
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.framework.code.function_tree import FunctionTree
 
+
 class TestWorkflowContext(unittest.TestCase):
-    TEST_FILE_PATH =  os.path.dirname(os.path.abspath(__file__)) + "/test_context.pkl"
+    TEST_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) + "/test_context.pkl"
 
     @classmethod
     def setUpClass(cls):
@@ -34,7 +35,7 @@ class TestWorkflowContext(unittest.TestCase):
         self.assertEqual(constraint_data["constraint2"], "value2")
 
     def test_save_and_load_function_pool(self):
-        import_data = {'from apis import *', "import 1", "import 2"}
+        import_data = {"from apis import *", "import 1", "import 2"}
         self.function_pool.import_list = import_data
         self.context.save_to_file(self.TEST_FILE_PATH)
         self.function_pool.reset()
@@ -47,5 +48,6 @@ class TestWorkflowContext(unittest.TestCase):
         function_pool_imports = FunctionTree().import_list
         self.assertCountEqual(function_pool_imports, import_data)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

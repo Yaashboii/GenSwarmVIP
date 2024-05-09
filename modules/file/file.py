@@ -6,33 +6,35 @@ from modules.utils import root_manager
 
 from modules.file.log_file import logger
 
+
 class FileStatus(Enum):
     NOT_WRITTEN = 0
     NOT_TESTED = 1
     TESTED_FAIL = 2
     TESTED_PASS = 3
 
+
 class File(BaseFile):
-    def __init__(self, name: str = '', message: str = '', root: str = ''):
+    def __init__(self, name: str = "", message: str = "", root: str = ""):
         self.version = 0
         self._name = name
         self._root = root if root else root_manager.workspace_root
         self._status = FileStatus.NOT_WRITTEN
         self._message = message
-    
+
     @property
     def message(self):
         if not self._message:
             try:
                 self._message = self.read()
             except FileNotFoundError:
-                self._message = ''
+                self._message = ""
         return self._message
-    
+
     @property
     def name(self):
         return self._name
-    
+
     @message.setter
     def message(self, content: str):
         self._message = content
@@ -46,13 +48,13 @@ class File(BaseFile):
 
     def read(self):
         try:
-            with open(self.file_path, 'r') as file:
+            with open(self.file_path, "r") as file:
                 file_content = file.read()
             return file_content
         except FileNotFoundError:
             return f"File not found: {self.file_path}"
 
-    def write(self, content, mode='w'):
+    def write(self, content, mode="w"):
         if not logger.is_file_exists():
             logger.set_file(File("log.md"))
         if not os.path.exists(self._root):
@@ -60,15 +62,15 @@ class File(BaseFile):
         try:
             with open(self.file_path, mode) as file:
                 file.write(content)
-            operation = "written" if mode == 'w' else "appended"
-            if operation == 'written':
-                logger.log(f"File {operation}: {self.file_path}", level='info')
+            operation = "written" if mode == "w" else "appended"
+            if operation == "written":
+                logger.log(f"File {operation}: {self.file_path}", level="info")
         except FileNotFoundError:
-            logger.log(f"File not found: {self.file_path}", level='error')
+            logger.log(f"File not found: {self.file_path}", level="error")
         except Exception as e:
-            logger.log(f"Error writing file: {e}", level='error')
-    
-    def copy(self, root, name=''):
+            logger.log(f"Error writing file: {e}", level="error")
+
+    def copy(self, root, name=""):
         new_name = name if name else self._name
         new_file = File(root=root, name=new_name)
         new_file.message = self.message

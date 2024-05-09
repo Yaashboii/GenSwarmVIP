@@ -8,13 +8,14 @@ from modules.prompt.task_description import TASK_DES
 from modules.file.log_file import logger
 from modules.framework.code.function_tree import FunctionTree
 
+
 class WriteRun(ActionNode):
-    def __init__(self, next_text, node_name = ''):
+    def __init__(self, next_text, node_name=""):
         super().__init__(next_text, node_name)
         self._function_pool = FunctionTree()
 
     def _build_prompt(self):
-        functions = '\n\n'.join(self._function_pool.function_valid_content)
+        functions = "\n\n".join(self._function_pool.function_valid_content)
         self.prompt = WRITE_RUN_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             env_des=ENV_DES,
@@ -38,4 +39,3 @@ class WriteRun(ActionNode):
         #     logger.log(f"Function {desired_function_name} has syntax error: {error}", "error")
         #     raise Exception
         # return code
-

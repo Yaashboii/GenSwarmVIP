@@ -1,5 +1,8 @@
 from modules.framework.action import ActionNode
-from modules.prompt.analyze_stage_prompt import ANALYZE_FUNCTION_PROMPT_TEMPLATE, FUNCTION_TEMPLATE
+from modules.prompt.analyze_stage_prompt import (
+    ANALYZE_FUNCTION_PROMPT_TEMPLATE,
+    FUNCTION_TEMPLATE,
+)
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
@@ -10,7 +13,7 @@ from modules.framework.response import *
 
 
 class AnalyzeFunctions(ActionNode):
-    def __init__(self, next_text, node_name=''):
+    def __init__(self, next_text, node_name=""):
         super().__init__(next_text, node_name)
         self._constraint_pool: ConstraintPool = ConstraintPool()
         self._function_pool = FunctionTree()
@@ -22,11 +25,11 @@ class AnalyzeFunctions(ActionNode):
             robot_api=ROBOT_API,
             env_des=ENV_DES,
             constraints=str(self._constraint_pool),
-            output_template=FUNCTION_TEMPLATE
+            output_template=FUNCTION_TEMPLATE,
         )
 
     def _process_response(self, response: str) -> str:
-        content = parse_text(response, 'json')
+        content = parse_text(response, "json")
         self._function_pool.init_functions(content)
         self._constraint_pool.check_constraints_satisfaction()
         logger.log(f"Analyze Functions Success", "success")

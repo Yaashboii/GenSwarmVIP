@@ -13,14 +13,16 @@ from modules.framework.code.function_tree import FunctionTree
 
 
 class CodeReview(ActionNode):
-    def __init__(self, next_text='', node_name=''):
+    def __init__(self, next_text="", node_name=""):
         super().__init__(next_text, node_name)
         self._function: FunctionNode = None
         self._function_pool = FunctionTree()
 
     def _build_prompt(self):
-        other_functions: list[FunctionNode] = self._function_pool.filtered_functions(self._function)
-        other_functions_str = '\n\n'.join([f.function_body for f in other_functions])
+        other_functions: list[FunctionNode] = self._function_pool.filtered_functions(
+            self._function
+        )
+        other_functions_str = "\n\n".join([f.function_body for f in other_functions])
         self.prompt = HIGH_LEVEL_FUNCTION_REVIEW.format(
             task_des=TASK_DES,
             robot_api=ROBOT_API,
@@ -51,14 +53,14 @@ class CodeReview(ActionNode):
             #     raise Exception
             return code
         except ValueError as e:
-            logger.log(f"No function detected in the response: {e}", 'warning')
+            logger.log(f"No function detected in the response: {e}", "warning")
         except Exception as e:
             logger.log(f"High Level Function Review Failed: {e}", "error")
             raise Exception  # trigger retry
 
 
 class CodeReviewAsync(ActionNode):
-    def __init__(self, next_text='', node_name=''):
+    def __init__(self, next_text="", node_name=""):
         super().__init__(next_text, node_name)
         self._function_pool = FunctionTree()
 
@@ -71,4 +73,6 @@ class CodeReviewAsync(ActionNode):
             action.setup(function)
             return await action.run()
 
-        await self._function_pool.process_function_layers(operation, start_layer_index=1)
+        await self._function_pool.process_function_layers(
+            operation, start_layer_index=1
+        )

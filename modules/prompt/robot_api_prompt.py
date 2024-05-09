@@ -55,6 +55,7 @@ def get_surrounding_obstacles_info():
 
 # data_api = read_file("modules/env/", filename="data_apis.py")
 
+
 class RobotApi:
     def __init__(self, content):
         self.content = content
@@ -66,12 +67,14 @@ class RobotApi:
         if isinstance(name, str):
             name = [name]
         if name is None:
-            return '\n\n'.join(self.apis.values())
+            return "\n\n".join(self.apis.values())
         try:
             prompts = [self.apis[n] for n in name]
-            return '\n\n'.join(prompts)
+            return "\n\n".join(prompts)
         except Exception as e:
-            raise SystemExit(f"Error in get_prompt: {e},current existing apis:{self.apis.keys()},input name:{name}")
+            raise SystemExit(
+                f"Error in get_prompt: {e},current existing apis:{self.apis.keys()},input name:{name}"
+            )
 
 
 robot_api = RobotApi(content=robot_api)

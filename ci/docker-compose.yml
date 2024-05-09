@@ -4,8 +4,8 @@ services:
   unittest:
     image: huabench/code-llm
     command:
-      # - /bin/bash 
-      - /bin/bash 
+      # - /bin/bash
+      - /bin/bash
       - -c
       - |
         conda run --no-capture-output -n py310 coverage run -m unittest discover && \

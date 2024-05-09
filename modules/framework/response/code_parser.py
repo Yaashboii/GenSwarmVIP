@@ -45,7 +45,7 @@ class CodeParser(ast.NodeVisitor):
             self._imports.add(import_str)
 
     def visit_ImportFrom(self, node: ast.ImportFrom):
-        module = node.module or ''
+        module = node.module or ""
         for alias in node.names:
             import_str = f"from {module} import {alias.name}"
             if alias.asname:
@@ -54,22 +54,29 @@ class CodeParser(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node: ast.FunctionDef):
         def reconstruct_function_definition(function_node: ast.FunctionDef):
-            defaults_start_index = len(function_node.args.args) - len(function_node.args.defaults)
+            defaults_start_index = len(function_node.args.args) - len(
+                function_node.args.defaults
+            )
 
             parameters = [
-                ast.unparse(arg) + (
-                    f'={ast.unparse(function_node.args.defaults[i - defaults_start_index])}'
-                    if i >= defaults_start_index else '')
+                ast.unparse(arg)
+                + (
+                    f"={ast.unparse(function_node.args.defaults[i - defaults_start_index])}"
+                    if i >= defaults_start_index
+                    else ""
+                )
                 for i, arg in enumerate(function_node.args.args)
             ]
 
             func_header = f"def {function_node.name}({', '.join(parameters)}):"
             docstring = ast.get_docstring(function_node)
-            docstring_part = ''
+            docstring_part = ""
             if docstring:
-                indented_docstring = '\n'.join('    ' + line for line in docstring.split('\n'))
+                indented_docstring = "\n".join(
+                    "    " + line for line in docstring.split("\n")
+                )
                 docstring_part = f'    """\n{indented_docstring}\n    """\n'
-            body_part = ''
+            body_part = ""
             return f"{func_header}\n{docstring_part}{body_part}"
 
         self._function_dict[node.name] = ast.unparse(node).strip()
@@ -94,14 +101,20 @@ class SingleFunctionParser(CodeParser):
 
     def _check_error(self):
         if not self._function_dict:
-            raise CodeParseError("Failed: No function detected in the response", "error")
+            raise CodeParseError(
+                "Failed: No function detected in the response", "error"
+            )
             # return ''
         if len(self._function_dict) > 1:
-            raise CodeParseError("Failed: More than one function detected in the response")
+            raise CodeParseError(
+                "Failed: More than one function detected in the response"
+            )
 
     def check_function_name(self, desired_function_name):
         function_name = list(self._function_dict.keys())[0]
         if function_name != desired_function_name:
-            raise CodeParseError(f"Function name mismatch: {function_name} != {desired_function_name}")
+            raise CodeParseError(
+                f"Function name mismatch: {function_name} != {desired_function_name}"
+            )
         if not function_name:
             raise CodeParseError(f"Failed: No function detected in the response")

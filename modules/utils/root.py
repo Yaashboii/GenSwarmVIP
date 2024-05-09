@@ -29,9 +29,10 @@ class _RootManager:
         """Search upwards to find the project root directory."""
         current_path = Path.cwd()
         while True:
-            if ((current_path / ".git").exists()
-                    or (current_path / ".project_root").exists()
-                    or (current_path / ".gitignore").exists()
+            if (
+                (current_path / ".git").exists()
+                or (current_path / ".project_root").exists()
+                or (current_path / ".gitignore").exists()
             ):
                 # use metagpt with git clone will land here
                 return current_path

@@ -1,7 +1,12 @@
 from openai import AsyncOpenAI
 
 from modules.llm.api_keys import api_base, key_manager
-from tenacity import retry, stop_after_attempt, wait_random_exponential, stop_after_delay
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_random_exponential,
+    stop_after_delay,
+)
 
 
 class GPT:
@@ -19,7 +24,7 @@ class GPT:
 
     system_prompt = "You are a helpful assistant."
 
-    def __init__(self, model: str = 'gpt-4-turbo-2024-04-09') -> None:
+    def __init__(self, model: str = "gpt-4-turbo-2024-04-09") -> None:
         self._model = model
         self._memories = []  # Current memories
         self.key = key_manager.allocate_key()
@@ -37,7 +42,10 @@ class GPT:
         self._memories.append({"role": "user", "content": prompt})
         return await self._ask_with_retry(temperature)
 
-    @retry(stop=(stop_after_attempt(5) | stop_after_delay(500)), wait=wait_random_exponential(multiplier=1, max=60))
+    @retry(
+        stop=(stop_after_attempt(5) | stop_after_delay(500)),
+        wait=wait_random_exponential(multiplier=1, max=60),
+    )
     async def _ask_with_retry(self, temperature: float) -> str:
         """
         Helper function to perform the actual call to the GPT model with retry logic.
@@ -47,23 +55,29 @@ class GPT:
                 model=self._model,
                 messages=self._memories,
                 temperature=temperature,
-                stream=True
+                stream=True,
             )
             collected_chunks = []
             collected_messages = []
             async for chunk in response:
                 collected_chunks.append(chunk)
-                choices = chunk.choices if hasattr(chunk, 'choices') else []
+                choices = chunk.choices if hasattr(chunk, "choices") else []
                 if len(choices) > 0:
-                    chunk_message = choices[0].delta if hasattr(choices[0], 'delta') else {}
+                    chunk_message = (
+                        choices[0].delta if hasattr(choices[0], "delta") else {}
+                    )
                     collected_messages.append(chunk_message)
 
             full_reply_content = "".join(
-                [m.content if hasattr(m, 'content') and m.content is not None else ""
-                 for m in collected_messages])
+                [
+                    m.content if hasattr(m, "content") and m.content is not None else ""
+                    for m in collected_messages
+                ]
+            )
             self._response = full_reply_content
             return full_reply_content
         except Exception as e:
             from modules.file.log_file import logger
-            logger.log(f"Error in _ask_with_retry: {e}", level='error')
+
+            logger.log(f"Error in _ask_with_retry: {e}", level="error")
             raise  # Re-raise exception to trigger retry

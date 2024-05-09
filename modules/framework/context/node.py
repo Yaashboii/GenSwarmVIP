@@ -23,7 +23,7 @@ class Node(ABC):
     def description(self):
         return self._description
 
-    def connect_to(self, node: 'Node'):
+    def connect_to(self, node: "Node"):
         if node not in self._connections:
             self._connections.add(node)
             node.connect_to(self)
@@ -37,8 +37,5 @@ class ConstraintNode(Node):
         super().__init__(name, description)
 
     def to_json(self):
-        result = {
-            "name": self._name,
-            "description": self._description
-        }
+        result = {"name": self._name, "description": self._description}
         return result

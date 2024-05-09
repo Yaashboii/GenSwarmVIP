@@ -6,7 +6,6 @@ import unittest
 
 
 class TestFunctionLayer(unittest.TestCase):
-
     def setUp(self):
         self.function1 = FunctionNode(name="func1", description="Function 1")
         self.function2 = FunctionNode(name="func2", description="Function 2")
@@ -18,7 +17,9 @@ class TestFunctionLayer(unittest.TestCase):
         self.assertIn(self.function3, self.function_layer._layer)
 
     def test_functions_property(self):
-        self.assertCountEqual(self.function_layer.functions, [self.function1, self.function2])
+        self.assertCountEqual(
+            self.function_layer.functions, [self.function1, self.function2]
+        )
 
     def test_next_function(self):
         with self.assertRaises(StopIteration):

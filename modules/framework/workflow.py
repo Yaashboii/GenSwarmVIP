@@ -32,18 +32,18 @@ class Workflow:
     def init_workspace(self):
         workspace_root = root_manager.workspace_root
         project_root = root_manager.project_root
-        os.makedirs(os.path.join(workspace_root, 'data/frames'))
+        os.makedirs(os.path.join(workspace_root, "data/frames"))
 
-        util_file = File(root=os.path.join(project_root, 'modules/env'), name='apis.py')
+        util_file = File(root=os.path.join(project_root, "modules/env"), name="apis.py")
         util_file.copy(root=workspace_root)
 
-        run_file = File(root=os.path.join(project_root, 'modules/env'), name='run.py')
+        run_file = File(root=os.path.join(project_root, "modules/env"), name="run.py")
         run_file.copy(root=workspace_root)
 
     def build_up(self):
         # initialize actions
-        analyze_constraints = AnalyzeConstraints('constraint pool')
-        analyze_functions = AnalyzeFunctions('function pool')
+        analyze_constraints = AnalyzeConstraints("constraint pool")
+        analyze_functions = AnalyzeFunctions("function pool")
         design_functions = DesignFunctionAsync("function definition")
         write_functions = WriteFunctionsAsync("function.py")
         write_run = WriteRun("code")
@@ -93,15 +93,13 @@ class Workflow:
 
     async def run(self):
         text = display_all(self._pipeline, self._chain_of_handler)
-        flow = File(name='flow.md')
+        flow = File(name="flow.md")
         flow.message = text
         await self._pipeline.run()
 
 
 if __name__ == "__main__":
-    task_list = [
-        ''
-    ]
+    task_list = [""]
     from modules.utils import root_manager
 
     workflow = Workflow(task_list[0])

@@ -10,7 +10,7 @@
 
   <a href="https://hub.docker.com/repository/docker/huabench/code-llm">
   <img src="https://img.shields.io/docker/v/huabench/code-llm?label=Docker%20Image&logo=docker&style=flat-square" alt="Docker Image"></a>
-  <a href="https://codecov.io/gh/WestlakeIUSL/CodeLLM" > 
+  <a href="https://codecov.io/gh/WestlakeIUSL/CodeLLM" >
    <img src="https://codecov.io/gh/WestlakeIUSL/CodeLLM/branch/develop/graph/badge.svg?token=U10VRSMV3O"/></a>
 </p>
 

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class NodeRenderer(ABC):
     def set_node(self, node):
         self._node = node
@@ -14,6 +15,7 @@ class NodeRenderer(ABC):
         # Abstract method for generating graph structure
         pass
 
+
 class ActionNodeRenderer(NodeRenderer):
     def flow_content(self, visited: set) -> str:
         # generating flow content in mermaid style
@@ -22,7 +24,9 @@ class ActionNodeRenderer(NodeRenderer):
         visited.add(self._node)
         content = f"\t\t{str(self._node)} -->|{self._node._next_text}| {str(self._node._next)}\n"
         if self._node.error_handler:
-            content += f"\t\t{str(self._node)} -->|failed| {str(self._node.error_handler)}\n"
+            content += (
+                f"\t\t{str(self._node)} -->|failed| {str(self._node.error_handler)}\n"
+            )
             content += self._node.error_handler.display(visited)
 
         content += self._node._next.flow_content(visited)
@@ -31,7 +35,8 @@ class ActionNodeRenderer(NodeRenderer):
     def graph_struct(self, level: int) -> str:
         # Method for generating graph structure
         return str(self._node)
-    
+
+
 class ActionLinkedListRenderer(NodeRenderer):
     def graph_struct(self, level: int) -> str:
         # Method for generating graph structure in mermaid style
@@ -50,7 +55,8 @@ class ActionLinkedListRenderer(NodeRenderer):
 
     def flow_content(self, visited: set) -> str:
         return self._node._head.flow_content(visited)
-    
+
+
 def display_all(node, error_handler):
     graph = node.graph_struct(level=1)
     visited = set()
@@ -74,10 +80,10 @@ end
 def _clean_graph(graph: str):
     lines = set()
     unique_lines = []
-    for line in graph.split('\n'):
+    for line in graph.split("\n"):
         content = line.strip()
         if content not in lines or content == "end":
             unique_lines.append(line)
             lines.add(line.strip())
 
-    return '\n'.join(unique_lines)
+    return "\n".join(unique_lines)

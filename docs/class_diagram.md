@@ -9,7 +9,7 @@ classDiagram
             + graph_struct(): string
             + add(node: BaseNode)
         }
-            
+
         class BaseNode {
             <<interface>>
         }
@@ -29,13 +29,13 @@ classDiagram
             +display()
             +struct()
         }
-            
+
         class Context {
             <<abstract>>
             + save_to_file(flie_path)
             + load_from_file(file_path)
         }
-    
+
     }
 
     class Node {
@@ -45,7 +45,7 @@ classDiagram
         + connect_to(node: Node)
         + has_no_connections: boolean
     }
-    
+
     namespace action{
         class ActionNode {
             - __llm: GPT
@@ -97,18 +97,18 @@ classDiagram
     Handler <|-- CriticLevelHandler : inherit
     Handler <|-- HumanFeedbackHandler : inherit
 
-    
+
     class WorkflowContext {
         + user_command: File
         + design_result: File
         + run_code: File
-        
+
         + save_to_file(flie_path)
         + load_from_file(file_path)
     }
-    
+
     WorkflowContext --|> Context : inherit
-    
+
     namespace files {
     class File {
         + name
@@ -117,7 +117,7 @@ classDiagram
         + version
         - message
     }
-    
+
     class Logger {
         - _file: BaseFile
         + set_file(file: BaseFile)
@@ -132,13 +132,13 @@ classDiagram
 
     }
 
-    File --|> BaseFile  : inherits  
+    File --|> BaseFile  : inherits
     Logger --> BaseFile : associates
     File ..> Logger
 
     namespace constraint {
 
-    
+
     class ConstraintNode {
         + satisfyingFuncs
         + name
@@ -153,9 +153,9 @@ classDiagram
     }
     }
 
-    
-    ConstraintNode --|> Node  : inherits  
-    FunctionNode --|> Node : inherits 
+
+    ConstraintNode --|> Node  : inherits
+    FunctionNode --|> Node : inherits
 
     namespace tree {
     class FunctionLayer {
@@ -176,7 +176,7 @@ classDiagram
         - build_up(current_layer: FunctionLayer)
         - get_bottom_layer()
     }
-    
+
     class FunctionNode {
         + name
         + description
@@ -187,13 +187,13 @@ classDiagram
         + content
         + definiton
     }
-    
+
     }
 
     FunctionTree *--> FunctionLayer : contains
     FunctionLayer *--> FunctionNode : contains
 
-    
+
     class FunctionPool {
         - import_list: list[str]
         - functions_dict: dict[str, FunctionNode]
@@ -213,10 +213,10 @@ classDiagram
         + _check_function_grammer_by_layer(current_layer)
 
     }
-    
+
     FunctionPool --> File : associates
     ConstraintPool --> File : associates
-    
+
     WorkflowContext *--> File : contains
     ConstraintPool *--> ConstraintNode : contains
     FunctionPool *--> FunctionNode : contains
@@ -229,11 +229,11 @@ classDiagram
         -_run_pylint_check(file_path: str): list
         -_find_function_name_from_error(file_path, error_line): tuple
     }
-    
+
     ActionNode ..> CodeError : depends
 
     Actions --|> ActionNode  : inherits
-    
+
     namespace actions{
         class Actions {
 

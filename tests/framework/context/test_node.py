@@ -2,8 +2,8 @@ import unittest
 from modules.framework.code.function_node import FunctionNode
 from modules.framework.context.node import ConstraintNode
 
-class TestNodes(unittest.TestCase):
 
+class TestNodes(unittest.TestCase):
     def setUp(self):
         self.constraint_node = ConstraintNode("Constraint1", "Description1")
         self.function_node1 = FunctionNode("Function1", "Description1")
@@ -50,5 +50,6 @@ class TestNodes(unittest.TestCase):
         function_node._definition = "def function1():"
         self.assertEqual(function_node.body, "def function1():")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -8,50 +8,50 @@ class TestFile(unittest.TestCase):
     def setUp(self):
         self.mock_content = "Test Content"
         self.mock_root = "/mock/root"
-        self.file = File(name='test.txt', root=self.mock_root)
+        self.file = File(name="test.txt", root=self.mock_root)
 
-    @patch('modules.utils.root_manager.workspace_root', 'mocked_workspace_root')
+    @patch("modules.utils.root_manager.workspace_root", "mocked_workspace_root")
     def test_root_default_value(self):
-        file = File(name='test_file.txt')
-        self.assertEqual(file._root, 'mocked_workspace_root')
+        file = File(name="test_file.txt")
+        self.assertEqual(file._root, "mocked_workspace_root")
 
-    @patch('builtins.open', mock_open(read_data='Test Content'))
+    @patch("builtins.open", mock_open(read_data="Test Content"))
     def test_message_property(self):
-        with patch.object(root_manager, 'workspace_root', self.mock_root):
+        with patch.object(root_manager, "workspace_root", self.mock_root):
             message = self.file.message
-            self.assertEqual(message, 'Test Content')
+            self.assertEqual(message, "Test Content")
 
-    @patch('builtins.open', mock_open())
+    @patch("builtins.open", mock_open())
     def test_message_property_file_not_found(self):
-        with patch.object(root_manager, 'workspace_root', self.mock_root):
+        with patch.object(root_manager, "workspace_root", self.mock_root):
             message = self.file.message
-            self.assertEqual(message, '')
+            self.assertEqual(message, "")
 
-    @patch('builtins.open', mock_open())
+    @patch("builtins.open", mock_open())
     def test_message_setter(self):
-        with patch.object(root_manager, 'workspace_root', self.mock_root):
+        with patch.object(root_manager, "workspace_root", self.mock_root):
             self.file.message = self.mock_content
             self.assertEqual(self.file._message, self.mock_content)
             self.assertEqual(self.file._status, FileStatus.NOT_TESTED)
 
     def test_read(self):
-        with patch.object(root_manager, 'workspace_root', self.mock_root):
+        with patch.object(root_manager, "workspace_root", self.mock_root):
             content = self.file.read()
-            self.assertEqual(content, 'File not found: /mock/root/test.txt')
+            self.assertEqual(content, "File not found: /mock/root/test.txt")
 
-    @patch('builtins.open', mock_open(read_data='Test Content'))
+    @patch("builtins.open", mock_open(read_data="Test Content"))
     def test_write(self):
-        with patch.object(root_manager, 'workspace_root', self.mock_root):
+        with patch.object(root_manager, "workspace_root", self.mock_root):
             self.file.write(self.mock_content)
             self.assertEqual(self.file.message, self.mock_content)
 
-    @patch('builtins.open', mock_open())
+    @patch("builtins.open", mock_open())
     def test_copy(self):
-        with patch.object(root_manager, 'workspace_root', self.mock_root):
-            new_file = self.file.copy(root=self.mock_root, name='new_test.txt')
-            self.assertEqual(new_file._name, 'new_test.txt')
+        with patch.object(root_manager, "workspace_root", self.mock_root):
+            new_file = self.file.copy(root=self.mock_root, name="new_test.txt")
+            self.assertEqual(new_file._name, "new_test.txt")
             self.assertEqual(new_file.message, self.file.message)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

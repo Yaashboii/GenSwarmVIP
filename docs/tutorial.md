@@ -13,7 +13,7 @@ cd 自定义空间名称
 catkin_make
 
 cd src
-catkin_create_pkg code_llm rospy std_msgs geometry_msgs message_generation  
+catkin_create_pkg code_llm rospy std_msgs geometry_msgs message_generation
 
 cd code_llm
 ```
@@ -33,7 +33,7 @@ cd 工作空间
 # 需要安装python3-em
 sudo apt install python3-em
 
-catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 需要根据实际的本地python解释器位置更改路径, ubuntu 18为/usr/bin/python, 20为/usr/bin/python3. 此外python不能是anaconda的, 因其无法访问pip install的pkg. 
+catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 需要根据实际的本地python解释器位置更改路径, ubuntu 18为/usr/bin/python, 20为/usr/bin/python3. 此外python不能是anaconda的, 因其无法访问pip install的pkg.
 ```
 
 ### 1.4 运行仿真环境
@@ -42,7 +42,7 @@ catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 需要根据实际的本地
 
 ```
 gedit ~/.bashrc
-加入以下内容: 
+加入以下内容:
 export PYTHONPATH=/home/{替换你的用户名}/{替换工作空间名}/devel/lib/python3/dist-packages:$PYTHONPATH  #根据实际python版本调整
 export PYTHONPATH=/opt/ros/noetic/lib/python3/dist-packages:$PYTHONPATH  # 根据实际的ubuntu版本进行调整
 ```
@@ -90,7 +90,7 @@ python environment.py
 ### 2.2 对某一个已经生成的工作空间进行测试
 
 - 运行 `environment.py` , 在Terminal中运行以下命令:
-- 修改 `code_llm/modules/stages/running_stage.py`中的 
+- 修改 `code_llm/modules/stages/running_stage.py`中的
 `set_workspace_root('/home/ubuntu/Desktop/CodeLLM/workspace/2024-03-05_20-03-52')`为想要测试的工作空间路径
 - 运行 `code_llm/modules/stages/running_stage.py` , 直接idea内部运行即可
 

@@ -10,8 +10,9 @@ from modules.prompt.task_description import TASK_DES
 from modules.framework.response.text_parser import parse_text
 from modules.framework.code.function_tree import FunctionTree
 
+
 class HumanCritic(ActionNode):
-    def __init__(self, next_text: str = '', node_name: str = ''):
+    def __init__(self, next_text: str = "", node_name: str = ""):
         super().__init__(next_text, node_name)
         self.feedback = None
         self._function_pool = FunctionTree()
@@ -33,18 +34,18 @@ class HumanCritic(ActionNode):
         parser = CodeParser()
         parser.parse_code(code)
         function_list = parser.function_names
-        self._function_pool.update_from_parser(parser.imports, parser.function_dict)        
+        self._function_pool.update_from_parser(parser.imports, parser.function_dict)
         # self._function_pool.save_code(function_list)
         return str(code)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     critic = HumanCritic("constraints")
     from modules.utils import root_manager
     import asyncio
 
-    path = '../../../workspace/test'
+    path = "../../../workspace/test"
     root_manager.update_root(path)
     critic.context.load_from_file(path + "/run_code.pkl")
     asyncio.run(critic.run())
-    critic.context.save_to_file(f'{path}/analyze_constraints.pkl')
+    critic.context.save_to_file(f"{path}/analyze_constraints.pkl")

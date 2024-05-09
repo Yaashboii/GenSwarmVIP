@@ -1,7 +1,7 @@
 import re
 
 
-def parse_text(text: str, lang: str = 'python') -> str:
+def parse_text(text: str, lang: str = "python") -> str:
     pattern = rf"```{lang}.*?\s+(.*?)```"
     match = re.search(pattern, text, re.DOTALL)
 

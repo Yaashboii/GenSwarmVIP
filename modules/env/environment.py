@@ -11,19 +11,19 @@ from manager import Manager
 
 class Env:
     def __init__(
-            self,
-            size=(10, 10),
-            n_robots=3,
-            n_obstacles=7,
-            dt=0.1,
-            if_leader=False,
-            leader_speed=0.5,
-            render_interval=1,
-            magnification=1.1,
-            show_obs=False
+        self,
+        size=(10, 10),
+        n_robots=3,
+        n_obstacles=7,
+        dt=0.1,
+        if_leader=False,
+        leader_speed=0.5,
+        render_interval=1,
+        magnification=1.1,
+        show_obs=False,
     ):
         self._initialized_graphics = False
-        rospy.init_node('env_node', anonymous=True)
+        rospy.init_node("env_node", anonymous=True)
         self._size = size
         self._dt = dt
         self._render_interval = render_interval
@@ -31,10 +31,10 @@ class Env:
         self._manager = Manager(n_robots, n_obstacles, size, if_leader=if_leader)
         self._robots = self._manager.robots
         self._obstacles = self._manager.obstacles.obstacles
-        rospy.set_param('robots_num', n_robots)
+        rospy.set_param("robots_num", n_robots)
 
         # list of the robot color
-        self._colors = plt.colormaps.get_cmap('viridis')(np.linspace(0, 1, n_robots))
+        self._colors = plt.colormaps.get_cmap("viridis")(np.linspace(0, 1, n_robots))
 
         if if_leader:
             self._leader = self._robots.leader
@@ -44,7 +44,9 @@ class Env:
         else:
             self._leader = None
         self._robots_initial_positions = self._robots.positions.copy()
-        self._reset_service = rospy.Service('/reset_environment', SetBool, self.reset_environment_callback)
+        self._reset_service = rospy.Service(
+            "/reset_environment", SetBool, self.reset_environment_callback
+        )
 
         # flag to indicate if the test is running,if running, the robots will save their positions to history
         self._run_test = False
@@ -53,11 +55,19 @@ class Env:
         self._show_obs = show_obs
         self._fig, self._ax = plt.subplots(figsize=(6, 6))
         # path to save the frames
-        self._data_path = rospy.get_param('data_path', '.')
+        self._data_path = rospy.get_param("data_path", ".")
 
-        self._patches = {"obstacles": [], "robots": [], "leader": [], "history": [], "vision": []}
+        self._patches = {
+            "obstacles": [],
+            "robots": [],
+            "leader": [],
+            "history": [],
+            "vision": [],
+        }
         try:
-            self._count = len(listdir(f"{self._data_path}/frames/"))  # # this is used to number the 'frames' folder
+            self._count = len(
+                listdir(f"{self._data_path}/frames/")
+            )  # # this is used to number the 'frames' folder
         except Exception as e:
             print("Exception: ", e)
         # counter for total run time
@@ -90,17 +100,21 @@ class Env:
         """
         self._run_test = not self._run_test
         if self._run_test:
-            self._data_path = rospy.get_param('data_path', '.')
+            self._data_path = rospy.get_param("data_path", ".")
             print("Data path: ", self._data_path)
             self._robots.positions = self._robots_initial_positions.copy()
             self._robots.velocities = np.zeros_like(self._robots.velocities)
             self._robots.history = [self._robots.positions.copy()]
             try:
-                self._count = len(listdir(f"{self._data_path}/frames/"))  # this is used to number the 'frames' folder
+                self._count = len(
+                    listdir(f"{self._data_path}/frames/")
+                )  # this is used to number the 'frames' folder
                 makedirs(f"{self._data_path}/frames/frame{self._count}")
             except Exception as e:
                 print("Exception: ", e)
-            print(f"Test{self._count} started!\nSave images in {self._data_path}/frames/frame{self._count}")
+            print(
+                f"Test{self._count} started!\nSave images in {self._data_path}/frames/frame{self._count}"
+            )
         else:
             print(f"Test{self._count} stopped!\n")
             # TODO: save the history to a file
@@ -128,56 +142,68 @@ class Env:
             major_locator = MultipleLocator(1)
             self._ax.xaxis.set_major_locator(major_locator)
             self._ax.yaxis.set_major_locator(major_locator)
-            self._ax.set_xlim(-self._magn / 2 * self._size[0], self._magn / 2 * self._size[0])
-            self._ax.set_ylim(-self._magn / 2 * self._size[1], self._magn / 2 * self._size[1])
+            self._ax.set_xlim(
+                -self._magn / 2 * self._size[0], self._magn / 2 * self._size[0]
+            )
+            self._ax.set_ylim(
+                -self._magn / 2 * self._size[1], self._magn / 2 * self._size[1]
+            )
             for obs in self._obstacles:
-                obstacle_patch = patches.Circle((obs.position[0], obs.position[1]),
-                                                radius=obs.radius,
-                                                edgecolor='gray',
-                                                facecolor='gray',
-                                                linewidth=1)
+                obstacle_patch = patches.Circle(
+                    (obs.position[0], obs.position[1]),
+                    radius=obs.radius,
+                    edgecolor="gray",
+                    facecolor="gray",
+                    linewidth=1,
+                )
                 self._ax.add_patch(obstacle_patch)
                 self._patches["obstacles"].append(obstacle_patch)
 
             for i, robot in enumerate(self._robots.robots):
-                robot_patch = patches.Circle((robot.position[0], robot.position[1]),
-                                             radius=robot.radius,
-                                             edgecolor=self._colors[i],
-                                             facecolor=self._colors[i],
-                                             linewidth=1)
+                robot_patch = patches.Circle(
+                    (robot.position[0], robot.position[1]),
+                    radius=robot.radius,
+                    edgecolor=self._colors[i],
+                    facecolor=self._colors[i],
+                    linewidth=1,
+                )
                 if self._show_obs:
-                    vision_range = patches.Circle((robot.position[0], robot.position[1]),
-                                                  radius=robot.communication_range,
-                                                  edgecolor=self._colors[i],
-                                                  facecolor=self._colors[i],
-                                                  linewidth=1,
-                                                  alpha=0.05)
+                    vision_range = patches.Circle(
+                        (robot.position[0], robot.position[1]),
+                        radius=robot.communication_range,
+                        edgecolor=self._colors[i],
+                        facecolor=self._colors[i],
+                        linewidth=1,
+                        alpha=0.05,
+                    )
                     self._ax.add_patch(vision_range)
                     self._patches["vision"].append(vision_range)
 
-                traj_line, = self._ax.plot([], [], '.', markersize=1, color=self._colors[i])
+                (traj_line,) = self._ax.plot(
+                    [], [], ".", markersize=1, color=self._colors[i]
+                )
                 self._ax.add_patch(robot_patch)
 
                 self._patches["robots"].append(robot_patch)
                 self._patches["history"].append(traj_line)
             if self._leader:
-                leader, = self._ax.plot(
+                (leader,) = self._ax.plot(
                     self._leader.position[0],
                     self._leader.position[1],
-                    marker='*',
+                    marker="*",
                     markersize=12,
                     color=self._colors[-1],
-                    linestyle='None',
-                    label="Leader position"
+                    linestyle="None",
+                    label="Leader position",
                 )
                 self._patches["leader"].append(leader)
             self._initialized_graphics = True
         else:
             for i, obs in enumerate(self._obstacles):
-                self._patches['obstacles'][i].set_center(obs.position)
+                self._patches["obstacles"][i].set_center(obs.position)
 
             for j, robot in enumerate(self._robots.robots):
-                self._patches['robots'][j].set_center(robot.position)
+                self._patches["robots"][j].set_center(robot.position)
 
                 if self._history is not None:
                     traj_len, robot_num, _ = self._history.shape
@@ -195,7 +221,7 @@ class Env:
             plt.draw()
             plt.pause(0.001)  # This is necessary for the plot to update
         frame_id = len(self._robots.history)
-        plt.savefig(f'{self._data_path}/frames/frame{self._count}/{frame_id}.png')
+        plt.savefig(f"{self._data_path}/frames/frame{self._count}/{frame_id}.png")
 
     def run(self):
         print("Environment started!")

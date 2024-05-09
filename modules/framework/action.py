@@ -48,7 +48,7 @@ class BaseNode(ABC):
 
 
 class ActionNode(BaseNode):
-    def __init__(self, next_text: str, node_name: str = ''):
+    def __init__(self, next_text: str, node_name: str = ""):
         super().__init__()
         self.__llm = GPT()
         self.prompt = None
@@ -84,7 +84,9 @@ class ActionNode(BaseNode):
         if self._next is not None:
             return await self._next.run()
 
-    @retry(stop=stop_after_attempt(5), wait=wait_random_exponential(multiplier=1, max=10))
+    @retry(
+        stop=stop_after_attempt(5), wait=wait_random_exponential(multiplier=1, max=10)
+    )
     async def _run(self) -> str:
         try:
             if self.prompt is None:
@@ -135,7 +137,7 @@ class ActionLinkedList(BaseNode):
     def _next(self, value):
         self._tail._next = value
 
-    def add(self, action: 'BaseNode'):
+    def add(self, action: "BaseNode"):
         if isinstance(action, BaseNode):
             self._tail._next = action
             self._tail = action

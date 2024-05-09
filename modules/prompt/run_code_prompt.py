@@ -76,7 +76,7 @@ import ...(if necessary)
 
 function_name(...):
     ...
-    
+
 ## Notes:
 - Do not modify the function name.
 - The input and output of the function could be modified.But you should make sure other functions that call this function can still work.

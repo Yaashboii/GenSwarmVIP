@@ -13,15 +13,15 @@ def call_reset_environment(data: bool):
         data (bool): Whether to render the environment
     """
     if not rospy.core.is_initialized():
-        rospy.init_node('reset_environment_client', anonymous=True)
+        rospy.init_node("reset_environment_client", anonymous=True)
 
-    rospy.wait_for_service('/reset_environment')
+    rospy.wait_for_service("/reset_environment")
     try:
-        reset_environment = rospy.ServiceProxy('/reset_environment', SetBool)
+        reset_environment = rospy.ServiceProxy("/reset_environment", SetBool)
         resp = reset_environment(data)
         return resp.success, resp.message
     except rospy.ServiceException as e:
-        logger.log(f"Service call failed: {e}", level='error')
+        logger.log(f"Service call failed: {e}", level="error")
 
 
 def get_param(param_name):

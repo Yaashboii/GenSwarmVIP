@@ -7,8 +7,8 @@ class FunctionNode(Node):
         self._import_list: set[str] = set()
         self._callees: set[FunctionNode] = set()
         self._callers: set[FunctionNode] = set()
-        self.content: str = ''
-        self._definition: str = ''
+        self.content: str = ""
+        self._definition: str = ""
 
     @property
     def callees(self):
@@ -40,17 +40,17 @@ class FunctionNode(Node):
 
     @property
     def function_body(self):
-        return '\n'.join(list(self._import_list) + [self.content])
+        return "\n".join(list(self._import_list) + [self.content])
 
     def add_import(self, import_content: set):
         self._import_list |= import_content
 
-    def add_callee(self, function: 'FunctionNode'):
+    def add_callee(self, function: "FunctionNode"):
         if function not in self._callees:
             self._callees.add(function)
             function.add_caller(self)
 
-    def add_caller(self, function: 'FunctionNode'):
+    def add_caller(self, function: "FunctionNode"):
         if function not in self._callers:
             self._callers.add(function)
             function.add_callee(self)

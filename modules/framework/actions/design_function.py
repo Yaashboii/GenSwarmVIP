@@ -14,7 +14,7 @@ from modules.framework.code.function_tree import FunctionTree
 
 
 class DesignFunction(ActionNode):
-    def __init__(self, next_text: str, node_name: str = ''):
+    def __init__(self, next_text: str, node_name: str = ""):
         super().__init__(next_text, node_name)
         self._function: FunctionNode = None
         self._function_pool = FunctionTree()
@@ -30,8 +30,10 @@ class DesignFunction(ActionNode):
         logger.log(f"Function: {self._function._name}", "warning")
 
         constraint_pool: ConstraintPool = ConstraintPool()
-        other_functions: list[FunctionNode] = self._function_pool.filtered_functions(self._function)
-        other_functions_str = '\n'.join([f.brief for f in other_functions])
+        other_functions: list[FunctionNode] = self._function_pool.filtered_functions(
+            self._function
+        )
+        other_functions_str = "\n".join([f.brief for f in other_functions])
 
         self.prompt = DesignFunction_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
@@ -39,8 +41,10 @@ class DesignFunction(ActionNode):
             env_des=ENV_DES,
             function_name=self._function.name,
             function_des=self._function.description,
-            constraints=constraint_pool.filtered_constraints(related_constraints=self._function.connections),
-            other_functions=other_functions_str
+            constraints=constraint_pool.filtered_constraints(
+                related_constraints=self._function.connections
+            ),
+            other_functions=other_functions_str,
         )
 
     def _process_response(self, response: str) -> str:
@@ -64,8 +68,10 @@ class DesignFunctionAsync(ActionNode):
         function_pool = FunctionTree()
 
         async def operation(function: FunctionNode):
-            action = DesignFunction('design single function')
+            action = DesignFunction("design single function")
             action.setup(function)
             return await action.run()
 
-        await function_pool.process_function_layers(operation, start_layer_index=0, check_grammar=False)
+        await function_pool.process_function_layers(
+            operation, start_layer_index=0, check_grammar=False
+        )

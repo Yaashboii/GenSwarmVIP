@@ -41,7 +41,7 @@ CLASS_DIAGRAM_PROMPT_TEMPLATE: str = """
 ## Background:
 {task_des}
 ## Role setting:
-- You are a class diagram designer, and your task is to design a class diagram based on the constraint information. 
+- You are a class diagram designer, and your task is to design a class diagram based on the constraint information.
 
 ## These are the basic Robot APIs:
 These APIs can be directly called by you.
@@ -65,7 +65,7 @@ Your output should satisfy the following notes:
 - Analyze what essential functions are needed to implement the user commands.
 - Each deterministic constraint is defined as a class parameter with its value specified.
 - Functional constraint is defined as a method of the class, specifying its input and output parameter names as well as their data structures.
-- 
+-
 - The output should strictly adhere to the specified format.
 """.strip()
 

@@ -24,7 +24,7 @@ These APIs can be directly called by you.
 ```
 
 ## The output TEXT format is as follows:
- 
+
 **Reasoning**: if satisfied, why? For each function, you need to provide a reason. If not satisfied, how to improve it?
 **Satisfaction**: True/False.Choose one of them.
 **Modified function**:
@@ -37,7 +37,7 @@ Your output should satisfy the following notes:
 - Check whether the function meets the constraints.
 - Provide a reason for each function.
 - If the function does not meet the constraints, provide a modified function.
-- If the function meets the constraints, don't provide a modified function. 
+- If the function meets the constraints, don't provide a modified function.
 - The output should strictly adhere to the specified format.
 - In your answer, you can only use one True or False in a condition, and it's not allowed to be used elsewhere.
 - The modified function section should be filled in only when the function does not meet the constraints.Otherwise, it should be empty.

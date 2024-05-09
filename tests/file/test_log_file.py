@@ -5,7 +5,6 @@ from modules.file.base_file import BaseFile
 
 
 class TestLogger(unittest.TestCase):
-
     def setUp(self):
         self.logger = _Logger()
         self.mock_file = MagicMock(spec=BaseFile)
@@ -19,10 +18,21 @@ class TestLogger(unittest.TestCase):
         self.logger.set_file(self.mock_file)
 
         # Test logging at different levels
-        levels = ['stage', 'action', 'prompt', 'response', 'success', 'error', 'warning', 'info', 'debug']
+        levels = [
+            "stage",
+            "action",
+            "prompt",
+            "response",
+            "success",
+            "error",
+            "warning",
+            "info",
+            "debug",
+        ]
         for level in levels:
             with self.subTest(level=level):
                 self.logger.log(test_content, level)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
