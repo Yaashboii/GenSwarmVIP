@@ -19,7 +19,7 @@ class GPT:
 
     system_prompt = "You are a helpful assistant."
 
-    def __init__(self, model: str = 'gpt-4-turbo-preview') -> None:
+    def __init__(self, model: str = 'gpt-4-turbo-2024-04-09') -> None:
         self._model = model
         self._memories = []  # Current memories
         self.key = key_manager.allocate_key()

@@ -135,7 +135,7 @@ class FunctionTree:
     def update_from_parser(self, imports: set, function_dict: dict):
         self._update_imports(imports)
         self._update_function_dict(function_dict)
-        logger.log(self.functions_body)
+        # logger.log(self.functions_body)
 
         self.update()
 
