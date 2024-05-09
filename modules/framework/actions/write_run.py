@@ -33,7 +33,7 @@ class WriteRun(ActionNode):
         self._function_pool.save_code([desired_function_name])
         # self._function_pool.check_grammar([desired_function_name])
 
-        # TODO,add bug fix mechanism for such cases,rather than just raising exception to triger retry
+        # TODO,add bug fix mechanism for such cases,rather than just raising exception to trigger retry
         # if error:
         #     logger.log(f"Function {desired_function_name} has syntax error: {error}", "error")
         #     raise Exception

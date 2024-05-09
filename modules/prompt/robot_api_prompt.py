@@ -73,6 +73,7 @@ class RobotApi:
         except Exception as e:
             raise SystemExit(f"Error in get_prompt: {e},current existing apis:{self.apis.keys()},input name:{name}")
 
+
 robot_api = RobotApi(content=robot_api)
 ROBOT_API = robot_api.get_prompt()
 # data_api = RobotApi(content=data_api)

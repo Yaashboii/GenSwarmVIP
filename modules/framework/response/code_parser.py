@@ -3,17 +3,18 @@ import ast
 # from modules.file.log_file import logger
 from modules.framework.error import CodeParseError
 
+
 class CodeParser(ast.NodeVisitor):
     def __init__(self):
         super().__init__()
         self._imports = set()
-        self._function_dict : dict[str, str] = {}
-        self._function_defs : dict[str, str] = {}
+        self._function_dict: dict[str, str] = {}
+        self._function_defs: dict[str, str] = {}
 
     @property
     def imports(self):
         return self._imports
-    
+
     @property
     def function_dict(self):
         return self._function_dict
@@ -29,11 +30,11 @@ class CodeParser(ast.NodeVisitor):
     @property
     def function_defs(self):
         return self._function_defs
-    
+
     def parse_code(self, code_str):
         tree = ast.parse(code_str)
         self.visit(tree)
-        
+
     # visit_xxx functions are automatically executed in visit()
     # see details in ast.NodeVisitor
     def visit_Import(self, node: ast.Import):
@@ -58,7 +59,7 @@ class CodeParser(ast.NodeVisitor):
             parameters = [
                 ast.unparse(arg) + (
                     f'={ast.unparse(function_node.args.defaults[i - defaults_start_index])}'
-                        if i >= defaults_start_index else '')
+                    if i >= defaults_start_index else '')
                 for i, arg in enumerate(function_node.args.args)
             ]
 
@@ -82,11 +83,11 @@ class SingleFunctionParser(CodeParser):
     @property
     def function_name(self):
         return list(self.function_names)[0]
-    
+
     @property
     def function_definition(self):
         return list(self._function_defs.values())[0]
-        
+
     def parse_code(self, code_str):
         super().parse_code(code_str)
         self._check_error()

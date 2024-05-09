@@ -13,7 +13,7 @@ class ErrorParser():
     def parse(self, function_names):
         for function_name in function_names:
             self._check_function_grammar(function_name)
-            self._check_caller_function_grammer(function_name)
+            self._check_caller_function_grammar(function_name)
 
     def _check_function_grammar(self, function_name):
         #     self._save_by_function(self._function_tree[function_name])
@@ -22,7 +22,7 @@ class ErrorParser():
         status = 'passed' if errors else 'failed'
         raise GrammarError(message=f'Grammar check {status} for {function_name}',
                            grammar_error=errors)
-    
-    def _check_caller_function_grammer(self, function_name):
-        [self._check_function_grammar(f.name) 
+
+    def _check_caller_function_grammar(self, function_name):
+        [self._check_function_grammar(f.name)
          for f in self._function_tree[function_name].callers]

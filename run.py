@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     task_list = [
         # {
-        #     "task": 'Form a triangle with other robots within your perception range, maintaining a distance of 0.5 meters between adjacent robots.'
+        #     "task": 'form a circle with other robots.'
         #             'Additionally, avoid collisions with obstacles and boundaries.'
         #             'Keep a distance of 0.5 meters from obstacles.'
         #             'Keep a distance of 0.5 meters from boundaries.',

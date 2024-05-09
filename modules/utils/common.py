@@ -5,6 +5,7 @@ from typing import Any
 from std_srvs.srv import SetBool
 from modules.file.log_file import logger
 
+
 def call_reset_environment(data: bool):
     """
 
@@ -30,4 +31,3 @@ def get_param(param_name):
         print(f"Parameter not found: {param_name},retrying...")
         time.sleep(1)
         return get_param(param_name)
-

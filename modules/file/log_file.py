@@ -1,6 +1,7 @@
 from modules.file.base_file import BaseFile
 from modules.utils.logger import setup_logger, LoggerLevel
 
+
 class _Logger:
     _instance = None
 
@@ -8,7 +9,7 @@ class _Logger:
         if not cls._instance:
             cls._instance = super().__new__(cls)
             cls._logger = setup_logger(cls.__class__.__name__, LoggerLevel.DEBUG)
-            cls._file : BaseFile = None
+            cls._file: BaseFile = None
         return cls._instance
 
     def set_file(self, file: BaseFile):
@@ -55,5 +56,6 @@ class _Logger:
         log_action(content)
 
         self._file.write(color_mapping[level].format(content), mode='a')
+
 
 logger = _Logger()

@@ -32,16 +32,14 @@ class Workflow:
     def init_workspace(self):
         workspace_root = root_manager.workspace_root
         project_root = root_manager.project_root
-        if not os.path.exists(workspace_root):
-            os.makedirs(workspace_root)
-            os.makedirs(os.path.join(workspace_root, 'data/frames'))
+        os.makedirs(os.path.join(workspace_root, 'data/frames'))
 
-            util_file = File(root=os.path.join(project_root, 'modules/env'), name='apis.py')
-            util_file.copy(root=workspace_root)
+        util_file = File(root=os.path.join(project_root, 'modules/env'), name='apis.py')
+        util_file.copy(root=workspace_root)
 
-            run_file = File(root=os.path.join(project_root, 'modules/env'), name='run.py')
-            run_file.copy(root=workspace_root)        
-            
+        run_file = File(root=os.path.join(project_root, 'modules/env'), name='run.py')
+        run_file.copy(root=workspace_root)
+
     def build_up(self):
         # initialize actions
         analyze_constraints = AnalyzeConstraints('constraint pool')
@@ -87,7 +85,7 @@ class Workflow:
 
         # code_llm.add(analysis_stage)
         code_llm.add(coding_stage)
-        code_llm.add(review_stage)
+        # code_llm.add(review_stage)
         code_llm.add(test_stage)
         code_llm.add(ActionNode("PASS", "END"))
         self._pipeline = code_llm
