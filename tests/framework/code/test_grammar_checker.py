@@ -21,14 +21,14 @@ class TestGrammarChecker(unittest.TestCase):
             },
             {
                 "file_path": self.file_path,
-                "line": 7,
+                "line": 8,
                 "column": 27,
                 "error_code": "E0602",
                 "error_message": "Undefined variable 'global_variable'",
             },
             {
                 "file_path": self.file_path,
-                "line": 13,
+                "line": 14,
                 "column": 14,
                 "error_code": "E1101",
                 "error_message": "Instance of 'BadClass' has no 'mesage' member; maybe 'message'?",
