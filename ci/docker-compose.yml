@@ -34,5 +34,5 @@ services:
       - /bin/bash
       - -c
       - |
-        conda run --no-capture-output -n py$(echo $PYTHON_VERSION | sed 's/\.//g') \
+        conda run --no-capture-output -n py$$(echo $PYTHON_VERSION | sed 's/\.//g') \
         python -m unittest discover
