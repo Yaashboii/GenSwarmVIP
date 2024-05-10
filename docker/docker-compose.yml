@@ -41,7 +41,7 @@ services:
     # command: /bin/bash
     volumes:
       - ../..:/src
-      - ./hosts:/etc/ansible/hosts
+      - ../config/hosts:/etc/ansible/hosts
     network_mode: host
     stdin_open: true
     tty: true
