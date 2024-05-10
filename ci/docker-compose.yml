@@ -20,3 +20,19 @@ services:
     network_mode: host
     stdin_open: true
     tty: true
+
+  python_build:
+    build:
+      context: ..
+      dockerfile: ./docker/runtime.Dockerfile
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION}
+    image: huabench/code-llm:runtime_${PYTHON_VERSION}
+    volumes:
+      - ..:/src
+    command:
+      - /bin/bash
+      - -c
+      - |
+        conda run --no-capture-output -n py$(echo $PYTHON_VERSION | sed 's/\.//g') \
+        python -m unittest discover
