@@ -13,7 +13,7 @@ DesignFunction_PROMPT_TEMPLATE = """
 {env_des}
 
 ## These are the existing functions' descriptions and names:
-{other_functions}    
+{other_functions}
 
 ## These are the constraints that this function should satisfy.
 {constraints}
@@ -24,8 +24,8 @@ DesignFunction_PROMPT_TEMPLATE = """
 ```python
 def {function_name}(input1, input2, ...):
     '''
-    Description:Refine this description '{function_des}' in detail to guide the generation of the function and put it at here. 
-    
+    Description:Refine this description '{function_des}' in detail to guide the generation of the function and put it at here.
+
     params:
         input1: type, description
         input2: type, description
@@ -49,7 +49,7 @@ WriteSeqDiagram_PROMPT_TEMPLATE = """
 ## Task description:
 Based on the user requirements document and current functions, you need to design a sequence diagram.
 
-## User requirements: 
+## User requirements:
 {analysis}
 
 ## These are the environment description:
@@ -65,12 +65,12 @@ Based on the user requirements document and current functions, you need to desig
 {function_list}
 ```
 
-## Explanation: 
+## Explanation:
 1. The sequence diagram is to call the existing functions to fulfill the user's requirements.
 2. The sequence diagram can be directly translated into Python code, which is capable of continuously monitoring the environment and outputting control signals at a certain frequency.
 3. The code generated from the sequence diagram should not loop infinitely; it should be able to exit the loop once the task is completed.
 
-## Constraints: 
+## Constraints:
 1. You need to use these existing functions to generate a call flow diagram to fulfill the user's requirements.
 2. You can't define any new functions.
 3. Ensure that the sequence diagram translates directly into executable code that can accomplish the task objectives.

@@ -1,17 +1,23 @@
 import asyncio
 
 from modules.framework.action import ActionNode
-from modules.utils import parse_code, extract_function_definitions, extract_top_level_function_names
+from modules.framework.response.code_parser import SingleFunctionParser
+from modules.framework.code.function_node import FunctionNode
+from modules.framework.response.text_parser import parse_text
 from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
-from modules.prompt.robot_api_prompt import robot_api
+from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.framework.context import logger
+from modules.file.log_file import logger
+from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.code.function_tree import FunctionTree
+
 
 class DesignFunction(ActionNode):
-    def __init__(self, next_text: str, node_name: str = ''):
+    def __init__(self, next_text: str, node_name: str = ""):
         super().__init__(next_text, node_name)
-        self._function = None
+        self._function: FunctionNode = None
+        self._function_pool = FunctionTree()
 
     def setup(self, function):
         self._function = function
@@ -20,77 +26,52 @@ class DesignFunction(ActionNode):
         if self._function is None:
             logger.log("Function is not set", "error")
             raise SystemExit
-        logger.log(f"Function: {self._function.name}", "warning")
-        constraint_text = ''
-        for constraint in self._function.satisfying_constraints:
-            if constraint not in self.context.constraints_dict:
-                logger.log(f"Constraint {constraint} is not in the constraint pool", 'error')
-                raise SystemExit
-            constraint_text += self.context.constraints_dict[constraint].text + '\n'
 
-        function_list = [f.text if f.definition is None else f.definition for f in
-                         self.context.functions_value if f.name != self._function.name]
+        logger.log(f"Function: {self._function._name}", "warning")
+
+        constraint_pool: ConstraintPool = ConstraintPool()
+        other_functions: list[FunctionNode] = self._function_pool.filtered_functions(
+            self._function
+        )
+        other_functions_str = "\n".join([f.brief for f in other_functions])
 
         self.prompt = DesignFunction_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
-            robot_api=robot_api.get_prompt(),
+            robot_api=ROBOT_API,
             env_des=ENV_DES,
             function_name=self._function.name,
             function_des=self._function.description,
-            constraints=constraint_text,
-            other_functions='\n'.join(function_list)
+            constraints=constraint_pool.filtered_constraints(
+                related_constraints=self._function.connections
+            ),
+            other_functions=other_functions_str,
         )
 
     def _process_response(self, response: str) -> str:
-        desired_function_name = self._function.name
-        code = parse_code(text=response)
-        function_list = extract_function_definitions(code)
-        if not function_list:
-            logger.log(f"Design Function Failed: No function detected in the response", "error")
-            raise Exception  # trigger retry
-        if len(function_list) > 1:
-            logger.log(f"Design Function Failed: More than one function detected in the response",
-                                     "error")
-            raise Exception  # trigger retry
-        for function in function_list:
-            function_name = extract_top_level_function_names(code_str=function)[0]
-            if function_name != desired_function_name:
-                raise Exception(f"Function name mismatch: {function_name} != {desired_function_name}")
-            if not function_name:
-                logger.log(f"Design Function Failed: No function detected in the response",
-                                         "error")
-                raise Exception  # trigger retry
-            self.context.set_function_definition(function_name=function_name, definition=function)
+        desired_function_name = self._function._name
+        code = parse_text(text=response)
+        parser = SingleFunctionParser()
+        parser.parse_code(code)
+        parser.check_function_name(desired_function_name)
+        new_definition = parser.function_definition
+        function_name = parser.function_name
+        self._function_pool.set_definition(function_name, new_definition)
+        # logger.log(f"new definition: {new_definition}")
         return str(code)
+
 
 class DesignFunctionAsync(ActionNode):
     def _build_prompt(self):
-        return super()._build_prompt()
+        pass
 
     async def _run(self):
-        function_layers = self.context.function_layer
-        if not function_layers:
-            logger.log("No function to design", "error")
-            raise SystemExit
-        for i, layer in enumerate(function_layers):
-            tasks = []
-            logger.log(f"Layer: {i}", "warning")
-            for function in layer:
-                action = DesignFunction('design single function')
-                action.setup(function)
-                task = asyncio.create_task(action.run())
-                tasks.append(task)
-            await asyncio.gather(*tasks)
+        function_pool = FunctionTree()
 
+        async def operation(function: FunctionNode):
+            action = DesignFunction("design single function")
+            action.setup(function)
+            return await action.run()
 
-if __name__ == "__main__":
-    from modules.utils import root_manager
-
-    path = '../../../workspace/test'
-    root_manager.update_root(path, set_data_path=False)
-
-    design_functions = DesignFunctionAsync('design functions async')
-    design_functions.context.load_from_file(path + "/analyze_functions.pkl")
-    asyncio.run(design_functions.run())
-
-    design_functions.context.save_to_file(f'{path}/design_functions.pkl')
+        await function_pool.process_function_layers(
+            operation, start_layer_index=0, check_grammar=False
+        )

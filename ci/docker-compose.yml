@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  unittest:
+    image: huabench/code-llm
+    command:
+      # - /bin/bash
+      - /bin/bash
+      - -c
+      - |
+        conda run --no-capture-output -n py310 coverage run -m unittest discover && \
+        conda run --no-capture-output -n py310 coverage report && \
+        conda run --no-capture-output -n py310 coverage xml
+    volumes:
+      - ..:/src
+    environment:
+      - API_KEY=  ${API_KEY}
+      - API_BASE=  ${API_BASE}
+
+    network_mode: host
+    stdin_open: true
+    tty: true
+
+  python_build:
+    build:
+      context: ..
+      dockerfile: ./docker/runtime.Dockerfile
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION}
+    image: huabench/code-llm:runtime_${PYTHON_VERSION}
+    volumes:
+      - ..:/src
+    command:
+      - /bin/bash
+      - -c
+      - |
+        conda run --no-capture-output -n py$$(echo $PYTHON_VERSION | sed 's/\.//g') \
+        python -m unittest discover

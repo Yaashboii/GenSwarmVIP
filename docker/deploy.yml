@@ -1,0 +1,8 @@
+- name: Copy Source Code
+  hosts: SWARM
+  tasks:
+    - name: 传输文件并覆盖源文件
+      copy:
+        src: "{{ lookup('env', 'LLM_SOURCE_CODE') }}/"
+        dest: /home/nvidia/code_llm_ws/src/code_llm
+        force: yes      # 强制覆盖目标文件，即使它已经存在

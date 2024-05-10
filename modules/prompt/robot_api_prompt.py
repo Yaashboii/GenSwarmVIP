@@ -1,4 +1,4 @@
-from modules.utils import extract_function_definitions, extract_top_level_function_names, read_file
+from modules.framework.response.code_parser import CodeParser
 
 robot_api = """
 def get_position():
@@ -59,22 +59,22 @@ def get_surrounding_obstacles_info():
 class RobotApi:
     def __init__(self, content):
         self.content = content
-        api_list = extract_function_definitions(content)
-        self.apis = {}
-        for api in api_list:
-            name = extract_top_level_function_names(api)[0]
-            self.apis[name] = api
+        code_obj = CodeParser()
+        code_obj.parse_code(content)
+        self.apis = code_obj.function_defs
 
     def get_prompt(self, name: list[str] | str = None) -> str:
         if isinstance(name, str):
             name = [name]
         if name is None:
-            return '\n\n'.join(self.apis.values())
+            return "\n\n".join(self.apis.values())
         try:
             prompts = [self.apis[n] for n in name]
-            return '\n\n'.join(prompts)
+            return "\n\n".join(prompts)
         except Exception as e:
-            raise SystemExit(f"Error in get_prompt: {e},current existing apis:{self.apis.keys()},input name:{name}")
+            raise SystemExit(
+                f"Error in get_prompt: {e},current existing apis:{self.apis.keys()},input name:{name}"
+            )
 
 
 robot_api = RobotApi(content=robot_api)

@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  base:
+    build:
+      context: ..
+      dockerfile: base.Dockerfile
+    image: huabench/code-llm:base
+
+  runtime-base:
+    extends:
+      service: base
+    build:
+      context: ..
+      dockerfile: ./docker/runtime.Dockerfile
+    image: huabench/code-llm:runtime
+    volumes:
+      - ..:/src
+    network_mode: host
+    stdin_open: true
+    tty: true
+
+  unittest:
+    extends:
+      service: runtime-base
+    command:
+      - /bin/bash
+      - -c
+      - |
+        conda run --no-capture-output -n py310 \
+        python -m unittest discover
+
+  deploy:
+    extends:
+      service: base
+    build:
+      context: ..
+      dockerfile: ./docker/deploy.Dockerfile
+    image: huabench/code-llm:deploy
+    # command: ansible-playbook ./deploy.yml
+    # command: /bin/bash
+    volumes:
+      - ../..:/src
+      - ../config/hosts:/etc/ansible/hosts
+    network_mode: host
+    stdin_open: true
+    tty: true

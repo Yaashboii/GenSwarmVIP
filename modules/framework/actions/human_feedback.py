@@ -1,24 +1,28 @@
 import json
 
 from modules.framework.action import ActionNode
+from modules.framework.response.code_parser import CodeParser
+from modules.framework.response.code_parser import CodeParser
 from modules.prompt.run_code_prompt import HUMAN_FEEDBACK_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
-from modules.utils import parse_code, extract_top_level_function_names
+from modules.framework.response.text_parser import parse_text
+from modules.framework.code.function_tree import FunctionTree
 
 
 class HumanCritic(ActionNode):
-    def __init__(self, next_text: str = '', node_name: str = ''):
+    def __init__(self, next_text: str = "", node_name: str = ""):
         super().__init__(next_text, node_name)
         self.feedback = None
+        self._function_pool = FunctionTree()
 
     def _build_prompt(self):
         self.prompt = HUMAN_FEEDBACK_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
-            functions=self.context.function_content(),
+            functions=self._function_pool.functions_body(),
             feedback=self.feedback,
         )
 
@@ -26,24 +30,22 @@ class HumanCritic(ActionNode):
         self.feedback = feedback
 
     def _process_response(self, response: str, **kwargs) -> str:
-        code = parse_code(text=response)
-        self.context.add_functions(content=code)
-        function_list = extract_top_level_function_names(code)
-        for function_name in function_list:
-            self.context.check_function_grammar(function_name=function_name)
-            for function in self.context.functions_value:
-                if function_name in function.calls:
-                    self.context.check_function_grammar(function_name=function.name)
+        code = parse_text(text=response)
+        parser = CodeParser()
+        parser.parse_code(code)
+        function_list = parser.function_names
+        self._function_pool.update_from_parser(parser.imports, parser.function_dict)
+        # self._function_pool.save_code(function_list)
         return str(code)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     critic = HumanCritic("constraints")
     from modules.utils import root_manager
     import asyncio
 
-    path = '../../../workspace/test'
-    root_manager.update_root(path, set_data_path=False)
+    path = "../../../workspace/test"
+    root_manager.update_root(path)
     critic.context.load_from_file(path + "/run_code.pkl")
     asyncio.run(critic.run())
-    critic.context.save_to_file(f'{path}/analyze_constraints.pkl')
+    critic.context.save_to_file(f"{path}/analyze_constraints.pkl")

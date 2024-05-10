@@ -5,13 +5,14 @@ import sys
 
 from modules.framework.action import ActionNode
 from modules.utils.root import root_manager
-from modules.utils import get_param, call_reset_environment
+from modules.utils.common import get_param, call_reset_environment
 from modules.framework.code_error import Bug, HumanFeedback
-from modules.framework.context import logger
+from modules.file.log_file import logger
+from modules.framework.code.function_tree import FunctionTree
 
 
 class RunCode(ActionNode):
-    def __init__(self, next_text: str = '', node_name: str = ''):
+    def __init__(self, next_text: str = "", node_name: str = ""):
         super().__init__(next_text, node_name)
         self._id = None
 
@@ -21,7 +22,9 @@ class RunCode(ActionNode):
     def setup(self, run_id: int):
         self._id = run_id
 
-    async def _run_script(self, working_directory, command=[], print_output=True) -> str:
+    async def _run_script(
+        self, working_directory, command=[], print_output=True
+    ) -> str:
         working_directory = str(working_directory)
         env = os.environ.copy()
 
@@ -30,7 +33,7 @@ class RunCode(ActionNode):
             cwd=working_directory,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            env=env
+            env=env,
         )
 
         stdout_chunks, stderr_chunks = [], []
@@ -40,31 +43,40 @@ class RunCode(ActionNode):
                 line_bytes = await stream.readline()
                 if not line_bytes:
                     break
-                line = line_bytes.decode('utf-8')
+                line = line_bytes.decode("utf-8")
                 accumulate.append(line)
                 if print_output:
-                    print(line, end='' if is_stdout else '', file=sys.stderr if not is_stdout else None)
+                    print(
+                        line,
+                        end="" if is_stdout else "",
+                        file=sys.stderr if not is_stdout else None,
+                    )
 
         try:
             # Apply timeout to the gather call using asyncio.wait_for
-            if hasattr(self.context.args, 'timeout'):
+            if hasattr(self.context.args, "timeout"):
                 timeout = self.context.args.timeout
             else:
                 timeout = 30
             await asyncio.wait_for(
                 asyncio.gather(
                     read_stream(process.stdout, stdout_chunks, is_stdout=True),
-                    read_stream(process.stderr, stderr_chunks, is_stdout=False)
+                    read_stream(process.stderr, stderr_chunks, is_stdout=False),
                 ),
-                timeout=timeout
+                timeout=timeout,
             )
 
-            if 'WARNING: cannot load logging configuration file, logging is disabled\n' in stderr_chunks:
-                stderr_chunks.remove('WARNING: cannot load logging configuration file, logging is disabled\n')
+            if (
+                "WARNING: cannot load logging configuration file, logging is disabled\n"
+                in stderr_chunks
+            ):
+                stderr_chunks.remove(
+                    "WARNING: cannot load logging configuration file, logging is disabled\n"
+                )
             if stderr_chunks:
-                return '\n'.join(stderr_chunks)
+                return "\n".join(stderr_chunks)
             else:
-                return 'NONE'
+                return "NONE"
 
         except asyncio.TimeoutError:
             logger.log(content="Timeout", level="error")
@@ -78,7 +90,9 @@ class RunCode(ActionNode):
         command = ["python", "run.py", str(self._id)]
         print(f"running command: {command}")
 
-        result = await self._run_script(working_directory=root_manager.workspace_root, command=command)
+        result = await self._run_script(
+            working_directory=root_manager.workspace_root, command=command
+        )
         return result
 
     def _process_response(self, response: str) -> str:
@@ -87,10 +101,12 @@ class RunCode(ActionNode):
 
 class RunCodeAsync(ActionNode):
     async def _run(self):
-        robot_num = get_param('robots_num')
+        from modules.utils.media import generate_video_from_frames
+
+        robot_num = get_param("robots_num")
         tasks = []
         result_list = []
-        self.context.update_message()
+        # FunctionPool().save_to_file_xx()
         try:
             logger.log(content="call reset environment: start")
             call_reset_environment(True)
@@ -103,7 +119,6 @@ class RunCodeAsync(ActionNode):
         finally:
             logger.log(content="call reset environment: end")
             call_reset_environment(True)
-            from modules.utils import generate_video_from_frames, root_manager
             data_root = root_manager.data_root
             number = len(listdir(f"{data_root}/frames")) - 1
             generate_video_from_frames(
@@ -114,15 +129,15 @@ class RunCodeAsync(ActionNode):
             return self._process_response(result_list)
 
     def _process_response(self, result: list):
-        if ('NONE' in result or 'Timeout' in result) and len(result) == 1:
+        if ("NONE" in result or "Timeout" in result) and len(result) == 1:
             if_feedback = input("If task is done? Press y/n")
-            if if_feedback == 'y':
-                return 'NONE'
+            if if_feedback == "y":
+                return "NONE"
             else:
                 feedback = input("Please provide feedback:")
                 return HumanFeedback(feedback)
         logger.log(content=f"Run code failed,result{result}", level="error")
-        result_content = '\n'.join(result)
+        result_content = "\n".join(result)
         return Bug(result_content)
 
 
@@ -134,11 +149,11 @@ if __name__ == "__main__":
     from modules.framework.actions import *
     import argparse
 
-    path = '../../../workspace/2024-04-09_01-25-21'
-    root_manager.update_root(path, set_data_path=False)
+    path = "../../../workspace/2024-05-07_16-34-18"
+    root_manager.update_root(path)
     debug_code = DebugError("fixed code")
     human_feedback = HumanCritic("feedback")
-    run_code = RunCodeAsync('run code')
+    run_code = RunCodeAsync("run code")
     # initialize error handlers
     bug_handler = BugLevelHandler()
     bug_handler.next_action = debug_code
@@ -151,13 +166,17 @@ if __name__ == "__main__":
     chain_of_handler = bug_handler
     bug_handler.successor = hf_handler
     run_code.error_handler = chain_of_handler
-    parser = argparse.ArgumentParser(description="Run simulation with custom parameters.")
+    parser = argparse.ArgumentParser(
+        description="Run simulation with custom parameters."
+    )
 
-    parser.add_argument("--timeout", type=int, default=40, help="Total time for the simulation")
+    parser.add_argument(
+        "--timeout", type=int, default=40, help="Total time for the simulation"
+    )
 
     args = parser.parse_args()
     run_code.context.load_from_file(path + "/WriteRun.pkl")
     run_code.context.args = args
     asyncio.run(run_code.run())
 
-    run_code.context.save_to_file(f'{path}/run_code.pkl')
+    run_code.context.save_to_file(f"{path}/run_code.pkl")

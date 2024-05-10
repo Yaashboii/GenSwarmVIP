@@ -1,11 +1,14 @@
 import asyncio
+import os
 
 from modules.framework.actions import *
 from modules.framework.action import *
 from modules.framework.handler import *
 
 from modules.utils.logger import setup_logger
-from modules.framework.context import WorkflowContext
+from modules.framework.context.workflow_context import WorkflowContext
+from modules.file import File, logger
+from modules.utils.root import root_manager
 
 
 class Workflow:
@@ -19,13 +22,28 @@ class Workflow:
         self._pipeline = None
         self._chain_of_handler = None
 
+        self.init_workspace()
+        self.init_log_file()
         self.build_up()
+
+    def init_log_file(self):
+        logger.set_file(File("log.md"))
+
+    def init_workspace(self):
+        workspace_root = root_manager.workspace_root
+        project_root = root_manager.project_root
+        os.makedirs(os.path.join(workspace_root, "data/frames"))
+
+        util_file = File(root=os.path.join(project_root, "modules/env"), name="apis.py")
+        util_file.copy(root=workspace_root)
+
+        run_file = File(root=os.path.join(project_root, "modules/env"), name="run.py")
+        run_file.copy(root=workspace_root)
 
     def build_up(self):
         # initialize actions
-        setup = SetupEnvironment("environment")
-        analyze_constraints = AnalyzeConstraints('constraint pool')
-        analyze_functions = AnalyzeFunctions('function pool')
+        analyze_constraints = AnalyzeConstraints("constraint pool")
+        analyze_functions = AnalyzeFunctions("function pool")
         design_functions = DesignFunctionAsync("function definition")
         write_functions = WriteFunctionsAsync("function.py")
         write_run = WriteRun("code")
@@ -67,7 +85,7 @@ class Workflow:
 
         # code_llm.add(analysis_stage)
         code_llm.add(coding_stage)
-        code_llm.add(review_stage)
+        # code_llm.add(review_stage)
         code_llm.add(test_stage)
         code_llm.add(ActionNode("PASS", "END"))
         self._pipeline = code_llm
@@ -75,20 +93,14 @@ class Workflow:
 
     async def run(self):
         text = display_all(self._pipeline, self._chain_of_handler)
-        from modules.framework.context import FileInfo
-        flow = FileInfo(name='flow.md')
+        flow = File(name="flow.md")
         flow.message = text
         await self._pipeline.run()
 
 
 if __name__ == "__main__":
-    task_list = [
-        ''
-    ]
+    task_list = [""]
     from modules.utils import root_manager
-
-    root_manager.update_root(set_data_path=False)
-    root_manager.init_workspace()
 
     workflow = Workflow(task_list[0])
     asyncio.run(workflow.run())

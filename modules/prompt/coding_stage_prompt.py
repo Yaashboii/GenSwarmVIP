@@ -72,7 +72,7 @@ import ...(if necessary)
 def run_loop():
     '''
     Description: An interface function for users to call, based on existing functions written by other assistants. Users only need to call this function to complete the predetermined task.
-    
+
     params:
         None
     return:
@@ -91,4 +91,3 @@ def run_loop():
 8. You need to ensure that the entire system can update observation data in real time and issue control speeds in real time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop .
 10. Strictly follow the specified format.
 """.strip()
-

@@ -7,7 +7,14 @@ from obstacle import Entity
 
 
 class Robot(Entity):
-    def __init__(self, robot_id, initial_position, radius=0.1, max_speed=2.0, communication_range=5.0):
+    def __init__(
+        self,
+        robot_id,
+        initial_position,
+        radius=0.1,
+        max_speed=2.0,
+        communication_range=5.0,
+    ):
         super().__init__(robot_id, initial_position, radius=radius)
         self._velocity = np.array([0.0, 0.0], dtype=float)
         self._max_speed = max_speed
@@ -56,11 +63,15 @@ class Robot(Entity):
 
 class Leader(Robot):
     def __init__(self, initial_position, max_speed=2.0):
-        super().__init__(robot_id=0, initial_position=initial_position, max_speed=max_speed)
+        super().__init__(
+            robot_id=0, initial_position=initial_position, max_speed=max_speed
+        )
         self.trajectory = []
         self.angle = 0
         self.position = initial_position
-        self._subscriber = rospy.Subscriber('/leader/velocity', Twist, self.velocity_callback)
+        self._subscriber = rospy.Subscriber(
+            "/leader/velocity", Twist, self.velocity_callback
+        )
 
     def velocity_callback(self, data: Twist):
         self.velocity = np.array([data.linear.x, data.linear.y])
@@ -89,7 +100,7 @@ class Leader(Robot):
 
     def move(self, speed, dt, shape: str = None):
         # TODO add more methods to move the leader in different patterns
-        if shape == 'circle':
+        if shape == "circle":
             self.move_in_circle(center=[0, 0], radius=3, speed=speed, dt=dt)
         if shape is None:
             self.position += self.velocity * dt
@@ -97,7 +108,6 @@ class Leader(Robot):
 
 class Robots:
     def __init__(self, n_robots, env_size, if_leader=False):
-
         self._env_size = env_size
         self._robots = self.create_robots(n_robots, env_size)
         if if_leader:
@@ -113,14 +123,18 @@ class Robots:
         # TODO: optimize this function to avoid obstacles overlapping
         robot_list = []
         while len(robot_list) < n_robots:
-            robot = Robot.create_entities(n_entities=n_robots,
-                                          size=size,
-                                          radius_range=0.15,
-                                          existing_entities=robot_list)
+            robot = Robot.create_entities(
+                n_entities=n_robots,
+                size=size,
+                radius_range=0.15,
+                existing_entities=robot_list,
+            )
             if robot:
                 robot_list.extend(robot)
             else:
-                print(f"Warning: Failed to place robot {len(robot_list)} after multiple attempts.")
+                print(
+                    f"Warning: Failed to place robot {len(robot_list)} after multiple attempts."
+                )
 
         return robot_list
 
@@ -139,7 +153,9 @@ class Robots:
 
     @positions.setter
     def positions(self, new_positions):
-        assert new_positions.shape == self._positions.shape, f"Expected shape {self._positions.shape}, got {new_positions.shape}"
+        assert (
+            new_positions.shape == self._positions.shape
+        ), f"Expected shape {self._positions.shape}, got {new_positions.shape}"
         self._positions = new_positions
         for i, robot in enumerate(self._robots):
             robot.position = new_positions[i]
@@ -154,7 +170,9 @@ class Robots:
 
     @velocities.setter
     def velocities(self, new_velocities):
-        assert new_velocities.shape == self._velocities.shape, f"Expected shape {self._velocities.shape}, got {new_velocities.shape}"
+        assert (
+            new_velocities.shape == self._velocities.shape
+        ), f"Expected shape {self._velocities.shape}, got {new_velocities.shape}"
         self._velocities = new_velocities
         for i, robot in enumerate(self._robots):
             robot.velocity = new_velocities[i]
@@ -181,4 +199,6 @@ class Robots:
 
         """
         new_positions = self.positions + self.velocities * dt
-        self.positions = np.clip(new_positions, -np.array(self._env_size) / 2, np.array(self._env_size) / 2)
+        self.positions = np.clip(
+            new_positions, -np.array(self._env_size) / 2, np.array(self._env_size) / 2
+        )

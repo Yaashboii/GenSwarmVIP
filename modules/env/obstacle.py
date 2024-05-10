@@ -27,12 +27,15 @@ class Entity:
     def is_overlapping(cls, new_entity, entities, min_distance=0.5):
         for entity in entities:
             if np.linalg.norm(new_entity.position - entity.position) < (
-                    new_entity.radius + entity.radius + min_distance):
+                new_entity.radius + entity.radius + min_distance
+            ):
                 return True
         return False
 
     @classmethod
-    def try_generate_entity(cls, index: int, size: tuple, radius: float, entities: list, max_attempts=100):
+    def try_generate_entity(
+        cls, index: int, size: tuple, radius: float, entities: list, max_attempts=100
+    ):
         for attempt in range(max_attempts):
             position = np.random.uniform(-0.5, 0.5, size=2) * size
             new_entity = cls(index, position, radius)
@@ -41,7 +44,13 @@ class Entity:
         return None
 
     @classmethod
-    def create_entities(cls, n_entities: int, size: tuple, radius_range: tuple | float, existing_entities: list = []):
+    def create_entities(
+        cls,
+        n_entities: int,
+        size: tuple,
+        radius_range: tuple | float,
+        existing_entities: list = [],
+    ):
         entities = existing_entities.copy()
         created_entities = []
         for i in range(n_entities):
@@ -49,7 +58,9 @@ class Entity:
                 radius = np.random.uniform(*radius_range)
             else:
                 radius = radius_range
-            new_entity = cls.try_generate_entity(i, size, radius, entities + created_entities)
+            new_entity = cls.try_generate_entity(
+                i, size, radius, entities + created_entities
+            )
             if new_entity:
                 created_entities.append(new_entity)
             else:
@@ -75,13 +86,17 @@ class Obstacles:
         # TODO: optimize this function to avoid obstacles overlapping
         obstacle_list = []
         while len(obstacle_list) < n_obstacles:
-            new_obstacle = Obstacle.create_entities(n_entities=n_obstacles,
-                                                    size=size,
-                                                    radius_range=(0.1, 1.0),
-                                                    existing_entities=obstacle_list + robot_list)
+            new_obstacle = Obstacle.create_entities(
+                n_entities=n_obstacles,
+                size=size,
+                radius_range=(0.1, 1.0),
+                existing_entities=obstacle_list + robot_list,
+            )
             if new_obstacle:
                 obstacle_list.extend(new_obstacle)
             else:
-                print(f"Warning: Failed to place obstacle {len(obstacle_list)} after multiple attempts.")
+                print(
+                    f"Warning: Failed to place obstacle {len(obstacle_list)} after multiple attempts."
+                )
 
         return obstacle_list

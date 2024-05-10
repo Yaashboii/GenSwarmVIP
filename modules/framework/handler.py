@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 
-from modules.utils import setup_logger, LoggerLevel
 from modules.framework.code_error import *
 from modules.framework.action import BaseNode
+from modules.file.log_file import logger
 
 
 class Handler(ABC):
     def __init__(self):
-        from modules.framework.context import logger
         self._logger = logger
         self._successor = None
         self._next_action = None
@@ -43,10 +42,12 @@ class Handler(ABC):
         if self._next_action:
             content += f"\t\t{str(self)} -->|error message| {str(self._next_action)}\n"
             content += self._next_action.flow_content(visited)
-        return content + (self._successor.display(visited) if self._successor else '')
+        return content + (self._successor.display(visited) if self._successor else "")
 
     def struct(self):
-        return f"\t{str(self)}\n" + (self._successor.struct() if self._successor else '')
+        return f"\t{str(self)}\n" + (
+            self._successor.struct() if self._successor else ""
+        )
 
 
 class BugLevelHandler(Handler):
@@ -78,7 +79,7 @@ class HumanFeedbackHandler(Handler):
             return self._successor.handle(request)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     h1 = BugLevelHandler()
     h2 = CriticLevelHandler()
     h3 = HumanFeedbackHandler()
