@@ -24,14 +24,17 @@ class GPT:
 
     system_prompt = "You are a helpful assistant."
 
-    def __init__(self, model: str = "gpt-4-turbo-2024-04-09") -> None:
+    def __init__(self, model: str = "gpt-4o", memorize: bool = False) -> None:
         self._model = model
+        self._memorize = memorize
         self._memories = []  # Current memories
         self.key = key_manager.allocate_key()
         self._client = AsyncOpenAI(api_key=self.key, base_url=api_base)
         self._response: str
 
-    def reset(self) -> None:
+    def reset(self, system_prompt: str) -> None:
+        if system_prompt:
+            self.system_prompt = system_prompt
         self._memories = []
         self._memories.append({"role": "system", "content": self.system_prompt})
 
@@ -40,7 +43,10 @@ class GPT:
         Asynchronously generate an answer from the GPT model based on the given prompt.
         """
         self._memories.append({"role": "user", "content": prompt})
-        return await self._ask_with_retry(temperature)
+        response = await self._ask_with_retry(temperature)
+        if self._memorize:
+            self._memories.append({"role": "assistant", "content": response})
+        return response
 
     @retry(
         stop=(stop_after_attempt(5) | stop_after_delay(500)),
