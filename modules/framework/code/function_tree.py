@@ -108,7 +108,7 @@ class FunctionTree:
             raise Exception
 
     async def process_function_layers(
-        self, operation, start_layer_index=0, check_grammar=True
+            self, operation, start_layer_index=0, check_grammar=True
     ):
         import asyncio
 
@@ -134,11 +134,20 @@ class FunctionTree:
         else:
             return
         next_layer = FunctionLayer()
+        for caller in current_layer.set_callers:
+            if caller not in set_visited_nodes:
+                caller_node = self[caller.name]
+                if self._all_callees_in_previous_layers(caller_node):
+                    next_layer.add_function(caller_node)
+                    set_visited_nodes.add(caller)
 
-        for caller in current_layer.set_callers - set_visited_nodes:
-            set_visited_nodes.add(caller)
-            next_layer.add_function(self[caller.name])
         self._build_up(next_layer, set_visited_nodes)
+
+    def _all_callees_in_previous_layers(self, caller_node: FunctionNode) -> bool:
+        for callee in caller_node.callees:
+            if not any(callee in layer.functions for layer in self._layers):
+                return False
+        return True
 
     def _get_bottom_layer(self):
         bottom_layer = [

@@ -140,6 +140,38 @@ class TestFunctionTree(unittest.TestCase):
         self.assertIn(function_node2, result)
         self.assertIn(function_node3, result)
 
+    def test_cross_layer_calling(self):
+        fn_a = FunctionNode(name="A", description='')
+        fn_b = FunctionNode(name="B", description='')
+        fn_c = FunctionNode(name="C", description='')
+        fn_d = FunctionNode(name="D", description='')
+
+        fn_b.add_callee(fn_a)  # B调用A
+        fn_c.add_callee(fn_a)  # C调用A
+        fn_d.add_callee(fn_b)  # D调用B
+        fn_d.add_callee(fn_c)  # D调用C
+        fn_d.add_callee(fn_a)  # D也调用A
+
+        # 添加函数节点到FunctionTree
+        self.function_tree["A"] = fn_a
+        self.function_tree["B"] = fn_b
+        self.function_tree["C"] = fn_c
+        self.function_tree["D"] = fn_d
+
+        # 更新函数层级
+        self.function_tree.update()
+
+        # 打印层级结果
+        for layer_index, layer in enumerate(self.function_tree._layers):
+            print(f"Layer {layer_index}: {[fn.name for fn in layer]}")
+
+        # 断言检查层级结果
+        self.assertEqual(len(self.function_tree._layers), 3)
+        self.assertIn(fn_a, self.function_tree._layers[0]._layer)
+        self.assertIn(fn_b, self.function_tree._layers[1]._layer)
+        self.assertIn(fn_c, self.function_tree._layers[1]._layer)
+        self.assertIn(fn_d, self.function_tree._layers[2]._layer)
+
     def test_obtain_node(self):
         self.function_tree._obtain_node(name="function1", content="a = b + c")
         self.assertEqual(self.function_tree["function1"].content, "a = b + c")
