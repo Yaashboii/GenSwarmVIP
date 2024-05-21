@@ -3,8 +3,6 @@ from modules.framework.code.function_node import FunctionNode
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.file.log_file import logger
 from modules.file.file import File
-from modules.framework.error import GrammarError
-from modules.framework.code.grammer_checker import GrammarChecker
 
 
 class FunctionTree:
@@ -14,7 +12,6 @@ class FunctionTree:
         if not cls._instance:
             cls._instance = super().__new__(cls)
             cls._instance.reset()
-            cls._grammar_checker = GrammarChecker()
         return cls._instance
 
     def __getitem__(self, key: str):
@@ -170,35 +167,6 @@ class FunctionTree:
     def save_code(self, function_names):
         for function_name in function_names:
             self._save_by_function(self._function_nodes[function_name])
-
-    def check_grammar(self, function_names):
-        for function_name in function_names:
-            self._check_function_grammar(function_name)
-            self._check_caller_function_grammar(function_name)
-
-    def _check_function_grammar(self, function_name):
-        errors = self._grammar_checker.check_code_errors(self._file.file_path)
-        status = "passed" if errors else "failed"
-        raise GrammarError(
-            message=f"Grammar check {status} for {function_name}", grammar_error=errors
-        )
-
-    def _check_caller_function_grammar(self, function_name):
-        [
-            self._check_function_grammar(f.name)
-            for f in self._function_nodes[function_name].callers
-        ]
-
-    # def _check_function_grammar_by_layer(self, current_layer):
-    #     try:
-    #         errors = []
-    #         for function in current_layer:
-    #             error = self._check_function_grammar(function)
-    #             errors.append(error)
-    #     except Exception as e:
-    #         import traceback
-    #         logger.log(f"error occurred in grammar check:\n {traceback.format_exc()}", 'error')
-    #         raise SystemExit(f"error occurred in async write functions{e}")
 
     def _find_all_relative_functions(self, function: FunctionNode, seen: set = None):
         if seen is None:
