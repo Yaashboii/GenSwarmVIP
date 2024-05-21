@@ -46,7 +46,7 @@ class GPT:
         response = await self._ask_with_retry(temperature)
         if self._memorize:
             self._memories.append({"role": "assistant", "content": response})
-            return response
+        return response
 
     @retry(
         stop=(stop_after_attempt(5) | stop_after_delay(500)),
