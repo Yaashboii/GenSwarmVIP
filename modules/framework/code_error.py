@@ -9,16 +9,23 @@ class CodeError(ABC):
 
 
 class Bug(CodeError):
-    def __init__(self, error_msg):
+    def __init__(self, error_msg, error_function):
         super().__init__()
         self.error_msg = error_msg
+        self.error_function = error_function
+
+
+class Bugs(CodeError):
+    def __init__(self, bug_list: list[Bug]):
+        super().__init__()
+        self.error_list = bug_list
 
 
 class CriticNotSatisfied(CodeError):
     pass
 
 
-class HumanFeedback(CodeError):
+class Feedback(CodeError):
     def __init__(self, feedback):
         super().__init__()
         self.feedback = feedback

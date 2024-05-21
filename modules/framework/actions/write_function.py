@@ -72,5 +72,5 @@ class WriteFunctionsAsync(ActionNode):
             )
             return await action.run()
 
-        await self._function_pool.process_function_layers(operation)
+        await self._function_pool.process_function_layer(operation)
         self._function_pool.save_functions_to_file()

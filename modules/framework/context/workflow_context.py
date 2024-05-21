@@ -17,7 +17,7 @@ class Context(ABC):
         pass
 
     @property
-    def command():
+    def command(self):
         raise NotImplementedError
 
 

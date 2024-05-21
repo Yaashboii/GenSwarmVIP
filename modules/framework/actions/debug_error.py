@@ -6,11 +6,13 @@ from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.task_description import TASK_DES
 from modules.framework.code.function_tree import FunctionTree
 from modules.framework.response.code_parser import CodeParser
+from modules.llm.gpt import GPT
 
 
 class DebugError(ActionNode):
     def __init__(self, next_text="", node_name=""):
         super().__init__(next_text, node_name)
+        self.__llm = GPT(memorize=True)
         self.error = None
         self._function_pool = FunctionTree()
 

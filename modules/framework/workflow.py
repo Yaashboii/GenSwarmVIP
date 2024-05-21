@@ -26,10 +26,12 @@ class Workflow:
         self.init_log_file()
         self.build_up()
 
-    def init_log_file(self):
+    @staticmethod
+    def init_log_file():
         logger.set_file(File("log.md"))
 
-    def init_workspace(self):
+    @staticmethod
+    def init_workspace():
         workspace_root = root_manager.workspace_root
         project_root = root_manager.project_root
         os.makedirs(os.path.join(workspace_root, "data/frames"))
