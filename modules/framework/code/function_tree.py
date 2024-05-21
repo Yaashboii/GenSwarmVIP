@@ -104,23 +104,18 @@ class FunctionTree:
             logger.log(f"Error in init_functions: {e}", level="error")
             raise Exception
 
-    async def process_function_layers(
-            self, operation, start_layer_index=0, check_grammar=True
+    async def process_function_layer(
+            self, operation, start_layer_index=0,
     ):
         import asyncio
 
-        for index, layer in enumerate(self._layers[start_layer_index:]):
+        for index, layer in enumerate(self._layers[start_layer_index:start_layer_index + 1]):
             tasks = []
             logger.log(f"Layer: {start_layer_index + index}", "warning")
             for function_node in layer:
                 task = asyncio.create_task(operation(function_node))
                 tasks.append(task)
             await asyncio.gather(*tasks)
-            # layer_index = current_layer_index if current_layer_index < len(
-            # self._function_layer) else len(self._function_layer) - 1
-            # current_layer = self._function_layer[layer_index]
-        # if check_grammar:
-        # self._check_function_grammar_by_layer(layer)
 
     def _reset_layers(self):
         self._layers.clear()
@@ -160,9 +155,14 @@ class FunctionTree:
     def update_from_parser(self, imports: set, function_dict: dict):
         self._update_imports(imports)
         self._update_function_dict(function_dict)
-        # logger.log(self.functions_body)
-
         self.update()
+
+    def get_min_layer_index_by_state(self, state: FunctionNode.State | int) -> int:
+        for layer_index, layer in enumerate(self._layers):
+            for function_node in layer.functions:
+                if function_node.state == state:
+                    return layer_index
+        return -1
 
     def save_code(self, function_names):
         for function_name in function_names:
@@ -188,7 +188,9 @@ class FunctionTree:
             content = "\n\n\n".join([f.content for f in functions])
         self._file.message = f"{import_str}\n\n{content}\n"
 
-    def _save_by_function(self, function: FunctionNode):
+    def save_by_function(self, function: FunctionNode | str):
+        if isinstance(function, str):
+            function = self._function_nodes[function]
         relative_function = self._find_all_relative_functions(function)
         logger.log(f"relative_ function: {relative_function}", level="warning")
         self.save_functions_to_file(relative_function)
