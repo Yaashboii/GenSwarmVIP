@@ -105,11 +105,15 @@ class FunctionTree:
             raise Exception
 
     async def process_function_layer(
-            self, operation, start_layer_index=0,
+        self,
+        operation,
+        start_layer_index=0,
     ):
         import asyncio
 
-        for index, layer in enumerate(self._layers[start_layer_index:start_layer_index + 1]):
+        for index, layer in enumerate(
+            self._layers[start_layer_index : start_layer_index + 1]
+        ):
             tasks = []
             logger.log(f"Layer: {start_layer_index + index}", "warning")
             for function_node in layer:

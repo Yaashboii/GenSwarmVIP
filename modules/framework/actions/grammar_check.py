@@ -23,13 +23,15 @@ class GrammarCheck(ActionNode):
             raise SystemExit
         else:
             self.context._function_pool.save_by_function(function=self.function_name)
-            errors = self._grammar_checker.check_code_errors(file_path='function.py')
+            errors = self._grammar_checker.check_code_errors(file_path="function.py")
             return errors
 
     def _process_response(self, response: str) -> str | Bugs | Bug:
         if response:
-            bug_list = [Bug(error_msg=e['error_message'],
-                            error_function=e["function_name"]) for e in eval(response)]
+            bug_list = [
+                Bug(error_msg=e["error_message"], error_function=e["function_name"])
+                for e in eval(response)
+            ]
             return Bugs(bug_list)
         else:
             return response

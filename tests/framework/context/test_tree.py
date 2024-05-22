@@ -141,10 +141,10 @@ class TestFunctionTree(unittest.TestCase):
         self.assertIn(function_node3, result)
 
     def test_cross_layer_calling(self):
-        fn_a = FunctionNode(name="A", description='')
-        fn_b = FunctionNode(name="B", description='')
-        fn_c = FunctionNode(name="C", description='')
-        fn_d = FunctionNode(name="D", description='')
+        fn_a = FunctionNode(name="A", description="")
+        fn_b = FunctionNode(name="B", description="")
+        fn_c = FunctionNode(name="C", description="")
+        fn_d = FunctionNode(name="D", description="")
 
         fn_b.add_callee(fn_a)  # B调用A
         fn_c.add_callee(fn_a)  # C调用A
@@ -214,10 +214,18 @@ class TestFunctionTree(unittest.TestCase):
 
         self.function_tree.update()
 
-        min_layer_index_written = self.function_tree.get_min_layer_index_by_state(FunctionNode.State.WRITTEN)
-        min_layer_index_designed = self.function_tree.get_min_layer_index_by_state(FunctionNode.State.DESIGNED)
-        min_layer_index_not_started = self.function_tree.get_min_layer_index_by_state(FunctionNode.State.NOT_STARTED)
-        min_layer_index_reviewed = self.function_tree.get_min_layer_index_by_state(FunctionNode.State.REVIEWED)
+        min_layer_index_written = self.function_tree.get_min_layer_index_by_state(
+            FunctionNode.State.WRITTEN
+        )
+        min_layer_index_designed = self.function_tree.get_min_layer_index_by_state(
+            FunctionNode.State.DESIGNED
+        )
+        min_layer_index_not_started = self.function_tree.get_min_layer_index_by_state(
+            FunctionNode.State.NOT_STARTED
+        )
+        min_layer_index_reviewed = self.function_tree.get_min_layer_index_by_state(
+            FunctionNode.State.REVIEWED
+        )
         min_layer_index_nonexistent = self.function_tree.get_min_layer_index_by_state(5)
 
         self.assertEqual(min_layer_index_written, 0)
@@ -230,8 +238,9 @@ class TestFunctionTree(unittest.TestCase):
         function_node3.state = FunctionNode.State.DESIGNED
         self.function_tree.update()
 
-        min_layer_index_written_after_state_change = self.function_tree.get_min_layer_index_by_state(
-            FunctionNode.State.WRITTEN)
+        min_layer_index_written_after_state_change = (
+            self.function_tree.get_min_layer_index_by_state(FunctionNode.State.WRITTEN)
+        )
         self.assertEqual(min_layer_index_written_after_state_change, -1)
 
 

@@ -74,4 +74,6 @@ class FunctionNode(Node):
         elif isinstance(value, FunctionNode.State):
             self._state = value
         else:
-            raise ValueError("Invalid state. Must be an integer or an instance of FunctionNode.State.")
+            raise ValueError(
+                "Invalid state. Must be an integer or an instance of FunctionNode.State."
+            )

@@ -56,6 +56,7 @@ class _Logger:
         log_action(content)
         if not self._file:
             from modules.file.file import File
+
             self._file = File("log.md")
 
         self._file.write(color_mapping[level].format(content), mode="a")

@@ -114,7 +114,7 @@ GRAMMAR_CHECK_PROMPT_TEMPLATE = """
     - What is the problem?
     - How was the problem generated?
     - What is the solution?
-    
+
 ### Code:
 ```python
 import ...(if necessary)

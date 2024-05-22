@@ -15,7 +15,7 @@ class GrammarChecker:
                 logger.log(
                     f"{error_function_name}: {e['error_message']}", level="error"
                 )
-                e['function_name'] = error_function_name[0]
+                e["function_name"] = error_function_name[0]
         return errors
 
     def _run_pylint_check(self, file_path: str):
