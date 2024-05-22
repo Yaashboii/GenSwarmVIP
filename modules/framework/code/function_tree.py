@@ -108,7 +108,7 @@ class FunctionTree:
             raise Exception
 
     async def process_function_layers(
-            self, operation, start_layer_index=0, check_grammar=True
+        self, operation, start_layer_index=0, check_grammar=True
     ):
         import asyncio
 

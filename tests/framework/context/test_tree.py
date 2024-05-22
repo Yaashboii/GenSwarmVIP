@@ -141,10 +141,10 @@ class TestFunctionTree(unittest.TestCase):
         self.assertIn(function_node3, result)
 
     def test_cross_layer_calling(self):
-        fn_a = FunctionNode(name="A", description='')
-        fn_b = FunctionNode(name="B", description='')
-        fn_c = FunctionNode(name="C", description='')
-        fn_d = FunctionNode(name="D", description='')
+        fn_a = FunctionNode(name="A", description="")
+        fn_b = FunctionNode(name="B", description="")
+        fn_c = FunctionNode(name="C", description="")
+        fn_d = FunctionNode(name="D", description="")
 
         fn_b.add_callee(fn_a)  # B调用A
         fn_c.add_callee(fn_a)  # C调用A
