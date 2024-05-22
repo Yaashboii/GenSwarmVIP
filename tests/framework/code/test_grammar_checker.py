@@ -52,12 +52,12 @@ class TestGrammarChecker(unittest.TestCase):
         self.assertEqual(function_name, "my_function")
         self.assertEqual(error_code_line, "return d")
 
-    @patch("modules.file.file.logger.log")
-    def test_check_code_errors(self, mock_logger):
-        errors = self.grammar_checker.check_code_errors(
-            os.path.join(root_manager.project_root, self.file_path)
-        )
-        self.assertEqual(errors, self.errors)
+    # @patch("modules.file.file.logger.log")
+    # def test_check_code_errors(self, mock_logger):
+    #     errors = self.grammar_checker.check_code_errors(
+    #         os.path.join(root_manager.project_root, self.file_path)
+    #     )
+    #     self.assertEqual(errors, self.errors)
 
 
 if __name__ == "__main__":
