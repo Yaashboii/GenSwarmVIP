@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, ANY
+from unittest.mock import patch, ANY, MagicMock, call
 from modules.framework.code.function_node import FunctionNode
 from modules.framework.code.function_tree import FunctionTree
 from modules.file import logger, File
@@ -242,6 +242,56 @@ class TestFunctionTree(unittest.TestCase):
             self.function_tree.get_min_layer_index_by_state(FunctionNode.State.WRITTEN)
         )
         self.assertEqual(min_layer_index_written_after_state_change, -1)
+
+    def test_functions_brief(self):
+        self.function_tree._function_nodes = {
+            "func1": FunctionNode(name="func1", description="Function 1"),
+            "func2": FunctionNode(name="func2", description="Function 2"),
+        }
+
+        # 断言 functions_brief 返回的列表包含了所有函数的简要描述
+        self.assertEqual(
+            self.function_tree.functions_brief,
+            ["**func1**: Function 1", "**func2**: Function 2"],
+        )
+
+    def test_function_valid_content(self):
+        func1 = FunctionNode(name="func1", description="")
+        func1.content = "def func1():\n    pass"
+        func2 = FunctionNode(name="func2", description="")
+        func2.content = "def func2():\n    pass"
+
+        self.function_tree._function_nodes = {
+            "func1": func1,
+            "func2": func2,
+            "func3": FunctionNode(name="func3", description=""),
+        }
+
+        # 断言 function_valid_content 返回的列表包含了所有有效的函数内容
+        self.assertEqual(
+            self.function_tree.function_valid_content,
+            ["def func1():\n    pass", "def func2():\n    pass"],
+        )
+
+    def test_save_functions_to_file(self):
+        # 设置一些假的数据
+        self.function_tree.import_list = {"import os", "import sys"}
+        self.function1.content = "def func1():\n    pass"
+        self.function2.content = "def func2():\n    pass"
+        self.function_tree._function_nodes = {
+            "func1": self.function1,
+            "func2": self.function2,
+        }
+
+        # 设置模拟的 File 对象
+        self.function_tree._file = MagicMock()
+
+        # 运行方法
+        self.function_tree.save_functions_to_file()
+
+        # 断言文件消息设置正确
+        expected_message = "import os\nimport sys\n\ndef func1():\n    pass\n\n\ndef func2():\n    pass\n\n"
+        self.function_tree._file._message = expected_message
 
 
 class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):

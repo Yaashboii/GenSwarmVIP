@@ -15,7 +15,7 @@ class GrammarChecker:
                 logger.log(
                     f"{error_function_name}: {e['error_message']}", level="error"
                 )
-                e["function_name"] = error_function_name[0]
+                e["function_name"] = error_function_name
         return errors
 
     def _run_pylint_check(self, file_path: str):
@@ -51,7 +51,7 @@ class GrammarChecker:
             return errors
         except Exception as e:
             logger.log(f"Error occurred when check grammar: {e}", level="error")
-            raise Exception(f"Error occurred when check grammar:{e}")
+            raise Exception(f"Error occurred when check grammar: {e}")
 
     def _find_function_name_from_error(self, file_path, error_line):
         with open(file_path, "r") as file:
