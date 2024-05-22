@@ -3,8 +3,6 @@ from modules.framework.code.function_node import FunctionNode
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.file.log_file import logger
 from modules.file.file import File
-from modules.framework.error import GrammarError
-from modules.framework.code.grammer_checker import GrammarChecker
 
 
 class FunctionTree:
@@ -14,7 +12,6 @@ class FunctionTree:
         if not cls._instance:
             cls._instance = super().__new__(cls)
             cls._instance.reset()
-            cls._grammar_checker = GrammarChecker()
         return cls._instance
 
     def __getitem__(self, key: str):
@@ -107,23 +104,22 @@ class FunctionTree:
             logger.log(f"Error in init_functions: {e}", level="error")
             raise Exception
 
-    async def process_function_layers(
-        self, operation, start_layer_index=0, check_grammar=True
+    async def process_function_layer(
+        self,
+        operation,
+        start_layer_index=0,
     ):
         import asyncio
 
-        for index, layer in enumerate(self._layers[start_layer_index:]):
+        for index, layer in enumerate(
+            self._layers[start_layer_index : start_layer_index + 1]
+        ):
             tasks = []
             logger.log(f"Layer: {start_layer_index + index}", "warning")
             for function_node in layer:
                 task = asyncio.create_task(operation(function_node))
                 tasks.append(task)
             await asyncio.gather(*tasks)
-            # layer_index = current_layer_index if current_layer_index < len(
-            # self._function_layer) else len(self._function_layer) - 1
-            # current_layer = self._function_layer[layer_index]
-        # if check_grammar:
-        # self._check_function_grammar_by_layer(layer)
 
     def _reset_layers(self):
         self._layers.clear()
@@ -163,42 +159,18 @@ class FunctionTree:
     def update_from_parser(self, imports: set, function_dict: dict):
         self._update_imports(imports)
         self._update_function_dict(function_dict)
-        # logger.log(self.functions_body)
-
         self.update()
+
+    def get_min_layer_index_by_state(self, state: FunctionNode.State | int) -> int:
+        for layer_index, layer in enumerate(self._layers):
+            for function_node in layer.functions:
+                if function_node.state == state:
+                    return layer_index
+        return -1
 
     def save_code(self, function_names):
         for function_name in function_names:
             self._save_by_function(self._function_nodes[function_name])
-
-    def check_grammar(self, function_names):
-        for function_name in function_names:
-            self._check_function_grammar(function_name)
-            self._check_caller_function_grammar(function_name)
-
-    def _check_function_grammar(self, function_name):
-        errors = self._grammar_checker.check_code_errors(self._file.file_path)
-        status = "passed" if errors else "failed"
-        raise GrammarError(
-            message=f"Grammar check {status} for {function_name}", grammar_error=errors
-        )
-
-    def _check_caller_function_grammar(self, function_name):
-        [
-            self._check_function_grammar(f.name)
-            for f in self._function_nodes[function_name].callers
-        ]
-
-    # def _check_function_grammar_by_layer(self, current_layer):
-    #     try:
-    #         errors = []
-    #         for function in current_layer:
-    #             error = self._check_function_grammar(function)
-    #             errors.append(error)
-    #     except Exception as e:
-    #         import traceback
-    #         logger.log(f"error occurred in grammar check:\n {traceback.format_exc()}", 'error')
-    #         raise SystemExit(f"error occurred in async write functions{e}")
 
     def _find_all_relative_functions(self, function: FunctionNode, seen: set = None):
         if seen is None:
@@ -220,7 +192,9 @@ class FunctionTree:
             content = "\n\n\n".join([f.content for f in functions])
         self._file.message = f"{import_str}\n\n{content}\n"
 
-    def _save_by_function(self, function: FunctionNode):
+    def save_by_function(self, function: FunctionNode | str):
+        if isinstance(function, str):
+            function = self._function_nodes[function]
         relative_function = self._find_all_relative_functions(function)
         logger.log(f"relative_ function: {relative_function}", level="warning")
         self.save_functions_to_file(relative_function)

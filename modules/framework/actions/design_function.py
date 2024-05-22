@@ -72,6 +72,4 @@ class DesignFunctionAsync(ActionNode):
             action.setup(function)
             return await action.run()
 
-        await function_pool.process_function_layers(
-            operation, start_layer_index=0, check_grammar=False
-        )
+        await function_pool.process_function_layer(operation, start_layer_index=0)

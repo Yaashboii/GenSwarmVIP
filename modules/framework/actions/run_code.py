@@ -6,7 +6,7 @@ import sys
 from modules.framework.action import ActionNode
 from modules.utils.root import root_manager
 from modules.utils.common import get_param, call_reset_environment
-from modules.framework.code_error import Bug, HumanFeedback
+from modules.framework.code_error import Bug, Feedback
 from modules.file.log_file import logger
 from modules.framework.code.function_tree import FunctionTree
 
@@ -135,7 +135,7 @@ class RunCodeAsync(ActionNode):
                 return "NONE"
             else:
                 feedback = input("Please provide feedback:")
-                return HumanFeedback(feedback)
+                return Feedback(feedback)
         logger.log(content=f"Run code failed,result{result}", level="error")
         result_content = "\n".join(result)
         return Bug(result_content)

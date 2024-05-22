@@ -1,4 +1,5 @@
 from modules.framework.context.node import Node
+from enum import Enum
 
 
 class FunctionNode(Node):
@@ -9,6 +10,13 @@ class FunctionNode(Node):
         self._callers: set[FunctionNode] = set()
         self.content: str = ""
         self._definition: str = ""
+        self._state: FunctionNode.State = FunctionNode.State.NOT_STARTED
+
+    class State(Enum):
+        NOT_STARTED = 0
+        DESIGNED = 1
+        WRITTEN = 2
+        REVIEWED = 3
 
     @property
     def callees(self):
@@ -54,3 +62,18 @@ class FunctionNode(Node):
         if function not in self._callers:
             self._callers.add(function)
             function.add_callee(self)
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, value):
+        if isinstance(value, int) and value in range(len(FunctionNode.State)):
+            self._state = FunctionNode.State(value)
+        elif isinstance(value, FunctionNode.State):
+            self._state = value
+        else:
+            raise ValueError(
+                "Invalid state. Must be an integer or an instance of FunctionNode.State."
+            )

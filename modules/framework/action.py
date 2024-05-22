@@ -95,14 +95,14 @@ class ActionNode(BaseNode):
             logger.log(f"Action: {str(self)}", "info")
             logger.log(f"Prompt:\n {self.prompt}", "debug")
             logger.log(f"Response:\n {code}", "info")
-            code = self._process_response(code)
+            code = await self._process_response(code)
             return code
         except Exception as e:
             tb = traceback.format_exc()
             logger.log(f"Error in {str(self)}: {e},\n {tb}", "error")
             raise Exception
 
-    def _process_response(self, content: str) -> str:
+    async def _process_response(self, content: str) -> str:
         return content
 
 

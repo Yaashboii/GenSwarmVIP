@@ -85,3 +85,48 @@ function_name(...):
 - Keep the original code in the function as unchanged as possible, only modifying the parts that are incorrect.
 - The output should be in the specified format.
 """.strip()
+
+GRAMMAR_CHECK_PROMPT_TEMPLATE = """
+## Background:
+{task_des}
+
+## Role setting:
+- The code you wrote encountered issues during syntax checking. Now, you need to modify the code according to the problems identified to meet the requirements.
+
+## These are the environment description:
+{env_des}
+
+## These are the basic Robot APIs:
+```python
+{robot_api}
+```
+
+## These are the functions:
+```python
+{functions}
+```
+
+## These are the error messages:
+{error}
+
+## Output format:
+### Reasoning: you should analyze in the step:
+    - What is the problem?
+    - How was the problem generated?
+    - What is the solution?
+
+### Code:
+```python
+import ...(if necessary)
+
+function_name(...):
+    ...
+
+## Notes:
+- Do not modify the function name.
+- The input and output of the function could be modified.But you should make sure other functions that call this function can still work.
+- Output the complete code of the entire function, not just a part of it that's been omitted.
+- Rewrite all functions that need modifications.
+- Keep the original code in the function as unchanged as possible, only modifying the parts that are incorrect.
+- The output should be in the specified format.
+""".strip()

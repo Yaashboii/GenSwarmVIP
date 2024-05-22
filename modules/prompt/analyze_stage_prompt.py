@@ -109,9 +109,33 @@ Your output should satisfy the following notes:
 
 """.strip()
 
+CONTINUE_ANALYZE_CONSTRAINT_PROMPT_TEMPLATE: str = """
+The user is not satisfied with the constraints you have analyzed. Here is the user's feedback:"{feedback}"
+Please continue to analyze the constraints based on the user's feedback.
+The output TEXT format is as follows:
+```json
+{output_template}
+```
+## Notes:
+- Your output should strictly adhere to the specified format.
+- Perform operations such as addition, deletion, and modification based on the existing foundation.
+- Output the complete constraint information instead of just a part of it.
+""".strip()
+
 CONSTRAIN_TEMPLATE: str = """
 {
   "reasoning": "think step by step, and analyze the constraints that need to be satisfied in the task.",
+  "constraints": [
+    {
+      "name": "Constraint name",
+      "description": "Description of the constraint.(If the user's requirements involve specific numerical values, they should be reflected in the description. )"
+    },
+  ]
+}
+""".strip()
+MODIFY_CONSTRAIN_TEMPLATE: str = """
+{
+  "reasoning": "think step by step, and analyze which constraints need to be modified in the task,which constraints need to be added, and which constraints need to be deleted according to the user's feedback.",
   "constraints": [
     {
       "name": "Constraint name",
