@@ -8,8 +8,8 @@ from obstacle import Obstacles
 
 
 class Manager:
-    def __init__(self, n_robots, n_obstacles, size, if_leader=False):
-        self._robots = Robots(n_robots, size, if_leader=if_leader)
+    def __init__(self, n_robots, n_obstacles, size, mode, if_leader=False, ):
+        self._robots = Robots(n_robots, size, mode, if_leader=if_leader)
         self._obstacles = Obstacles(n_obstacles, size, robot_list=self._robots.robots)
         self._agent_num = n_robots
         self._if_leader = if_leader
@@ -42,7 +42,7 @@ class Manager:
         """
         distribute is responsible for distributing the observations to the robots.
         """
-        for i, robot in enumerate(self._robots.robots[0 : self._agent_num]):
+        for i, robot in enumerate(self._robots.robots[0: self._agent_num]):
             observations_msg = Observations()
             observations_msg.observations = []
             for j, obj_j in enumerate(self._robots.robots + self._obstacles.obstacles):
@@ -51,13 +51,13 @@ class Manager:
                 elif j < self._agent_num:
                     obj_type = "robot"
                 elif j == self._agent_num:
-                    obj_type = "robot" if self._if_leader else "obstacle"
+                    obj_type = "leader" if self._if_leader else "obstacle"
                 else:
                     obj_type = "obstacle"
 
                 if (
-                    np.linalg.norm(robot.position - obj_j.position)
-                    <= robot.communication_range
+                        np.linalg.norm(robot.position - obj_j.position)
+                        <= robot.communication_range
                 ):
                     liner_speed = (
                         Vector3(x=obj_j.velocity[0], y=obj_j.velocity[1], z=0)

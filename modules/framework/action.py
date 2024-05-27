@@ -32,7 +32,7 @@ class BaseNode(ABC):
         self.__next = value
 
     @abstractmethod
-    async def run(self) -> str:
+    async def run(self, auto_next: bool = True) -> str:
         # Abstract method for executing node logic
         pass
 
@@ -48,9 +48,9 @@ class BaseNode(ABC):
 
 
 class ActionNode(BaseNode):
-    def __init__(self, next_text: str, node_name: str = ""):
+    def __init__(self, next_text: str, node_name: str = "", llm: GPT = None):
         super().__init__()
-        self.__llm = GPT()
+        self.__llm = llm if llm else GPT()
         self.prompt = None
         self._next_text = next_text  # label text rendered in mermaid graph
         self._node_name = node_name  # to distinguish objects of same class type
@@ -68,7 +68,7 @@ class ActionNode(BaseNode):
     def _build_prompt(self):
         pass
 
-    async def run(self) -> str:
+    async def run(self, auto_next: bool = True) -> str:
         # First create a prompt, then utilize it to query the language model.
         self._build_prompt()
         logger.log(f"Action: {str(self)}", "info")
@@ -81,7 +81,7 @@ class ActionNode(BaseNode):
                 return await next_action.run()
             else:
                 raise ValueError("No error handler available to handle request")
-        if self._next is not None:
+        if auto_next and self._next is not None:
             return await self._next.run()
 
     @retry(
@@ -93,8 +93,11 @@ class ActionNode(BaseNode):
                 raise SystemExit("Prompt is required")
             code = await self.__llm.ask(self.prompt)
             logger.log(f"Action: {str(self)}", "info")
-            logger.log(f"Prompt:\n {self.prompt}", "debug")
-            logger.log(f"Response:\n {code}", "info")
+            print_to_terminal = True
+            if hasattr(self.context.args, "print_to_terminal"):
+                print_to_terminal = self.context.args.print_to_terminal
+            logger.log(f"Prompt:\n {self.prompt}", "debug", print_to_terminal=print_to_terminal)
+            logger.log(f"Response:\n {code}", "info", print_to_terminal=print_to_terminal)
             code = await self._process_response(code)
             return code
         except Exception as e:
@@ -146,6 +149,12 @@ class ActionLinkedList(BaseNode):
 
     async def run(self, **kwargs):
         return await self._head.run()
+
+    async def run_internal_actions(self, start_node=None):
+        current_node = self._head if start_node is None else start_node
+        while current_node:
+            await current_node.run(auto_next=False)
+            current_node = current_node._next
 
 
 if __name__ == "__main__":

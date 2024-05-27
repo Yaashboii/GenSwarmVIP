@@ -26,6 +26,7 @@ class CriticNotSatisfied(CodeError):
 
 
 class Feedback(CodeError):
+    # feedback from human and GPT
     def __init__(self, feedback):
         super().__init__()
         self.feedback = feedback

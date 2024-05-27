@@ -1,8 +1,10 @@
 import asyncio
+import time
 
 from modules.framework.action import ActionNode
+from modules.framework.actions import WriteRun
 from modules.framework.response.code_parser import SingleFunctionParser
-from modules.framework.code.function_node import FunctionNode
+from modules.framework.code.function_node import FunctionNode, State
 from modules.framework.response.text_parser import parse_text
 from modules.prompt.coding_stage_prompt import WRITE_FUNCTION_PROMPT_TEMPLATE
 from modules.prompt.robot_api_prompt import robot_api
@@ -36,7 +38,7 @@ class WriteFunction(ActionNode):
             other_functions=self._other_functions_str,
         )
 
-    def _process_response(self, response: str) -> str:
+    async def _process_response(self, response: str) -> str:
         desired_function_name = self._function.name
         code = parse_text(text=response)
         parser = SingleFunctionParser()
@@ -56,6 +58,7 @@ class WriteFunctionsAsync(ActionNode):
 
     async def _run(self):
         constraint_pool: ConstraintPool = ConstraintPool()
+        function_pool: FunctionTree = FunctionTree()
 
         async def operation(function: FunctionNode):
             logger.log(f"Function: {function.name}", "warning")
@@ -72,5 +75,18 @@ class WriteFunctionsAsync(ActionNode):
             )
             return await action.run()
 
-        await self._function_pool.process_function_layer(operation)
-        self._function_pool.save_functions_to_file()
+        layer_index = function_pool.get_min_layer_index_by_state(State.DESIGNED)
+        # if layer_index == len(function_pool._layers) - 1:
+        #     print(layer_index, len(function_pool._layers) - 1)
+        #     write_run = WriteRun()
+        #     return await write_run.run()
+
+        if not all(function_node.state == State.DESIGNED for function_node in
+                   function_pool._layers[layer_index].functions):
+            logger.log("All functions in the layer are not in DESIGNED state", "error")
+            # TODO: 解决当出现生成的函数跑到前面层的问题。跑到后面层是通过重置State来解决的，但是跑到前面层的问题还没有解决
+            time.sleep(1)
+            raise SystemExit
+        await function_pool.process_function_layer(operation,
+                                                   operation_type=State.WRITTEN,
+                                                   start_layer_index=layer_index)

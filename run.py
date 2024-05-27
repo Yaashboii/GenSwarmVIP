@@ -48,12 +48,33 @@ if __name__ == "__main__":
         #             'Keep a distance of 0.5 meters from boundaries.',
         #     "run_times": 1
         # },
-        {
-            "task": "Integrate into a flock, adhering to cohesion by staying connected, alignment by moving together, and separation by maintaining at least 0.5 meters between robots."
-            "Additionally, avoid collisions with obstacles and boundaries."
-            "Keep a distance of 0.5 meters from obstacles."
-            "Keep a distance of 0.5 meters from boundaries.",
-            "run_times": 1,
-        },
+        # {
+        #     "task": "Integrate into a flock, adhering to cohesion by staying connected, alignment by moving together, and separation by maintaining at least 0.5 meters between robots."
+        #             "Additionally, avoid collisions with obstacles and boundaries."
+        #             "Keep a distance of 0.5 meters from obstacles."
+        #             "Keep a distance of 0.5 meters from boundaries.",
+        #     "run_times": 1,
+        # },
+        # {
+        #     "task": "Coordinate with other robots within the sensing range to encircle the prey, leaving no gaps to prevent its escape."
+        #             "Additionally, avoid collisions with obstacles"
+        #             "avoid collisions with other robots",
+        #     "run_times": 1,
+        # },
+        # {
+        #     "task": "Coordinate with other robots within the sensing range to pursuit the prey, leaving no gaps to prevent its escape."
+        #             "Additionally, Keep a distance of 0.5 meters from obstacles"
+        #             "As quickly as possible,Keep a distance of 0.5 meters from robots",
+        #     "run_times": 1,
+        # },
+        # {
+        #     "task": "The robot needs to move to the target position while maintaining a distance of at least 1 meter from other robots to avoid collisions.",
+        #     "run_times": 1,
+        # },
+        # {
+        #     "task": "The robot needs to move to the target position while maintaining a distance of at least 1 meter from other robots to avoid collisions.",
+        #     "run_times": 1,
+        # },
+
     ]
     asyncio.run(run_all_tasks_sequentially(task_list, args))

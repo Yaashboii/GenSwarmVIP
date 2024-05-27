@@ -10,4 +10,4 @@ from modules.framework.actions.design_function import (
     DesignFunction,
     DesignFunctionAsync,
 )
-from modules.framework.actions.human_feedback import HumanCritic
+from modules.framework.actions.criticize import Criticize

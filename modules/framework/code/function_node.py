@@ -2,6 +2,14 @@ from modules.framework.context.node import Node
 from enum import Enum
 
 
+class State(Enum):
+    NOT_STARTED = 0
+    DESIGNED = 1
+    WRITTEN = 2
+    REVIEWED = 3
+    CHECKED = 4
+
+
 class FunctionNode(Node):
     def __init__(self, name, description):
         super().__init__(name, description)
@@ -10,13 +18,7 @@ class FunctionNode(Node):
         self._callers: set[FunctionNode] = set()
         self.content: str = ""
         self._definition: str = ""
-        self._state: FunctionNode.State = FunctionNode.State.NOT_STARTED
-
-    class State(Enum):
-        NOT_STARTED = 0
-        DESIGNED = 1
-        WRITTEN = 2
-        REVIEWED = 3
+        self._state: State = State.NOT_STARTED
 
     @property
     def callees(self):
@@ -69,11 +71,18 @@ class FunctionNode(Node):
 
     @state.setter
     def state(self, value):
-        if isinstance(value, int) and value in range(len(FunctionNode.State)):
-            self._state = FunctionNode.State(value)
-        elif isinstance(value, FunctionNode.State):
+        if isinstance(value, int) and value in range(len(State)):
+            self._state = State(value)
+        elif isinstance(value, State):
             self._state = value
         else:
             raise ValueError(
                 "Invalid state. Must be an integer or an instance of FunctionNode.State."
             )
+
+    def reset(self):
+        self._import_list.clear()
+        self.content = ""
+        self._definition = ""
+        self._state = State.NOT_STARTED
+        self._description = ""

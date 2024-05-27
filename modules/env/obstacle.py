@@ -27,17 +27,17 @@ class Entity:
     def is_overlapping(cls, new_entity, entities, min_distance=0.5):
         for entity in entities:
             if np.linalg.norm(new_entity.position - entity.position) < (
-                new_entity.radius + entity.radius + min_distance
+                    new_entity.radius + entity.radius + min_distance
             ):
                 return True
         return False
 
     @classmethod
     def try_generate_entity(
-        cls, index: int, size: tuple, radius: float, entities: list, max_attempts=100
+            cls, index: int, size: tuple, radius: float, entities: list, max_attempts=100
     ):
         for attempt in range(max_attempts):
-            position = np.random.uniform(-0.5, 0.5, size=2) * size
+            position = np.random.uniform(-0.2, 0.2, size=2) * size
             new_entity = cls(index, position, radius)
             if not cls.is_overlapping(new_entity, entities):
                 return new_entity
@@ -45,11 +45,11 @@ class Entity:
 
     @classmethod
     def create_entities(
-        cls,
-        n_entities: int,
-        size: tuple,
-        radius_range: tuple | float,
-        existing_entities: list = [],
+            cls,
+            n_entities: int,
+            size: tuple,
+            radius_range: tuple | float,
+            existing_entities: list = [],
     ):
         entities = existing_entities.copy()
         created_entities = []
@@ -89,7 +89,7 @@ class Obstacles:
             new_obstacle = Obstacle.create_entities(
                 n_entities=n_obstacles,
                 size=size,
-                radius_range=(0.1, 1.0),
+                radius_range=(0.1, 0.2),
                 existing_entities=obstacle_list + robot_list,
             )
             if new_obstacle:

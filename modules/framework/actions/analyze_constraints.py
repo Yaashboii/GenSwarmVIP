@@ -6,6 +6,7 @@ from modules.prompt.analyze_stage_prompt import (
     ANALYZE_CONSTRAINT_PROMPT_TEMPLATE,
     CONSTRAIN_TEMPLATE,
     CONTINUE_ANALYZE_CONSTRAINT_PROMPT_TEMPLATE,
+    MODIFY_CONSTRAIN_TEMPLATE
 )
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
@@ -20,10 +21,8 @@ class AnalyzeConstraints(ActionNode):
     def __init__(self, next_text, node_name=""):
         super().__init__(next_text, node_name)
         self._interaction_mode = False
-        if (
-            hasattr(self.context.args, "interaction_mode")
-            and self.context.args.interaction_mode is True
-        ):
+        if (hasattr(self.context.args, "interaction_mode")
+                and self.context.args.interaction_mode is True):
             self.__llm = GPT(memorize=True)
             self._interaction_mode = True
         else:
@@ -49,18 +48,19 @@ class AnalyzeConstraints(ActionNode):
             satisfied = input("Are you satisfied with the constraints? (y/n)")
             if satisfied != "y":
                 await self.interaction_with_user()
+
         logger.log(f"Analyze Constraints Success", "success")
 
     async def interaction_with_user(self):
         feedback = input("Please provide feedback:")
         self.prompt = CONTINUE_ANALYZE_CONSTRAINT_PROMPT_TEMPLATE.format(
             feedback=feedback,
-            output_template=CONSTRAIN_TEMPLATE,
+            output_template=MODIFY_CONSTRAIN_TEMPLATE,
         )
         await self._run()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import asyncio
     from modules.framework.context.workflow_context import WorkflowContext
     import argparse
@@ -70,10 +70,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--interaction_mode",
-        type=bool,
-        default=True,
-        help="Whether to run in interaction mode in analyze constraints.",
+        "--interaction_mode", type=bool, default=True, help="Whether to run in interaction mode in analyze constraints."
     )
     context = WorkflowContext()
     context.command = "Integrate into a flock, adhering to cohesion by staying connected, alignment by moving together, and separation by maintaining at least 0.5 meters between robots."
@@ -82,3 +79,4 @@ if __name__ == "__main__":
     constraint_analyser = AnalyzeConstraints("analyze constraints")
 
     asyncio.run(constraint_analyser.run())
+    context.save_to_file("../../../workspace/test/constraint.pkl")

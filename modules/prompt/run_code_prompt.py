@@ -24,6 +24,34 @@ The output TEXT format is as follows:
 Reasoning: what caused the error, and how did you fix it? Provide serval fixes and choose the best one.
 code:
 ```python
+import ...(if necessary else remove this line)
+
+
+function_name(...):
+    ...
+
+
+...
+```
+
+## Notes:
+1. Only allowed to modify errors, not allowed to modify function names as well as the input and output of the function.
+2. Output the complete code of the entire function, not just a part of it that's been omitted.
+3. Rewrite all functions that need modifications.
+4. Keep the original code in the function as unchanged as possible, only modifying the parts that are incorrect.
+5. The output should be in the specified format.
+""".strip()
+
+CONTINUE_DEBUG_PROMPT = """
+Based on the modifications you made earlier, issues still persist after execution. Here is the feedback result information:
+"{error_message}"
+
+## Task
+According to the error message, make modifications based on the existing foundation, and output the modified function in its entirety.
+The output TEXT format is as follows:
+Reasoning:Why the previous modifications did not work? what caused the error, and how did you fix it? Provide serval fixes and choose the best one.
+code:
+```python
 import ...(if necessary)
 
 
@@ -42,7 +70,7 @@ function_name(...):
 5. The output should be in the specified format.
 """.strip()
 
-HUMAN_FEEDBACK_PROMPT_TEMPLATE = """
+FEEDBACK_PROMPT_TEMPLATE = """
 ## Background:
 {task_des}
 
@@ -67,6 +95,34 @@ HUMAN_FEEDBACK_PROMPT_TEMPLATE = """
 
 ## Output format:
 ### Reasoning: you should analyze in the step:
+    - What is the problem?
+    - Which part of the code is problematic?
+    - What is the solution?
+### Code:
+```python
+import ...(if necessary)
+
+function_name(...):
+    ...
+
+## Notes:
+- Do not modify the function name.
+- The input and output of the function could be modified.But you should make sure other functions that call this function can still work.
+- Output the complete code of the entire function, not just a part of it that's been omitted.
+- Only output the functions that need modification, with as few changes as possible.
+- Rewrite all functions that need modifications.
+- Keep the original code in the function as unchanged as possible, only modifying the parts that are incorrect.
+- The output should be in the specified format.
+""".strip()
+
+CONTINUE_FEEDBACK_PROMPT_TEMPLATE = """
+Based on the modifications you made earlier, issues still persist after execution. Here is the feedback result information:
+"{feedback}"
+Continue making modifications.
+
+## Output format:
+### Reasoning: you should analyze in the step:
+    - Why previous modifications did not work?
     - What is the problem?
     - Which part of the code is problematic?
     - What is the solution?

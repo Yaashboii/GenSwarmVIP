@@ -11,16 +11,17 @@ from manager import Manager
 
 class Env:
     def __init__(
-        self,
-        size=(10, 10),
-        n_robots=3,
-        n_obstacles=7,
-        dt=0.1,
-        if_leader=False,
-        leader_speed=0.5,
-        render_interval=1,
-        magnification=1.1,
-        show_obs=False,
+            self,
+            size=(10, 10),
+            n_robots=3,
+            n_obstacles=10,
+            dt=0.1,
+            if_leader=False,
+            leader_speed=0.5,
+            render_interval=1,
+            magnification=1.1,
+            show_obs=False,
+            mode='cross',
     ):
         self._initialized_graphics = False
         rospy.init_node("env_node", anonymous=True)
@@ -28,11 +29,12 @@ class Env:
         self._dt = dt
         self._render_interval = render_interval
         self._leader_speed = leader_speed
-        self._manager = Manager(n_robots, n_obstacles, size, if_leader=if_leader)
+        self.mode = mode
+
+        self._manager = Manager(n_robots, n_obstacles, size, if_leader=if_leader, mode=self.mode)
         self._robots = self._manager.robots
         self._obstacles = self._manager.obstacles.obstacles
         rospy.set_param("robots_num", n_robots)
-
         # list of the robot color
         self._colors = plt.colormaps.get_cmap("viridis")(np.linspace(0, 1, n_robots))
 
@@ -174,7 +176,7 @@ class Env:
                         edgecolor=self._colors[i],
                         facecolor=self._colors[i],
                         linewidth=1,
-                        alpha=0.05,
+                        alpha=0.005,
                     )
                     self._ax.add_patch(vision_range)
                     self._patches["vision"].append(vision_range)
@@ -215,7 +217,9 @@ class Env:
                     self._patches["history"][j].set_data(x_data, y_data)
                 if self._show_obs:
                     self._patches["vision"][j].set_center(robot.position)
-            self._patches["leader"][0].set_data(self._leader.position)
+            if self._leader:
+
+                self._patches["leader"][0].set_data(self._leader.position)
 
         if self._render_frames:
             plt.draw()
@@ -231,5 +235,5 @@ class Env:
 
 
 if __name__ == "__main__":
-    env = Env(if_leader=True, n_robots=6, size=(10, 10), leader_speed=-1, show_obs=True)
+    env = Env(if_leader=False, n_robots=6, size=(10, 10), leader_speed=-1, show_obs=True)
     env.run()
