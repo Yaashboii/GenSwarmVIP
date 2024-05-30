@@ -21,6 +21,17 @@ class FunctionTree:
         if isinstance(key, str):
             self._function_nodes[key] = value
 
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._index < len(self._layers):
+            result = self._layers[self._index]
+            self._index += 1
+            return result
+        else:
+            raise StopIteration
+
     def reset(self):
         self._function_nodes: dict[str, FunctionNode] = {}
         self.import_list: set[str] = {"from apis import *"}
@@ -104,22 +115,16 @@ class FunctionTree:
             logger.log(f"Error in init_functions: {e}", level="error")
             raise Exception
 
-    async def process_function_layer(
-        self,
-        operation,
-        start_layer_index=0,
-    ):
-        import asyncio
-
-        for index, layer in enumerate(
-            self._layers[start_layer_index : start_layer_index + 1]
-        ):
-            tasks = []
-            logger.log(f"Layer: {start_layer_index + index}", "warning")
-            for function_node in layer:
-                task = asyncio.create_task(operation(function_node))
-                tasks.append(task)
-            await asyncio.gather(*tasks)
+    # async def process_function_layer(
+    #     self,
+    #     operation,
+    #     start_layer_index=0,
+    # ):
+    #     for index, layer in enumerate(
+    #         self._layers[start_layer_index:]
+    #     ):
+    #         logger.log(f"Layer: {start_layer_index + index}", "warning")
+    #         await layer.operate_on_nodes(operation)
 
     def _reset_layers(self):
         self._layers.clear()

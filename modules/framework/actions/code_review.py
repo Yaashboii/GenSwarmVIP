@@ -58,21 +58,6 @@ class CodeReview(ActionNode):
             logger.log(f"High Level Function Review Failed: {e}", "error")
             raise Exception  # trigger retry
 
-
-class CodeReviewAsync(ActionNode):
-    def __init__(self, next_text="", node_name=""):
-        super().__init__(next_text, node_name)
-        self._function_pool = FunctionTree()
-
-    def _build_prompt(self):
-        return super()._build_prompt()
-
-    async def _run(self):
-        async def operation(function):
-            action = CodeReview()
-            action.setup(function)
-            return await action.run()
-
-        await self._function_pool.process_function_layers(
-            operation, start_layer_index=1
-        )
+    async def operate_on_node(self, function_node: FunctionNode):
+        self._function = function_node
+        return await self.run()

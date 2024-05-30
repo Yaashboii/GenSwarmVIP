@@ -59,17 +59,6 @@ class DesignFunction(ActionNode):
         # logger.log(f"new definition: {new_definition}")
         return str(code)
 
-
-class DesignFunctionAsync(ActionNode):
-    def _build_prompt(self):
-        pass
-
-    async def _run(self):
-        function_pool = FunctionTree()
-
-        async def operation(function: FunctionNode):
-            action = DesignFunction("design single function")
-            action.setup(function)
-            return await action.run()
-
-        await function_pool.process_function_layer(operation, start_layer_index=0)
+    async def operate_on_node(self, function_node: FunctionNode):
+        self._function = function_node
+        return await self.run()

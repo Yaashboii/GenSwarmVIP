@@ -20,11 +20,7 @@ class WriteFunction(ActionNode):
         self._constraint_text = ""
         self._other_functions_str = ""
         self._function_pool = FunctionTree()
-
-    def setup(self, function, constraint_text, other_functions_str):
-        self._function: FunctionNode = function
-        self._constraint_text = constraint_text
-        self._other_functions_str = other_functions_str
+        self._constraint_pool: ConstraintPool = ConstraintPool()
 
     def _build_prompt(self):
         self.prompt = WRITE_FUNCTION_PROMPT_TEMPLATE.format(
@@ -45,32 +41,14 @@ class WriteFunction(ActionNode):
         self._function_pool.update_from_parser(parser.imports, parser.function_dict)
         return code
 
+    async def operate_on_node(self, function_node: FunctionNode):
+        logger.log(f"Function: {function_node.name}", "warning")
+        other_functions = self._function_pool.filtered_functions(function)
+        other_functions_str = "\n\n".join([f.body for f in other_functions])
 
-class WriteFunctionsAsync(ActionNode):
-    def __init__(self, next_text: str, node_name: str = ""):
-        super().__init__(next_text, node_name)
-        self._function_pool = FunctionTree()
-
-    def _build_prompt(self):
-        return super()._build_prompt()
-
-    async def _run(self):
-        constraint_pool: ConstraintPool = ConstraintPool()
-
-        async def operation(function: FunctionNode):
-            logger.log(f"Function: {function.name}", "warning")
-            other_functions = self._function_pool.filtered_functions(function)
-            other_functions_str = "\n\n".join([f.body for f in other_functions])
-
-            action = WriteFunction()
-            action.setup(
-                function=function,
-                other_functions_str=other_functions_str,
-                constraint_text=constraint_pool.filtered_constraints(
-                    function.connections
-                ),
-            )
-            return await action.run()
-
-        await self._function_pool.process_function_layer(operation)
-        self._function_pool.save_functions_to_file()
+        self._function = function_node
+        self._constraint_text = self._constraint_pool.filtered_constraints(
+            function_node.connections
+        )
+        self._other_functions_str = other_functions_str
+        return await self.run()

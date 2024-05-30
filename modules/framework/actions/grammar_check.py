@@ -35,11 +35,3 @@ class GrammarCheck(ActionNode):
             return Bugs(bug_list)
         else:
             return response
-
-
-class RunCodeAsync(ActionNode):
-    async def _run(self):
-        pass
-
-    def _process_response(self, result: list):
-        pass

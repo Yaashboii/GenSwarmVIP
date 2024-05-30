@@ -294,28 +294,28 @@ class TestFunctionTree(unittest.TestCase):
         self.function_tree._file._message = expected_message
 
 
-class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):
-    async def test_process_function_layers(self):
-        function_tree = FunctionTree()
-        function_tree.reset()
-        # Test process_function_layers method
-        function_node1 = FunctionNode("function1", "description1")
-        function_node2 = FunctionNode("function2", "description2")
-        output_names = []
+# class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):
+#     async def test_process_function_layers(self):
+#         function_tree = FunctionTree()
+#         function_tree.reset()
+#         # Test process_function_layers method
+#         function_node1 = FunctionNode("function1", "description1")
+#         function_node2 = FunctionNode("function2", "description2")
+#         output_names = []
 
-        from modules.framework.code.function_layer import FunctionLayer
+#         from modules.framework.code.function_layer import FunctionLayer
 
-        layer = FunctionLayer()
-        layer.add_function(function_node1)
-        layer.add_function(function_node2)
+#         layer = FunctionLayer()
+#         layer.add_function(function_node1)
+#         layer.add_function(function_node2)
 
-        async def mock_operation(node):
-            output_names.append(node.name)
+#         async def mock_operation(node):
+#             output_names.append(node.name)
 
-        function_tree._layers = [layer]
-        await function_tree.process_function_layer(mock_operation)
-        self.assertIn("function1", output_names)
-        self.assertIn("function2", output_names)
+#         function_tree._layers = [layer]
+#         await function_tree.process_function_layer(mock_operation)
+#         self.assertIn("function1", output_names)
+#         self.assertIn("function2", output_names)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ import os
 from modules.framework.actions import *
 from modules.framework.action import *
 from modules.framework.handler import *
+from modules.framework.actions.action_on_layer import ActionOnLayer
 
 from modules.utils.logger import setup_logger
 from modules.framework.context.workflow_context import WorkflowContext
@@ -46,10 +47,13 @@ class Workflow:
         # initialize actions
         analyze_constraints = AnalyzeConstraints("constraint pool")
         analyze_functions = AnalyzeFunctions("function pool")
-        design_functions = DesignFunctionAsync("function definition")
-        write_functions = WriteFunctionsAsync("function.py")
+
+        design_functions = DesignFunction("function definition")
+        write_functions = WriteFunction("function.py")
+        grammar_check = GrammarCheck("Grammar Check")
         write_run = WriteRun("code")
-        code_review = CodeReviewAsync("reviewed code")
+        code_review = CodeReview("reviewed code")
+
         run_code = RunCodeAsync("pass")
         debug_code = DebugError("fixed code")
         human_feedback = HumanCritic("feedback")
@@ -72,12 +76,11 @@ class Workflow:
         analysis_stage = ActionLinkedList("Analysis", analyze_constraints)
         analysis_stage.add(analyze_functions)
         # stage 2
-        coding_stage = ActionLinkedList("Coding", design_functions)
+        coding_stage = ActionOnLayer(name="Function generation", head=design_functions)
         coding_stage.add(write_functions)
-        coding_stage.add(write_run)
+        coding_stage.add(grammar_check)
+        coding_stage.add(code_review)
         # stage 3
-        review_stage = ActionLinkedList("Review", code_review)
-        # stage 4
         test_stage = ActionLinkedList("Testing", run_code)
         # mermaid graph would be incomplete if final action is not linked
         # run_code._next = ActionNode(next_text="pass", node_name="END")
