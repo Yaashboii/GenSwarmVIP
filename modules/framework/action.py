@@ -96,8 +96,12 @@ class ActionNode(BaseNode):
             print_to_terminal = True
             if hasattr(self.context.args, "print_to_terminal"):
                 print_to_terminal = self.context.args.print_to_terminal
-            logger.log(f"Prompt:\n {self.prompt}", "debug", print_to_terminal=print_to_terminal)
-            logger.log(f"Response:\n {code}", "info", print_to_terminal=print_to_terminal)
+            logger.log(
+                f"Prompt:\n {self.prompt}", "debug", print_to_terminal=print_to_terminal
+            )
+            logger.log(
+                f"Response:\n {code}", "info", print_to_terminal=print_to_terminal
+            )
             code = await self._process_response(code)
             return code
         except Exception as e:

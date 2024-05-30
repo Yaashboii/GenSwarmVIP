@@ -8,7 +8,14 @@ from obstacle import Obstacles
 
 
 class Manager:
-    def __init__(self, n_robots, n_obstacles, size, mode, if_leader=False, ):
+    def __init__(
+        self,
+        n_robots,
+        n_obstacles,
+        size,
+        mode,
+        if_leader=False,
+    ):
         self._robots = Robots(n_robots, size, mode, if_leader=if_leader)
         self._obstacles = Obstacles(n_obstacles, size, robot_list=self._robots.robots)
         self._agent_num = n_robots
@@ -42,7 +49,7 @@ class Manager:
         """
         distribute is responsible for distributing the observations to the robots.
         """
-        for i, robot in enumerate(self._robots.robots[0: self._agent_num]):
+        for i, robot in enumerate(self._robots.robots[0 : self._agent_num]):
             observations_msg = Observations()
             observations_msg.observations = []
             for j, obj_j in enumerate(self._robots.robots + self._obstacles.obstacles):
@@ -56,8 +63,8 @@ class Manager:
                     obj_type = "obstacle"
 
                 if (
-                        np.linalg.norm(robot.position - obj_j.position)
-                        <= robot.communication_range
+                    np.linalg.norm(robot.position - obj_j.position)
+                    <= robot.communication_range
                 ):
                     liner_speed = (
                         Vector3(x=obj_j.velocity[0], y=obj_j.velocity[1], z=0)

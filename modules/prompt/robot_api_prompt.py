@@ -29,15 +29,15 @@ def get_radius():
     Returns:
     - float: The radius of the robot itself.
     '''
-    
-    
+
+
 def get_target_position():
     '''
     Get the target_position of the robot.
     Returns:
     - numpy.ndarray: The target_position of the robot.
     '''
-    
+
 def get_surrounding_robots_info():
     '''
     Get real-time information of the surrounding robots. The data provided by this function are all within the robot's sensory range.

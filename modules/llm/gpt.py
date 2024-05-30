@@ -24,12 +24,21 @@ class GPT:
 
     system_prompt = "You are a helpful assistant."
 
-    def __init__(self, client: AsyncOpenAI = None, model: str = "gpt-4o", memorize: bool = False, ) -> None:
+    def __init__(
+        self,
+        client: AsyncOpenAI = None,
+        model: str = "gpt-4o",
+        memorize: bool = False,
+    ) -> None:
         self._model = model
         self._memorize = memorize
         self._memories = []  # Current memories
         self.key = key_manager.allocate_key()
-        self._client = AsyncOpenAI(api_key=self.key, base_url=api_base) if client is None else client
+        self._client = (
+            AsyncOpenAI(api_key=self.key, base_url=api_base)
+            if client is None
+            else client
+        )
         self._response: str
 
     def reset(self, system_prompt: str) -> None:

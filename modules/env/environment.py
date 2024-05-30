@@ -11,17 +11,17 @@ from manager import Manager
 
 class Env:
     def __init__(
-            self,
-            size=(10, 10),
-            n_robots=3,
-            n_obstacles=10,
-            dt=0.1,
-            if_leader=False,
-            leader_speed=0.5,
-            render_interval=1,
-            magnification=1.1,
-            show_obs=False,
-            mode='cross',
+        self,
+        size=(10, 10),
+        n_robots=3,
+        n_obstacles=10,
+        dt=0.1,
+        if_leader=False,
+        leader_speed=0.5,
+        render_interval=1,
+        magnification=1.1,
+        show_obs=False,
+        mode="cross",
     ):
         self._initialized_graphics = False
         rospy.init_node("env_node", anonymous=True)
@@ -31,7 +31,9 @@ class Env:
         self._leader_speed = leader_speed
         self.mode = mode
 
-        self._manager = Manager(n_robots, n_obstacles, size, if_leader=if_leader, mode=self.mode)
+        self._manager = Manager(
+            n_robots, n_obstacles, size, if_leader=if_leader, mode=self.mode
+        )
         self._robots = self._manager.robots
         self._obstacles = self._manager.obstacles.obstacles
         rospy.set_param("robots_num", n_robots)
@@ -218,7 +220,6 @@ class Env:
                 if self._show_obs:
                     self._patches["vision"][j].set_center(robot.position)
             if self._leader:
-
                 self._patches["leader"][0].set_data(self._leader.position)
 
         if self._render_frames:
@@ -235,5 +236,7 @@ class Env:
 
 
 if __name__ == "__main__":
-    env = Env(if_leader=False, n_robots=6, size=(10, 10), leader_speed=-1, show_obs=True)
+    env = Env(
+        if_leader=False, n_robots=6, size=(10, 10), leader_speed=-1, show_obs=True
+    )
     env.run()

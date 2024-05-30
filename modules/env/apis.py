@@ -64,6 +64,7 @@ def initialize_ros_node():
     if not ros_initialized:
         # init ros node
         from run import robot_id
+
         id = int(robot_id)
 
         rospy.init_node(f"robot{robot_id}_control_node", anonymous=True)
@@ -212,7 +213,7 @@ def get_target_position():
             return np.array([x, y])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     id = get_self_id()
     prey_position = get_prey_position()
     print(f"Robot {id} is initialized successfully., prey_position: {prey_position}")

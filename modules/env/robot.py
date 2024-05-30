@@ -10,12 +10,12 @@ from obstacle import Entity
 
 class Robot(Entity):
     def __init__(
-            self,
-            robot_id,
-            initial_position,
-            radius=0.1,
-            max_speed=2.0,
-            communication_range=30.0,
+        self,
+        robot_id,
+        initial_position,
+        radius=0.1,
+        max_speed=2.0,
+        communication_range=30.0,
     ):
         super().__init__(robot_id, initial_position, radius=radius)
         self._velocity = np.array([0.0, 0.0], dtype=float)
@@ -173,7 +173,7 @@ class Robots:
     @positions.setter
     def positions(self, new_positions):
         assert (
-                new_positions.shape == self._positions.shape
+            new_positions.shape == self._positions.shape
         ), f"Expected shape {self._positions.shape}, got {new_positions.shape}"
         self._positions = new_positions
         for i, robot in enumerate(self._robots):
@@ -190,7 +190,7 @@ class Robots:
     @velocities.setter
     def velocities(self, new_velocities):
         assert (
-                new_velocities.shape == self._velocities.shape
+            new_velocities.shape == self._velocities.shape
         ), f"Expected shape {self._velocities.shape}, got {new_velocities.shape}"
         self._velocities = new_velocities
         for i, robot in enumerate(self._robots):

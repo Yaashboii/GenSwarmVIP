@@ -66,7 +66,10 @@ def process_video(video_path, seconds_per_frame=2, start_time=0, end_time=None):
         curr_frame += frames_to_skip
 
     video.release()
-    logger.log(f"Extracted {len(base64Frames)} frames from {start_time}s to {end_time}s", level="info")
+    logger.log(
+        f"Extracted {len(base64Frames)} frames from {start_time}s to {end_time}s",
+        level="info",
+    )
     return base64Frames
 
 
@@ -81,7 +84,7 @@ def create_video_from_frames(base64Frames, output_path, fps=30):
         print("No frames to write to video")
         return
     height, width, layers = frames[0].shape
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Specify video codec
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Specify video codec
     video_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
     for frame in frames:
         video_writer.write(frame)

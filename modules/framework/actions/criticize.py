@@ -1,8 +1,10 @@
 from modules.framework.action import ActionNode
 from modules.framework.response.code_parser import CodeParser
 from modules.llm.gpt import GPT
-from modules.prompt.run_code_prompt import (FEEDBACK_PROMPT_TEMPLATE,
-                                            CONTINUE_FEEDBACK_PROMPT_TEMPLATE)
+from modules.prompt.run_code_prompt import (
+    FEEDBACK_PROMPT_TEMPLATE,
+    CONTINUE_FEEDBACK_PROMPT_TEMPLATE,
+)
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
 from modules.prompt.task_description import TASK_DES
@@ -28,7 +30,6 @@ class Criticize(ActionNode):
                 feedback=self.feedback,
             )
         else:
-
             self.prompt = CONTINUE_FEEDBACK_PROMPT_TEMPLATE.format(
                 feedback=self.feedback,
             )

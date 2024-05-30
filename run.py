@@ -75,6 +75,5 @@ if __name__ == "__main__":
         #     "task": "The robot needs to move to the target position while maintaining a distance of at least 1 meter from other robots to avoid collisions.",
         #     "run_times": 1,
         # },
-
     ]
     asyncio.run(run_all_tasks_sequentially(task_list, args))

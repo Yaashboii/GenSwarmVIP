@@ -23,7 +23,7 @@ class RunCode(ActionNode):
         self._id = run_id
 
     async def _run_script(
-            self, working_directory, command=[], print_output=True
+        self, working_directory, command=[], print_output=True
     ) -> str:
         working_directory = str(working_directory)
         env = os.environ.copy()
@@ -67,8 +67,8 @@ class RunCode(ActionNode):
             )
 
             if (
-                    "WARNING: cannot load logging configuration file, logging is disabled\n"
-                    in stderr_chunks
+                "WARNING: cannot load logging configuration file, logging is disabled\n"
+                in stderr_chunks
             ):
                 stderr_chunks.remove(
                     "WARNING: cannot load logging configuration file, logging is disabled\n"
@@ -134,7 +134,7 @@ class RunCodeAsync(ActionNode):
             return "NONE"
         logger.log(content=f"Run code failed,result{result}", level="error")
         result_content = "\n".join(result)
-        return Bug(error_msg=result_content, error_function='')
+        return Bug(error_msg=result_content, error_function="")
 
 
 if __name__ == "__main__":

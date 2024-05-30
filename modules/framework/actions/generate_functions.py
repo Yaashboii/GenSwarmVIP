@@ -2,7 +2,13 @@ import argparse
 import time
 
 from modules.framework.action import ActionNode, ActionLinkedList
-from modules.framework.actions import DesignFunctionAsync, WriteFunctionsAsync, CodeReviewAsync, WriteRun, DebugError
+from modules.framework.actions import (
+    DesignFunctionAsync,
+    WriteFunctionsAsync,
+    CodeReviewAsync,
+    WriteRun,
+    DebugError,
+)
 from modules.framework.actions.grammar_check import GrammarCheck, GrammarCheckAsync
 from modules.framework.code.function_node import State
 from modules.framework.handler import BugLevelHandler, FeedbackHandler
@@ -13,7 +19,6 @@ from modules.utils import root_manager
 
 
 class GenerateFunctions(ActionNode):
-
     def __init__(self, next_text: str = "", node_name: str = ""):
         super().__init__(next_text, node_name)
         self._function_pool = FunctionTree()
@@ -30,12 +35,12 @@ class GenerateFunctions(ActionNode):
         grammar_check.error_handler = bug_handler
 
         # link actions
-        self._actions = ActionLinkedList('Generate Functions', design_functions)
+        self._actions = ActionLinkedList("Generate Functions", design_functions)
         self._actions.add(write_functions)
         # self._actions.add(code_review)
         self._actions.add(grammar_check)
 
-        self._write_run = ActionLinkedList('Write Run', write_run)
+        self._write_run = ActionLinkedList("Write Run", write_run)
         # self._write_run.add(code_review)
         self._write_run.add(grammar_check)
 
@@ -50,12 +55,14 @@ class GenerateFunctions(ActionNode):
         while not finish:
             time.sleep(1)
             await self._actions.run_internal_actions()
-            finish = all(node.state == State.CHECKED for node in self._function_pool.nodes)
+            finish = all(
+                node.state == State.CHECKED for node in self._function_pool.nodes
+            )
         await self._write_run.run_internal_actions()
         logger.log("All functions are generated", "warning")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import asyncio
 
     function_generator = GenerateFunctions("analyze constraints")
@@ -66,7 +73,10 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        "--print_to_terminal", type=bool, default=False, help="Whether to print the prompt and response to the terminal"
+        "--print_to_terminal",
+        type=bool,
+        default=False,
+        help="Whether to print the prompt and response to the terminal",
     )
     root_manager.update_root(path)
     args = parser.parse_args()

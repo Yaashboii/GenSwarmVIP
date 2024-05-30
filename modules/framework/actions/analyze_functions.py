@@ -36,7 +36,7 @@ class AnalyzeFunctions(ActionNode):
         return response
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import asyncio
 
     function_analyser = AnalyzeFunctions("analyze constraints")
