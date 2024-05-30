@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, ANY, MagicMock, call
-from modules.framework.code.function_node import FunctionNode
+from modules.framework.code.function_node import FunctionNode, State
 from modules.framework.code.function_tree import FunctionTree
 from modules.file import logger, File
 
@@ -195,11 +195,11 @@ class TestFunctionTree(unittest.TestCase):
         function_node4 = FunctionNode("function4", "description4")
         function_node5 = FunctionNode("function5", "description5")
 
-        function_node1.state = FunctionNode.State.NOT_STARTED
-        function_node2.state = FunctionNode.State.WRITTEN
-        function_node3.state = FunctionNode.State.WRITTEN
-        function_node4.state = FunctionNode.State.DESIGNED
-        function_node5.state = FunctionNode.State.REVIEWED
+        function_node1.state = State.NOT_STARTED
+        function_node2.state = State.WRITTEN
+        function_node3.state = State.WRITTEN
+        function_node4.state = State.DESIGNED
+        function_node5.state = State.REVIEWED
 
         function_node1.add_callee(function_node2)
         function_node1.add_callee(function_node3)
@@ -215,16 +215,16 @@ class TestFunctionTree(unittest.TestCase):
         self.function_tree.update()
 
         min_layer_index_written = self.function_tree.get_min_layer_index_by_state(
-            FunctionNode.State.WRITTEN
+            State.WRITTEN
         )
         min_layer_index_designed = self.function_tree.get_min_layer_index_by_state(
-            FunctionNode.State.DESIGNED
+            State.DESIGNED
         )
         min_layer_index_not_started = self.function_tree.get_min_layer_index_by_state(
-            FunctionNode.State.NOT_STARTED
+            State.NOT_STARTED
         )
         min_layer_index_reviewed = self.function_tree.get_min_layer_index_by_state(
-            FunctionNode.State.REVIEWED
+            State.REVIEWED
         )
         min_layer_index_nonexistent = self.function_tree.get_min_layer_index_by_state(5)
 
@@ -234,12 +234,12 @@ class TestFunctionTree(unittest.TestCase):
         self.assertEqual(min_layer_index_reviewed, 3)
         self.assertEqual(min_layer_index_nonexistent, -1)
 
-        function_node2.state = FunctionNode.State.DESIGNED
-        function_node3.state = FunctionNode.State.DESIGNED
+        function_node2.state = State.DESIGNED
+        function_node3.state = State.DESIGNED
         self.function_tree.update()
 
         min_layer_index_written_after_state_change = (
-            self.function_tree.get_min_layer_index_by_state(FunctionNode.State.WRITTEN)
+            self.function_tree.get_min_layer_index_by_state(State.WRITTEN)
         )
         self.assertEqual(min_layer_index_written_after_state_change, -1)
 
