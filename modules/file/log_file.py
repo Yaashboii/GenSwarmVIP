@@ -18,7 +18,7 @@ class _Logger:
     def is_file_exists(self):
         return self._file is not None
 
-    def log(self, content: str, level: str = "info"):
+    def log(self, content: str, level: str = "info", print_to_terminal: bool = True):
         """
         Formats a message based on the provided style and logs the content.
 
@@ -52,8 +52,8 @@ class _Logger:
             "info": self._logger.info,
             "debug": self._logger.debug,
         }.get(level, self._logger.info)
-
-        log_action(content)
+        if print_to_terminal:
+            log_action(content)
         if not self._file:
             from modules.file.file import File
 

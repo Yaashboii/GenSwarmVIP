@@ -3,6 +3,8 @@ import os
 
 from modules.framework.actions import *
 from modules.framework.action import *
+from modules.framework.actions.generate_functions import GenerateFunctions
+from modules.framework.actions.video_criticize import VideoCriticize
 from modules.framework.handler import *
 from modules.framework.actions.action_on_layer import ActionOnLayer
 
@@ -47,43 +49,44 @@ class Workflow:
         # initialize actions
         analyze_constraints = AnalyzeConstraints("constraint pool")
         analyze_functions = AnalyzeFunctions("function pool")
-
-        design_functions = DesignFunction("function definition")
-        write_functions = WriteFunction("function.py")
-        grammar_check = GrammarCheck("Grammar Check")
+        generate_functions = GenerateFunctions("function")
+        write_functions = WriteFunctionsAsync("function.py")
         write_run = WriteRun("code")
         code_review = CodeReview("reviewed code")
 
         run_code = RunCodeAsync("pass")
         debug_code = DebugError("fixed code")
-        human_feedback = HumanCritic("feedback")
-
+        human_feedback = Criticize("feedback")
+        video_critic = VideoCriticize("")
         # initialize error handlers
         bug_handler = BugLevelHandler()
         bug_handler.next_action = debug_code
         debug_code._next = run_code
         # critic_handler = CriticLevelHandler()
-        hf_handler = HumanFeedbackHandler()
+        hf_handler = FeedbackHandler()
         hf_handler.next_action = human_feedback
         human_feedback._next = run_code
         # link error handlers
         self._chain_of_handler = bug_handler
         bug_handler.successor = hf_handler
         run_code.error_handler = self._chain_of_handler
-
+        video_critic.error_handler = self._chain_of_handler
         # link actions
         # stage 1
         analysis_stage = ActionLinkedList("Analysis", analyze_constraints)
         analysis_stage.add(analyze_functions)
         # stage 2
-        coding_stage = ActionOnLayer(name="Function generation", head=design_functions)
-        coding_stage.add(write_functions)
-        coding_stage.add(grammar_check)
-        coding_stage.add(code_review)
+        coding_stage = ActionLinkedList("Coding", generate_functions)
+        # coding_stage.add(write_functions)
+        # coding_stage.add(write_run)
         # stage 3
+        # review_stage = ActionLinkedList("Review", code_review)
+        # stage 4
         test_stage = ActionLinkedList("Testing", run_code)
+        test_stage.add(video_critic)
+
         # mermaid graph would be incomplete if final action is not linked
-        # run_code._next = ActionNode(next_text="pass", node_name="END")
+        run_code._next = ActionNode(next_text="pass", node_name="END")
 
         # combine stages
         code_llm = ActionLinkedList("Code-LLM", analysis_stage)
@@ -91,7 +94,7 @@ class Workflow:
         # code_llm.add(analysis_stage)
         code_llm.add(coding_stage)
         # code_llm.add(review_stage)
-        code_llm.add(test_stage)
+        # code_llm.add(test_stage)
         code_llm.add(ActionNode("PASS", "END"))
         self._pipeline = code_llm
         # assign error handlers to actions

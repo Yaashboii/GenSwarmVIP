@@ -1,8 +1,9 @@
 import asyncio
+import time
 
 from modules.framework.action import ActionNode
 from modules.framework.response.code_parser import SingleFunctionParser
-from modules.framework.code.function_node import FunctionNode
+from modules.framework.code.function_node import FunctionNode, State
 from modules.prompt.code_review_stage_prompt import HIGH_LEVEL_FUNCTION_REVIEW
 from modules.prompt.robot_api_prompt import ROBOT_API
 from modules.prompt.env_description_prompt import ENV_DES
@@ -36,7 +37,7 @@ class CodeReview(ActionNode):
         self._function = function
         logger.log(f"Reviewing function: {self._function._name}", "warning")
 
-    def _process_response(self, response: str) -> str:
+    async def _process_response(self, response: str) -> str:
         try:
             desired_function_name = self._function._name
             code = parse_text(text=response)
@@ -61,3 +62,32 @@ class CodeReview(ActionNode):
     async def operate_on_node(self, function_node: FunctionNode):
         self._function = function_node
         return await self.run()
+
+
+class CodeReviewAsync(ActionNode):
+    def __init__(self, next_text="", node_name=""):
+        super().__init__(next_text, node_name)
+
+    def _build_prompt(self):
+        return super()._build_prompt()
+
+    async def _run(self):
+        function_pool = FunctionTree()
+
+        async def operation(function):
+            action = CodeReview()
+            action.setup(function)
+            return await action.run()
+
+        layer_index = function_pool.get_min_layer_index_by_state(State.WRITTEN)
+        if not all(
+            function_node.state == State.WRITTEN
+            for function_node in function_pool._layers[layer_index].functions
+        ):
+            logger.log("All functions in the layer are not in WRITTEN state", "error")
+            # TODO: 解决当出现生成的函数跑到前面层的问题。跑到后面层是通过重置State来解决的，但是跑到前面层的问题还没有解决
+            time.sleep(1)
+            raise SystemExit
+        await function_pool.process_function_layer(
+            operation, operation_type=State.REVIEWED, start_layer_index=layer_index
+        )

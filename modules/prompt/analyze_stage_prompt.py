@@ -120,11 +120,12 @@ The output TEXT format is as follows:
 - Your output should strictly adhere to the specified format.
 - Perform operations such as addition, deletion, and modification based on the existing foundation.
 - Output the complete constraint information instead of just a part of it.
+- 
 """.strip()
 
 CONSTRAIN_TEMPLATE: str = """
 {
-  "reasoning": "think step by step, and analyze the constraints that need to be satisfied in the task.",
+  "reasoning": "you should think step by step, and analyze the constraints that need to be satisfied in the task.place the analysis results at here.",
   "constraints": [
     {
       "name": "Constraint name",

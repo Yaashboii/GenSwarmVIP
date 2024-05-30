@@ -29,7 +29,7 @@ class ConstraintPool:
                 f"{self._constraint_nodes.values()}",
                 level="error",
             )
-            raise SystemExit
+            raise Exception
 
     @property
     def constraint_list(self):
@@ -73,6 +73,7 @@ class ConstraintPool:
         sync_to_file()
 
     def check_constraints_satisfaction(self):
+        # TODO,添加BUG handler 来处理这个错误
         def report_error(constraint: ConstraintNode):
             raise SystemExit(
                 f"Constraint {constraint._name} has no satisfying function"

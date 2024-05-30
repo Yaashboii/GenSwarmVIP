@@ -24,12 +24,12 @@ class GPT:
 
     system_prompt = "You are a helpful assistant."
 
-    def __init__(self, model: str = "gpt-4o", memorize: bool = False) -> None:
+    def __init__(self, client: AsyncOpenAI = None, model: str = "gpt-4o", memorize: bool = False, ) -> None:
         self._model = model
         self._memorize = memorize
         self._memories = []  # Current memories
         self.key = key_manager.allocate_key()
-        self._client = AsyncOpenAI(api_key=self.key, base_url=api_base)
+        self._client = AsyncOpenAI(api_key=self.key, base_url=api_base) if client is None else client
         self._response: str
 
     def reset(self, system_prompt: str) -> None:
@@ -38,7 +38,7 @@ class GPT:
         self._memories = []
         self._memories.append({"role": "system", "content": self.system_prompt})
 
-    async def ask(self, prompt: str, temperature=0.7) -> str:
+    async def ask(self, prompt: str | list, temperature=0.7) -> str:
         """
         Asynchronously generate an answer from the GPT model based on the given prompt.
         """

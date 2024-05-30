@@ -35,6 +35,7 @@ class WorkflowContext(Context):
         self.user_command = File(name="command.md")
         self.design_result = File(name="design_result.py")
         self._parameters: File = File(name="parameters.md")
+        self.feedbacks = []
         self.run_code = File(
             name="run.py",
             message="""import sys

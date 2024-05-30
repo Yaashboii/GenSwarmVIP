@@ -34,7 +34,7 @@ import ...(if necessary)
 - You need to generate bug-free, directly invocable function code according to Google's coding standards.
 - Set default value in input parameters: Any adjustable parameters should be taken as input parameters of the function. Always set a default value for each parameter.
 - You can only complete the functions specified in Task according to the specified format; you cannot generate other Helper functions. If necessary, you can define functions within this function.
-- Consider reuse or collaboration with existing functions; this one function is just a link in the entire control system.
+- Take a holistic approach and reuse **existing functions as much as possible**; this one function is just a link in the entire control system.
 - Avoid using global variables, and avoid using the same variable name as the global variable in the function.
 - Preserve the function's docstring, with the option to modify its content.
 - If there are issues with the function definition or docstring in the task,and you need to modify them, please make sure the function name remains the same.
@@ -89,5 +89,6 @@ def run_loop():
 6. Calling time.sleep or any other method to limit frequency is not allowed, as the underlying API has determined a set frequency.
 7. Import the required modules before the function name, and do not import them in the function body.
 8. You need to ensure that the entire system can update observation data in real time and issue control speeds in real time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop .
+9. Use the existing high-level functions.
 10. Strictly follow the specified format.
 """.strip()

@@ -1,3 +1,4 @@
+import math
 import os
 import numpy as np
 import rospy
@@ -12,14 +13,16 @@ robot_info: dict = {
     "velocity": np.array([0.0, 0.0]),
 }
 timer: rospy.Timer
+init_position = None
 
 obstacles_info: list[dict] = []
 other_robots_info: list[dict] = []
-robot_id: int
+id: int
+prey_position: np.ndarray = np.array([0.0, 0.0])
 
 
 def observation_callback(msg: Observations):
-    global obstacles_info, robot_info, other_robots_info
+    global obstacles_info, robot_info, other_robots_info, init_position
     obstacles_info = []
     other_robots_info = []
     for obj in msg.observations:
@@ -28,9 +31,11 @@ def observation_callback(msg: Observations):
             robot_info["position"] = np.array(
                 [self_info.position.x, self_info.position.y]
             )
+            if not init_position:
+                init_position = robot_info["position"]
             robot_info["radius"] = self_info.radius
             robot_info["velocity"] = np.array([0.0, 0.0])
-        elif obj.type == "robot":
+        elif obj.type == "robot":  # TODO,OR leader
             other_robots_info.append(
                 {
                     "position": np.array([obj.position.x, obj.position.y]),
@@ -47,14 +52,19 @@ def observation_callback(msg: Observations):
                     "radius": obj.radius,
                 }
             )
+        elif obj.type == "leader":
+            global prey_position
+
+            prey_position = np.array([obj.position.x, obj.position.y])
 
 
 def initialize_ros_node():
-    global ros_initialized, velocity_publisher, timer, robot_id, robot_info
+    global ros_initialized, velocity_publisher, timer, id, robot_info
     # avoid multiple initialization
     if not ros_initialized:
         # init ros node
         from run import robot_id
+        id = int(robot_id)
 
         rospy.init_node(f"robot{robot_id}_control_node", anonymous=True)
         ros_initialized = True
@@ -158,3 +168,51 @@ def get_surrounding_obstacles_info():
     global obstacles_info
     initialize_ros_node()
     return obstacles_info
+
+
+def get_prey_position():
+    """
+    Get the position of the prey.
+    Returns:
+    - numpy.ndarray: The position of the prey.
+
+    """
+    initialize_ros_node()
+    global prey_position
+    return prey_position
+
+
+def get_self_id():
+    """
+    Get the id of the robot.
+    Returns:
+    - int: The id of the robot.
+    """
+    initialize_ros_node()
+    global id
+    return id
+
+
+def get_target_position():
+    """
+    Get the target_position of the robot.
+    Returns:
+    - numpy.ndarray: The target_position of the robot.
+    """
+    initialize_ros_node()
+    global init_position
+    n_robots = 6  # TODO:REWRITE
+    radius = 2.0
+    angle_increment = 2 * math.pi / n_robots
+    for i in range(n_robots):
+        angle = i * angle_increment
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
+        if np.linalg.norm(init_position - np.array([x, y])) > 3.99:
+            return np.array([x, y])
+
+
+if __name__ == '__main__':
+    id = get_self_id()
+    prey_position = get_prey_position()
+    print(f"Robot {id} is initialized successfully., prey_position: {prey_position}")

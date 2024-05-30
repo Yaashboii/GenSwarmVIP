@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from collections import deque
 
@@ -8,12 +10,12 @@ from obstacle import Entity
 
 class Robot(Entity):
     def __init__(
-        self,
-        robot_id,
-        initial_position,
-        radius=0.1,
-        max_speed=2.0,
-        communication_range=5.0,
+            self,
+            robot_id,
+            initial_position,
+            radius=0.1,
+            max_speed=2.0,
+            communication_range=30.0,
     ):
         super().__init__(robot_id, initial_position, radius=radius)
         self._velocity = np.array([0.0, 0.0], dtype=float)
@@ -107,9 +109,12 @@ class Leader(Robot):
 
 
 class Robots:
-    def __init__(self, n_robots, env_size, if_leader=False):
+    def __init__(self, n_robots, env_size, mode, if_leader=False):
         self._env_size = env_size
-        self._robots = self.create_robots(n_robots, env_size)
+        if mode == "cross":
+            self._robots = self.create_circle_robots(n_robots, 0.15)
+        else:
+            self._robots = self.create_robots(n_robots, env_size)
         if if_leader:
             self._leader = Leader(initial_position=(0, 0))
             self._robots.append(self._leader)
@@ -138,6 +143,20 @@ class Robots:
 
         return robot_list
 
+    @staticmethod
+    def create_circle_robots(n_robots, size):
+        robot_list = []
+        radius = 2.0
+        angle_increment = 2 * math.pi / n_robots
+        for i in range(n_robots):
+            angle = i * angle_increment
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+            robot = Robot(robot_id=i, initial_position=(x, y), radius=size)
+            robot_list.append(robot)
+
+        return robot_list
+
     @property
     def positions(self):
         self._positions = np.array([robot.position for robot in self._robots])
@@ -154,7 +173,7 @@ class Robots:
     @positions.setter
     def positions(self, new_positions):
         assert (
-            new_positions.shape == self._positions.shape
+                new_positions.shape == self._positions.shape
         ), f"Expected shape {self._positions.shape}, got {new_positions.shape}"
         self._positions = new_positions
         for i, robot in enumerate(self._robots):
@@ -171,7 +190,7 @@ class Robots:
     @velocities.setter
     def velocities(self, new_velocities):
         assert (
-            new_velocities.shape == self._velocities.shape
+                new_velocities.shape == self._velocities.shape
         ), f"Expected shape {self._velocities.shape}, got {new_velocities.shape}"
         self._velocities = new_velocities
         for i, robot in enumerate(self._robots):

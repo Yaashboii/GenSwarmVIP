@@ -69,9 +69,9 @@ class CriticLevelHandler(Handler):
             return self._successor.handle(request)
 
 
-class HumanFeedbackHandler(Handler):
+class FeedbackHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
-        if isinstance(request, HumanFeedback):
+        if isinstance(request, Feedback):
             self._logger.log("Handled by HumanFeedbackHandler")
             self._next_action.feedback = request.feedback
             return self._next_action
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     e1 = Bug()
     e2 = CriticNotSatisfied()
-    e3 = HumanFeedback()
+    e3 = Feedback()
 
     handle_pipeline.display()
 

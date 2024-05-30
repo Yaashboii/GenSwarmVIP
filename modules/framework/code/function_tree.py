@@ -1,5 +1,5 @@
 from modules.framework.code.function_layer import FunctionLayer
-from modules.framework.code.function_node import FunctionNode
+from modules.framework.code.function_node import FunctionNode, State
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.file.log_file import logger
 from modules.file.file import File
@@ -21,17 +21,6 @@ class FunctionTree:
         if isinstance(key, str):
             self._function_nodes[key] = value
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self._index < len(self._layers):
-            result = self._layers[self._index]
-            self._index += 1
-            return result
-        else:
-            raise StopIteration
-
     def reset(self):
         self._function_nodes: dict[str, FunctionNode] = {}
         self.import_list: set[str] = {"from apis import *"}
@@ -39,6 +28,11 @@ class FunctionTree:
         self._index = 0
         self._keys_set = set()
         self._file = File(name="functions.py")
+        # self._last_layer = FunctionLayer()
+        # self._run_loop = FunctionNode(name="run_loop",
+        #                               description="an interface function for users to call, based on existing functions written by other assistants. Users only need to call this function to complete the predetermined task.")
+        # self._last_layer.add_function(self._run_loop)
+        # self._function_nodes["run_loop"] = self._run_loop
 
     @property
     def nodes(self):
@@ -84,14 +78,39 @@ class FunctionTree:
         return result
 
     def update(self):
+        old_layers = self._layers.copy()
+
         self._reset_layers()
         layer_head = self._get_bottom_layer()
         set_visited_nodes = set()
         self._build_up(layer_head, set_visited_nodes)
+
+        # self._layers.append(self._last_layer)
+        self._update_function_to_layer()
+
+        self._clear_changed_function_states(old_layers)
         logger.log(
             f"layers: {[[f.name for f in layer] for layer in self._layers]}",
             level="warning",
         )
+
+    def _update_function_to_layer(self):
+        self._function_to_layer = {}
+        for layer_index, layer in enumerate(self._layers):
+            for function_node in layer:
+                self._function_to_layer[function_node] = layer_index
+
+    def _clear_changed_function_states(self, old_layers):
+        old_function_to_layer = {
+            function_node: layer_index
+            for layer_index, layer in enumerate(old_layers)
+            for function_node in layer
+        }
+        for function_node, new_layer in self._function_to_layer.items():
+            old_layer = old_function_to_layer.get(function_node)
+            if old_layer is not None and old_layer < new_layer:
+                function_node.reset()
+                logger.log(f"function {function_node.name} reset", level="warning")
 
     def init_functions(self, content: str):
         constraint_pool = ConstraintPool()
@@ -115,16 +134,27 @@ class FunctionTree:
             logger.log(f"Error in init_functions: {e}", level="error")
             raise Exception
 
-    # async def process_function_layer(
-    #     self,
-    #     operation,
-    #     start_layer_index=0,
-    # ):
-    #     for index, layer in enumerate(
-    #         self._layers[start_layer_index:]
-    #     ):
-    #         logger.log(f"Layer: {start_layer_index + index}", "warning")
-    #         await layer.operate_on_nodes(operation)
+    async def process_function_layer(
+        self,
+        operation,
+        operation_type: State,
+        start_layer_index=0,
+    ):
+        import asyncio
+
+        for index, layer in enumerate(
+            self._layers[start_layer_index : start_layer_index + 1]
+        ):
+            tasks = []
+            logger.log(f"Layer: {start_layer_index + index}", "warning")
+            for function_node in layer:
+                if function_node.state != operation_type:
+                    function_node.state = operation_type
+                else:
+                    continue
+                task = asyncio.create_task(operation(function_node))
+                tasks.append(task)
+            await asyncio.gather(*tasks)
 
     def _reset_layers(self):
         self._layers.clear()
@@ -166,16 +196,17 @@ class FunctionTree:
         self._update_function_dict(function_dict)
         self.update()
 
-    def get_min_layer_index_by_state(self, state: FunctionNode.State | int) -> int:
+    def get_min_layer_index_by_state(self, state: State) -> int:
         for layer_index, layer in enumerate(self._layers):
             for function_node in layer.functions:
                 if function_node.state == state:
                     return layer_index
+
         return -1
 
     def save_code(self, function_names):
         for function_name in function_names:
-            self._save_by_function(self._function_nodes[function_name])
+            self.save_by_function(self._function_nodes[function_name])
 
     def _find_all_relative_functions(self, function: FunctionNode, seen: set = None):
         if seen is None:

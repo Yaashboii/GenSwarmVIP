@@ -23,7 +23,7 @@ class RunCode(ActionNode):
         self._id = run_id
 
     async def _run_script(
-        self, working_directory, command=[], print_output=True
+            self, working_directory, command=[], print_output=True
     ) -> str:
         working_directory = str(working_directory)
         env = os.environ.copy()
@@ -67,8 +67,8 @@ class RunCode(ActionNode):
             )
 
             if (
-                "WARNING: cannot load logging configuration file, logging is disabled\n"
-                in stderr_chunks
+                    "WARNING: cannot load logging configuration file, logging is disabled\n"
+                    in stderr_chunks
             ):
                 stderr_chunks.remove(
                     "WARNING: cannot load logging configuration file, logging is disabled\n"
@@ -130,53 +130,54 @@ class RunCodeAsync(ActionNode):
 
     def _process_response(self, result: list):
         if ("NONE" in result or "Timeout" in result) and len(result) == 1:
-            if_feedback = input("If task is done? Press y/n")
-            if if_feedback == "y":
-                return "NONE"
-            else:
-                feedback = input("Please provide feedback:")
-                return Feedback(feedback)
+            logger.log(content="Run code success", level="success")
+            return "NONE"
         logger.log(content=f"Run code failed,result{result}", level="error")
         result_content = "\n".join(result)
-        return Bug(result_content)
+        return Bug(error_msg=result_content, error_function='')
 
 
 if __name__ == "__main__":
     from modules.utils import root_manager
     import asyncio
     from modules.framework.handler import BugLevelHandler
-    from modules.framework.handler import HumanFeedbackHandler
+    from modules.framework.handler import FeedbackHandler
+    from modules.framework.actions.video_criticize import VideoCriticize
+
     from modules.framework.actions import *
     import argparse
 
-    path = "../../../workspace/2024-05-07_16-34-18"
+    path = "../../../workspace/2024-05-27_07-49-01"
     root_manager.update_root(path)
     debug_code = DebugError("fixed code")
-    human_feedback = HumanCritic("feedback")
+    human_feedback = Criticize("feedback")
     run_code = RunCodeAsync("run code")
+    video_critic = VideoCriticize("")
+
     # initialize error handlers
     bug_handler = BugLevelHandler()
     bug_handler.next_action = debug_code
     debug_code._next = run_code
     # critic_handler = CriticLevelHandler()
-    hf_handler = HumanFeedbackHandler()
+    hf_handler = FeedbackHandler()
     hf_handler.next_action = human_feedback
     human_feedback._next = run_code
     # link error handlers
     chain_of_handler = bug_handler
     bug_handler.successor = hf_handler
     run_code.error_handler = chain_of_handler
+    run_code._next = video_critic
+    video_critic.error_handler = chain_of_handler
     parser = argparse.ArgumentParser(
         description="Run simulation with custom parameters."
     )
 
     parser.add_argument(
-        "--timeout", type=int, default=40, help="Total time for the simulation"
+        "--timeout", type=int, default=20, help="Total time for the simulation"
     )
 
     args = parser.parse_args()
     run_code.context.load_from_file(path + "/WriteRun.pkl")
     run_code.context.args = args
     asyncio.run(run_code.run())
-
     run_code.context.save_to_file(f"{path}/run_code.pkl")

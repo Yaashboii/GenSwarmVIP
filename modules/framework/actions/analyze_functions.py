@@ -28,9 +28,19 @@ class AnalyzeFunctions(ActionNode):
             output_template=FUNCTION_TEMPLATE,
         )
 
-    def _process_response(self, response: str) -> str:
+    async def _process_response(self, response: str) -> str:
         content = parse_text(response, "json")
         self._function_pool.init_functions(content)
         self._constraint_pool.check_constraints_satisfaction()
         logger.log(f"Analyze Functions Success", "success")
         return response
+
+
+if __name__ == '__main__':
+    import asyncio
+
+    function_analyser = AnalyzeFunctions("analyze constraints")
+    path = "../../../workspace/test"
+    function_analyser.context.load_from_file(f"{path}/constraint.pkl")
+    asyncio.run(function_analyser.run())
+    function_analyser.context.save_to_file(f"{path}/analyze_functions.pkl")
