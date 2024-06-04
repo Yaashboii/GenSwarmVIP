@@ -98,6 +98,7 @@ These are the basic descriptions of the environment.
 Your output should satisfy the following notes:
 - Constraints should not be too simple or too complex; the amount of code required to implement each constraint should be similar.
 - Constraints should be practical and achievable through writing code.
+- The constraints are targeted at individual robots themselves, not all robots as a whole. However, if each robot meets the constraints, collective behavior can be achieved.
 - Each constraint will correspond to at least one executable function, and the combination of all constraints can meet the user's needs.
 - Proper analysis of the task should guide how to design constraints, which constraints to design, to fulfill the user's task requirements.
 - You need to understand the existing APIs. The capabilities provided by these APIs have already been implemented, which means the robot can directly call these APIs without considering the underlying implementation or the constraints involved.

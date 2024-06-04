@@ -91,4 +91,5 @@ def run_loop():
 8. You need to ensure that the entire system can update observation data in real time and issue control speeds in real time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop .
 9. Use the existing high-level functions.
 10. Strictly follow the specified format.
+11. Don't use time.sleep(x).
 """.strip()
