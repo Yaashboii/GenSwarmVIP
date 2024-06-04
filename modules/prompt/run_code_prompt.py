@@ -35,11 +35,12 @@ function_name(...):
 ```
 
 ## Notes:
-1. Only allowed to modify errors, not allowed to modify function names as well as the input and output of the function.
-2. Output the complete code of the entire function, not just a part of it that's been omitted.
-3. Rewrite all functions that need modifications.
-4. Keep the original code in the function as unchanged as possible, only modifying the parts that are incorrect.
-5. The output should be in the specified format.
+- Only allowed to modify errors, not allowed to modify function names as well as the input and output of the function.
+- Output the complete code of the entire function, not just a part of it that's been omitted.
+- Rewrite all functions that need modifications.
+- Keep the original code in the function as unchanged as possible, only modifying the parts that are incorrect.
+- The provided basic Robot APIs have already been implemented. You cannot modify these functions; you can only call them.
+- The output should be in the specified format.
 """.strip()
 
 CONTINUE_DEBUG_PROMPT = """
@@ -63,11 +64,12 @@ function_name(...):
 ```
 
 ## Notes:
-1. Only allowed to modify errors, not allowed to modify function names as well as the input and output of the function.
-2. Output the complete code of the entire function, not just a part of it that's been omitted.
-3. Rewrite all functions that need modifications.
-4. Keep the original code in the function as unchanged as possible, only modifying the parts that are incorrect.
-5. The output should be in the specified format.
+- Only allowed to modify errors, not allowed to modify function names as well as the input and output of the function.
+- Output the complete code of the entire function, not just a part of it that's been omitted.
+- Rewrite all functions that need modifications.
+- Keep the original code in the function as unchanged as possible, only modifying the parts that are incorrect.
+- The provided basic Robot APIs have already been implemented. You cannot modify these functions; you can only call them.
+- The output should be in the specified format.
 """.strip()
 
 FEEDBACK_PROMPT_TEMPLATE = """
