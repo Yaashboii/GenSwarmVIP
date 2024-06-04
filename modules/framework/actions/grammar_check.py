@@ -34,7 +34,7 @@ class GrammarCheck(ActionNode):
             return self._process_response(str(errors))
 
     def _process_response(self, response: str) -> str | Bugs | Bug:
-        if response:
+        if eval(response):
             bug_list = [
                 Bug(error_msg=e["error_message"], error_function=e["function_name"])
                 for e in eval(response)
@@ -59,6 +59,7 @@ class GrammarCheckAsync(ActionNode):
 
         async def operation(function: FunctionNode):
             action = GrammarCheck()
+            action.error_handler = self.error_handler
             action.setup(function)
             return await action.run()
 
