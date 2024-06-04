@@ -31,7 +31,7 @@ class GrammarCheck(ActionNode):
         else:
             self.context._function_pool.save_by_function(function=self.function_name)
             errors = self._grammar_checker.check_code_errors(file_path=f"{root_manager.workspace_root}/functions.py")
-            return str(self._process_response(errors))
+            return self._process_response(str(errors))
 
     def _process_response(self, response: str) -> str | Bugs | Bug:
         if response:

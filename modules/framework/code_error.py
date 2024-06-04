@@ -19,6 +19,9 @@ class Bugs(CodeError):
     def __init__(self, bug_list: list[Bug]):
         super().__init__()
         self.error_list = bug_list
+        self.error_msg = ''
+        for i, bug in enumerate(bug_list):
+            self.error_msg += f"error{i}:" + "\n" + bug.error_msg + "\n"
 
 
 class CriticNotSatisfied(CodeError):
