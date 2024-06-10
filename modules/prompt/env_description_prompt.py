@@ -1,6 +1,6 @@
 ENV_DES = """
 Environment:
-    bounds:{'x_min': -5.0, 'x_max': 5.0, 'y_min': -5.0, 'y_max': 5.0}
+    bounds:{'x_min':0, 'x_max': 1000, 'y_min': 0, 'y_max': 1000}
 
 Robot:
     max_speed: 1m/s (constant)

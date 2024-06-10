@@ -22,22 +22,24 @@ prey_position: np.ndarray = np.array([0.0, 0.0])
 
 
 def observation_callback(msg: Observations):
-    global obstacles_info, robot_info, other_robots_info, init_position
+    global obstacles_info, robot_info, other_robots_info, init_position, id
     obstacles_info = []
     other_robots_info = []
     for obj in msg.observations:
-        if obj.type == "self":
-            self_info = obj
-            robot_info["position"] = np.array(
-                [self_info.position.x, self_info.position.y]
-            )
-            if not init_position:
-                init_position = robot_info["position"]
-            robot_info["radius"] = self_info.radius
-            robot_info["velocity"] = np.array([0.0, 0.0])
-        elif obj.type == "robot":  # TODO,OR leader
+        if obj.type == "Robot":  # TODO,OR leader
+            if obj.id == id:
+                self_info = obj
+                robot_info["position"] = np.array(
+                    [self_info.position.x, self_info.position.y]
+                )
+                if init_position is None:
+                    init_position = robot_info["position"]
+                robot_info["radius"] = self_info.radius
+                robot_info["velocity"] = np.array([0.0, 0.0])
+                continue
             other_robots_info.append(
                 {
+                    "id": obj.id,
                     "position": np.array([obj.position.x, obj.position.y]),
                     "velocity": np.array(
                         [obj.velocity.linear.x, obj.velocity.linear.y]
@@ -45,17 +47,19 @@ def observation_callback(msg: Observations):
                     "radius": obj.radius,
                 }
             )
-        elif obj.type == "obstacle":
+
+        elif obj.type == "Obstacle":
             obstacles_info.append(
                 {
+                    "id": obj.id,
                     "position": np.array([obj.position.x, obj.position.y]),
                     "radius": obj.radius,
                 }
             )
-        elif obj.type == "leader":
-            global prey_position
-
-            prey_position = np.array([obj.position.x, obj.position.y])
+        elif obj.type == "PushableObject":
+            pass
+        elif obj.type == "Landmark":
+            pass
 
 
 def initialize_ros_node():
@@ -69,7 +73,7 @@ def initialize_ros_node():
         rospy.init_node(f"robot{robot_id}_control_node", anonymous=True)
         ros_initialized = True
         rospy.Subscriber(
-            f"/robot_{robot_id}/observation", Observations, observation_callback
+            f"/observation", Observations, observation_callback
         )
 
         velocity_publisher = rospy.Publisher(
@@ -81,10 +85,10 @@ def initialize_ros_node():
         rospy.set_param("data_path", str(current_folder) + "/data")
 
         # make sure the position is received
-        print(f"Waiting for position message from /robot_{robot_id}/observation...")
-        msg = rospy.wait_for_message(f"/robot_{robot_id}/observation", Observations)
+        # print(f"Waiting for position message from /robot_{robot_id}/observation...")
+        msg = rospy.wait_for_message(f"/observation", Observations)
         observation_callback(msg)
-        print(f"Observations data init successfully")
+        # print(f"Observations data init successfully")
 
         # timer to publish velocity in a fixed frequency of 100Hz
         timer = rospy.Timer(rospy.Duration(0.1), publish_velocities)

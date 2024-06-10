@@ -85,4 +85,3 @@ class FunctionNode(Node):
         self.content = ""
         self._definition = ""
         self._state = State.NOT_STARTED
-        self._description = ""

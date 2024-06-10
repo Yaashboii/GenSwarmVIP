@@ -30,20 +30,13 @@ def get_radius():
     - float: The radius of the robot itself.
     '''
     
-    
-def get_target_position():
-    '''
-    Get the target_position of the robot.
-    Returns:
-    - numpy.ndarray: The target_position of the robot.
-    '''
-    
 def get_surrounding_robots_info():
     '''
     Get real-time information of the surrounding robots. The data provided by this function are all within the robot's sensory range.
-    Note: This API is provided by humans, and the perception data it offers are results within a 5m radius centered on the robot's position. There is no need to concern yourself with how it is implemented; you only need to call it.
+    Note: This API is provided by humans. There is no need to concern yourself with how it is implemented; you only need to call it.
     Returns:
     - list: A list of dictionaries, each containing the current position, velocity, and radius of a robot, reflecting real-time data.
+        - id (int): The unique ID of the robot.
         - position (numpy.ndarray): The current position of the robot.
         - velocity (numpy.ndarray): The current velocity of the robot.
         - radius (float): The radius of the robot.
@@ -52,9 +45,10 @@ def get_surrounding_robots_info():
 def get_surrounding_obstacles_info():
     '''
     Get real-time information of the surrounding obstacles. The data provided by this function are all within the robot's sensory range.
-    Note: This API is provided by humans, and the perception data it offers are results within a 5m radius centered on the robot's position. There is no need to concern yourself with how it is implemented; you only need to call it.
+    Note: This API is provided by humans. There is no need to concern yourself with how it is implemented; you only need to call it.
     Returns:
     - list: A list of dictionaries, each containing the current position and radius of an obstacle, reflecting real-time data.
+        - id (int): The unique ID of the obstacle.
         - position (numpy.ndarray): The current position of the obstacle.
         - radius (float): The radius of the obstacle.
     '''

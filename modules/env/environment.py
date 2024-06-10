@@ -21,7 +21,7 @@ class Env:
             render_interval=1,
             magnification=1.1,
             show_obs=False,
-            mode='cross',
+            mode='',
     ):
         self._initialized_graphics = False
         rospy.init_node("env_node", anonymous=True)
@@ -235,5 +235,5 @@ class Env:
 
 
 if __name__ == "__main__":
-    env = Env(if_leader=False, n_robots=6, size=(10, 10), leader_speed=-1, show_obs=True)
+    env = Env(if_leader=False, n_robots=8, size=(10, 10), leader_speed=-1, show_obs=True)
     env.run()

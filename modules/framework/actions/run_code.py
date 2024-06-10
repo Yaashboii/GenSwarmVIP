@@ -3,6 +3,8 @@ import os
 from os import listdir
 import sys
 
+import rospy
+
 from modules.framework.action import ActionNode
 from modules.utils.root import root_manager
 from modules.utils.common import get_param, call_reset_environment
@@ -23,7 +25,7 @@ class RunCode(ActionNode):
         self._id = run_id
 
     async def _run_script(
-            self, working_directory, command=[], print_output=True
+            self, working_directory, command=[], print_output=False
     ) -> str:
         working_directory = str(working_directory)
         env = os.environ.copy()
@@ -88,7 +90,7 @@ class RunCode(ActionNode):
 
     async def run(self) -> str:
         command = ["python", "run.py", str(self._id)]
-        print(f"running command: {command}")
+        # print(f"running command: {command}")
 
         result = await self._run_script(
             working_directory=root_manager.workspace_root, command=command
@@ -103,14 +105,15 @@ class RunCodeAsync(ActionNode):
     async def _run(self):
         from modules.utils.media import generate_video_from_frames
 
-        robot_num = get_param("robots_num")
+        start_idx = rospy.get_param("robot_start_index")
+        end_idx = rospy.get_param("robot_end_index")
         tasks = []
         result_list = []
         # FunctionPool().save_to_file_xx()
         try:
             logger.log(content="call reset environment: start")
-            call_reset_environment(True)
-            for robot_id in range(robot_num):
+            # call_reset_environment(False)
+            for robot_id in range(start_idx, end_idx):
                 action = RunCode()
                 action.setup(robot_id)
                 task = asyncio.create_task(action.run())
@@ -118,7 +121,7 @@ class RunCodeAsync(ActionNode):
             result_list = list(set(await asyncio.gather(*tasks)))
         finally:
             logger.log(content="call reset environment: end")
-            call_reset_environment(True)
+            # call_reset_environment(False)
             data_root = root_manager.data_root
             number = len(listdir(f"{data_root}/frames")) - 1
             generate_video_from_frames(
@@ -147,7 +150,7 @@ if __name__ == "__main__":
     from modules.framework.actions import *
     import argparse
 
-    path = "../../../workspace/2024-05-27_07-49-01"
+    path = "../../../workspace/2024-06-10_22-25-49"
     root_manager.update_root(path)
     debug_code = DebugError("fixed code")
     human_feedback = Criticize("feedback")

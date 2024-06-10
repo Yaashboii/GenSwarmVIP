@@ -48,13 +48,13 @@ if __name__ == "__main__":
         #             'Keep a distance of 0.5 meters from boundaries.',
         #     "run_times": 1
         # },
-        # {
-        #     "task": "Integrate into a flock, adhering to cohesion by staying connected, alignment by moving together, and separation by maintaining at least 0.5 meters between robots."
-        #             "Additionally, avoid collisions with obstacles and boundaries."
-        #             "Keep a distance of 0.5 meters from obstacles."
-        #             "Keep a distance of 0.5 meters from boundaries.",
-        #     "run_times": 1,
-        # },
+        {
+            "task": "Integrate into a flock, adhering to cohesion by staying connected, alignment by moving together, and separation by maintaining at least 50 meters between robots."
+                    "Additionally, avoid collisions with obstacles and boundaries."
+                    "Keep a distance of 50 meters from obstacles."
+                    "Keep a distance of 50 meters from boundaries.",
+            "run_times": 1,
+        },
         # {
         #     "task": "Coordinate with other robots within the sensing range to encircle the prey, leaving no gaps to prevent its escape."
         #             "Additionally, avoid collisions with obstacles"
@@ -72,7 +72,17 @@ if __name__ == "__main__":
         #     "run_times": 1,
         # },
         # {
-        #     "task": "The robot needs to move to the target position while maintaining a distance of at least 1 meter from other robots to avoid collisions.",
+        #     "task": "You need to form an equilateral triangle with a side length of 2 with other robots, and the robots should be evenly distributed along the triangle's outline."
+        #             'Additionally, avoid collisions with obstacles and boundaries.'
+        #             'Keep a distance of 0.5 meters from obstacles.'
+        #             'Keep a distance of 0.5 meters from boundaries.',
+        #     "run_times": 1,
+        # },
+        # {
+        #     "task": "You need to form a square with a side length of 2 with other robots, and the robots should be evenly distributed along the square's outline."
+        #             'Additionally, avoid collisions with obstacles and boundaries.'
+        #             'Keep a distance of 0.5 meters from obstacles.'
+        #             'Keep a distance of 0.5 meters from boundaries.',
         #     "run_times": 1,
         # },
 
