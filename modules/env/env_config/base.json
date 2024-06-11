@@ -1,0 +1,44 @@
+{
+    "entities": {
+        "robot": {
+            "count": 10,
+            "specified": [
+                {"position": [100, 150], "size": 5.0},
+                {"position": [200, 250], "size": 5.0}
+            ]
+        },
+        "leader": {
+            "count": 1,
+            "specified": [
+                {"position": [400, 300], "size": 20.0, "color": "blue"}
+            ]
+        },
+        "obstacle": {
+            "count": 4,
+            "specified": [
+                {"position": [112, 400], "size": 30.0, "color": "blue"},
+                {"position": [245, 700], "size": 30.0, "color": "blue"},
+                {"position": [480, 590], "size": 30.0, "color": "blue"},
+                {"position": [180, 900], "size": 30.0, "color": "blue"},
+                {"position": [280, 880], "size": 30.0, "color": "blue"},
+                {"position": [380, 760], "size": 30.0, "color": "blue"},
+                {"position": [480, 510], "size": 30.0, "color": "blue"},
+                {"position": [582, 720], "size": 30.0, "color": "blue"},
+                {"position": [620, 340], "size": 30.0, "color": "blue"},
+                {"position": [720, 490], "size": 30.0, "color": "blue"},
+                {"position": [430, 390], "size": 30.0, "color": "blue"},
+                {"position": [900, 290], "size": 30.0, "color": "blue"},
+                {"position": [10, 190], "size": 30.0, "color": "blue"},
+                {"position": [200, 100], "size": 30.0, "color": "blue"}
+            ]
+        },
+        "landmark": {
+            "count": 0,
+            "specified": []
+        },
+        "pushable_object": {
+            "count": 0,
+            "specified": []
+        }
+    }
+}

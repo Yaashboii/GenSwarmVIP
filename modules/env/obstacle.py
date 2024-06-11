@@ -499,21 +499,27 @@ class Manager:
         self._pub_list = []
         self._robots = env.get_entities_by_type(Robot)
         robot_start_index = self._robots[0].id
-        robot_end_index = self._robots[-1].id + 1
+        robot_end_index = self._robots[-1].id
         rospy.set_param("robot_start_index", robot_start_index)
         rospy.set_param("robot_end_index", robot_end_index)
-        for i in range(robot_start_index, robot_end_index):
+        for i in range(robot_start_index, robot_end_index + 1):
             rospy.Subscriber(
                 f"/robot_{i}/velocity", Twist, self.velocity_callback, callback_args=i
             )
         # self._timer = rospy.Timer(rospy.Duration(0.01), self.publish_observations)
+        self.received_velocity = {robot.id: False for robot in self._robots}  # 初始化接收状态字典
 
     def velocity_callback(self, data: geometry_msgs.msg.Twist, i):
         """
         velocity_callback is a callback function for the velocity topic.
         """
         self.env.set_entity_velocity(entity_id=i, new_velocity=[data.linear.x * 100, data.linear.y * 100])
-        print(f"Robot {i} velocity: {data.linear.x}, {data.linear.y}")
+        # print(f"Robot {i} velocity: {data.linear.x}, {data.linear.y}")
+        self.received_velocity[i] = True  # 更新机器人接收状态
+
+        # 检查所有机器人是否都已接收到速度信息
+        if all(self.received_velocity.values()):
+            print("All robots have received initial velocity. Initialization successful.")
 
     def leader_velocity_callback(self, data: Twist):
         leader = self.env.get_entities_by_type(Leader)[0]
@@ -599,15 +605,15 @@ def main(config_file=None):
     manager.publish_observations()
 
     running = True
-    rate = rospy.Rate(100)
+    rate = rospy.Rate(10)
     env.save_entities_to_file()
     draw_counter = 0
-    draw_frequency = 5  # 每5帧绘图一次
+    draw_frequency = 1  # 每5帧绘图一次
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        dt = clock.tick(100) / 1000
+        dt = clock.tick(50) / 1000
         env.update(dt)
         if draw_counter % draw_frequency == 0:
             env.draw(screen)

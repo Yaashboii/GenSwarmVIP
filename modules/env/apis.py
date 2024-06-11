@@ -2,221 +2,164 @@ import math
 import os
 import numpy as np
 import rospy
+import threading
 from geometry_msgs.msg import Twist
 from code_llm.msg import Observations
 
-ros_initialized = False
-velocity_publisher: rospy.Publisher
-robot_info: dict = {
-    "position": np.array([0.0, 0.0]),
-    "radius": 0.0,
-    "velocity": np.array([0.0, 0.0]),
-}
-timer: rospy.Timer
-init_position = None
-
-obstacles_info: list[dict] = []
-other_robots_info: list[dict] = []
-id: int
-prey_position: np.ndarray = np.array([0.0, 0.0])
+robot_nodes = {}
+thread_local = threading.local()
 
 
-def observation_callback(msg: Observations):
-    global obstacles_info, robot_info, other_robots_info, init_position, id
-    obstacles_info = []
-    other_robots_info = []
-    for obj in msg.observations:
-        if obj.type == "Robot":  # TODO,OR leader
-            if obj.id == id:
-                self_info = obj
-                robot_info["position"] = np.array(
-                    [self_info.position.x, self_info.position.y]
+class RobotNode:
+    def __init__(self, robot_id):
+        self.robot_id = robot_id
+        self.ros_initialized = False
+        self.velocity_publisher = None
+        self.robot_info = {
+            "position": np.array([0.0, 0.0]),
+            "radius": 0.0,
+            "velocity": np.array([0.0, 0.0]),
+        }
+        self.timer = None
+        self.init_position = None
+        self.obstacles_info = []
+        self.other_robots_info = []
+        self.prey_position = np.array([0.0, 0.0])
+
+    def observation_callback(self, msg: Observations):
+        self.obstacles_info = []
+        self.other_robots_info = []
+        for obj in msg.observations:
+            if obj.type == "Robot":
+                if obj.id == self.robot_id:
+                    self.robot_info["position"] = np.array([obj.position.x, obj.position.y])
+                    if self.init_position is None:
+                        self.init_position = self.robot_info["position"]
+                    self.robot_info["radius"] = obj.radius
+                    continue
+                self.other_robots_info.append(
+                    {
+                        "id": obj.id,
+                        "position": np.array([obj.position.x, obj.position.y]),
+                        "velocity": np.array([obj.velocity.linear.x, obj.velocity.linear.y]),
+                        "radius": obj.radius,
+                    }
                 )
-                if init_position is None:
-                    init_position = robot_info["position"]
-                robot_info["radius"] = self_info.radius
-                robot_info["velocity"] = np.array([0.0, 0.0])
-                continue
-            other_robots_info.append(
-                {
-                    "id": obj.id,
-                    "position": np.array([obj.position.x, obj.position.y]),
-                    "velocity": np.array(
-                        [obj.velocity.linear.x, obj.velocity.linear.y]
-                    ),
-                    "radius": obj.radius,
-                }
-            )
+            elif obj.type == "Obstacle":
+                self.obstacles_info.append(
+                    {
+                        "id": obj.id,
+                        "position": np.array([obj.position.x, obj.position.y]),
+                        "radius": obj.radius,
+                    }
+                )
 
-        elif obj.type == "Obstacle":
-            obstacles_info.append(
-                {
-                    "id": obj.id,
-                    "position": np.array([obj.position.x, obj.position.y]),
-                    "radius": obj.radius,
-                }
-            )
-        elif obj.type == "PushableObject":
-            pass
-        elif obj.type == "Landmark":
-            pass
+    def initialize_ros_node(self):
+        if not self.ros_initialized:
+            self.ros_initialized = True
+            rospy.Subscriber(f"/observation", Observations, self.observation_callback)
+            self.velocity_publisher = rospy.Publisher(f"/robot_{self.robot_id}/velocity", Twist, queue_size=10)
+
+            current_folder = os.path.dirname(os.path.abspath(__file__))
+            rospy.set_param("data_path", str(current_folder) + "/data")
+
+            print(f"Waiting for position message from /robot_{self.robot_id}/observation...")
+            msg = rospy.wait_for_message(f"/observation", Observations)
+            self.observation_callback(msg)
+            print(f"Observations data init successfully")
+            self.timer = rospy.Timer(rospy.Duration(0.1), self.publish_velocities)
+
+    def publish_velocities(self,event):
+        velocity_msg = Twist()
+        velocity_msg.linear.x = self.robot_info["velocity"][0]
+        velocity_msg.linear.y = self.robot_info["velocity"][1]
+        self.velocity_publisher.publish(velocity_msg)
+
+    def get_position(self):
+        return self.robot_info["position"]
+
+    def get_velocity(self):
+        return self.robot_info["velocity"]
+
+    def get_radius(self):
+        return self.robot_info["radius"]
+
+    def set_velocity(self, velocity):
+        self.robot_info["velocity"] = np.array(velocity)
+
+    def get_surrounding_robots_info(self):
+        return self.other_robots_info
+
+    def get_surrounding_obstacles_info(self):
+        return self.obstacles_info
+
+    def get_prey_position(self):
+        return self.prey_position
+
+    def get_self_id(self):
+        return self.robot_id
+
+    def get_target_position(self):
+        n_robots = 6  # TODO:REWRITE
+        radius = 2.0
+        angle_increment = 2 * math.pi / n_robots
+        for i in range(n_robots):
+            angle = i * angle_increment
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+            if np.linalg.norm(self.init_position - np.array([x, y])) > 3.99:
+                return np.array([x, y])
 
 
-def initialize_ros_node():
-    global ros_initialized, velocity_publisher, timer, id, robot_info
-    # avoid multiple initialization
-    if not ros_initialized:
-        # init ros node
-        from run import robot_id
-        id = int(robot_id)
-
-        rospy.init_node(f"robot{robot_id}_control_node", anonymous=True)
-        ros_initialized = True
-        rospy.Subscriber(
-            f"/observation", Observations, observation_callback
-        )
-
-        velocity_publisher = rospy.Publisher(
-            f"/robot_{robot_id}/velocity", Twist, queue_size=1
-        )
-
-        # TODO: 每个节点都会set一遍，但是这个路径现在是一样的，可以优化。如果后续考虑每个机器人的数据单独保存，这一段代码可以保留
-        current_folder = os.path.dirname(os.path.abspath(__file__))
-        rospy.set_param("data_path", str(current_folder) + "/data")
-
-        # make sure the position is received
-        # print(f"Waiting for position message from /robot_{robot_id}/observation...")
-        msg = rospy.wait_for_message(f"/observation", Observations)
-        observation_callback(msg)
-        # print(f"Observations data init successfully")
-
-        # timer to publish velocity in a fixed frequency of 100Hz
-        timer = rospy.Timer(rospy.Duration(0.1), publish_velocities)
+def set_current_robot_id(robot_id):
+    thread_local.robot_id = robot_id
+    if robot_id not in robot_nodes:
+        robot_nodes[robot_id] = RobotNode(robot_id)
+    robot_nodes[robot_id].initialize_ros_node()
 
 
-def publish_velocities(event):
-    global robot_info, velocity_publisher
-    velocity_msg = Twist()
-    velocity_msg.linear.x = robot_info["velocity"][0]
-    velocity_msg.linear.y = robot_info["velocity"][1]
-    velocity_publisher.publish(velocity_msg)
+def get_current_robot_node():
+    robot_id = getattr(thread_local, 'robot_id', None)
+    if robot_id is None:
+        raise ValueError("No robot_id is set for the current thread")
+    return robot_nodes[robot_id]
+
+
+def initialize_ros_node(robot_id):
+    set_current_robot_id(robot_id)
 
 
 def get_position():
-    """
-    Get the position of the robot.
-    Returns:
-    - numpy.ndarray: The position of the robot.
-
-    """
-    initialize_ros_node()
-    global robot_info
-    return robot_info["position"]
+    return get_current_robot_node().get_position()
 
 
 def get_velocity():
-    """
-    Get the velocity of the robot.
-    Returns:
-    - numpy.ndarray: The velocity of the robot.
-    """
-    initialize_ros_node()
-    global robot_info
-    return robot_info["velocity"]
+    return get_current_robot_node().get_velocity()
 
 
 def get_radius():
-    """
-    Description: Get the radius of the robot itself.
-    Returns:
-    - float: The radius of the robot itself.
-    """
-    initialize_ros_node()
-    return robot_info["radius"]
+    return get_current_robot_node().get_radius()
 
 
 def set_velocity(velocity):
-    """
-    Set the velocity of the robot.
-
-    Parameters:
-    - velocity (numpy.ndarray): The new velocity to set.
-    """
-    global robot_info
-    initialize_ros_node()
-    robot_info["velocity"] = np.array(velocity)
+    get_current_robot_node().set_velocity(velocity)
 
 
 def get_surrounding_robots_info():
-    """
-    Get the information of the surrounding robots.
-    Returns:
-    - list: A list of dictionaries, each containing the position, velocity, and radius of a robot.
-        - position (numpy.ndarray): The position of the robot.
-        - velocity (numpy.ndarray): The velocity of the robot.
-        - radius (float): The radius of the robot.
-    """
-    global other_robots_info
-    initialize_ros_node()
-    return other_robots_info
+    return get_current_robot_node().get_surrounding_robots_info()
 
 
 def get_surrounding_obstacles_info():
-    """
-    Get the information of the surrounding obstacles.
-    Returns:
-    - list: A list of dictionaries, each containing the position and radius of an obstacle.
-        - position (numpy.ndarray): The position of the obstacle.
-        - radius (float): The radius of the obstacle.
-    """
-    global obstacles_info
-    initialize_ros_node()
-    return obstacles_info
+    return get_current_robot_node().get_surrounding_obstacles_info()
 
 
 def get_prey_position():
-    """
-    Get the position of the prey.
-    Returns:
-    - numpy.ndarray: The position of the prey.
-
-    """
-    initialize_ros_node()
-    global prey_position
-    return prey_position
+    return get_current_robot_node().get_prey_position()
 
 
 def get_self_id():
-    """
-    Get the id of the robot.
-    Returns:
-    - int: The id of the robot.
-    """
-    initialize_ros_node()
-    global id
-    return id
+    return get_current_robot_node().get_self_id()
 
 
 def get_target_position():
-    """
-    Get the target_position of the robot.
-    Returns:
-    - numpy.ndarray: The target_position of the robot.
-    """
-    initialize_ros_node()
-    global init_position
-    n_robots = 6  # TODO:REWRITE
-    radius = 2.0
-    angle_increment = 2 * math.pi / n_robots
-    for i in range(n_robots):
-        angle = i * angle_increment
-        x = radius * math.cos(angle)
-        y = radius * math.sin(angle)
-        if np.linalg.norm(init_position - np.array([x, y])) > 3.99:
-            return np.array([x, y])
-
-
-if __name__ == '__main__':
-    id = get_self_id()
-    prey_position = get_prey_position()
-    print(f"Robot {id} is initialized successfully., prey_position: {prey_position}")
+    return get_current_robot_node().get_target_position()

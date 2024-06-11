@@ -16,16 +16,18 @@ from modules.framework.code.function_tree import FunctionTree
 class RunCode(ActionNode):
     def __init__(self, next_text: str = "", node_name: str = ""):
         super().__init__(next_text, node_name)
-        self._id = None
+        self.start_id = None
+        self.end_id = None
 
     def _build_prompt(self):
         pass
 
-    def setup(self, run_id: int):
-        self._id = run_id
+    def setup(self, start: int, end: int):
+        self.start_id = start
+        self.end_id = end
 
     async def _run_script(
-            self, working_directory, command=[], print_output=False
+            self, working_directory, command=[], print_output=True
     ) -> str:
         working_directory = str(working_directory)
         env = os.environ.copy()
@@ -83,13 +85,26 @@ class RunCode(ActionNode):
         except asyncio.TimeoutError:
             logger.log(content="Timeout", level="error")
             process.kill()
+            await process.wait()  # Ensure the process is terminated
             return "Timeout"
+        except asyncio.CancelledError:
+            logger.log(content="Cancelled", level="error")
+            process.kill()
+            await process.wait()  # Ensure the process is terminated
+            raise
         except Exception as e:
             logger.log(content=f"error in run code: {e}", level="error")
             process.kill()
+            await process.wait()  # Ensure the process is terminated
+            return f"error in run code: {e}"
+        finally:
+            # Ensure the process is terminated in case of any other unexpected errors
+            if process.returncode is None:  # Check if process is still running
+                process.kill()
+                await process.wait()
 
     async def run(self) -> str:
-        command = ["python", "run.py", str(self._id)]
+        command = ["python", "run.py", str(self.start_id), str(self.end_id)]
         # print(f"running command: {command}")
 
         result = await self._run_script(
@@ -107,15 +122,21 @@ class RunCodeAsync(ActionNode):
 
         start_idx = rospy.get_param("robot_start_index")
         end_idx = rospy.get_param("robot_end_index")
+        total_robots = end_idx - start_idx + 1
+
+        num_processes = 10  # Number of processes
+        robots_per_process = total_robots // num_processes
+
+        robot_ids = list(range(start_idx, end_idx + 1))
+        robot_id_chunks = [robot_ids[i:i + robots_per_process] for i in range(0, total_robots, robots_per_process)]
         tasks = []
         result_list = []
-        # FunctionPool().save_to_file_xx()
         try:
             logger.log(content="call reset environment: start")
             # call_reset_environment(False)
-            for robot_id in range(start_idx, end_idx):
+            for chunk in robot_id_chunks:
                 action = RunCode()
-                action.setup(robot_id)
+                action.setup(chunk[0], chunk[-1])
                 task = asyncio.create_task(action.run())
                 tasks.append(task)
             result_list = list(set(await asyncio.gather(*tasks)))
@@ -150,7 +171,7 @@ if __name__ == "__main__":
     from modules.framework.actions import *
     import argparse
 
-    path = "../../../workspace/2024-06-10_22-25-49"
+    path = "../../../workspace/2024-06-11_13-38-33"
     root_manager.update_root(path)
     debug_code = DebugError("fixed code")
     human_feedback = Criticize("feedback")
@@ -176,7 +197,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--timeout", type=int, default=20, help="Total time for the simulation"
+        "--timeout", type=int, default=60, help="Total time for the simulation"
     )
 
     args = parser.parse_args()
