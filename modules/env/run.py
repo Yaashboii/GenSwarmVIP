@@ -1,21 +1,18 @@
+import sys
 import threading
 import rospy
-from geometry_msgs.msg import Twist
 
 
 def run_robot(robot_id):
-    from functions import run_loop
-    robot_id = sys.argv[1]
-
+    from functions import run_loop, initialize_ros_node
+    initialize_ros_node(robot_id=robot_id)
     run_loop()
 
 
-def run_multiple_robot():
-    rospy.init_node('multi_robot_publisher_node', anonymous=True)
-    robot_start_index = rospy.get_param("robot_start_index", 0)
-    robot_end_index = rospy.get_param("robot_end_index", 10)
+def run_multiple_robot(start_idx, end_idx):
+    rospy.init_node(f'multi_robot_publisher_node{start_idx}_{end_idx}', anonymous=True)
     threads = []
-    for i in range(robot_start_index, robot_end_index):
+    for i in range(start_idx, end_idx + 1):
         thread = threading.Thread(target=run_robot, args=(i,))
         threads.append(thread)
         thread.start()
@@ -24,6 +21,8 @@ def run_multiple_robot():
         thread.join()
 
 
-
 if __name__ == "__main__":
-    run_multiple_robot()
+    a = sys.argv
+    start_id = int(sys.argv[1])
+    end_id = int(sys.argv[2])
+    run_multiple_robot(start_id, end_id)
