@@ -1,81 +1,85 @@
-import geometry_msgs.msg
+import geometry_msgs
+
 import numpy as np
+
 import rospy
-from geometry_msgs.msg import Point, Vector3, Twist
 from code_llm.msg import Observations, ObjInfo
-from robot import Robots
-from obstacle import Obstacles
+from code_llm.srv import GetTargetPositions, GetTargetPositionsResponse
+from geometry_msgs.msg import Twist, Vector3, Point
+
+from modules.env.entity import Robot, Leader
+from modules.env.env import EnvironmentBase
 
 
 class Manager:
-    def __init__(self, n_robots, n_obstacles, size, mode, if_leader=False, ):
-        self._robots = Robots(n_robots, size, mode, if_leader=if_leader)
-        self._obstacles = Obstacles(n_obstacles, size, robot_list=self._robots.robots)
-        self._agent_num = n_robots
-        self._if_leader = if_leader
+    def __init__(self, env: EnvironmentBase):
+        self.env = env
+
+        rospy.init_node('simulation_manager', anonymous=True)
+        rospy.Subscriber("/leader/velocity", Twist, self.leader_velocity_callback)
+        # self._reset_service = rospy.Service(
+        #     "/reset_environment", SetBool, self.reset_environment_callback
+        # )
+        self.observation_publisher = rospy.Publisher(f"observation", Observations, queue_size=1)
+
         self._pub_list = []
-        for i in range(self._agent_num):
-            self._pub_list.append(
-                rospy.Publisher(f"/robot_{i}/observation", Observations, queue_size=1)
-            )
+        self._robots = env.get_entities_by_type(Robot)
+        robot_start_index = self._robots[0].id
+        robot_end_index = self._robots[-1].id
+        rospy.set_param("robot_start_index", robot_start_index)
+        rospy.set_param("robot_end_index", robot_end_index)
+        for i in range(robot_start_index, robot_end_index + 1):
             rospy.Subscriber(
                 f"/robot_{i}/velocity", Twist, self.velocity_callback, callback_args=i
             )
-
-        self._timer = rospy.Timer(rospy.Duration(0.01), self.distribute)
-
-    @property
-    def robots(self) -> Robots:
-        return self._robots
-
-    @property
-    def obstacles(self) -> Obstacles:
-        return self._obstacles
+        self._target_positions_service = rospy.Service(
+            "/get_target_positions", GetTargetPositions, self.get_target_positions_callback
+        )
+        # self._timer = rospy.Timer(rospy.Duration(0.01), self.publish_observations)
+        self.received_velocity = {robot.id: False for robot in self._robots}
 
     def velocity_callback(self, data: geometry_msgs.msg.Twist, i):
         """
         velocity_callback is a callback function for the velocity topic.
         """
-        self._robots.robots[i].velocity = np.array([data.linear.x, data.linear.y])
+        self.env.set_entity_velocity(entity_id=i, new_velocity=[data.linear.x * 100, data.linear.y * 100])
+        # print(f"Robot {i} velocity: {data.linear.x}, {data.linear.y}")
+        self.received_velocity[i] = True  # 更新机器人接收状态
 
-    def distribute(self, event):
-        """
-        distribute is responsible for distributing the observations to the robots.
-        """
-        for i, robot in enumerate(self._robots.robots[0: self._agent_num]):
-            observations_msg = Observations()
-            observations_msg.observations = []
-            for j, obj_j in enumerate(self._robots.robots + self._obstacles.obstacles):
-                if j == i:
-                    obj_type = "self"
-                elif j < self._agent_num:
-                    obj_type = "robot"
-                elif j == self._agent_num:
-                    obj_type = "leader" if self._if_leader else "obstacle"
-                else:
-                    obj_type = "obstacle"
+        # 检查所有机器人是否都已接收到速度信息
+        if all(self.received_velocity.values()):
+            print("All robots have received initial velocity. Initialization successful.")
 
-                if (
-                        np.linalg.norm(robot.position - obj_j.position)
-                        <= robot.communication_range
-                ):
-                    liner_speed = (
-                        Vector3(x=obj_j.velocity[0], y=obj_j.velocity[1], z=0)
-                        if obj_type != "obstacle"
-                        else Vector3(x=0, y=0, z=0)
-                    )
-                    observations_msg.observations.append(
-                        ObjInfo(
-                            id=obj_j.id,
-                            type=obj_type,
-                            position=Point(
-                                x=obj_j.position[0], y=obj_j.position[1], z=0
-                            ),
-                            velocity=Twist(
-                                linear=liner_speed, angular=Vector3(x=0, y=0, z=0)
-                            ),
-                            radius=obj_j.radius,
-                        )
-                    )
+    def leader_velocity_callback(self, data: Twist):
+        leader = self.env.get_entities_by_type(Leader)[0]
+        leader.speed = np.array([data.linear.x, data.linear.y])
 
-            self._pub_list[i].publish(observations_msg)
+    def connect_entities(self, entity1_id, entity2_id):
+        self.env.connect_entities(entity1_id, entity2_id)
+
+    def disconnect_entities(self, entity1_id, entity2_id):
+        self.env.disconnect_entities(entity1_id, entity2_id)
+
+    def publish_observations(self):
+        observation = self.env.get_observation()
+        observations_msg = Observations()
+        observations_msg.observations = []
+        for entity_id, entity in observation.items():
+            obj_info = ObjInfo()
+            obj_info.id = entity_id
+            obj_info.position = Point(x=entity["position"][0], y=entity["position"][1], z=0)
+            obj_info.velocity = Twist(linear=Vector3(x=entity["velocity"][0], y=entity["velocity"][1], z=0),
+                                      angular=Vector3(x=0, y=0, z=0))
+            obj_info.radius = entity["size"] if isinstance(entity["size"], float) else 0.0
+            obj_info.type = entity["type"]
+            observations_msg.observations.append(obj_info)
+        self.observation_publisher.publish(observations_msg)
+
+    def get_target_positions_callback(self, request):
+        response = GetTargetPositionsResponse()
+        for robot in self._robots:
+            obj_info = ObjInfo()
+            obj_info.id = robot.id
+            obj_info.position = Point(x=robot.target_position[0], y=robot.target_position[1], z=0)
+            response.target_positions.append(obj_info)
+        return response

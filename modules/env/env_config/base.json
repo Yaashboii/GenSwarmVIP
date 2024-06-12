@@ -1,7 +1,7 @@
 {
     "entities": {
         "robot": {
-            "count": 10,
+            "count": 100,
             "specified": [
                 {"position": [100, 150], "size": 5.0},
                 {"position": [200, 250], "size": 5.0}

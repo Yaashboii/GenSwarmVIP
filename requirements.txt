@@ -13,3 +13,7 @@ pylint
 coverage
 pre-commit
 rospkg
+
+pygame~=2.5.2
+gym~=0.26.2
+yaml~=0.2.5

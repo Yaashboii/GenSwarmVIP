@@ -11,7 +11,7 @@ thread_local = threading.local()
 
 
 class RobotNode:
-    def __init__(self, robot_id):
+    def __init__(self, robot_id, target_position=None):
         self.robot_id = robot_id
         self.ros_initialized = False
         self.velocity_publisher = None
@@ -22,8 +22,10 @@ class RobotNode:
         }
         self.timer = None
         self.init_position = None
+        self.target_position = None
         self.obstacles_info = []
         self.other_robots_info = []
+        self.target_position = np.array(target_position)
         self.prey_position = np.array([0.0, 0.0])
 
     def observation_callback(self, msg: Observations):
@@ -69,7 +71,7 @@ class RobotNode:
             print(f"Observations data init successfully")
             self.timer = rospy.Timer(rospy.Duration(0.1), self.publish_velocities)
 
-    def publish_velocities(self,event):
+    def publish_velocities(self, event):
         velocity_msg = Twist()
         velocity_msg.linear.x = self.robot_info["velocity"][0]
         velocity_msg.linear.y = self.robot_info["velocity"][1]
@@ -100,21 +102,13 @@ class RobotNode:
         return self.robot_id
 
     def get_target_position(self):
-        n_robots = 6  # TODO:REWRITE
-        radius = 2.0
-        angle_increment = 2 * math.pi / n_robots
-        for i in range(n_robots):
-            angle = i * angle_increment
-            x = radius * math.cos(angle)
-            y = radius * math.sin(angle)
-            if np.linalg.norm(self.init_position - np.array([x, y])) > 3.99:
-                return np.array([x, y])
+        return self.target_position
 
 
-def set_current_robot_id(robot_id):
+def set_current_robot_id(robot_id, **kwargs):
     thread_local.robot_id = robot_id
     if robot_id not in robot_nodes:
-        robot_nodes[robot_id] = RobotNode(robot_id)
+        robot_nodes[robot_id] = RobotNode(robot_id, **kwargs)
     robot_nodes[robot_id].initialize_ros_node()
 
 
@@ -125,8 +119,8 @@ def get_current_robot_node():
     return robot_nodes[robot_id]
 
 
-def initialize_ros_node(robot_id):
-    set_current_robot_id(robot_id)
+def initialize_ros_node(robot_id, **kwargs):
+    set_current_robot_id(robot_id, **kwargs)
 
 
 def get_position():
