@@ -4,11 +4,12 @@ import numpy as np
 
 import rospy
 from code_llm.msg import Observations, ObjInfo
-from code_llm.srv import GetTargetPositions, GetTargetPositionsResponse
+from code_llm.srv import GetTargetPositions, GetTargetPositionsResponse, GetCharPointsResponse, GetCharPoints
 from geometry_msgs.msg import Twist, Vector3, Point
 
+from modules.env.char_points_generate import validate_contour_points
 from modules.env.entity import Robot, Leader
-from modules.env.env import EnvironmentBase
+from modules.env.env.env import EnvironmentBase
 
 
 class Manager:
@@ -35,6 +36,9 @@ class Manager:
         self._target_positions_service = rospy.Service(
             "/get_target_positions", GetTargetPositions, self.get_target_positions_callback
         )
+        self._char_points_service = rospy.Service(
+            "/get_char_points", GetCharPoints, self.get_char_points_callback
+        )
         # self._timer = rospy.Timer(rospy.Duration(0.01), self.publish_observations)
         self.received_velocity = {robot.id: False for robot in self._robots}
 
@@ -42,7 +46,7 @@ class Manager:
         """
         velocity_callback is a callback function for the velocity topic.
         """
-        self.env.set_entity_velocity(entity_id=i, new_velocity=[data.linear.x * 100, data.linear.y * 100])
+        self.env.set_entity_velocity(entity_id=i, new_velocity=np.array([data.linear.x, data.linear.y]) * 100)
         # print(f"Robot {i} velocity: {data.linear.x}, {data.linear.y}")
         self.received_velocity[i] = True  # 更新机器人接收状态
 
@@ -80,6 +84,20 @@ class Manager:
         for robot in self._robots:
             obj_info = ObjInfo()
             obj_info.id = robot.id
+            if robot.target_position is None:
+                robot.target_position = np.array([0, 0])
             obj_info.position = Point(x=robot.target_position[0], y=robot.target_position[1], z=0)
             response.target_positions.append(obj_info)
+        return response
+
+    def get_char_points_callback(self, request):
+        char = request.character
+        sampled_points = validate_contour_points(char)
+
+        # Convert points to ROS Point message
+        response = GetCharPointsResponse()
+        for point in sampled_points:
+            pt = Point(x=int(point[0]), y=int(point[1]), z=0)
+            response.points.append(pt)
+
         return response

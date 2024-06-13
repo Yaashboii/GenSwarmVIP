@@ -11,7 +11,7 @@ thread_local = threading.local()
 
 
 class RobotNode:
-    def __init__(self, robot_id, target_position=None):
+    def __init__(self, robot_id, target_position=None, formation_points=None):
         self.robot_id = robot_id
         self.ros_initialized = False
         self.velocity_publisher = None
@@ -25,8 +25,9 @@ class RobotNode:
         self.target_position = None
         self.obstacles_info = []
         self.other_robots_info = []
+        self.formation_points = np.array(formation_points)
         self.target_position = np.array(target_position)
-        self.prey_position = np.array([0.0, 0.0])
+        self.prey_positions = []
 
     def observation_callback(self, msg: Observations):
         self.obstacles_info = []
@@ -55,6 +56,10 @@ class RobotNode:
                         "radius": obj.radius,
                     }
                 )
+            elif obj.type == "Prey":
+                self.prey_positions.append(np.array([obj.position.x, obj.position.y]))
+            elif obj.type == "Landmark":
+                self.target_position = np.array([obj.position.x, obj.position.y])
 
     def initialize_ros_node(self):
         if not self.ros_initialized:
@@ -96,13 +101,19 @@ class RobotNode:
         return self.obstacles_info
 
     def get_prey_position(self):
-        return self.prey_position
+        return self.prey_positions[0]
+
+    def get_sheep_positions(self):
+        return self.prey_positions
 
     def get_self_id(self):
         return self.robot_id
 
     def get_target_position(self):
         return self.target_position
+
+    def get_target_formation_points(self):
+        return self.formation_points
 
 
 def set_current_robot_id(robot_id, **kwargs):
@@ -147,6 +158,10 @@ def get_surrounding_obstacles_info():
     return get_current_robot_node().get_surrounding_obstacles_info()
 
 
+def get_sheep_positions():
+    return get_current_robot_node().get_sheep_positions()
+
+
 def get_prey_position():
     return get_current_robot_node().get_prey_position()
 
@@ -157,3 +172,7 @@ def get_self_id():
 
 def get_target_position():
     return get_current_robot_node().get_target_position()
+
+
+def get_target_formation_points():
+    return get_current_robot_node().get_target_formation_points()

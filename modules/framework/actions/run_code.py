@@ -171,7 +171,9 @@ if __name__ == "__main__":
     from modules.framework.actions import *
     import argparse
 
-    path = "../../../workspace/2024-06-12_14-44-42"
+    data = '2024-06-13_13-14-10'
+    path = f"../../../workspace/{data}"
+    rospy.set_param("path", data)
     root_manager.update_root(path)
     debug_code = DebugError("fixed code")
     human_feedback = Criticize("feedback")

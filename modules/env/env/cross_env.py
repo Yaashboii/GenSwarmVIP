@@ -4,7 +4,7 @@ import numpy as np
 import pygame
 
 from modules.env.entity import Leader, Obstacle, Landmark, PushableObject, Robot
-from modules.env.env import EnvironmentBase
+from modules.env.env.env import EnvironmentBase
 
 
 class CrossEnvironment(EnvironmentBase):
@@ -31,14 +31,14 @@ class CrossEnvironment(EnvironmentBase):
             robot = Robot(robot_id=entity_id,
                           initial_position=initial_position,
                           target_position=target_position,
-                          size=10.0)
+                          size=7.0)
             self.add_entity(robot)
 
         obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.obstacle_num, 50)
         for entity_id, initial_position in enumerate(obstacle_points, start=len(robot_points)):
             obstacle = Obstacle(obstacle_id=entity_id,
                                 initial_position=initial_position,
-                                size=10.0)
+                                size=20.0)
             self.add_entity(obstacle)
 
     @staticmethod

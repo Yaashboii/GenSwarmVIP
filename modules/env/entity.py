@@ -9,7 +9,7 @@ class Entity:
                  entity_id: int,
                  initial_position: Union[List[float], tuple, np.ndarray],
                  size: Union[List[float], tuple, np.ndarray, float],
-                 color: str,
+                 color: str | tuple,
                  collision: bool = False,
                  moveable: bool = False):
         """
@@ -29,12 +29,12 @@ class Entity:
         self.__size = size
         self.__mass = 1.0
         self.__connector: List[Entity] = []
-        self.__color: str = color
+        self.__color: str | tuple = color
         self.__alpha: float = 0.7
         self.__collision: bool = collision
         self.__moveable: bool = moveable
         self.__velocity = np.array([0.0, 0.0], dtype=float)
-        self.__max_speed = 2.0
+        self.__max_speed = 100
         self.__shape = 'circle' if isinstance(size, float) else 'rectangle'
 
     @property
@@ -261,8 +261,6 @@ class Robot(Entity):
     @property
     def target_position(self):
         """Get the target position of the robot."""
-        if self.__target_position is None:
-            raise ValueError("Target position not set.")
         return self.__target_position
 
     @target_position.setter
@@ -271,14 +269,105 @@ class Robot(Entity):
         self.__target_position = value
 
 
+class Prey(Entity):
+    def __init__(self, prey_id, initial_position, size):
+        super().__init__(prey_id,
+                         initial_position,
+                         size,
+                         color='blue',
+                         collision=True,
+                         moveable=True)
+        self.max_speed = 80
+        self.wall_avoidance_weight = 1.0  # Weight for wall avoidance vector
+        self.robot_avoidance_weight = 1.0  # Weight for robot avoidance vector
+        self.smooth_factor = 0.1  # Factor to smooth the velocity changes
+
+    def calculate_avoidance_vector(self, all_robots: List['Entity'], separation_distance: float = 200):
+        avoidance_vector = np.zeros(2, dtype=float)
+
+        # Avoid robots
+        for robot in all_robots:
+            if robot.id != self.id:
+                distance_vector = self.position - robot.position
+                distance = np.linalg.norm(distance_vector)
+                if distance < separation_distance:
+                    avoidance_vector += distance_vector / distance  # Normalize and add
+
+        if np.linalg.norm(avoidance_vector) > 0:
+            avoidance_vector = (avoidance_vector / np.linalg.norm(avoidance_vector))
+
+        return avoidance_vector
+
+    def calculate_wall_avoidance_vector(self):
+        wall_avoidance_vector = np.zeros(2, dtype=float)
+
+        # Define the thresholds
+        lower_threshold = 100
+        upper_threshold = 900
+        lower_bound = 0
+        upper_bound = 1000
+
+        # Check x-axis
+        if self.position[0] < lower_threshold:
+            wall_avoidance_vector[0] = (lower_threshold - self.position[0]) / lower_threshold
+        elif self.position[0] > upper_threshold:
+            wall_avoidance_vector[0] = (upper_threshold - self.position[0]) / (upper_bound - upper_threshold)
+
+        # Check y-axis
+        if self.position[1] < lower_threshold:
+            wall_avoidance_vector[1] = (lower_threshold - self.position[1]) / lower_threshold
+        elif self.position[1] > upper_threshold:
+            wall_avoidance_vector[1] = (upper_threshold - self.position[1]) / (upper_bound - upper_threshold)
+
+        if np.linalg.norm(wall_avoidance_vector) > 0:
+            wall_avoidance_vector = (wall_avoidance_vector / np.linalg.norm(
+                wall_avoidance_vector)) * self.wall_avoidance_weight  # Normalize and apply weight
+
+        return wall_avoidance_vector
+
+    def avoid_robots_and_walls(self, all_robots: List['Entity'], separation_distance: float = 100):
+        if not self.moveable:
+            return
+
+        robot_avoidance_vector = self.calculate_avoidance_vector(all_robots, separation_distance)
+        wall_avoidance_vector = self.calculate_wall_avoidance_vector()
+
+        total_avoidance_vector = robot_avoidance_vector * self.robot_avoidance_weight + wall_avoidance_vector * self.wall_avoidance_weight
+
+        # Adjust the velocity with the total avoidance vector
+        new_velocity = total_avoidance_vector
+
+        # Normalize the velocity and apply max speed
+        if np.linalg.norm(new_velocity) > 0:
+            new_velocity = (new_velocity / np.linalg.norm(new_velocity)) * self.max_speed
+
+        # Smooth the velocity change
+        self.velocity = self.velocity * (1 - self.smooth_factor) + new_velocity * self.smooth_factor
+
+        # Cap the velocity to the maximum speed
+        if np.linalg.norm(self.velocity) > self.max_speed:
+            self.velocity = (self.velocity / np.linalg.norm(self.velocity)) * self.max_speed
+
+
 class PushableObject(Entity):
-    def __init__(self, object_id, initial_position, size):
+    def __init__(self, object_id, initial_position, size, color='yellow'):
         super().__init__(object_id,
                          initial_position,
                          size,
-                         color='yellow',
+                         color=color,
                          collision=True,
                          moveable=True)
+        self.__target_position = None
+
+    @property
+    def target_position(self):
+        """Get the target position of the robot."""
+        return self.__target_position
+
+    @target_position.setter
+    def target_position(self, value):
+        """Set a new target position for the robot."""
+        self.__target_position = value
 
 
 class Leader(Entity):

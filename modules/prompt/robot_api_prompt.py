@@ -52,7 +52,12 @@ def get_surrounding_obstacles_info():
         - position (numpy.ndarray): The current position of the obstacle.
         - radius (float): The radius of the obstacle.
     '''
-    
+def get_self_id():
+    '''
+    Description: Get the unique ID of the robot itself.
+    Returns:
+    - int: The unique ID of the robot itself.
+    '''
 def get_target_position():
     '''
     Description: Get the target position for the robot to reach.
@@ -60,7 +65,48 @@ def get_target_position():
     - numpy.ndarray: The current position of the target.
     '''
 
+
 """.strip()
+
+add = """
+def get_target_position():
+    '''
+    Description: Get the target position for the robot to reach.
+    Returns:
+    - numpy.ndarray: The current position of the target.
+    '''
+
+def get_target_formation_points():
+    '''
+    Description: Get the target formation points for the robot to reach.
+    Returns:
+    - list: A list of numpy.ndarray,all of which form the target formation,each representing a target point for one robot to reach.
+        - position (numpy.ndarray): The position of the target formation point.
+    '''
+
+def get_self_id():
+    '''
+    Description: Get the unique ID of the robot itself.
+    Returns:
+    - int: The unique ID of the robot itself.
+    '''
+
+def get_prey_position():
+    '''
+    Description: Get the position of the prey.
+    Returns:
+    - numpy.ndarray: The position of the prey.
+    '''
+
+def get_sheep_positions():
+    '''
+    Description: Get the positions of all the sheep in the environment.
+    Returns:
+    - list: A list of numpy.ndarray, each representing the position of a sheep.
+        - position (numpy.ndarray): The position of a sheep.
+    '''
+
+"""
 
 
 # data_api = read_file("modules/env/", filename="data_apis.py")

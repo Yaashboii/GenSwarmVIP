@@ -4,7 +4,7 @@ import numpy as np
 import pygame
 
 from modules.env.entity import Leader, Obstacle, Landmark, PushableObject, Robot
-from modules.env.env import EnvironmentBase
+from modules.env.env.env import EnvironmentBase
 
 
 class SimulationEnvironment(EnvironmentBase):
@@ -53,7 +53,7 @@ class SimulationEnvironment(EnvironmentBase):
             size = 5.0
             shape = 'circle'
             position = generate_random_position(size, shape)
-            robot = Robot(entity_id, position, size, "green")
+            robot = Robot(entity_id, position, size, color="green")
             self.add_entity(robot)
             self.generated_entities.append(robot)
             entity_id += 1

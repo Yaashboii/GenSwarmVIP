@@ -63,6 +63,8 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   GetTargetPositions.srv
+  GetCharPoints.srv
+
 )
 ## Generate actions in the 'action' folder
 # add_action_files(

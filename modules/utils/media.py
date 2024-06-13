@@ -86,3 +86,8 @@ def create_video_from_frames(base64Frames, output_path, fps=30):
     for frame in frames:
         video_writer.write(frame)
     video_writer.release()
+
+
+if __name__ == '__main__':
+    generate_video_from_frames('/home/derrick/catkin_ws/src/code_llm/workspace/2024-06-13_13-14-10/data/frames/frame7',
+                               'output.mp4')
