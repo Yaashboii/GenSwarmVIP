@@ -89,5 +89,5 @@ def create_video_from_frames(base64Frames, output_path, fps=30):
 
 
 if __name__ == '__main__':
-    generate_video_from_frames('/home/derrick/catkin_ws/src/code_llm/workspace/2024-06-13_13-14-10/data/frames/frame7',
+    generate_video_from_frames('/home/derrick/catkin_ws/src/code_llm/workspace/2024-06-13_13-14-10/data/frames/frame146',
                                'output.mp4')

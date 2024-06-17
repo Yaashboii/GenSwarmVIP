@@ -12,15 +12,28 @@ from modules.env.entity import Robot, Leader
 from modules.env.env.env import EnvironmentBase
 
 
+class PIDController:
+    def __init__(self, kp, ki, kd):
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
+        self.previous_error = 0
+        self.integral = 0
+
+    def compute(self, setpoint, measurement, dt):
+        error = setpoint - measurement
+        self.integral += error * dt
+        derivative = (error - self.previous_error) / dt
+        self.previous_error = error
+        return self.kp * error + self.ki * self.integral + self.kd * derivative
+
+
 class Manager:
     def __init__(self, env: EnvironmentBase):
         self.env = env
 
         rospy.init_node('simulation_manager', anonymous=True)
         rospy.Subscriber("/leader/velocity", Twist, self.leader_velocity_callback)
-        # self._reset_service = rospy.Service(
-        #     "/reset_environment", SetBool, self.reset_environment_callback
-        # )
         self.observation_publisher = rospy.Publisher(f"observation", Observations, queue_size=1)
 
         self._pub_list = []
@@ -39,24 +52,35 @@ class Manager:
         self._char_points_service = rospy.Service(
             "/get_char_points", GetCharPoints, self.get_char_points_callback
         )
-        # self._timer = rospy.Timer(rospy.Duration(0.01), self.publish_observations)
         self.received_velocity = {robot.id: False for robot in self._robots}
+
+        self.pid_controllers = {robot.id: PIDController(kp=1, ki=0.1, kd=0.01) for robot in self._robots}
+        self.leader_pid_controller = PIDController(kp=1.0, ki=0, kd=0)
 
     def velocity_callback(self, data: geometry_msgs.msg.Twist, i):
         """
         velocity_callback is a callback function for the velocity topic.
         """
-        self.env.set_entity_velocity(entity_id=i, new_velocity=np.array([data.linear.x, data.linear.y]) * 100)
-        # print(f"Robot {i} velocity: {data.linear.x}, {data.linear.y}")
-        self.received_velocity[i] = True  # 更新机器人接收状态
+        robot = self.env._get_entity_by_id(i)
+        desired_velocity = np.array([data.linear.x, data.linear.y]) * 50
+        current_velocity = robot.velocity
+        dt = 0.01  # assuming a fixed timestep, can be adjusted or calculated dynamically
+        force = self.pid_controllers[i].compute(desired_velocity, current_velocity, dt)
+        robot.force = force
 
-        # 检查所有机器人是否都已接收到速度信息
-        if all(self.received_velocity.values()):
-            print("All robots have received initial velocity. Initialization successful.")
+        self.received_velocity[i] = True
+
+        # if all(self.received_velocity.values()):
+        #     print("All robots have received initial velocity. Initialization successful.")
 
     def leader_velocity_callback(self, data: Twist):
         leader = self.env.get_entities_by_type(Leader)[0]
-        leader.speed = np.array([data.linear.x, data.linear.y])
+        desired_velocity = np.array([data.linear.x, data.linear.y])
+
+        current_velocity = leader.velocity
+        dt = 0.01  # assuming a fixed timestep, can be adjusted or calculated dynamically
+        force = self.leader_pid_controller.compute(desired_velocity, current_velocity, dt)
+        leader.force = force
 
     def connect_entities(self, entity1_id, entity2_id):
         self.env.connect_entities(entity1_id, entity2_id)
@@ -94,7 +118,6 @@ class Manager:
         char = request.character
         sampled_points = validate_contour_points(char)
 
-        # Convert points to ROS Point message
         response = GetCharPointsResponse()
         for point in sampled_points:
             pt = Point(x=int(point[0]), y=int(point[1]), z=0)

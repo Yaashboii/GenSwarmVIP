@@ -33,8 +33,11 @@ class Entity:
         self.__alpha: float = 0.7
         self.__collision: bool = collision
         self.__moveable: bool = moveable
+        self.__acceleration = np.array([0.0, 0.0], dtype=float)
         self.__velocity = np.array([0.0, 0.0], dtype=float)
         self.__max_speed = 100
+        self.__restitution = 1
+        self.__force = np.array([0.0, 0.0], dtype=float)
         self.__shape = 'circle' if isinstance(size, float) else 'rectangle'
 
     @property
@@ -161,6 +164,16 @@ class Entity:
         self.__velocity = np.array(new_velocity, dtype=float)
 
     @property
+    def acceleration(self) -> np.ndarray:
+        """Get the current acceleration of the robot."""
+        return self.__acceleration
+
+    @acceleration.setter
+    def acceleration(self, new_acceleration: Union[List[float], tuple, np.ndarray]):
+        """Set a new acceleration for the robot."""
+        self.__acceleration = np.array(new_acceleration, dtype=float)
+
+    @property
     def max_speed(self) -> float:
         """Get the maximum speed of the leader."""
         return self.__max_speed
@@ -183,6 +196,21 @@ class Entity:
         else:
             raise ValueError("Mass must be a positive value.")
 
+    @property
+    def restitution(self) -> float:
+        """Get the restitution of the entity."""
+        return self.__restitution
+
+    @property
+    def force(self) -> np.ndarray:
+        """Get the force applied to the entity."""
+        return self.__force
+
+    @force.setter
+    def force(self, value: np.ndarray):
+        """Set the force applied to the entity."""
+        self.__force = value
+
     def move(self, dt):
         """Move the entity based on its velocity, ensuring no collisions."""
         if not self.moveable:
@@ -196,20 +224,6 @@ class Entity:
         new_position = self.position + self.velocity * dt
         self.position = new_position
 
-    def check_circle_rectangle_collision(self, rect, circle_position):
-        """Check if a circle and rectangle are colliding."""
-        circle_center = circle_position
-        rect_center = rect.position
-        rect_half_size = np.array(rect.size) / 2
-
-        # Find the closest point to the circle within the rectangle
-        closest_point = np.clip(circle_center, rect_center - rect_half_size, rect_center + rect_half_size)
-
-        # Calculate the distance between the circle's center and this closest point
-        distance = np.linalg.norm(circle_center - closest_point)
-
-        return distance < self.size
-
 
 class Obstacle(Entity):
     def __init__(self, obstacle_id, initial_position, size):
@@ -218,7 +232,8 @@ class Obstacle(Entity):
                          size,
                          color="gray",
                          collision=True,
-                         moveable=False)
+                         moveable=True)
+        self.mass = 100000
 
 
 class Landmark(Entity):
@@ -372,4 +387,4 @@ class PushableObject(Entity):
 
 class Leader(Entity):
     def __init__(self, leader_id, initial_position, size):
-        super().__init__(leader_id, initial_position, size, color='red')
+        super().__init__(leader_id, initial_position, size, color='red', collision=True, moveable=True)

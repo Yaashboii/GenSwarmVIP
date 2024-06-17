@@ -23,8 +23,8 @@ def main():
     pygame.init()
 
     # env = SimulationEnvironment(1000, 1000, data_file='env_config/base.json')
-    env = CrossEnvironment(1000, 1000, radius=450, robot_num=150, obstacle_num=30)
-    # env = FormationEnvironment(1000, 1000, robot_num=150)
+    # env = CrossEnvironment(1000, 1000, radius=450, robot_num=50, obstacle_num=30)
+    env = FormationEnvironment(1000, 1000, robot_num=150)
     # env = PursuitEnvironment(1000, 1000, robot_num=10, obstacle_num=10)
     # env = ExploreEnvironment(1000, 1000, robot_num=4)
     # env = SheepdogEnvironment(1000, 1000, sheep_num=30, dog_num=3)
@@ -55,7 +55,7 @@ def main():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-            dt = clock.tick(10) / 1000
+            dt = clock.tick(100) / 1000
             env.update(dt)
             if draw_counter % draw_frequency == 0:
                 env.draw(screen)

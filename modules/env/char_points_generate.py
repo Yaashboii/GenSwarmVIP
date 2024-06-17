@@ -76,7 +76,7 @@ def validate_contour_points(char, num_points=150):
 
 
 # Example usage:
-# font_path = "HanYiCuYuanJian-1.ttf"
-# character = '实'
-# num_points = 150  # Adjust the number of points as needed
-# validate_contour_points(character, num_points)
+font_path = "HanYiCuYuanJian-1.ttf"
+character = '￥'
+num_points = 150  # Adjust the number of points as needed
+validate_contour_points(character, num_points)

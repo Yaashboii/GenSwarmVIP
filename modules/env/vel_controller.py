@@ -6,7 +6,7 @@ from pynput.keyboard import Key, Listener
 
 class SpeedController:
     def __init__(
-        self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 0.5
+            self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 0.5
     ):
         self._pub = rospy.Publisher(topic_name_pub, Twist, queue_size=1)
         self._twist = Twist()
@@ -23,12 +23,12 @@ class SpeedController:
 
 class KeyboardController(SpeedController):
     def __init__(
-        self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 105
+            self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 20
     ):
         super().__init__(topic_name_pub, topic_name_sub, init_speed)
         self.listener = Listener(on_press=self.on_press)
         self.listener.start()
-        self._direction_map = {"w": (0, 1), "a": (-1, 0), "s": (0, -1), "d": (1, 0)}
+        self._direction_map = {"w": (0, -1), "a": (-1, 0), "s": (0, 1), "d": (1, 0)}
         self._direction = np.array([0, 0])
 
     def on_press(self, key):
@@ -57,7 +57,7 @@ class KeyboardController(SpeedController):
 
 class GamepadController(SpeedController):
     def __init__(
-        self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 0.5
+            self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 0.5
     ):
         super().__init__(topic_name_pub, topic_name_sub, init_speed)
 

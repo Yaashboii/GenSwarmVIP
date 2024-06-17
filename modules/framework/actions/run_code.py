@@ -171,7 +171,8 @@ if __name__ == "__main__":
     from modules.framework.actions import *
     import argparse
 
-    data = '2024-06-13_13-14-10'
+    # data = '2024-06-13_13-14-10'
+    data = '2024-06-13_08-29-04'
     path = f"../../../workspace/{data}"
     rospy.set_param("path", data)
     root_manager.update_root(path)
@@ -199,7 +200,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--timeout", type=int, default=60, help="Total time for the simulation"
+        "--timeout", type=int, default=120, help="Total time for the simulation"
     )
 
     args = parser.parse_args()

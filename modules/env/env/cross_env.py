@@ -25,8 +25,16 @@ class CrossEnvironment(EnvironmentBase):
         self.init_entities()
 
     def init_entities(self):
+
+        obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.obstacle_num, 50)
         robot_points = self.sample_points_on_circle(self.radius, self.center, self.robot_num)
         farthest_points = self.find_farthest_points(robot_points)
+        for entity_id, initial_position in enumerate(obstacle_points, start=len(robot_points)):
+            obstacle = Obstacle(obstacle_id=entity_id,
+                                initial_position=initial_position,
+                                size=20.0)
+            self.add_entity(obstacle)
+
         for entity_id, (initial_position, target_position) in enumerate(zip(robot_points, farthest_points)):
             robot = Robot(robot_id=entity_id,
                           initial_position=initial_position,
@@ -34,12 +42,8 @@ class CrossEnvironment(EnvironmentBase):
                           size=7.0)
             self.add_entity(robot)
 
-        obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.obstacle_num, 50)
-        for entity_id, initial_position in enumerate(obstacle_points, start=len(robot_points)):
-            obstacle = Obstacle(obstacle_id=entity_id,
-                                initial_position=initial_position,
-                                size=20.0)
-            self.add_entity(obstacle)
+        leader = Leader(leader_id=0, initial_position=(0, 0), size=10.0)
+        self.add_entity(leader)
 
     @staticmethod
     def find_farthest_points(points):
