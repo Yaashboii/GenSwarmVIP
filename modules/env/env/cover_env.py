@@ -25,7 +25,7 @@ class CoverEnvironment(EnvironmentBase):
             robot = Robot(robot_id=entity_id,
                           initial_position=initial_position,
                           target_position=None,
-                          size=10.0)
+                          size=5.0)
             self.add_entity(robot)
 
     @staticmethod

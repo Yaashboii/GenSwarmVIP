@@ -145,12 +145,9 @@ class Entity:
         else:
             raise ValueError("Connector not found.")
 
-    def get_connectors(self) -> List:
-        """
-        Get the list of connectors.
-
-        :return: List of connectors.
-        """
+    @property
+    def connector(self) -> List['Entity']:
+        """Get the connectors of the entity."""
         return self.__connector
 
     @property

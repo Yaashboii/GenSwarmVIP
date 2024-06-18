@@ -3,7 +3,65 @@ import time
 import numpy as np
 import pygame
 from modules.env.entity import Obstacle
-from multiprocessing import Pool
+
+
+class GroupManager:
+    def __init__(self):
+        self.connections = {}
+        self.groups = []
+
+    def update_connections(self, entities):
+        self.connections = {}
+        for entity in entities:
+            self._explore_connections(entity)
+        self.groups = self._build_groups()
+
+    def _explore_connections(self, entity):
+        if entity.id not in self.connections:
+            self.connections[entity.id] = set()
+        for connected_entity in entity.connector:
+            connected_entity_id = connected_entity.id
+            self.connections[entity.id].add(connected_entity_id)
+            if connected_entity_id not in self.connections:
+                self.connections[connected_entity_id] = set()
+            self.connections[connected_entity_id].add(entity.id)
+
+    def _build_groups(self):
+        visited = set()
+        groups = []
+
+        for entity_id in self.connections:
+            if entity_id not in visited:
+                group = self._explore_group(entity_id, visited)
+                groups.append(group)
+
+        return groups
+
+    def _explore_group(self, start_entity_id, visited):
+        to_visit = [start_entity_id]
+        group = set()
+
+        while to_visit:
+            entity_id = to_visit.pop()
+            if entity_id not in visited:
+                visited.add(entity_id)
+                group.add(entity_id)
+                to_visit.extend(self.connections[entity_id] - visited)
+
+        return group
+
+    def calculate_group_forces(self, entities):
+        self.update_connections(entities)
+
+        group_forces = []
+        for group in self.groups:
+            total_force = np.zeros(2)
+            for entity_id in group:
+                entity = next(e for e in entities if e.id == entity_id)
+                total_force += entity.force
+            group_forces.append((group, total_force))
+        return group_forces
+
 
 class EnvironmentBase:
     def __init__(self, width: int, height: int, use_quad_tree: bool = True):
@@ -11,7 +69,9 @@ class EnvironmentBase:
         self.height = height
         self.entities = []
         self.use_quad_tree = use_quad_tree  # Define the use of quad-tree for collision detection
+        self.damping = 0.1  # Define the damping factor for velocity
         self.output_file = "entities.json"  # Define the output file for saving entities
+        self.group_manager = GroupManager()  # 初始化 GroupManager
 
     def add_entity(self, entity):
         self.entities.append(entity)
@@ -56,29 +116,17 @@ class EnvironmentBase:
                 return entity
         raise ValueError(f"No entity with ID {entity_id} found.")
 
-    def connect_entities(self, entity1_id, entity2_id):
+    def connect_to(self, entity1_id, entity2_id):
         entity1 = self._get_entity_by_id(entity1_id)
         entity2 = self._get_entity_by_id(entity2_id)
         entity1.connected_to(entity2)
+        self.group_manager.update_connections(self.entities)
 
     def disconnect_entities(self, entity1_id, entity2_id):
         entity1 = self._get_entity_by_id(entity1_id)
         entity2 = self._get_entity_by_id(entity2_id)
         entity1.disconnect_from(entity2)
-
-    def add_walls(self, wall_thickness=10):
-        walls = [
-            Obstacle(obstacle_id=1, initial_position=[self.width / 2, wall_thickness / 2],
-                     size=[self.width, wall_thickness]),
-            Obstacle(obstacle_id=2, initial_position=[self.width / 2, self.height - wall_thickness / 2],
-                     size=[self.width, wall_thickness]),
-            Obstacle(obstacle_id=3, initial_position=[wall_thickness / 2, self.height / 2],
-                     size=[wall_thickness, self.height]),
-            Obstacle(obstacle_id=4, initial_position=[self.width - wall_thickness / 2, self.height / 2],
-                     size=[wall_thickness, self.height])
-        ]
-        for wall in walls:
-            self.add_entity(wall)
+        self.group_manager.update_connections(self.entities)
 
     def update(self, dt: float):
         start_time = time.time()
@@ -90,7 +138,7 @@ class EnvironmentBase:
         update_duration = end_time - start_time
         print(f"Physics update took {update_duration:.6f} seconds")
 
-    def apply_physics_and_handle_collisions(self, dt: float, friction: float = 0.01):
+    def apply_physics_and_handle_collisions(self, dt: float):
         positions = np.array([entity.position for entity in self.entities if entity.collision])
         velocities = np.array([entity.velocity for entity in self.entities if entity.collision])
         forces = np.array([entity.force for entity in self.entities if entity.collision])
@@ -98,13 +146,6 @@ class EnvironmentBase:
 
         # Calculate initial accelerations
         accelerations = forces / masses[:, np.newaxis]
-
-        # Apply friction
-        friction_forces = -friction * velocities
-        total_forces = forces + friction_forces
-
-        # Update accelerations with friction
-        accelerations = total_forces / masses[:, np.newaxis]
 
         # Predict new positions
         predicted_positions = positions + velocities * dt + 0.5 * accelerations * dt ** 2
@@ -114,14 +155,17 @@ class EnvironmentBase:
 
         # Recalculate forces based on collisions
         forces = np.array([entity.force for entity in self.entities if entity.collision])
-        total_forces = forces + friction_forces
+        self.apply_group_forces()
 
         # Recalculate accelerations with new forces
-        accelerations = total_forces / masses[:, np.newaxis]
+        accelerations = forces / masses[:, np.newaxis]
 
         # Update velocities
         velocities += accelerations * dt
-        velocities = np.clip(velocities, -50, 50)
+        velocities = np.clip(velocities, -500, 500)
+
+        # Apply damping to velocities
+        velocities *= (1 - self.damping)
 
         # Update positions with new velocities and accelerations
         positions += velocities * dt + 0.5 * accelerations * dt ** 2
@@ -140,11 +184,14 @@ class EnvironmentBase:
 
     def _handle_collisions_quad_tree(self, predicted_positions):
         quad_tree = QuadTree(0, 0, self.width, self.height)
-        for i, entity in enumerate(self.entities):
-            if entity.collision:
-                entity.predicted_position = predicted_positions[i]
-                quad_tree.insert(entity)
 
+        # Only insert entities that are movable and subject to collision
+        movable_entities = [entity for entity in self.entities if entity.collision]
+        for i, entity in enumerate(movable_entities):
+            entity.predicted_position = predicted_positions[i]
+            quad_tree.insert(entity)
+
+        # Check collisions for both movable and immovable entities
         for entity in self.entities:
             if entity.collision:
                 possible_collisions = quad_tree.retrieve(entity)
@@ -164,6 +211,13 @@ class EnvironmentBase:
                                                 entity2.predicted_position):
                             self.resolve_collision(entity1, entity2)
 
+    def apply_group_forces(self):
+        group_forces = self.group_manager.calculate_group_forces(self.entities)
+        for group, total_force in group_forces:
+            for entity_id in group:
+                entity = self._get_entity_by_id(entity_id)
+                entity.force = total_force / len(group)  # Distribute the total force evenly among the group
+
     def check_collision(self, entity1, entity2, position1, position2):
         distance = np.linalg.norm(position1 - position2)
         return distance <= (entity1.size + entity2.size)
@@ -182,27 +236,17 @@ class EnvironmentBase:
         penetration_depth = entity1.size + entity2.size - distance
 
         if penetration_depth > 0:
-            relative_velocity = entity1.velocity - entity2.velocity
-            velocity_along_normal = np.dot(relative_velocity, normal)
+            # 使用 softmax 计算穿透深度
+            k = 0.001
+            penetration = np.logaddexp(0, (penetration_depth) / k) * k
 
-            if velocity_along_normal > 0:
-                return
-
-            restitution = min(entity1.restitution, entity2.restitution)
-
-            impulse_magnitude = -(1 + restitution) * velocity_along_normal
-            impulse_magnitude /= (1 / entity1.mass + 1 / entity2.mass)
-
-            k = 10  # 碰撞刚度系数
-            penetration_force_magnitude = k * penetration_depth
-
-            impulse_magnitude = min(impulse_magnitude, penetration_force_magnitude)
-
-            impulse = impulse_magnitude * normal
-            penetration_force = penetration_force_magnitude * normal
-
-            entity1.force += (impulse + penetration_force) / entity1.mass
-            entity2.force -= (impulse + penetration_force) / entity2.mass
+            # 计算碰撞力
+            force_magnitude = k * penetration
+            force = force_magnitude * normal * 10000
+            print(f"Force: {force}，Penetration: {penetration}")
+            # 将碰撞力应用到两个实体上
+            entity1.force += force
+            entity2.force -= force
 
     def get_observation(self):
         obs = {}

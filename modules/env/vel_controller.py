@@ -23,7 +23,7 @@ class SpeedController:
 
 class KeyboardController(SpeedController):
     def __init__(
-            self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 20
+            self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 50
     ):
         super().__init__(topic_name_pub, topic_name_sub, init_speed)
         self.listener = Listener(on_press=self.on_press)

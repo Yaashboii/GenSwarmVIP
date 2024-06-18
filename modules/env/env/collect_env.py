@@ -3,7 +3,7 @@ import json
 import numpy as np
 import pygame
 
-from modules.env.entity import Robot, Prey, Obstacle, Landmark, PushableObject
+from modules.env.entity import Robot, Prey, Obstacle, Landmark, PushableObject, Leader
 # TODO:重新命名
 from modules.env.env.env import EnvironmentBase
 
@@ -58,6 +58,13 @@ class CollectEnvironment(EnvironmentBase):
                                     size=10.0,
                                     color=(255, 200, 40))
             self.add_entity(object)
+        leader = Leader(leader_id=1000, initial_position=(0, 0), size=10.0)
+        self.add_entity(leader)
+        leader.color = 'blue'
+        test_obj = PushableObject(object_id=10001, initial_position=(50, 50), size=10.0, color='black')
+        self.add_entity(test_obj)
+
+        leader.add_connector(test_obj)
 
     # def update(self, dt: float):
     #     for entity in self.entities:
