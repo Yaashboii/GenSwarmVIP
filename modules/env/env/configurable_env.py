@@ -22,7 +22,7 @@ class SimulationEnvironment(EnvironmentBase):
             while attempts < max_attempts:
                 position = np.random.uniform([entity_size, entity_size],
                                              [self.width - entity_size, self.height - entity_size])
-                if not any(self.check_collision(position, entity_size, entity_shape, other) for other in self.entities):
+                if not any(self._check_collision(position, entity_size, entity_shape, other) for other in self.entities):
                     return position
                 attempts += 1
             raise ValueError(f"Failed to generate non-colliding position after {max_attempts} attempts.")
@@ -58,9 +58,7 @@ class SimulationEnvironment(EnvironmentBase):
             self.generated_entities.append(robot)
             entity_id += 1
 
-        self.add_walls()
-
-    def check_collision(self, position, size, shape, other):
+    def _check_collision(self, position, size, shape, other):
         if shape == 'circle':
             if other.shape == 'circle':
                 return np.linalg.norm(position - other.position) < (size + other.size)

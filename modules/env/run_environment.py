@@ -22,14 +22,14 @@ from modules.utils import root_manager
 def main():
     pygame.init()
 
-    # env = SimulationEnvironment(1000, 1000, data_file='env_config/base.json')
+    env = SimulationEnvironment(1000, 1000, data_file='env_config/base.json')
     # env = CrossEnvironment(1000, 1000, radius=450, robot_num=150, obstacle_num=30)
     # env = FormationEnvironment(1000, 1000, robot_num=150)
     # env = PursuitEnvironment(1000, 1000, robot_num=10, obstacle_num=10)
     # env = ExploreEnvironment(1000, 1000, robot_num=4)
     # env = SheepdogEnvironment(1000, 1000, sheep_num=30, dog_num=3)
     # env = CoverEnvironment(1000, 1000, robot_num=200)
-    env = CollectEnvironment(1000, 1000, num_1=10, num_2=5, robot_num=3)
+    # env = CollectEnvironment(1000, 1000, num_1=10, num_2=5, robot_num=3)
     # env = MoveEnvironment(1000, 1000, robot_num=10, obstacle_num=100)
     screen = pygame.display.set_mode((env.width, env.height))
     clock = pygame.time.Clock()
