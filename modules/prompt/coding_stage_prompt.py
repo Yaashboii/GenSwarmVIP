@@ -32,11 +32,15 @@ import ...(if necessary)
 ## Notes:
 - The Robot API and existing functions can be called directly without the need imports.
 - You need to generate bug-free, directly invocable function code according to Google's coding standards.
+- In the code you generated, the use of “raise error” and "assert" is strictly prohibited. When you encounter an issue, you must resolve it within the function itself instead of raising an error or using assert.
 - Set default value in input parameters: Any adjustable parameters should be taken as input parameters of the function. Always set a default value for each parameter.
 - You can only complete the functions specified in Task according to the specified format; you cannot generate other Helper functions. If necessary, you can define functions within this function.
 - Take a holistic approach and reuse **existing functions as much as possible**; this one function is just a link in the entire control system.
 - Avoid using global variables, and avoid using the same variable name as the global variable in the function.
 - Preserve the function's docstring, with the option to modify its content.
+- Avoid using time.sleep(x) in the function body.
+- Avoid using While loop in the function body.
+- Avoid raising exceptions in the function body.
 - If there are issues with the function definition or docstring in the task,and you need to modify them, please make sure the function name remains the same.
 - Import the required modules before the function name, and do not import them in the function body.
 - If the function outputs velocity, then this velocity must be normalized.

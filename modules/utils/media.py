@@ -8,7 +8,7 @@ import numpy as np
 from modules.file.log_file import logger
 
 
-def generate_video_from_frames(frames_folder, video_path, fps=15):
+def generate_video_from_frames(frames_folder, video_path, fps=50):
     logger.log(f"Generating video from frames in {frames_folder}...")
     try:
         frame_files = sorted(
@@ -89,5 +89,6 @@ def create_video_from_frames(base64Frames, output_path, fps=30):
 
 
 if __name__ == '__main__':
-    generate_video_from_frames('/home/derrick/catkin_ws/src/code_llm/workspace/2024-06-13_13-14-10/data/frames/frame146',
-                               'output.mp4')
+    generate_video_from_frames(
+        '/home/derrick/catkin_ws/src/code_llm/workspace/2024-06-24_06-02-10_搬运/data/frames/frame15',
+        'output.mp4')

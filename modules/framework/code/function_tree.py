@@ -39,6 +39,14 @@ class FunctionTree:
         return self._function_nodes.values()
 
     @property
+    def file(self):
+        return self._file
+
+    @file.setter
+    def file(self, value):
+        self._file = value
+
+    @property
     def names(self):
         return self._function_nodes.keys()
 
@@ -233,7 +241,7 @@ class FunctionTree:
         if isinstance(function, str):
             function = self._function_nodes[function]
         relative_function = self._find_all_relative_functions(function)
-        logger.log(f"relative_ function: {relative_function}", level="warning")
+        logger.log(f"relative_function: {relative_function}", level="warning")
         self.save_functions_to_file(relative_function)
 
     def _update_imports(self, imports: set):

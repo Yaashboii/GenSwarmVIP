@@ -124,7 +124,7 @@ class RunCodeAsync(ActionNode):
         end_idx = rospy.get_param("robot_end_index")
         total_robots = end_idx - start_idx + 1
 
-        num_processes = 3  # Number of processes
+        num_processes = min(10, total_robots)  # Number of processes
         robots_per_process = total_robots // num_processes
 
         robot_ids = list(range(start_idx, end_idx + 1))
@@ -171,8 +171,9 @@ if __name__ == "__main__":
     from modules.framework.actions import *
     import argparse
 
-    data = '2024-06-13_13-14-10'
-    # data = '2024-06-13_08-29-04'
+    # data = '2024-06-19_10-50-33'
+    # data = '2024-06-21_09-55-56'
+    data = '2024-07-03_16-40-09'
     path = f"../../../workspace/{data}"
     rospy.set_param("path", data)
     root_manager.update_root(path)

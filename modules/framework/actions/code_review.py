@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from modules.framework.action import ActionNode
+from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.response.code_parser import SingleFunctionParser
 from modules.framework.code.function_node import FunctionNode, State
 from modules.prompt.code_review_stage_prompt import HIGH_LEVEL_FUNCTION_REVIEW
@@ -60,28 +60,28 @@ class CodeReview(ActionNode):
             raise Exception  # trigger retry
 
 
-class CodeReviewAsync(ActionNode):
-    def __init__(self, next_text="", node_name=""):
-        super().__init__(next_text, node_name)
+class CodeReviewAsync(AsyncNode):
+    def __init__(self, run_mode='layer', start_state=State.WRITTEN, end_state=State.REVIEWED):
+        super().__init__(run_mode, start_state, end_state)
 
     def _build_prompt(self):
-        return super()._build_prompt()
+        pass
 
-    async def _run(self):
-        function_pool = FunctionTree()
+    async def operate(self, function):
+        action = CodeReview()
+        action.setup(function)
+        return await action.run()
 
-        async def operation(function):
-            action = CodeReview()
-            action.setup(function)
-            return await action.run()
 
-        layer_index = function_pool.get_min_layer_index_by_state(State.WRITTEN)
-        if not all(function_node.state == State.WRITTEN for function_node in
-                   function_pool._layers[layer_index].functions):
-            logger.log("All functions in the layer are not in WRITTEN state", "error")
-            # TODO: 解决当出现生成的函数跑到前面层的问题。跑到后面层是通过重置State来解决的，但是跑到前面层的问题还没有解决
-            time.sleep(1)
-            raise SystemExit
-        await function_pool.process_function_layer(operation,
-                                                   operation_type=State.REVIEWED,
-                                                   start_layer_index=layer_index)
+if __name__ == '__main__':
+    import asyncio
+    from modules.framework.context.workflow_context import WorkflowContext
+    import argparse
+
+    context = WorkflowContext()
+    path = "../../../workspace/test"
+
+    code_reviewer = CodeReviewAsync('sequential')
+    code_reviewer.context.load_from_file(f"{path}/designed_function.pkl")
+    asyncio.run(code_reviewer.run())
+    context.save_to_file("../../../workspace/test/reviewed_function.pkl")

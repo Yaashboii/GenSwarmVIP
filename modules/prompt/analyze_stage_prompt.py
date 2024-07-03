@@ -107,7 +107,6 @@ Your output should satisfy the following notes:
 - These constraints should be significant and mutually independent.
 - If the user's instruction involves specific numerical values, you should retain these values in the description of the constraints.
 - The output should strictly adhere to the specified format.
-
 """.strip()
 
 CONTINUE_ANALYZE_CONSTRAINT_PROMPT_TEMPLATE: str = """
@@ -126,7 +125,7 @@ The output TEXT format is as follows:
 
 CONSTRAIN_TEMPLATE: str = """
 {
-  "reasoning": "you should think step by step, and analyze the constraints that need to be satisfied in the task.place the analysis results at here.",
+  "reasoning": '''you should think step by step, and analyze the constraints that need to be satisfied in the task.place the analysis results at here.''',
   "constraints": [
     {
       "name": "Constraint name",
@@ -149,7 +148,7 @@ MODIFY_CONSTRAIN_TEMPLATE: str = """
 
 FUNCTION_TEMPLATE: str = """
 {
-  "reasoning": "think step by step, and analyze the functions that need to be implemented in the task."
+  "reasoning": '''think step by step, and analyze the functions that need to be implemented in the task.''',
   "functions": [
     {
       "name": "Function name",

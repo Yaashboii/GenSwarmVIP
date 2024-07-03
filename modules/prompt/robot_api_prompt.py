@@ -7,7 +7,22 @@ def get_position():
     Returns:
     - numpy.ndarray: The current, real-time position of the robot.
     '''
-
+def get_self_id():
+    '''
+    Description: Get the unique ID of the robot itself.
+    Returns:
+    - int: The unique ID of the robot itself.
+    '''
+def get_all_robots_info():
+    '''
+    Get real-time information of all the robots id information in the environment.
+    Returns:
+    - dict: 
+        - self_id (int): The unique ID of the robot itself.
+        - start_id (int): The unique ID of the first robot in the environment.
+        - end_id (int): The unique ID of the last robot in the environment.
+        - robots_num (int): The number of robots in the environment.
+    '''
 def set_velocity(velocity):
     '''
     Description: Set the velocity of the robot itself in real-time.
@@ -32,7 +47,7 @@ def get_radius():
     
 def get_surrounding_robots_info():
     '''
-    Get real-time information of the surrounding robots. The data provided by this function are all within the robot's sensory range.
+    Get real-time information of the surrounding robots.
     Note: This API is provided by humans. There is no need to concern yourself with how it is implemented; you only need to call it.
     Returns:
     - list: A list of dictionaries, each containing the current position, velocity, and radius of a robot, reflecting real-time data.
@@ -41,7 +56,6 @@ def get_surrounding_robots_info():
         - velocity (numpy.ndarray): The current velocity of the robot.
         - radius (float): The radius of the robot.
     '''
-
 def get_surrounding_obstacles_info():
     '''
     Get real-time information of the surrounding obstacles. The data provided by this function are all within the robot's sensory range.
@@ -52,19 +66,6 @@ def get_surrounding_obstacles_info():
         - position (numpy.ndarray): The current position of the obstacle.
         - radius (float): The radius of the obstacle.
     '''
-def get_self_id():
-    '''
-    Description: Get the unique ID of the robot itself.
-    Returns:
-    - int: The unique ID of the robot itself.
-    '''
-def get_target_position():
-    '''
-    Description: Get the target position for the robot to reach.
-    Returns:
-    - numpy.ndarray: The current position of the target.
-    '''
-
 
 """.strip()
 
@@ -76,6 +77,7 @@ def get_target_position():
     - numpy.ndarray: The current position of the target.
     '''
 
+
 def get_target_formation_points():
     '''
     Description: Get the target formation points for the robot to reach.
@@ -84,12 +86,14 @@ def get_target_formation_points():
         - position (numpy.ndarray): The position of the target formation point.
     '''
 
+
 def get_self_id():
     '''
     Description: Get the unique ID of the robot itself.
     Returns:
     - int: The unique ID of the robot itself.
     '''
+
 
 def get_prey_position():
     '''
@@ -98,6 +102,7 @@ def get_prey_position():
     - numpy.ndarray: The position of the prey.
     '''
 
+
 def get_sheep_positions():
     '''
     Description: Get the positions of all the sheep in the environment.
@@ -105,6 +110,85 @@ def get_sheep_positions():
     - list: A list of numpy.ndarray, each representing the position of a sheep.
         - position (numpy.ndarray): The position of a sheep.
     '''
+
+
+def pick_up_object(object_id):
+    '''
+    Description: Pick up an object with the specified ID.
+    Input:
+    - object_id (int): The ID of the object to pick up.
+    Returns:
+    - bool: True if the object is successfully picked up, False means the object is too far away to be picked up.
+    '''
+
+
+def put_down_object(object_id):
+    '''
+    Description: Put down an object with the specified ID.
+    Input:
+    - object_id (int): The ID of the object to put down.
+    Returns:
+    - bool: True if the object is successfully put down, False means the object is not picked up.
+    '''
+
+
+def get_object_to_transport_info():
+    '''
+    Description: Get real-time information of the object that the robot needs to transport.
+    Note: This API is provided by humans. There is no need to concern yourself with how it is implemented; you only need to call it.
+    Returns:
+    -list: A list of dictionaries, each containing the current position and radius of the object that the robot is transporting, reflecting real-time data.
+        - id (int): The unique ID of the object.
+        - position (numpy.ndarray): The current position of the object.
+        - radius (float): The radius of the object.
+        - target_position (numpy.ndarray): The target position of the object.
+    '''
+
+
+def get_object_to_transport_info():
+    '''
+    Description: Get real-time information of the object that the robot needs to transport.
+    Note: This API is provided by humans. There is no need to concern yourself with how it is implemented; you only need to call it.
+    Returns:
+    -list: A list of dictionaries, each containing the current position and radius of the object that the robot is transporting, reflecting real-time data.
+        - id (int): The unique ID of the object.
+        - position (numpy.ndarray): The current position of the object.
+        - radius (float): The radius of the object.
+        - target_position (numpy.ndarray): The target position of the object.
+        - color (str): The color of the object,different colors represent different categories of objects.
+    '''
+
+
+def connect_to_another_robot(target_id):
+    '''
+    Description: Connect to another robot with the specified ID.
+    Input:
+    - target_id (int): The ID of the robot to connect to.
+    Returns:
+    - bool: True if the connection is successful, False means the connection is not possible.
+    '''
+def get_surrounding_obstacles_info():
+    '''
+    Get real-time information of the surrounding obstacles. The data provided by this function are all within the robot's sensory range.
+    Note: This API is provided by humans. There is no need to concern yourself with how it is implemented; you only need to call it.
+    Returns:
+    - list: A list of dictionaries, each containing the current position and radius of an obstacle, reflecting real-time data.
+        - id (int): The unique ID of the obstacle.
+        - position (numpy.ndarray): The current position of the obstacle.
+        - radius (float): The radius of the obstacle.
+    '''
+
+def get_all_robots_info():
+    '''
+    Get real-time information of all the robots id information in the environment.
+    Returns:
+    - dict: 
+        - self_id (int): The unique ID of the robot itself.
+        - start_id (int): The unique ID of the first robot in the environment.
+        - end_id (int): The unique ID of the last robot in the environment.
+        - robots_num (int): The number of robots in the environment.
+    '''
+
 
 """
 

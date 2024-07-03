@@ -1,4 +1,5 @@
 import os
+import shutil
 from enum import Enum
 
 from modules.file.base_file import BaseFile
@@ -32,6 +33,18 @@ class File(BaseFile):
         return self._message
 
     @property
+    def root(self):
+        return self._root
+
+    @root.setter
+    def root(self, root):
+        if self.root is not None and os.path.exists(os.path.join(self.root, self.name)):
+            src = os.path.join(self.root, self.name)
+            dst = os.path.join(root, self.name)
+            shutil.copy(src, dst)
+        self._root = root
+
+    @property
     def name(self):
         return self._name
 
@@ -59,6 +72,7 @@ class File(BaseFile):
             logger.set_file(File("log.md"))
         if not os.path.exists(self._root):
             os.makedirs(self._root)
+
         try:
             with open(self.file_path, mode) as file:
                 file.write(content)

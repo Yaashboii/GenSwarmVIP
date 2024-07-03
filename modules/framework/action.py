@@ -1,8 +1,11 @@
+import asyncio
 import traceback
 from abc import ABC, abstractmethod
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
+from modules.framework.code.function_tree import FunctionTree
+from modules.framework.context.contraint_info import ConstraintPool
 from modules.utils import setup_logger, LoggerLevel, root_manager
 from modules.llm.gpt import GPT
 from modules.framework.code_error import CodeError
@@ -107,6 +110,63 @@ class ActionNode(BaseNode):
 
     async def _process_response(self, content: str) -> str:
         return content
+
+
+class AsyncNode(ActionNode):
+    def __init__(self, run_mode='layer', start_state=None, end_state=None):
+        super().__init__('')
+        self._run_mode = run_mode
+        self._start_state = start_state
+        self._end_state = end_state
+        self.function_pool = FunctionTree()
+        self.constraint_pool = ConstraintPool()
+
+    def _build_prompt(self):
+        pass
+
+    async def operate(self, function):
+        raise NotImplementedError("Subclasses should implement this method")
+
+    async def _run(self):
+        if self._run_mode == "layer":
+            await self._run_layer_mode()
+        elif self._run_mode == "sequential":
+            await self._run_sequential_mode()
+            for function in self.function_pool.nodes:
+                function.state = self._end_state
+        elif self._run_mode == "parallel":
+            await self._run_parallel_mode()
+            for function in self.function_pool.nodes:
+                function.state = self._end_state
+        else:
+            logger.log("Unknown generate_mode", "error")
+            raise SystemExit
+
+    async def _run_layer_mode(self):
+        layer_index = self.function_pool.get_min_layer_index_by_state(self._start_state)
+        if layer_index == -1:
+            logger.log("No functions in NOT_STARTED state", "error")
+            raise SystemExit
+
+        if not all(function_node.state == self._start_state for function_node in
+                   self.function_pool._layers[layer_index].functions):
+            logger.log("All functions in the layer are not in NOT_STARTED state", "error")
+            raise SystemExit
+
+        await self.function_pool.process_function_layer(self.operate, self._end_state, layer_index)
+
+    async def _run_sequential_mode(self):
+        for function in self.function_pool.nodes:
+            if function.state == self._start_state:
+                await self.operate(function)
+
+    async def _run_parallel_mode(self):
+        tasks = []
+        for function in self.function_pool.nodes:
+            if function.state == self._start_state:
+                tasks.append(self.operate(function))
+        await asyncio.gather(*tasks)
+
 
 
 class ActionLinkedList(BaseNode):

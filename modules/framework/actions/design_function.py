@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from modules.framework.action import ActionNode
+from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.response.code_parser import SingleFunctionParser
 from modules.framework.code.function_node import FunctionNode, State
 from modules.framework.response.text_parser import parse_text
@@ -60,31 +60,28 @@ class DesignFunction(ActionNode):
         return str(code)
 
 
-class DesignFunctionAsync(ActionNode):
+class DesignFunctionAsync(AsyncNode):
+    def __init__(self, run_mode='layer', start_state=State.NOT_STARTED, end_state=State.DESIGNED):
+        super().__init__(run_mode, start_state, end_state)
+
     def _build_prompt(self):
         pass
 
-    async def _run(self):
-        function_pool = FunctionTree()
+    async def operate(self, function):
+        action = DesignFunction("design single function")
+        action.setup(function)
+        return await action.run()
 
-        async def operation(function: FunctionNode):
-            action = DesignFunction("design single function")
-            action.setup(function)
-            return await action.run()
 
-        # operation_type and state is defined in the FunctionNode class, 1 means design, 2 means write ,3 means review
-        layer_index = function_pool.get_min_layer_index_by_state(State.NOT_STARTED)
-        if layer_index == -1:
-            logger.log("No functions in NOT_STARTED state", "error")
-            raise SystemExit
+if __name__ == '__main__':
+    import asyncio
+    from modules.framework.context.workflow_context import WorkflowContext
+    import argparse
 
-        if not all(function_node.state == State.NOT_STARTED for function_node in
-                   function_pool._layers[layer_index].functions):
-            logger.log("All functions in the layer are not in NOT_STARTED state", "error")
-            # TODO: 解决当出现生成的函数跑到前面层的问题。跑到后面层是通过重置State来解决的，但是跑到前面层的问题还没有解决
-            time.sleep(1)
-            raise SystemExit
+    context = WorkflowContext()
+    path = "../../../workspace/test"
 
-        await function_pool.process_function_layer(operation,
-                                                   operation_type=State.DESIGNED,
-                                                   start_layer_index=layer_index)
+    function_designer = DesignFunctionAsync('layer')
+    function_designer.context.load_from_file(f"{path}/analyze_functions.pkl")
+    asyncio.run(function_designer.run())
+    context.save_to_file("../../../workspace/test/designed_function.pkl")

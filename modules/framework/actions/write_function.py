@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from modules.framework.action import ActionNode
+from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.actions import WriteRun
 from modules.framework.response.code_parser import SingleFunctionParser
 from modules.framework.code.function_node import FunctionNode, State
@@ -48,45 +48,40 @@ class WriteFunction(ActionNode):
         return code
 
 
-class WriteFunctionsAsync(ActionNode):
-    def __init__(self, next_text: str, node_name: str = ""):
-        super().__init__(next_text, node_name)
-        self._function_pool = FunctionTree()
+
+
+class WriteFunctionsAsync(AsyncNode):
+    def __init__(self, run_mode='layer', start_state=State.DESIGNED, end_state=State.WRITTEN):
+        super().__init__(run_mode, start_state, end_state)
 
     def _build_prompt(self):
-        return super()._build_prompt()
+        pass
 
-    async def _run(self):
-        constraint_pool: ConstraintPool = ConstraintPool()
-        function_pool: FunctionTree = FunctionTree()
+    async def operate(self, function):
+        logger.log(f"Function: {function.name}", "warning")
+        other_functions = self.function_pool.filtered_functions(function)
+        other_functions_str = "\n\n".join([f.body for f in other_functions])
 
-        async def operation(function: FunctionNode):
-            logger.log(f"Function: {function.name}", "warning")
-            other_functions = self._function_pool.filtered_functions(function)
-            other_functions_str = "\n\n".join([f.body for f in other_functions])
+        action = WriteFunction()
+        action.setup(
+            function=function,
+            other_functions_str=other_functions_str,
+            constraint_text=self.constraint_pool.filtered_constraints(
+                function.connections
+            ),
+        )
+        return await action.run()
 
-            action = WriteFunction()
-            action.setup(
-                function=function,
-                other_functions_str=other_functions_str,
-                constraint_text=constraint_pool.filtered_constraints(
-                    function.connections
-                ),
-            )
-            return await action.run()
 
-        layer_index = function_pool.get_min_layer_index_by_state(State.DESIGNED)
-        # if layer_index == len(function_pool._layers) - 1:
-        #     print(layer_index, len(function_pool._layers) - 1)
-        #     write_run = WriteRun()
-        #     return await write_run.run()
+if __name__ == '__main__':
+    import asyncio
+    from modules.framework.context.workflow_context import WorkflowContext
+    import argparse
 
-        if not all(function_node.state == State.DESIGNED for function_node in
-                   function_pool._layers[layer_index].functions):
-            logger.log("All functions in the layer are not in DESIGNED state", "error")
-            # TODO: 解决当出现生成的函数跑到前面层的问题。跑到后面层是通过重置State来解决的，但是跑到前面层的问题还没有解决
-            time.sleep(1)
-            raise SystemExit
-        await function_pool.process_function_layer(operation,
-                                                   operation_type=State.WRITTEN,
-                                                   start_layer_index=layer_index)
+    context = WorkflowContext()
+    path = "../../../workspace/test"
+
+    function_writer = WriteFunctionsAsync('sequential', start_state=State.DESIGNED, end_state=State.WRITTEN)
+    function_writer.context.load_from_file(f"{path}/designed_function.pkl")
+    asyncio.run(function_writer.run())
+    context.save_to_file("../../../workspace/test/written_function.pkl")
