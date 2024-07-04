@@ -55,7 +55,7 @@ def main():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-            dt = clock.tick(100) / 1000
+            dt = clock.tick(10) / 1000
             env.update(dt)
             if draw_counter % draw_frequency == 0:
                 env.draw(screen)

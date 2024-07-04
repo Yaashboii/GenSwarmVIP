@@ -19,9 +19,8 @@ from modules.utils.media import process_video, create_video_from_frames
 
 class VideoCriticize(ActionNode):
     def __init__(self, next_text: str = "", node_name: str = ""):
-        llm = GPT(client=AsyncOpenAI(api_key='sk-88p6V4R1Hh5bjCn985132cCc8c314c278bFe21Ba637997Ec',
-                                     base_url='https://api.zhiyunai168.com/v1'))
-        super().__init__(next_text, node_name, llm=llm)
+
+        super().__init__(next_text, node_name)
 
         self._frames: list
         self._function_pool = FunctionTree()

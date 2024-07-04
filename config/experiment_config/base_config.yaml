@@ -20,6 +20,6 @@ arguments:
     default: False
   --human_feedback:
     default: False
-  --generate_model:
-    default: 'sequential'
+  --generate_mode:
+    default: 'parallel'
     help: options:'parallel','sequential','Layer'

@@ -1,6 +1,7 @@
 import datetime
 import os
 from pathlib import Path
+import argparse
 
 
 class _RootManager:
@@ -15,12 +16,19 @@ class _RootManager:
             cls._instance.update_root()
         return cls._instance
 
-    def update_root(self, workspace_root: str = None) -> None:
-        if workspace_root is None:
+    def update_root(self, workspace_root: str = None, args: argparse.Namespace = None) -> None:
+        if workspace_root is None or args is not None:
             self.project_root = self.get_project_root()
             current_datetime = datetime.datetime.now()
             formatted_date = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
-            self.workspace_root = self.project_root / f"workspace/{formatted_date}"
+            generate_mode = ''
+            task_name = ''
+            if args is not None:
+                if hasattr(args, "generate_mode"):
+                    generate_mode = args.generate_mode
+                if hasattr(args, "run_experiment_name"):
+                    task_name = "_".join(args.run_experiment_name)
+            self.workspace_root = self.project_root / f"workspace/{generate_mode}/{task_name}/{formatted_date}"
         else:
             self.workspace_root = Path(workspace_root)
         self.data_root = self.workspace_root / "data"
@@ -30,9 +38,9 @@ class _RootManager:
         current_path = Path.cwd()
         while True:
             if (
-                (current_path / ".git").exists()
-                or (current_path / ".project_root").exists()
-                or (current_path / ".gitignore").exists()
+                    (current_path / ".git").exists()
+                    or (current_path / ".project_root").exists()
+                    or (current_path / ".gitignore").exists()
             ):
                 # use metagpt with git clone will land here
                 return current_path

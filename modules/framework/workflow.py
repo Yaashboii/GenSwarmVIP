@@ -48,11 +48,11 @@ class Workflow:
         # initialize actions
         analyze_constraints = AnalyzeConstraints("constraint pool")
         analyze_functions = AnalyzeFunctions("function pool")
-        generate_model = 'layer'
-        if hasattr(self._context.args, "generate_model"):
-            generate_model = self._context.args.generate_model
+        generate_mode = 'layer'
+        if hasattr(self._context.args, "generate_mode"):
+            generate_mode = self._context.args.generate_mode
 
-        generate_functions = GenerateFunctions("function", run_mode=generate_model)
+        generate_functions = GenerateFunctions("function", run_mode=generate_mode)
         run_code = RunCodeAsync("pass")
         debug_code = DebugError("fixed code")
         human_feedback = Criticize("feedback")
@@ -84,7 +84,7 @@ class Workflow:
         run_code._next = ActionNode(next_text="pass", node_name="END")
 
         # combine stages
-        if not hasattr(self._context.args, "generate_model"):
+        if not hasattr(self._context.args, "generate_mode"):
 
             code_llm = ActionLinkedList("Code-LLM", analysis_stage)
             code_llm.add(coding_stage)

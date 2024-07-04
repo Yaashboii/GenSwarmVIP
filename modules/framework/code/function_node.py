@@ -19,6 +19,8 @@ class FunctionNode(Node):
         self.content: str = ""
         self._definition: str = ""
         self._state: State = State.NOT_STARTED
+        self._num_of_lines: int = 0
+
 
     @property
     def callees(self):

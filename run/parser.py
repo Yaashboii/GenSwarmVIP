@@ -36,7 +36,6 @@ class ParameterService:
         :param yaml_file: Path to the YAML configuration file.
         """
         with open(yaml_file, 'r') as file:
-            print(f"Loading arguments from {yaml_file}")
             config = yaml.safe_load(file)
             arguments = config.get('arguments', {})
             for arg, params in arguments.items():

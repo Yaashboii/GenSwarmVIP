@@ -1,6 +1,7 @@
 import argparse
 import sys
 
+from modules.file import logger
 from modules.framework.workflow import Workflow
 from modules.prompt.user_requirements import get_user_commands
 
@@ -28,6 +29,7 @@ if __name__ == '__main__':
     task = get_user_commands('flocking')[0]
 
     args = parameter_service.args
-    print(parameter_service.format_arguments_as_table(args))
+    root_manager.update_root(args=args)
+    logger.log(f'\n{parameter_service.format_arguments_as_table(args)}', 'warning')
 
     asyncio.run(run_task(task, parameter_service.args))
