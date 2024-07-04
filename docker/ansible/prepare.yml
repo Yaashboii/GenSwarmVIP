@@ -1,0 +1,30 @@
+
+- name: Ensure directory exists
+  file:
+    path: /home/nvidia/docker/code_llm_ws
+    state: directory
+    mode: 0755
+    owner: nvidia
+    group: nvidia
+
+- name: copy source code
+  copy:
+    src: "{{ item }}"
+    dest: /home/nvidia/docker/code_llm_ws/src/code_llm/
+    force: yes
+  loop:
+    # - "../../workspace/2024-06-02_09-47-15/apis.py"
+    # - "../../workspace/2024-06-02_09-47-15/functions.py"
+    # - "../../workspace/2024-06-02_09-47-15/run.py"
+    # - "../../msg"
+    # - "../../package.xml"
+    # - "../../CMakeLists.txt"
+    - "../code_run.Dockerfile"
+
+- name: build image
+  shell: docker build -t llm_simulator -f code_run.Dockerfile .
+  args:
+    chdir: /home/nvidia/docker/code_llm_ws/src/code_llm
+
+- name: compile
+  shell: docker run -it --rm -v /home/nvidia/docker/code_llm_ws:/catkin_ws llm_simulator bash -c "cd /catkin_ws && catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3"
