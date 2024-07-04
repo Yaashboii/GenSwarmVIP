@@ -7,6 +7,7 @@ from modules.framework.error import CodeParseError
 class CodeParser(ast.NodeVisitor):
     def __init__(self):
         super().__init__()
+        self._code_str = None
         self._imports = set()
         self._function_dict: dict[str, str] = {}
         self._function_defs: dict[str, str] = {}
@@ -32,6 +33,7 @@ class CodeParser(ast.NodeVisitor):
         return self._function_defs
 
     def parse_code(self, code_str):
+        self._code_str = code_str
         tree = ast.parse(code_str)
         self.visit(tree)
 
@@ -79,7 +81,9 @@ class CodeParser(ast.NodeVisitor):
             body_part = ""
             return f"{func_header}\n{docstring_part}{body_part}"
 
-        self._function_dict[node.name] = ast.unparse(node).strip()
+        function_body_with_comments = ast.get_source_segment(self._code_str, node)
+
+        self._function_dict[node.name] = function_body_with_comments.strip()
         self._function_defs[node.name] = reconstruct_function_definition(node)
 
 
@@ -118,3 +122,5 @@ class SingleFunctionParser(CodeParser):
             )
         if not function_name:
             raise CodeParseError(f"Failed: No function detected in the response")
+
+
