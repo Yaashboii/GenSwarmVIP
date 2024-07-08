@@ -19,7 +19,7 @@ class GPT(BaseLLM):
         client (AsyncOpenAI): AsyncOpenAI client for interacting with the API.
     """
 
-    def __init__(self, client: AsyncOpenAI = None, model: str = "qwen-max-longcontext", memorize: bool = False,
+    def __init__(self, client: AsyncOpenAI = None, model: str = "claude-3-5-sonnet-20240620", memorize: bool = False,
                  stream_output: bool = False) -> None:
         super().__init__(model, memorize, stream_output)
         self.key = key_manager.allocate_key()

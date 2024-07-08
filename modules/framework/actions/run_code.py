@@ -173,7 +173,7 @@ if __name__ == "__main__":
 
     # data = '2024-06-19_10-50-33'
     # data = '2024-06-21_09-55-56'
-    data = '2024-07-03_16-40-09'
+    data = 'sequential/flocking/2024-07-04_10-14-33'
     path = f"../../../workspace/{data}"
     rospy.set_param("path", data)
     root_manager.update_root(path)
@@ -201,7 +201,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--timeout", type=int, default=120, help="Total time for the simulation"
+        "--timeout", type=int, default=40, help="Total time for the simulation"
     )
 
     args = parser.parse_args()
