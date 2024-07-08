@@ -55,8 +55,12 @@ class VideoCriticize(ActionNode):
             # HumanFeedback
             if_feedback = input("If task is done? Press y/n")
             if if_feedback == "y":
+                logger.log("run code:success", "warning")
                 return "NONE"
             else:
+                if self.context.args.feedback == 'None':
+                    logger.log("run code:fail", "warning")
+                    return 'NONE'
                 feedback = input("Please provide feedback:")
                 self.context.feedbacks.append(feedback)
                 return Feedback(feedback)
