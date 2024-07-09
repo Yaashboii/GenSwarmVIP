@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from modules.utils.function import CodeAnalyzer
+
 
 class LogAnalyzer:
     def __init__(self, base_path):
@@ -15,8 +17,12 @@ class LogAnalyzer:
         }
         self.patterns = {
             'Generate functions cost time': re.compile(r"Generate functions cost time: (\d+\.\d+)"),
-            'average complexity': re.compile(r"average complexity: (\d+\.\d+), mi score: (\d+\.\d+)")
+            'average complexity': re.compile(r"average complexity: (\d+\.\d+), mi score: (\d+\.\d+)"),
+            'run code result': re.compile(r"run code:(success|fail)"),
         }
+        self.total_files = 0
+        self.missing_run_code_files = 0
+        self.missing_files_list = []
 
     def analyze(self):
         # Traverse the directory structure
@@ -29,8 +35,19 @@ class LogAnalyzer:
                         experiment_path = os.path.join(task_path, experiment)
                         if os.path.isdir(experiment_path):
                             log_file_path = os.path.join(experiment_path, 'log.md')
+                            function_path = os.path.join(experiment_path, 'functions.py')
                             if os.path.exists(log_file_path):
                                 self._process_log_file(log_file_path, category)
+                                self.total_files += 1
+                            if os.path.exists(function_path):
+                                self._process_functions_file(function_path, category)
+
+    def _process_functions_file(self, function_file_path, category):
+        with open(function_file_path, 'r', encoding='utf-8') as file:
+            function_contents = file.read()
+        code_analyzer = CodeAnalyzer(code=function_contents)
+
+
 
     def _process_log_file(self, log_file_path, category):
         with open(log_file_path, 'r', encoding='utf-8') as file:
@@ -38,14 +55,26 @@ class LogAnalyzer:
 
         extracted_data = {key: [] for key in self.patterns.keys()}
         extracted_data['mi score'] = []
+        extracted_data['success'] = -1
+
+        run_code_found = False
+
         for key, pattern in self.patterns.items():
             matches = pattern.findall(log_contents)
             if key == 'average complexity':
                 for match in matches:
                     extracted_data['average complexity'].append(float(match[0]))
                     extracted_data['mi score'].append(float(match[1]))
+            elif key == 'run code result':
+                if matches:
+                    extracted_data['success'] = 1 if matches[-1] == 'success' else 0
+                    run_code_found = True
             else:
                 extracted_data[key].extend([float(match) for match in matches])
+
+        if not run_code_found:
+            self.missing_run_code_files += 1
+            self.missing_files_list.append(log_file_path)
 
         self.data[category].append(extracted_data)
 
@@ -53,13 +82,14 @@ class LogAnalyzer:
         stats = {}
         for category, data_list in self.data.items():
             if data_list:
-                category_data = {key: np.array([item[key] for item in data_list if item[key]]) for key in self.patterns.keys()}
+                category_data = {key: np.array([item[key] for item in data_list if item[key]]) for key in
+                                 self.patterns.keys()}
                 category_data['mi score'] = np.array([item['mi score'] for item in data_list if item['mi score']])
+                success_rate = np.mean([item['success'] for item in data_list if item['success'] != -1]) * 100
 
                 count = {key: len(values) for key, values in category_data.items()}
                 mean = {key: np.mean(values) if len(values) > 0 else np.nan for key, values in category_data.items()}
                 std = {key: np.std(values) if len(values) > 0 else np.nan for key, values in category_data.items()}
-                success_rate = {key: np.mean(values != 0) * 100 if len(values) > 0 else np.nan for key, values in category_data.items()}
 
                 stats[category] = {
                     'count': count,
@@ -105,6 +135,26 @@ class LogAnalyzer:
         plt.tight_layout()
         plt.show()
 
+        success_rate_fig, success_rate_ax = plt.subplots(figsize=(10, 6))
+        success_rates = [stats[category]['success_rate'] for category in categories]
+        print(success_rates)
+        success_rate_ax.bar(categories, success_rates, width)
+        success_rate_ax.set_title('Success Rates')
+        success_rate_ax.set_ylabel('Success Rate (%)')
+
+        plt.tight_layout()
+        plt.show()
+
+    def print_summary(self):
+        print(f"Total files: {self.total_files}")
+        print(f"Files missing 'run code' results: {self.missing_run_code_files}")
+        print(
+            f"Percentage of files missing 'run code' results: {self.missing_run_code_files / self.total_files * 100:.2f}%")
+        if self.missing_files_list:
+            print("Files missing 'run code' results:")
+            for file in self.missing_files_list:
+                print(file)
+
 
 # Example usage
 base_path = '../workspace'
@@ -116,3 +166,4 @@ if stats:
     analyzer.plot_statistics(stats)
 else:
     print("No statistical data available.")
+analyzer.print_summary()
