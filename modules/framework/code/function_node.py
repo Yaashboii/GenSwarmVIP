@@ -1,4 +1,4 @@
-from modules.utils import Node
+from modules.framework.node import Node
 from enum import Enum
 
 

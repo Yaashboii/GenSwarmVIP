@@ -1,6 +1,6 @@
 from typing import Any
 from modules.file.file import File, logger
-from modules.utils import Node
+from modules.framework.node import Node
 
 
 class ConstraintNode(Node):
