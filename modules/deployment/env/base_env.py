@@ -4,7 +4,7 @@ from abc import ABC
 import numpy as np
 import pygame
 
-from modules.deployment.engine.quadtree_engine import QuadTreeEngine
+from modules.deployment.engine import Box2DEngine, QuadTreeEngine
 
 
 class EnvironmentBase(ABC):
@@ -28,7 +28,6 @@ class EnvironmentBase(ABC):
                                           collision_check=True,
                                           joint_constraint=True)
         elif engine_type == 'Box2DEngine':
-            from modules.deployment.engine.box2d_engine import Box2DEngine
             self._engine = Box2DEngine()
         else:
             raise ValueError(f"Unsupported engine type: {engine_type}")
