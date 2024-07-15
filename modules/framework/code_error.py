@@ -21,7 +21,7 @@ class Bugs(CodeError):
         self.error_list = bug_list
         self.error_msg = ''
         for i, bug in enumerate(bug_list):
-            self.error_msg += f"error{i}:" + "\n" + bug.error_msg + "\n"
+            self.error_msg += f"error{i},function_name:{bug.error_function}:" + "\n" + bug.error_msg + "\n"
 
 
 class CriticNotSatisfied(CodeError):
