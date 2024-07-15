@@ -4,9 +4,8 @@ import time
 import numpy as np
 import pygame
 
-from modules.deployment.entity.robot import Robot
-from modules.deployment.entity.obstacle import Obstacle
-from modules.deployment.entity.prey import Prey
+from modules.deployment.entity import Obstacle, Prey, Robot
+
 from modules.deployment.env.base_env import EnvironmentBase
 
 

@@ -4,11 +4,9 @@ import time
 import numpy as np
 import pygame
 
-from modules.deployment.entity.robot import Robot
-from modules.deployment.entity.landmark import Landmark
+from modules.deployment.entity import Robot, Landmark
 
 from modules.deployment.env.base_env import EnvironmentBase
-
 
 
 class ExploreEnvironment(EnvironmentBase):

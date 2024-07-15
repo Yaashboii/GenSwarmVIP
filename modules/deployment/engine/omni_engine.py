@@ -1,4 +1,4 @@
-from engine import Engine
+from .engine import Engine
 
 
 class OmniEngine(Engine):

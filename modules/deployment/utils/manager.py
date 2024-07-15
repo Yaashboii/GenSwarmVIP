@@ -9,8 +9,8 @@ from code_llm.srv import (GetTargetPositions, GetTargetPositionsResponse,
                           ConnectEntities, ConnectEntitiesResponse, ConnectEntitiesRequest)
 from geometry_msgs.msg import Twist, Vector3, Point
 from modules.deployment.env.base_env import EnvironmentBase
-from modules.deployment.entity.robot import Robot
-from modules.deployment.entity.leader import Leader
+from modules.deployment.entity import Robot, Leader
+
 from modules.deployment.utils.char_points_generate import validate_contour_points
 
 

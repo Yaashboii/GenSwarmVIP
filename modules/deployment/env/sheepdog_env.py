@@ -2,9 +2,8 @@ import time
 
 import numpy as np
 
-from modules.deployment.entity.robot import Robot
-from modules.deployment.entity.sheep import Sheep
-from modules.deployment.entity.wall import Wall
+from modules.deployment.entity import Robot, Sheep
+
 from modules.deployment.env.base_env import EnvironmentBase
 
 

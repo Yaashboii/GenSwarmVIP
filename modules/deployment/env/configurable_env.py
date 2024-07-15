@@ -4,11 +4,8 @@ import numpy as np
 import pygame
 
 from modules.deployment.entity.entity import Entity
-from modules.deployment.entity.landmark import Landmark
-from modules.deployment.entity.leader import Leader
-from modules.deployment.entity.obstacle import Obstacle
-from modules.deployment.entity.pushable_object import PushableObject
-from modules.deployment.entity.robot import Robot
+from modules.deployment.entity import Landmark, Leader, Obstacle, PushableObject, Robot
+
 from modules.deployment.env.base_env import EnvironmentBase
 
 
@@ -27,7 +24,8 @@ class ConfigurableEnvironment(EnvironmentBase):
             while attempts < max_attempts:
                 position = np.random.uniform([entity_size, entity_size],
                                              [self.width - entity_size, self.height - entity_size])
-                if not any(self._check_collision(position, entity_size, entity_shape, other) for other in self.entities):
+                if not any(
+                        self._check_collision(position, entity_size, entity_shape, other) for other in self.entities):
                     return position
                 attempts += 1
             raise ValueError(f"Failed to generate non-colliding position after {max_attempts} attempts.")

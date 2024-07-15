@@ -3,11 +3,10 @@ import json
 import numpy as np
 import pygame
 
-from modules.deployment.entity.robot import Robot
-from modules.deployment.entity.obstacle import Obstacle
-from modules.deployment.entity.pushable_object import PushableObject
+from modules.deployment.entity import Obstacle, PushableObject, Robot
+
 from modules.deployment.env.base_env import EnvironmentBase
-from modules.deployment.engine.box2d_engine import Box2DEngine
+from modules.deployment.engine import Box2DEngine
 
 
 class MoveEnvironment(EnvironmentBase):

@@ -206,7 +206,7 @@ class EnvironmentBase(ABC):
 
 
 if __name__ == '__main__':
-    from modules.deployment.entity.robot import Robot
+    from modules.deployment.entity import Robot
     import matplotlib.pyplot as plt
     from scipy.signal import find_peaks
 
