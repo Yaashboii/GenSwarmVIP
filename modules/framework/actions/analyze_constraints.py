@@ -1,7 +1,7 @@
 import json
 
 from modules.framework.action import ActionNode
-from modules.llm.gpt import GPT
+from modules.llm import GPT
 from modules.prompt import (
     ANALYZE_CONSTRAINT_PROMPT_TEMPLATE,
     CONSTRAIN_TEMPLATE,

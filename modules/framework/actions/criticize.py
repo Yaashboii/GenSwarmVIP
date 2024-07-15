@@ -1,6 +1,6 @@
 from modules.framework.action import ActionNode
 from modules.framework.response.code_parser import CodeParser
-from modules.llm.gpt import GPT
+from modules.llm import GPT
 from modules.prompt import (
     FEEDBACK_PROMPT_TEMPLATE,
     CONTINUE_FEEDBACK_PROMPT_TEMPLATE,

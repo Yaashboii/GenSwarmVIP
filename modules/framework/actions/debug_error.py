@@ -9,7 +9,7 @@ from modules.prompt import (
 )
 from modules.framework.code.function_tree import FunctionTree
 from modules.framework.response.code_parser import CodeParser
-from modules.llm.gpt import GPT
+from modules.llm import GPT
 
 
 class DebugError(ActionNode):

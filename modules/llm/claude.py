@@ -1,10 +1,8 @@
 import os
 from anthropic import AsyncAnthropic
 from tenacity import retry, stop_after_attempt, stop_after_delay, wait_random_exponential
-from modules.llm.api_keys import api_base, key_manager
 
-from modules.llm.api_keys import key_manager
-from modules.llm.llm import BaseLLM
+from modules.llm import BaseLLM, api_base, key_manager
 
 
 class Claude(BaseLLM):
