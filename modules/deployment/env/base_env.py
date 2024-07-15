@@ -4,7 +4,7 @@ from abc import ABC
 import numpy as np
 import pygame
 
-from modules.deployment.engine.basic_engine import QuadTreeEngine
+from modules.deployment.engine.quadtree_engine import QuadTreeEngine
 
 
 class EnvironmentBase(ABC):
