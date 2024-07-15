@@ -6,8 +6,7 @@ import pygame
 
 from modules.deployment.entity.entity import Entity
 from modules.deployment.entity import Landmark, PushableObject, Robot
-
-from modules.deployment.env.base_env import EnvironmentBase
+from modules.deployment.env import EnvironmentBase
 
 
 class CollectEnvironment(EnvironmentBase):

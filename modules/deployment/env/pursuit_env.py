@@ -5,8 +5,7 @@ import numpy as np
 import pygame
 
 from modules.deployment.entity import Obstacle, Prey, Robot
-
-from modules.deployment.env.base_env import EnvironmentBase
+from modules.deployment.env import EnvironmentBase
 
 
 class PursuitEnvironment(EnvironmentBase):

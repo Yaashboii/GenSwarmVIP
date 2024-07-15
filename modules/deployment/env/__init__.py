@@ -1,5 +1,5 @@
 # modules/deployment/env/__init__.py
-from modules.deployment.utils.manager import Manager
+from .base_env import EnvironmentBase
 from .configurable_env import ConfigurableEnvironment
 from .collect_env import CollectEnvironment
 from .move_env import MoveEnvironment
@@ -8,10 +8,10 @@ from .cross_env import CrossEnvironment
 from .assembly_env import AssemblyEnvironment
 from .cover_env import CoverEnvironment
 from .explore_env import ExploreEnvironment
-# from modules.deployment.env.move_formation import MoveFormationEnvironment
+# .move_formation import MoveFormationEnvironment
 
 __all__ = [
-    'Manager',
+    'EnvironmentBase',
     'ConfigurableEnvironment',
     'CollectEnvironment',
     'MoveEnvironment',

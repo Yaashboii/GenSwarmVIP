@@ -3,8 +3,7 @@ import time
 import numpy as np
 
 from modules.deployment.entity import Robot, Sheep
-
-from modules.deployment.env.base_env import EnvironmentBase
+from modules.deployment.env import EnvironmentBase
 
 
 class SheepdogEnvironment(EnvironmentBase):

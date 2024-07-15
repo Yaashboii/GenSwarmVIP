@@ -4,8 +4,7 @@ import numpy as np
 import pygame
 
 from modules.deployment.entity import Robot
-
-from modules.deployment.env.base_env import EnvironmentBase
+from modules.deployment.env import EnvironmentBase
 
 
 

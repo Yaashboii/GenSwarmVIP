@@ -6,7 +6,7 @@ import pygame
 from modules.deployment.entity.entity import Entity
 from modules.deployment.entity.leader import Leader
 from modules.deployment.entity.pushable_object import PushableObject
-from modules.deployment.env.base_env import EnvironmentBase
+from modules.deployment.env import EnvironmentBase
 
 
 class ClassificationEnvironment(EnvironmentBase):

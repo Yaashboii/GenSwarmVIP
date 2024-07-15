@@ -4,7 +4,7 @@ import numpy as np
 import pygame
 
 from modules.deployment.entity import Entity, Landmark, Robot
-from modules.deployment.env.base_env import EnvironmentBase
+from modules.deployment.env import EnvironmentBase
 
 
 class AssemblyEnvironment(EnvironmentBase):
