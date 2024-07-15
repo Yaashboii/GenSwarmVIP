@@ -7,6 +7,7 @@ import pygame
 import rospy
 
 from modules.deployment.env import *
+from modules.deployment.utils.manager import Manager
 
 
 def main():
