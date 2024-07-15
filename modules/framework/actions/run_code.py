@@ -166,14 +166,12 @@ if __name__ == "__main__":
     import asyncio
     from modules.framework.handler import BugLevelHandler
     from modules.framework.handler import FeedbackHandler
-    from modules.framework.actions.video_criticize import VideoCriticize
-
     from modules.framework.actions import *
     import argparse
 
     # data = '2024-06-19_10-50-33'
     # data = '2024-06-21_09-55-56'
-    data = 'sequential/flocking/2024-07-04_10-14-33'
+    data = 'dog_sheep/2024-07-15_20-18-59'
     path = f"../../../workspace/{data}"
 
     rospy.set_param("path", data)
@@ -202,7 +200,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--timeout", type=int, default=20, help="Total time for the simulation"
+        "--timeout", type=int, default=200, help="Total time for the simulation"
     )
     parser.add_argument(
         "--feedback", type=str, default="None", help="Optional:human、VLM、None",
@@ -213,3 +211,4 @@ if __name__ == "__main__":
     run_code.context.args = args
     asyncio.run(run_code.run())
     run_code.context.save_to_file(f"{path}/run_code.pkl")
+

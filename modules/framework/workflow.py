@@ -4,9 +4,7 @@ import os
 from modules.framework.actions import *
 from modules.framework.action import *
 from modules.framework.actions.generate_functions import GenerateFunctions
-from modules.framework.actions.video_criticize import VideoCriticize
 from modules.framework.handler import *
-
 from modules.utils.logger import setup_logger
 from modules.framework.context.workflow_context import WorkflowContext
 from modules.file import File, logger
