@@ -2,16 +2,15 @@ import json
 
 from modules.framework.action import ActionNode
 from modules.llm.gpt import GPT
-from modules.prompt.analyze_stage_prompt import (
+from modules.prompt import (
     ANALYZE_CONSTRAINT_PROMPT_TEMPLATE,
     CONSTRAIN_TEMPLATE,
     CONTINUE_ANALYZE_CONSTRAINT_PROMPT_TEMPLATE,
-    MODIFY_CONSTRAIN_TEMPLATE
+    MODIFY_CONSTRAIN_TEMPLATE,
+    ROBOT_API,
+    ENV_DES,
+    TASK_DES,
 )
-from modules.prompt.robot_api_prompt import ROBOT_API
-from modules.prompt.env_description_prompt import ENV_DES
-from modules.prompt.task_description import TASK_DES
-from modules.framework.response.text_parser import parse_text
 from modules.file.log_file import logger
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.framework.response import *

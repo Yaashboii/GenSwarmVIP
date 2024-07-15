@@ -5,10 +5,12 @@ from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.response.code_parser import SingleFunctionParser
 from modules.framework.code.function_node import FunctionNode, State
 from modules.framework.response.text_parser import parse_text
-from modules.prompt.design_stage_prompt import DesignFunction_PROMPT_TEMPLATE
-from modules.prompt.robot_api_prompt import ROBOT_API
-from modules.prompt.env_description_prompt import ENV_DES
-from modules.prompt.task_description import TASK_DES
+from modules.prompt import (
+    DesignFunction_PROMPT_TEMPLATE,
+    ROBOT_API,
+    ENV_DES,
+    TASK_DES,
+)
 from modules.file.log_file import logger
 from modules.framework.context.contraint_info import ConstraintPool
 from modules.framework.code.function_tree import FunctionTree

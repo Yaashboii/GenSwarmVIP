@@ -12,8 +12,11 @@ from modules.framework.code_error import Bug, Bugs, Feedback
 from modules.file.log_file import logger
 from modules.framework.response import parse_text
 from modules.llm.gpt import GPT
-from modules.prompt.video_critic_prompt import VIDEO_PROMPT_TEMPLATE, OUTPUT_TEMPLATE
-from modules.prompt.task_description import TASK_DES
+from modules.prompt import (
+    VIDEO_PROMPT_TEMPLATE,
+    OUTPUT_TEMPLATE,
+    TASK_DES,
+)
 from modules.utils.media import process_video, create_video_from_frames
 
 

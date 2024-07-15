@@ -1,11 +1,13 @@
 from modules.framework.action import ActionNode
 from modules.framework.response.code_parser import CodeParser
 from modules.llm.gpt import GPT
-from modules.prompt.run_code_prompt import (FEEDBACK_PROMPT_TEMPLATE,
-                                            CONTINUE_FEEDBACK_PROMPT_TEMPLATE)
-from modules.prompt.robot_api_prompt import ROBOT_API
-from modules.prompt.env_description_prompt import ENV_DES
-from modules.prompt.task_description import TASK_DES
+from modules.prompt import (
+    FEEDBACK_PROMPT_TEMPLATE,
+    CONTINUE_FEEDBACK_PROMPT_TEMPLATE,
+    ROBOT_API,
+    ENV_DES,
+    TASK_DES,
+)
 from modules.framework.response.text_parser import parse_text
 from modules.framework.code.function_tree import FunctionTree
 
