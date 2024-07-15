@@ -1,5 +1,10 @@
 # 仿真环境使用手册
 
+## 环境基础信息：
+
+- Ubuntu 20.04
+- python >= 3.9
+
 ## 1. 环境准备
 
 ### 1.1 建立工作空间
@@ -18,11 +23,11 @@ catkin_create_pkg code_llm rospy std_msgs geometry_msgs message_generation
 cd code_llm
 ```
 
-### 1.2 加入包文件
+### 1.2 加入仓库文件
 
-- 把Github上的 CodeLLM中**全部文件复制**到code_llm包中, 粘贴完如下图所示:
+- 把Github上的 CodeLLM项目git clone到当前的code_llm中:
 
-<img src="assets/files.png" alt="codellm" style="zoom:67%;" />
+  `git clone https://github.com/WestlakeIUSL/CodeLLM.git`
 
 ### 1.3 编译工作空间
 
@@ -30,10 +35,10 @@ cd code_llm
 
 ```
 cd 工作空间
-# 需要安装python3-em
-sudo apt install python3-em
 
-catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 需要根据实际的本地python解释器位置更改路径, ubuntu 18为/usr/bin/python, 20为/usr/bin/python3. 此外python不能是anaconda的, 因其无法访问pip install的pkg.
+sudo apt install python3-em  #建议安装下python3-em
+
+catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 需要根据实际的系统python解释器位置更改路径,ubuntu 20为/usr/bin/python3, ubuntu18为/usr/bin/python. 此外python不能是anaconda的, 因其无法访问pip install的packages
 ```
 
 ### 1.4 运行仿真环境
@@ -43,8 +48,8 @@ catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 需要根据实际的本地
 ```
 gedit ~/.bashrc
 加入以下内容:
-export PYTHONPATH=/home/{替换你的用户名}/{替换工作空间名}/devel/lib/python3/dist-packages:$PYTHONPATH  #根据实际python版本调整
-export PYTHONPATH=/opt/ros/noetic/lib/python3/dist-packages:$PYTHONPATH  # 根据实际的ubuntu版本进行调整
+export PYTHONPATH={工作空间所在的绝对路径}/devel/lib/python3/dist-packages:$PYTHONPATH  # 需要根据实际python版本调整
+export PYTHONPATH=/opt/ros/noetic/lib/python3/dist-packages:$PYTHONPATH  # 根据实际的ROS和python版本进行调整
 ```
 
 - 打开一个新的Terminal, 运行仿真
