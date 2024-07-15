@@ -9,6 +9,7 @@ matplotlib==3.8.0
 scipy~=1.12.0
 opencv-python==4.9.0.80
 pynput==1.7.6
+anthropic
 pylint
 coverage
 pre-commit
@@ -17,6 +18,5 @@ radon
 tabulate
 pygame~=2.5.2
 gym~=0.26.2
-
 pillow~=10.2.0
 box2d-py
