@@ -3,64 +3,60 @@
 ## 环境基础信息：
 
 - Ubuntu 20.04
-- python >= 3.9
+- python == 3.10
 
 ## 1. 环境准备
 
 ### 1.1 建立工作空间
 
-- 创建工作空间 并 建立包
-- 包的名字必须为 ***code_llm***
+- 创建工作空间`ws`
 
-```cd
-mkdir -p 自定义空间名称/src
-cd 自定义空间名称
+```
+mkdir -p ws/src
+cd ws
 catkin_make
+```
 
+- 创建包，包的名字必须为 ***code_llm***
+
+```
 cd src
 catkin_create_pkg code_llm rospy std_msgs geometry_msgs message_generation
+```
 
+- 克隆Github的仓库
+
+```
 cd code_llm
+git clone https://github.com/WestlakeIUSL/CodeLLM.git
 ```
 
-### 1.2 加入仓库文件
+### 1.2 编译工作空间
 
-- 把Github上的 CodeLLM项目git clone到当前的code_llm中:
-
-  `git clone https://github.com/WestlakeIUSL/CodeLLM.git`
-
-### 1.3 编译工作空间
-
-- 进入自定义工作空间目录, 编译
+- 进入工作空间, 编译, 安装
 
 ```
-cd 工作空间
-
-sudo apt install python3-em  #建议安装下python3-em
-
-catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 需要根据实际的系统python解释器位置更改路径,ubuntu 20为/usr/bin/python3, ubuntu18为/usr/bin/python. 此外python不能是anaconda的, 因其无法访问pip install的packages
+cd ws
+catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 根据实际的系统python解释器位置更改路径,ubuntu 20为/usr/bin/python3, ubuntu18为/usr/bin/python. 此外python不能是anaconda的, 因其无法访问pip install的packages
+catkin_make install 
 ```
 
-### 1.4 运行仿真环境
+### 1.3 配置系统路径
 
 - 编辑环境变量, 注意根据实际情况调整***工作空间***和***ros***的绝对路径
 
 ```
 gedit ~/.bashrc
-加入以下内容:
+```
+
+- 加入以下内容:
+
+```
 export PYTHONPATH={工作空间所在的绝对路径}/devel/lib/python3/dist-packages:$PYTHONPATH  # 需要根据实际python版本调整
 export PYTHONPATH=/opt/ros/noetic/lib/python3/dist-packages:$PYTHONPATH  # 根据实际的ROS和python版本进行调整
 ```
 
-- 打开一个新的Terminal, 运行仿真
-
-```
-cd 工作空间/src/code_llm/modules/env
-conda activate pyxxx   # 选择使用哪个python来运行, 这里是使用的conda的python. py要3.10即可
-python environment.py  # 运行仿真环境
-```
-
-### 1.5 配置引用路径
+### 1.4 配置程序中的路径
 
 - 方式1 在vscode中, 可以将下面这段代码配置进settings.json中。
 
@@ -68,14 +64,19 @@ python environment.py  # 运行仿真环境
 {
   "python.autoComplete.extraPaths": [
     "/opt/ros/noetic/lib/python3/dist-packages",
-    "/xxx/yyy工作空间/devel/lib/python3/dist-packages"
+    "/{工作空间所在的绝对路径}/ws/devel/lib/python3/dist-packages"
   ]
 }
 ```
 
-- 方式2 在pycharm中, 手动给python interpreter添加***code_llm***和***ros***包的路径, 如图中倒数两行(added by user)所示:
+- 方式2 在pycharm中, 手动给python interpreter添加***code_llm***和***ros***包的路径, 如图中倒数两行(added by user)所示：
 
-<img src="assets/path.png" alt="path" style="zoom:67%;" />
+```
+/opt/ros/noetic/lib/python3/dist-packages
+/{工作空间所在的绝对路径}/ws/devel/lib/python3/dist-packages
+```
+
+<img src="../assets/pycharm pythonpath.png" style="zoom:40%;" />
 
 ## 2. 运行
 
