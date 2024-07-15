@@ -12,7 +12,7 @@ from modules.prompt import (
     TASK_DES,
 )
 from modules.file.log_file import logger
-from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.constraints import ConstraintPool
 from modules.framework.response import *
 
 
@@ -61,7 +61,7 @@ class AnalyzeConstraints(ActionNode):
 
 if __name__ == '__main__':
     import asyncio
-    from modules.framework.context.workflow_context import WorkflowContext
+    from modules.framework.context import WorkflowContext
     import argparse
 
     parser = argparse.ArgumentParser(

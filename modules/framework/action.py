@@ -5,19 +5,19 @@ from abc import ABC, abstractmethod
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from modules.framework.code.function_tree import FunctionTree
-from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.context import WorkflowContext
+from modules.framework.constraints import ConstraintPool
 from modules.utils import setup_logger, LoggerLevel, root_manager
 from modules.llm import GPT
 from modules.framework.code_error import CodeError
 from modules.framework.node_renderer import *
 from modules.file.log_file import logger
-from modules.framework.context.workflow_context import WorkflowContext
 
 
 class BaseNode(ABC):
     def __init__(self):
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
-        self.__next = None  # next node
+        self.__next = None  # next constraints
         self._renderer = None
 
     def __str__(self):
@@ -36,7 +36,7 @@ class BaseNode(ABC):
 
     @abstractmethod
     async def run(self, auto_next: bool = True) -> str:
-        # Abstract method for executing node logic
+        # Abstract method for executing constraints logic
         pass
 
     def set_renderer(self, renderer):
