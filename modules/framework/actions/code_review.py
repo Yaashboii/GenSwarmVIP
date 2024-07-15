@@ -77,7 +77,7 @@ class CodeReviewAsync(AsyncNode):
 
 if __name__ == '__main__':
     import asyncio
-    from modules.framework.context.workflow_context import WorkflowContext
+    from modules.framework.context import WorkflowContext
     import argparse
 
     context = WorkflowContext()
