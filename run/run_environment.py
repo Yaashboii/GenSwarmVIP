@@ -6,16 +6,9 @@ import numpy as np
 import pygame
 import rospy
 
-from modules.deployment.utils.manager import Manager
-from modules.deployment.env.configurable_env import ConfigurableEnvironment
-from modules.deployment.env.collect_env import CollectEnvironment
-from modules.deployment.env.move_env import MoveEnvironment
-from modules.deployment.env.sheepdog_env import SheepdogEnvironment
-from modules.deployment.env.cross_env import CrossEnvironment
-from modules.deployment.env.assembly_env import AssemblyEnvironment
-from modules.deployment.env.cover_env import CoverEnvironment
-from modules.deployment.env.explore_env import ExploreEnvironment
-from modules.deployment.env.move_formation import MoveFormationEnvironment
+from modules.deployment.env import *
+
+
 def main():
     pygame.init()
 
@@ -42,7 +35,8 @@ def main():
     draw_counter = 0
     draw_frequency = 1  # 每帧绘图一次
 
-    data_root = f"/home/derrick/catkin_ws/src/code_llm/workspace/{rospy.get_param('path', 'test')}"
+
+    data_root = f"/home/iusl/Desktop/code_llm_ws/src/code_llm/CodeLLM/workspace/{rospy.get_param('path', 'test')}"
     count = len(listdir(f"{data_root}/data/frames/"))  # this is used to number the 'frames' folder
     frame_dir = f"{data_root}/data/frames/frame{count}"
     if not os.path.exists(frame_dir):
