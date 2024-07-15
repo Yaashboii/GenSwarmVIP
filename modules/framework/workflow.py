@@ -6,7 +6,7 @@ from modules.framework.action import *
 from modules.framework.actions.generate_functions import GenerateFunctions
 from modules.framework.handler import *
 from modules.utils.logger import setup_logger
-from modules.framework.context.workflow_context import WorkflowContext
+from modules.framework.context import WorkflowContext
 from modules.file import File, logger
 from modules.utils.root import root_manager
 
@@ -36,10 +36,10 @@ class Workflow:
         project_root = root_manager.project_root
         os.makedirs(os.path.join(workspace_root, "data/frames"))
 
-        util_file = File(root=os.path.join(project_root, "modules/deployment/run_files"), name="apis.py")
+        util_file = File(root=os.path.join(project_root, "modules/deployment/execution_scripts"), name="apis.py")
         util_file.copy(root=workspace_root)
 
-        run_file = File(root=os.path.join(project_root, "modules/deployment/run_files"), name="run.py")
+        run_file = File(root=os.path.join(project_root, "modules/deployment/execution_scripts"), name="run.py")
         run_file.copy(root=workspace_root)
 
     def build_up(self):
