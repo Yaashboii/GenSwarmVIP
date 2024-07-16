@@ -1,0 +1,15 @@
+"api_base": {
+  "GPT": "input the GPT api base here",
+  "QWEN": "input the QWEN api base here",
+  "CLAUDE": "input the CLAUDE api base here"
+}
+"api_key": {
+  "GPT": "input your gpt api here",
+  "QWEN": "input your qwen api here",
+  "CLAUDE": "input your claude api here"
+}
+"model": {
+  "GPT": "gpt-4o",
+  "QWEN": "qwen-vl-plus",
+  "CLAUDE": "claude-3.5-sonnet-20240620"
+}
