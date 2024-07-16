@@ -1,11 +1,11 @@
 {
     "display": {
+        "#width and height note": "unit: meter",
         "width": 6,
         "height": 6,
-        "#width and height note": "unit: meter",
 
-        "scale_factor": 100,
         "#scale_factor_note": "1 meter = 100 pixel",
+        "scale_factor": 100
     },
 
     "#entity note": "position/size/perceptual_range unit: meter",
