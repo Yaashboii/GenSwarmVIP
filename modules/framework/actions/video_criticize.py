@@ -5,7 +5,7 @@ from openai import AsyncOpenAI
 from modules.framework.action import ActionNode
 from modules.framework.code.function_node import State, FunctionNode
 from modules.framework.code.function_tree import FunctionTree
-from modules.framework.constraints import ConstraintPool
+from modules.framework.constraint import ConstraintPool
 from modules.framework.code.grammar_checker import GrammarChecker
 from modules.framework.code_error import Bug, Bugs, Feedback
 

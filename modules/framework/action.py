@@ -6,7 +6,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from modules.framework.code.function_tree import FunctionTree
 from modules.framework.context import WorkflowContext
-from modules.framework.constraints import ConstraintPool
+from modules.framework.constraint import ConstraintPool
 from modules.utils import setup_logger, LoggerLevel, root_manager
 from modules.llm import GPT
 from modules.framework.code_error import CodeError
