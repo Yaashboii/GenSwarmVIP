@@ -8,7 +8,7 @@ import numpy as np
 from modules.file.log_file import logger
 
 
-def generate_video_from_frames(frames_folder, video_path, fps=50):
+def generate_video_from_frames(frames_folder, video_path, fps=100):
     logger.log(f"Generating video from frames in {frames_folder}...")
     try:
         frame_files = sorted(

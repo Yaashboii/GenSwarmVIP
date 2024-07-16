@@ -9,9 +9,8 @@ from modules.deployment.env import EnvironmentBase
 
 
 class ConfigurableEnvironment(EnvironmentBase):
-    def __init__(self, width: int, height: int, data_file: str = None, output_file: str = "output.json"):
-        super().__init__(width, height)
-        self.data_file = data_file
+    def __init__(self, data_file: str = None, output_file: str = "output.json"):
+        super().__init__(data_file)
         self.output_file = output_file
         self.generated_entities = []
         if self.data_file:
@@ -31,16 +30,13 @@ class ConfigurableEnvironment(EnvironmentBase):
 
         def add_specified_entities(entity_type, entity_class, color=None):
             nonlocal entity_id
-            for entity_data in data["entities"][entity_type]["specified"]:
+            for entity_data in self.data["entities"][entity_type]["specified"]:
                 entity = entity_class(entity_id, entity_data["position"], entity_data["size"])
                 if color:
                     entity.color = entity_data.get("color", color)
                 self.add_entity(entity)
                 self.generated_entities.append(entity)
                 entity_id += 1
-
-        with open(self.data_file, 'r') as file:
-            data = json.load(file)
 
         entity_id = 0
 
@@ -51,11 +47,12 @@ class ConfigurableEnvironment(EnvironmentBase):
         add_specified_entities("robot", Robot, "green")
 
         # Add remaining robots
-        for _ in range(data["entities"]["robot"]["count"] - len(data["entities"]["robot"]["specified"])):
-            size = 5.0
-            shape = 'circle'
+        for _ in range(self.data["entities"]["robot"]["count"] - len(self.data["entities"]["robot"]["specified"])):
+            size = self.data["entities"]["robot"]["size"]
+            shape = self.data["entities"]["robot"]["shape"]
+            color = self.data["entities"]["robot"]["color"]
             position = generate_random_position(size, shape)
-            robot = Robot(entity_id, position, size, color="green")
+            robot = Robot(entity_id, position, size, color=color)
             self.add_entity(robot)
             self.generated_entities.append(robot)
             entity_id += 1
@@ -104,3 +101,28 @@ class ConfigurableEnvironment(EnvironmentBase):
 
         with open(self.output_file, 'w') as file:
             json.dump(entities_data, file, indent=4)
+
+if __name__ == '__main__':
+    env = ConfigurableEnvironment("../../../config/env_config.json")
+
+    screen = pygame.display.set_mode((env.width, env.height))
+    clock = pygame.time.Clock()
+
+    import time
+    try:
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+            dt = clock.tick(10) / 1000
+            env.update(dt)
+            env.draw(screen)
+            frame = pygame.surfarray.array3d(screen).astype(np.uint8)
+            frame = np.rot90(frame, 3)
+            frame = np.flip(frame, axis=1)
+
+            time.sleep(0.1)
+    finally:
+        print("Shutting down")
+        pygame.quit()
+        env.save_entities_to_file()

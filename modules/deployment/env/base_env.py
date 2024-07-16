@@ -1,3 +1,4 @@
+import json
 import time
 from abc import ABC
 
@@ -8,21 +9,24 @@ from modules.deployment.engine import Box2DEngine, QuadTreeEngine, OmniEngine
 
 
 class EnvironmentBase(ABC):
-    def __init__(self, width: int, height: int, engine_type='QuadTreeEngine'):
+    def __init__(self, data_file: str, engine_type='QuadTreeEngine'):
         """
         Base class for environments.
         Args:
-            width (int): The width of the environment.
-            height (int): The height of the environment.
+            data_file (str): The environment display info and entity info
             engine_type (str): The type of physics engine to use.
-
         """
-        self._width = width
-        self._height = height
+        self.data_file = data_file
+        with open(self.data_file, 'r') as file:
+            self.data = json.load(file)
+        self.scale_factor = self.data['display']['scale_factor']
+        self._width = self.data['display']['width']
+        self._height = self.data['display']['height']
+
         self._entities = []
         self._engine_type = engine_type
         if engine_type == 'QuadTreeEngine':
-            self._engine = QuadTreeEngine(world_size=(width, height),
+            self._engine = QuadTreeEngine(world_size=(self._width, self._height),
                                           alpha=0.9,
                                           damping=0.75,
                                           collision_check=True,
@@ -123,13 +127,7 @@ class EnvironmentBase(ABC):
     def update(self, dt: float):
         if self._dt is None:
             self._dt = dt
-        start_time = time.time()
         state = self._engine.step(self._dt)
-        # for entity in self._entities:
-        #     entity.position = state[0][entity.id]
-        #     entity.velocity = state[1][entity.id]
-        end_time = time.time()
-        update_duration = end_time - start_time
 
     def get_observation(self):
         obs = {}
@@ -147,11 +145,16 @@ class EnvironmentBase(ABC):
     def draw(self, screen):
         screen.fill((255, 255, 255))
         for entity in self.entities:
+            pixel_pos = [int(i * self.scale_factor) for i in entity.position]
             if entity.shape == 'circle':
-                pygame.draw.circle(screen, pygame.Color(entity.color), entity.position.astype(int), int(entity.size))
+                pygame.draw.circle(screen, pygame.Color(entity.color), pixel_pos, int(entity.size*self.scale_factor))
             else:
-                rect = pygame.Rect(entity.position[0] - entity.size[0] / 2, entity.position[1] - entity.size[1] / 2,
-                                   entity.size[0], entity.size[1])
+                rect = pygame.Rect(
+                    (entity.position[0] - entity.size[0] / 2) * self.scale_factor,
+                    (entity.position[1] - entity.size[1] / 2) * self.scale_factor,
+                    entity.size[0] * self.scale_factor,
+                    entity.size[1] * self.scale_factor,
+                )
                 pygame.draw.rect(screen, pygame.Color(entity.color), rect)
         pygame.display.flip()
 
@@ -207,89 +210,91 @@ class EnvironmentBase(ABC):
 
 
 if __name__ == '__main__':
-    from modules.deployment.entity import Robot
-    import matplotlib.pyplot as plt
-    from scipy.signal import find_peaks
+    env = EnvironmentBase("../../../config/env_config.json")
 
-
-    def calculate_performance_metrics(time_data, velocity_data, desired_velocity_x):
-        # 上升时间
-        try:
-            rise_time_index = np.where(velocity_data >= 0.9 * desired_velocity_x)[0][0]
-
-            rise_time = time_data[rise_time_index]
-        except:
-            rise_time = 0
-        # 峰值时间和最大超调量
-        peaks, _ = find_peaks(velocity_data)
-        peak_time = time_data[peaks[0]] if len(peaks) > 0 else None
-        max_overshoot = ((velocity_data[peaks[0]] - desired_velocity_x) / desired_velocity_x) * 100 if len(
-            peaks) > 0 else 0
-
-        # 稳态误差
-        steady_state_value = velocity_data[-1]
-        steady_state_error = desired_velocity_x - steady_state_value
-
-        return rise_time, peak_time, max_overshoot, steady_state_error
-
-
-    def generate_signals(signal_type, amplitude, frequency, duration, time_step):
-        t = np.arange(0, duration, time_step)
-        if signal_type == 'sine':
-            signal = amplitude * np.sin(2 * np.pi * frequency * t)
-        elif signal_type == 'square':
-            signal = amplitude * np.sign(np.sin(2 * np.pi * frequency * t))
-        else:
-            raise ValueError(f"Unsupported signal type: {signal_type}")
-        return t, signal
-
-
-    env = EnvironmentBase(1000, 1000, engine_type='Box2DEngine')
-    env.add_entity(Robot(0, np.array([500, 500]), 10.0))
-
-    # 信号参数
-    amplitude = 50
-    frequency = 10
-    signal_type = 'square'  # 可以改为 'square' 来测试方波信号
-    time_step = 1 / 100  # 时间步长
-    total_time = 1  # 总模拟时间
-
-    time_data, signal_data = generate_signals(signal_type, amplitude, frequency, total_time, time_step)
-    velocity_data = []
-    # env.set_entity_velocity(0, amplitude)
-
-    for current_time, desired_velocity_x in zip(time_data, signal_data):
-        env.update(time_step)
-        desired_velocity = np.array([desired_velocity_x, 0.0])
-        env.set_entity_velocity(0, desired_velocity)
-
-        # 获取并打印当前状态
-        velocity = env.get_entity_velocity(0)
-        velocity_data.append(velocity[0])
-        print(f"Time: {current_time:.2f}, Velocity: {velocity}")
-
-    # 计算动态性能指标
-    velocity_data = np.array(velocity_data)
-    rise_time, peak_time, max_overshoot, steady_state_error = calculate_performance_metrics(time_data, velocity_data,
-                                                                                            amplitude)
-
-    # 打印性能指标
-    print(f"Rise Time: {rise_time:.2f} s")
-    if peak_time:
-        print(f"Peak Time: {peak_time:.2f} s")
-        print(f"Maximum Overshoot: {max_overshoot:.2f} %")
-    print(f"Steady-State Error: {steady_state_error:.2f} m/s")
-
-    # 绘图
-    plt.figure(figsize=(10, 6))
-    plt.plot(time_data, velocity_data, label='Velocity (x direction)')
-    plt.plot(time_data, signal_data, '--', label='Desired Signal')
-    plt.axvline(x=rise_time, color='g', linestyle='--', label='Rise Time')
-    if peak_time:
-        plt.axvline(x=peak_time, color='b', linestyle='--', label='Peak Time')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Velocity (m/s)')
-    plt.title(f'Velocity over Time ({signal_type.capitalize()} Signal)')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+    # from modules.deployment.entity import Robot
+    # import matplotlib.pyplot as plt
+    # from scipy.signal import find_peaks
+    #
+    #
+    # def calculate_performance_metrics(time_data, velocity_data, desired_velocity_x):
+    #     # 上升时间
+    #     try:
+    #         rise_time_index = np.where(velocity_data >= 0.9 * desired_velocity_x)[0][0]
+    #
+    #         rise_time = time_data[rise_time_index]
+    #     except:
+    #         rise_time = 0
+    #     # 峰值时间和最大超调量
+    #     peaks, _ = find_peaks(velocity_data)
+    #     peak_time = time_data[peaks[0]] if len(peaks) > 0 else None
+    #     max_overshoot = ((velocity_data[peaks[0]] - desired_velocity_x) / desired_velocity_x) * 100 if len(
+    #         peaks) > 0 else 0
+    #
+    #     # 稳态误差
+    #     steady_state_value = velocity_data[-1]
+    #     steady_state_error = desired_velocity_x - steady_state_value
+    #
+    #     return rise_time, peak_time, max_overshoot, steady_state_error
+    #
+    #
+    # def generate_signals(signal_type, amplitude, frequency, duration, time_step):
+    #     t = np.arange(0, duration, time_step)
+    #     if signal_type == 'sine':
+    #         signal = amplitude * np.sin(2 * np.pi * frequency * t)
+    #     elif signal_type == 'square':
+    #         signal = amplitude * np.sign(np.sin(2 * np.pi * frequency * t))
+    #     else:
+    #         raise ValueError(f"Unsupported signal type: {signal_type}")
+    #     return t, signal
+    #
+    #
+    # env = EnvironmentBase(1000, 1000, engine_type='Box2DEngine')
+    # env.add_entity(Robot(0, np.array([500, 500]), 10.0))
+    #
+    # # 信号参数
+    # amplitude = 50
+    # frequency = 10
+    # signal_type = 'square'  # 可以改为 'square' 来测试方波信号
+    # time_step = 1 / 100  # 时间步长
+    # total_time = 1  # 总模拟时间
+    #
+    # time_data, signal_data = generate_signals(signal_type, amplitude, frequency, total_time, time_step)
+    # velocity_data = []
+    # # env.set_entity_velocity(0, amplitude)
+    #
+    # for current_time, desired_velocity_x in zip(time_data, signal_data):
+    #     env.update(time_step)
+    #     desired_velocity = np.array([desired_velocity_x, 0.0])
+    #     env.set_entity_velocity(0, desired_velocity)
+    #
+    #     # 获取并打印当前状态
+    #     velocity = env.get_entity_velocity(0)
+    #     velocity_data.append(velocity[0])
+    #     print(f"Time: {current_time:.2f}, Velocity: {velocity}")
+    #
+    # # 计算动态性能指标
+    # velocity_data = np.array(velocity_data)
+    # rise_time, peak_time, max_overshoot, steady_state_error = calculate_performance_metrics(time_data, velocity_data,
+    #                                                                                         amplitude)
+    #
+    # # 打印性能指标
+    # print(f"Rise Time: {rise_time:.2f} s")
+    # if peak_time:
+    #     print(f"Peak Time: {peak_time:.2f} s")
+    #     print(f"Maximum Overshoot: {max_overshoot:.2f} %")
+    # print(f"Steady-State Error: {steady_state_error:.2f} m/s")
+    #
+    # # 绘图
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(time_data, velocity_data, label='Velocity (x direction)')
+    # plt.plot(time_data, signal_data, '--', label='Desired Signal')
+    # plt.axvline(x=rise_time, color='g', linestyle='--', label='Rise Time')
+    # if peak_time:
+    #     plt.axvline(x=peak_time, color='b', linestyle='--', label='Peak Time')
+    # plt.xlabel('Time (s)')
+    # plt.ylabel('Velocity (m/s)')
+    # plt.title(f'Velocity over Time ({signal_type.capitalize()} Signal)')
+    # plt.legend()
+    # plt.grid(True)
+    # plt.show()

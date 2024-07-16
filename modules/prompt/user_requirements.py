@@ -2,10 +2,11 @@ tasks = {
     "flocking": "Integrate into one flock by collaborating with all of robots within the map's range, "
                 "adhering to cohesion by staying connected with all robots within the map's range, "
                 "alignment by moving together with all the robots within the map's range,"
-                "and separation by maintaining at least 50 meters between robots."
+                "and separation by maintaining at least 0.3 meters between robots."
                 "Additionally, avoid collisions with obstacles and boundaries."
-                "Keep a distance of 50 meters from obstacles."
-                "Keep a distance of 50 meters from boundaries.",
+                "Keep a distance of 0.3 meters from obstacles."
+                "Keep a distance of 0.3 meters from boundaries.",
+
     "cover": "Evenly sample target positions across the entire map, then assign the corresponding position based on each robot's ID."
              "The allocation algorithm should be efficient and conflict-free."
              "The number of robots is not fixed, but it is crucial to ensure that all robots are evenly distributed on the map."

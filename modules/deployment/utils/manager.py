@@ -50,7 +50,7 @@ class Manager:
         """
         velocity_callback is a callback function for the velocity topic.
         """
-        desired_velocity = np.array([data.linear.x, data.linear.y]) * 30
+        desired_velocity = np.array([data.linear.x, data.linear.y])
         print(f"Received velocity for robot {i}: {desired_velocity}")
         self.env.set_entity_velocity(i, desired_velocity)
 

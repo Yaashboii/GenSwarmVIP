@@ -13,7 +13,7 @@ from modules.deployment.utils.manager import Manager
 def main():
     pygame.init()
 
-    env = ConfigurableEnvironment(1000, 1000, data_file='../config/env_config.json')
+    env = ConfigurableEnvironment(data_file='../config/env_config.json')
     # env = CrossEnvironment(1000, 1000, radius=450, robot_num=150, obstacle_num=30)
     # env = FormationEnvironment(1000, 1000, robot_num=150)
     # env = PursuitEnvironment(1000, 1000, robot_num=10, obstacle_num=10)
@@ -24,7 +24,7 @@ def main():
     # env = AssemblyEnvironment(1000, 1000, robot_num=10)
     # env = MoveEnvironment(1000, 1000, robot_num=6, obstacle_num=100)
     # env=MoveFormationEnvironment(1000, 1000, robot_num=5, obstacle_num=30)
-    screen = pygame.display.set_mode((env.width, env.height))
+    screen = pygame.display.set_mode((env.width * env.scale_factor, env.height * env.scale_factor))
     clock = pygame.time.Clock()
 
     manager = Manager(env)
@@ -50,7 +50,7 @@ def main():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-            dt = clock.tick(10) / 1000
+            dt = clock.tick(100) / 1000
             env.update(dt)
             if draw_counter % draw_frequency == 0:
                 env.draw(screen)
@@ -69,18 +69,6 @@ def main():
         print("Shutting down")
         pygame.quit()
         env.save_entities_to_file()
-
-    # def draw(self, screen):
-    #     screen.fill((255, 255, 255))
-    #     for entity in self._entities:
-    #         if entity.shape == 'circle':
-    #             pygame.draw.circle(screen, pygame.Color(entity.color), entity.position.astype(int), int(entity.size))
-    #         else:
-    #             rect = pygame.Rect(entity.position[0] - entity.size[0] / 2, entity.position[1] - entity.size[1] / 2,
-    #                                entity.size[0], entity.size[1])
-    #             pygame.draw.rect(screen, pygame.Color(entity.color), rect)
-    #     pygame.display.flip()
-
 
 if __name__ == "__main__":
     main()
