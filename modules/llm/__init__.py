@@ -1,12 +1,13 @@
-from .api_keys import key_manager, api_base
+from .model_manager import model_manager
 from .llm import BaseLLM
 from .claude import Claude
 from .gpt import GPT
+from .qwen import QWEN
 
 __all__ = [
-    'api_base',
-    'key_manager',
+    'model_manager',
     'BaseLLM',
     'Claude',
     'GPT',
+    'QWEN',
 ]
