@@ -8,7 +8,7 @@ from .cross_env import CrossEnvironment
 from .assembly_env import AssemblyEnvironment
 from .cover_env import CoverEnvironment
 from .explore_env import ExploreEnvironment
-# .move_formation import MoveFormationEnvironment
+from .move_formation import MoveFormationEnvironment
 
 __all__ = [
     'EnvironmentBase',
@@ -20,4 +20,5 @@ __all__ = [
     'AssemblyEnvironment',
     'CoverEnvironment',
     'ExploreEnvironment',
+    'MoveFormationEnvironment'
 ]
