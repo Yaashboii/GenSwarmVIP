@@ -86,17 +86,18 @@ class FunctionTree:
         return result
 
     def update(self):
-        old_layers = self._layers.copy()
 
-        self._reset_layers()
-        layer_head = self._get_bottom_layer()
-        set_visited_nodes = set()
-        self._build_up(layer_head, set_visited_nodes)
-
-        # self._layers.append(self._last_layer)
-        self._update_function_to_layer()
-
-        self._clear_changed_function_states(old_layers)
+        # old_layers = self._layers.copy()
+        #
+        # self._reset_layers()
+        # layer_head = self._get_bottom_layer()
+        # set_visited_nodes = set()
+        # self._build_up(layer_head, set_visited_nodes)
+        #
+        # # self._layers.append(self._last_layer)
+        # self._update_function_to_layer()
+        #
+        # self._clear_changed_function_states(old_layers)
         logger.log(
             f"layers: {[[f.name for f in layer] for layer in self._layers]}",
             level="warning",
