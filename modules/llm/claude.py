@@ -2,24 +2,20 @@ import os
 from anthropic import AsyncAnthropic
 from tenacity import retry, stop_after_attempt, stop_after_delay, wait_random_exponential
 
-from modules.llm import BaseLLM, api_base, key_manager
+from modules.llm import BaseLLM, model_manager
 
 
 class Claude(BaseLLM):
     """
-    Class for interacting with OpenAI's GPT model.
+    Class for interacting with Claude model.
 
-    This class provides methods specific to OpenAI's GPT model.
-
-    Args:
-        client (AsyncOpenAI): AsyncOpenAI client for interacting with the API.
+    This class provides methods specific to Claude's models.
     """
 
-    def __init__(self, client: AsyncAnthropic = None, model: str = "claude-3.5-sonnet-20240620", memorize: bool = False,
-                 stream_output: bool = False) -> None:
-        super().__init__(model, memorize, stream_output)
-        self.key = key_manager.allocate_key()
-        self._client = AsyncAnthropic(api_key=self.key, base_url=api_base) if client is None else client
+    def __init__(self, memorize: bool = False, stream_output: bool = False) -> None:
+        self.api_base, self.key, self.model = model_manager.allocate(model_family="GPT")
+        super().__init__(self.model, memorize, stream_output)
+        self._client = AsyncAnthropic(api_key=self.key, base_url=self.api_base)
 
     @retry(
         stop=(stop_after_attempt(5) | stop_after_delay(500)),

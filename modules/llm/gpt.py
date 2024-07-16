@@ -1,5 +1,5 @@
 from openai import AsyncOpenAI
-from modules.llm import api_base, key_manager, BaseLLM
+from modules.llm import BaseLLM, model_manager
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -18,11 +18,10 @@ class GPT(BaseLLM):
         client (AsyncOpenAI): AsyncOpenAI client for interacting with the API.
     """
 
-    def __init__(self, client: AsyncOpenAI = None, model: str = "gpt-4o", memorize: bool = False,
-                 stream_output: bool = False) -> None:
-        super().__init__(model, memorize, stream_output)
-        self.key = key_manager.allocate_key()
-        self._client = AsyncOpenAI(api_key=self.key, base_url=api_base) if client is None else client
+    def __init__(self, memorize: bool = False, stream_output: bool = False) -> None:
+        self.api_base, self.key, self.model = model_manager.allocate(model_family="GPT")
+        super().__init__(self.model, memorize, stream_output)
+        self._client = AsyncOpenAI(api_key=self.key, base_url=self.api_base)
 
     @retry(
         stop=(stop_after_attempt(5) | stop_after_delay(500)),
