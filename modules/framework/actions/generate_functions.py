@@ -44,7 +44,7 @@ class GenerateFunctions(ActionNode):
 
         self._write_run = ActionLinkedList('Write Run', write_run)
         # self._write_run.add(code_review)
-        self._write_run.add(grammar_check)
+        # self._write_run.add(grammar_check)
 
     def _build_prompt(self):
         pass
@@ -62,8 +62,8 @@ class GenerateFunctions(ActionNode):
         await self._write_run.run_internal_actions()
         end_time = time.time()
         self._cost_time = end_time - start_time
-        code_analyzer = CodeAnalyzer(code=self._function_pool.file.read())
-        self._average_complexity, self._mi_score = code_analyzer.analyze()
+        # code_analyzer = CodeAnalyzer(code=self._function_pool.file.read())
+        # self._average_complexity, self._mi_score = code_analyzer.analyze()
         logger.log(f"Generate functions cost time: {self._cost_time}", "warning")
-        logger.log(f"average complexity: {self._average_complexity}, mi score: {self._mi_score}", "warning")
+        # logger.log(f"average complexity: {self._average_complexity}, mi score: {self._mi_score}", "warning")
         logger.log("All functions are generated", "warning")
