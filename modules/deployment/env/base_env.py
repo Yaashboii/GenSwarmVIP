@@ -4,7 +4,7 @@ from abc import ABC
 import numpy as np
 import pygame
 
-from modules.deployment.engine import Box2DEngine, QuadTreeEngine
+from modules.deployment.engine import Box2DEngine, QuadTreeEngine, OmniEngine
 
 
 class EnvironmentBase(ABC):
@@ -30,7 +30,6 @@ class EnvironmentBase(ABC):
         elif engine_type == 'Box2DEngine':
             self._engine = Box2DEngine()
         elif engine_type == 'Omni_Engine':
-            from modules.deployment.engine.omni_engine import OmniEngine
             self._engine = OmniEngine()
         else:
             raise ValueError(f"Unsupported engine type: {engine_type}")
