@@ -24,8 +24,8 @@ if __name__ == '__main__':
     # args = parameter_service.args
     # run_task(task, args)
     parameter_service = ParameterService()
-    config_file = 'base_config.yaml'
-    parameter_service.add_arguments_from_yaml(f'../config/experiment_config/{config_file}')
+    config_file = 'experiment_config.yaml'
+    parameter_service.add_arguments_from_yaml(f'../config/{config_file}')
     task = get_user_commands('flocking')[0]
 
     args = parameter_service.args

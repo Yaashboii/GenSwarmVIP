@@ -13,7 +13,7 @@ from modules.deployment.utils.manager import Manager
 def main():
     pygame.init()
 
-    env = ConfigurableEnvironment(1000, 1000, data_file='env_config/base.json')
+    env = ConfigurableEnvironment(1000, 1000, data_file='../config/env_config.json')
     # env = CrossEnvironment(1000, 1000, radius=450, robot_num=150, obstacle_num=30)
     # env = FormationEnvironment(1000, 1000, robot_num=150)
     # env = PursuitEnvironment(1000, 1000, robot_num=10, obstacle_num=10)

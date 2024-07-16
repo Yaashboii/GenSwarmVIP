@@ -1,6 +1,6 @@
 import unittest
 from modules.framework.code.function_node import FunctionNode, State
-from modules.framework.constraints import ConstraintNode
+from modules.framework.constraint import ConstraintNode
 
 
 class TestNodes(unittest.TestCase):

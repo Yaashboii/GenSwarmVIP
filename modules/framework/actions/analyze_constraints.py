@@ -12,7 +12,7 @@ from modules.prompt import (
     TASK_DES,
 )
 from modules.file.log_file import logger
-from modules.framework.constraints import ConstraintPool
+from modules.framework.constraint import ConstraintPool
 from modules.framework.response import *
 
 

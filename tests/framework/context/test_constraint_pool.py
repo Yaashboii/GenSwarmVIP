@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, PropertyMock, Mock
-from modules.framework.constraints import ConstraintNode, ConstraintPool
+from modules.framework.constraint import ConstraintNode, ConstraintPool
 from modules.file.file import File
 
 

@@ -1,11 +1,12 @@
 {
     "entities": {
         "robot": {
-            "count": 200,
+            "count": 50,
             "specified": [
                 {"position": [100, 150], "size": 5.0},
                 {"position": [200, 250], "size": 5.0}
-            ]
+            ],
+            "perceptual_range": 50
         },
         "leader": {
             "count": 0,
