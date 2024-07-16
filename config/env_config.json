@@ -1,35 +1,46 @@
 {
+    "display": {
+        "width": 6,
+        "height": 6,
+        "#width and height note": "unit: meter",
+
+        "scale_factor": 100,
+        "#scale_factor_note": "1 meter = 100 pixel",
+    },
+
+    "#entity note": "position/size/perceptual_range unit: meter",
+    "#size note": "the radium of the circle robot | the side length of the square robot",
     "entities": {
         "robot": {
             "count": 50,
+            "size": 0.15,
+            "color": "green",
+            "shape": "circle",
             "specified": [
-                {"position": [100, 150], "size": 5.0},
-                {"position": [200, 250], "size": 5.0}
+                {"position": [3, 1.5], "size": 0.15},
+                {"position": [3, 2.5], "size": 0.15}
             ],
-            "perceptual_range": 50
+            "perceptual_range": 1
         },
         "leader": {
             "count": 0,
-            "specified": [
-
-            ]
+            "specified": []
         },
         "obstacle": {
             "count": 10,
             "specified": [
-                {"position": [112, 400], "size": 30.0, "color": "blue"},
-                {"position": [245, 700], "size": 30.0, "color": "blue"},
-                {"position": [480, 590], "size": 30.0, "color": "blue"},
-
-                {"position": [380, 760], "size": 30.0, "color": "blue"},
-                {"position": [480, 510], "size": 30.0, "color": "blue"},
-                {"position": [582, 720], "size": 30.0, "color": "blue"},
-                {"position": [620, 340], "size": 30.0, "color": "blue"},
-                {"position": [720, 490], "size": 30.0, "color": "blue"},
-                {"position": [430, 390], "size": 30.0, "color": "blue"},
-                {"position": [900, 290], "size": 30.0, "color": "blue"},
-                {"position": [10, 190], "size": 30.0, "color": "blue"},
-                {"position": [200, 100], "size": 30.0, "color": "blue"}
+                {"position": [1.12, 4.00], "size": 0.15, "color": "blue"},
+                {"position": [2.45, 7.00], "size": 0.15, "color": "blue"},
+                {"position": [4.80, 5.90], "size": 0.15, "color": "blue"},
+                {"position": [3.80, 7.60], "size": 0.15, "color": "blue"},
+                {"position": [4.80, 5.10], "size": 0.15, "color": "blue"},
+                {"position": [5.82, 7.20], "size": 0.15, "color": "blue"},
+                {"position": [6.20, 3.40], "size": 0.15, "color": "blue"},
+                {"position": [7.20, 4.90], "size": 0.15, "color": "blue"},
+                {"position": [4.30, 3.90], "size": 0.15, "color": "blue"},
+                {"position": [9.00, 2.90], "size": 0.15, "color": "blue"},
+                {"position": [1.00, 1.90], "size": 0.15, "color": "blue"},
+                {"position": [2.00, 1.00], "size": 0.15, "color": "blue"}
             ]
         },
         "landmark": {
