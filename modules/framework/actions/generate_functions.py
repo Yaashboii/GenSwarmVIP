@@ -43,7 +43,7 @@ class GenerateFunctions(ActionNode):
         self._actions.add(grammar_check)
 
         self._write_run = ActionLinkedList('Write Run', write_run)
-        self._write_run.add(code_review)
+        # self._write_run.add(code_review)
         self._write_run.add(grammar_check)
 
     def _build_prompt(self):
