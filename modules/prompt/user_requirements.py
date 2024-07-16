@@ -16,8 +16,7 @@ tasks = {
                "The robots move along this path to fully explore their assigned region.",
     "pursuit": "Some robots play the role of shepherd dogs. There are many sheep in the environment, and you need to work together to herd them into a designated area."
                "You must be fast while ensuring the sheep do not escape the boundaries of the environment.",
-    "cross": "The robot needs to move to the target position while maintaining a distance of at least 0.2 meters from other robots to avoid collisions."
-             "Additionally, Keep a distance of 30 meters from obstacles",
+    "cross": "The robot needs to maintain a distance of at least 0.3 meters from other robots and obstacles while moving to the target position to avoid collisions. During movement, it should implement adjustment strategies to avoid congestion among multiple robots and improve overall efficiency.",
     "formation": "You need to form a specific shape with other robots. Avoid collisions with other robots as much as possible."
                  "The number of robots is not fixed, so you can design a highly efficient target allocation algorithm based on robot id."
                  "It is important to collaborate effectively and use high-efficiency algorithms to find your position while also avoiding competition for the same spot with others."
@@ -44,7 +43,7 @@ You need to collaborate with other robots to move "red" objects to the x > 900 s
     You need to collaborate with other robots to transport the object to its target location.
     """,
     'dog_sheep': """
-You play the role of a shepherd dog, and you need to herd the flock to the position (500, 500).
+You play the role of a shepherd dog, and you need to herd the flock to the position (500, 500)
 Therefore, you need to calculate the minimum radius of a circle centered at (500, 500) that covers all the sheep. 
 Then, the robots should be evenly distributed around this circle which radius= calculated radius+ 2*robot radius.
 Assign points on the circumference based on the principle of minimizing the distance each robot needs to move to reach its target position.
