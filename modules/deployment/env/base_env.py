@@ -29,6 +29,9 @@ class EnvironmentBase(ABC):
                                           joint_constraint=True)
         elif engine_type == 'Box2DEngine':
             self._engine = Box2DEngine()
+        elif engine_type == 'Omni_Engine':
+            from modules.deployment.engine.omni_engine import OmniEngine
+            self._engine = OmniEngine()
         else:
             raise ValueError(f"Unsupported engine type: {engine_type}")
         self._simulation_data = {}
@@ -90,7 +93,6 @@ class EnvironmentBase(ABC):
         """Set the velocity of the entity with the specified ID."""
         for entity in self._entities:
             if entity.id == entity_id:
-                print(f"Setting velocity of entity {entity_id} to {velocity}.")
                 self._engine.control_velocity(entity_id, velocity, self._dt)
                 return
         raise ValueError(f"No entity with ID {entity_id} found.")
