@@ -1,0 +1,96 @@
+import socket
+import threading
+import time
+import rospy
+from code_llm.msg import Observations
+import os
+from paho.mqtt import client as mqtt_client
+from rospy_message_converter import json_message_converter
+
+
+class MqttClientThread:
+    def __init__(self, broker, port, keepalive, client_id):
+        self.broker = broker  # MQTT代理服务器地址
+        self.port = port
+        self.keepalive = keepalive
+        self.client_id = client_id
+        self.stop_event = threading.Event()
+        self.client = self.connect_mqtt()
+        self.client.on_message = self.mqtt_callback
+        self.client.subscribe('/observation')
+        rospy.init_node("robot_sub")
+        self.observation_pub = rospy.Publisher("/sim_observation", Observations, queue_size=1)
+
+    def connect_mqtt(self):
+        '''连接MQTT代理服务器'''
+
+        def on_connect(client, userdata, flags, rc):
+            '''连接回调函数'''
+            if rc == 0:
+                print("Connected to MQTT OK!")
+            else:
+                print(f"Failed to connect, return code {rc}")
+
+        client = mqtt_client.Client(self.client_id)
+        client.on_connect = on_connect
+        client.connect(self.broker, self.port, self.keepalive)
+        return client
+
+    def mqtt_callback(self, client, userdata, msg):
+        '''订阅消息回调函数'''
+        print('call back ')
+        if msg.topic == '/observation':
+            obs_msg = msg.payload.decode()
+            message = json_message_converter.convert_json_to_ros_message('code_llm/Observations', obs_msg)
+            print(f"Received message from topic {msg.topic}")
+            self.observation_pub.publish(message)
+        else:
+            print(f"Unknown topic {msg.topic}")
+
+    def run(self):
+        while not self.stop_event.is_set():
+            self.client.loop(timeout=1.0)
+
+    def stop(self):
+        self.stop_event.set()
+
+
+def main():
+    broker_ip = "10.0.2.66"
+    port = 1883
+    keepalive = 60  # 与代理通信之间允许的最长时间段（以秒为单位）
+    client_id = f'{socket.gethostname()}_robot_sub'  # 客户端ID不能重复
+
+    try:
+        broker = os.environ['REMOTE_SERVER']
+    except KeyError:
+        broker = broker_ip
+
+    while os.system(f"ping -c 4 {broker}") != 0:
+        time.sleep(2)
+
+    # 启动MQTT客户端线程
+    mqtt_client_instance = MqttClientThread(broker=broker, port=port, keepalive=keepalive, client_id=client_id)
+    mqtt_thread = threading.Thread(target=mqtt_client_instance.run)
+    mqtt_thread.start()
+
+    ros_hz = 100
+    rate = rospy.Rate(ros_hz)
+
+    try:
+        while not rospy.is_shutdown():
+            rate.sleep()
+    except rospy.ROSInterruptException:
+        rospy.logerr("ROS Interrupt Exception! Just ignore the exception!")
+    except rospy.ROSTimeMovedBackwardsException:
+        rospy.logerr("ROS Time Backwards! Just ignore the exception!")
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt received, stopping...")
+    finally:
+        mqtt_client_instance.stop()
+        mqtt_thread.join()
+        print("MQTT client thread stopped.")
+
+
+if __name__ == "__main__":
+    main()

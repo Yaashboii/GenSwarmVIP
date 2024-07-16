@@ -37,11 +37,15 @@ services:
       context: ..
       dockerfile: ./docker/deploy.Dockerfile
     image: huabench/code-llm:deploy
-    # command: ansible-playbook ./deploy.yml
+    working_dir: /src
+    command: ansible-playbook ./docker/ansible/main.yml
     # command: /bin/bash
     volumes:
-      - ../..:/src
+      - ..:/src
       - ../config/hosts:/etc/ansible/hosts
     network_mode: host
     stdin_open: true
     tty: true
+    deploy:
+      restart_policy:
+        condition: none

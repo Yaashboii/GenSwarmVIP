@@ -1,4 +1,4 @@
 [SWARM]
-192.168.11.10 ansible_user=nvidia ansible_password=123
+10.16.19.164 ansible_user=nvidia ansible_password=123
 
 # new_IP ansible_user=username ansible_password=password
