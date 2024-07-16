@@ -1,0 +1,14 @@
+"api_base": {
+  "GPT": "https://api.xiaoai.plus/v1",
+  "QWEN": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+}
+"api_key": {
+  "GPT": "sk-5mU8poYeiI4bydH492B59125206344598312600438205f65",
+  "QWEN": "sk-99f55920b8834f6f8c1e78f8d3691c26",
+  "CLAUDE": "input your claude api here"
+}
+"model": {
+  "GPT": "gpt-4o",
+  "QWEN": "qwen-vl-plus",
+  "CLAUDE": "input the claude model here"
+}
