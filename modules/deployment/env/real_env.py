@@ -1,7 +1,6 @@
 import json
 
 import numpy as np
-import pygame
 
 from modules.deployment.entity.landmark import Landmark
 from modules.deployment.entity.leader import Leader
@@ -12,9 +11,10 @@ from modules.deployment.env.base_env import EnvironmentBase
 
 
 class RealEnvironment(EnvironmentBase):
-    def __init__(self, width: int, height: int, data_file: str = None, output_file: str = "output.json"):
-        super().__init__(width, height, engine_type='Omni_Engine')
+    def __init__(self, data_file: str = None, output_file: str = "output.json"):
+        super().__init__(data_file=data_file, engine_type='OmniEngine')
         self.data_file = data_file
+
         self.output_file = output_file
         self.generated_entities = []
 
@@ -25,16 +25,13 @@ class RealEnvironment(EnvironmentBase):
 
     def add_entities_from_config(self):
         def add_specified_entities(entity_type, entity_class, color=None):
-            for entity_data in data["entities"][entity_type]["specified"]:
-                entity_position = np.array(entity_data["position"]) * 100 + np.array([500, 500])
+            for entity_data in self.data["entities"][entity_type]["specified"]:
+                entity_position = np.array(entity_data["position"])
                 entity = entity_class(entity_data['id'], entity_position, entity_data["size"])
                 if color:
                     entity.color = entity_data.get("color", color)
                 self.add_entity(entity)
                 self.generated_entities.append(entity)
-
-        with open(self.data_file, 'r') as file:
-            data = json.load(file)
 
         add_specified_entities("leader", Leader, "red")
         add_specified_entities("obstacle", Obstacle)

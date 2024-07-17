@@ -26,7 +26,7 @@ data = {
         }
     }
 }
-data_template = {"id": 0, "position": [0, 0], "size": 15.0, "velocity": [0, 0]}
+data_template = {"id": 0, "position": [0, 0], "size": 0.15, "velocity": [0, 0]}
 
 entity_type_list = ['VSWARM', 'OBSTACLE']
 entity_type_mapping = {
