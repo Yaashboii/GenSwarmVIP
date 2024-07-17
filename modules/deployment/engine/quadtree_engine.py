@@ -99,30 +99,33 @@ class QuadTreeEngine(Engine):
                 entity.position = np.clip(entity.position, 0, self.world_size)
                 self.set_position(entity.id, entity.position)
 
-    #     # Iteratively resolve overlaps
-    #     for _ in range(1):  # Maximum 10 iterations
-    #         if not self._resolve_overlaps():
-    #             break
-    #
-    # def _resolve_overlaps(self):
-    #     """
-    #     Resolve overlaps between entities after movement.
-    #     Returns:
-    #         bool: True if any overlaps were resolved, False otherwise.
-    #     """
-    #     resolved_any = False
-    #     for entity in self._entities.values():
-    #         possible_collisions = self.quad_tree.retrieve(entity)
-    #         for other in possible_collisions:
-    #             if entity.id != other.id and self._check_collision(entity, other):
-    #                 self._resolve_overlap(entity, other)
-    #                 resolved_any = True
-    #     return resolved_any
+        # Iteratively resolve overlaps
+        # for _ in range(10):  # Maximum 10 iterations
+        #     if not self._resolve_overlaps():
+        #         break
+
+    def _resolve_overlaps(self):
+        """
+        Resolve overlaps between entities after movement.
+        Returns:
+            bool: True if any overlaps were resolved, False otherwise.
+        """
+        resolved_any = False
+        for entity in self._entities.values():
+            possible_collisions = self.quad_tree.retrieve(entity)
+            for other in possible_collisions:
+                if entity.id != other.id and self._check_collision(entity, other):
+                    if not (entity.moveable and other.moveable):
+                        continue
+                    self._resolve_overlap(entity, other)
+                    resolved_any = True
+        return resolved_any
 
     def _resolve_overlap(self, entity1: Entity, entity2: Entity):
         """
         Resolve overlap between two entities by adjusting their positions.
         """
+
         overlap_vector = entity1.position - entity2.position
         overlap_distance = np.linalg.norm(overlap_vector)
         if overlap_distance == 0:
@@ -132,6 +135,7 @@ class QuadTreeEngine(Engine):
         entity2.position -= correction_vector / 2
         self.set_position(entity1.id, entity1.position)
         self.set_position(entity2.id, entity2.position)
+
     def apply_force(self, entity_id: int, force: np.ndarray):
         """
         Apply a force to an entity in the environment.

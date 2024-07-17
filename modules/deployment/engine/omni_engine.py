@@ -12,16 +12,15 @@ class OmniEngine(Engine):
 
     def pose_callback(self, msg, args):
         entity_id, entity_type = args
-        position = np.array([msg.pose.position.x, msg.pose.position.y]) * 1000 + np.array([500, 500])
+        position = np.array([msg.pose.position.x, msg.pose.position.y])
         self.set_position(entity_id, position)
-        print(f"Setting position of entity {entity_id} to {position}")
+        print(f"update position of omni bot {entity_id} to {position}")
 
     def twist_callback(self, msg, args):
         entity_id, entity_type = args
         velocity = np.array([msg.twist.linear.x, msg.twist.linear.y])
         entity_id = int(entity_id)
         self.set_velocity(entity_id, velocity)
-
 
     def generate_subscribers(self, entity_id, entity_type):
         pose_topic = f"/vrpn_client_node/{entity_type.upper()}{entity_id}/pose"
@@ -44,7 +43,7 @@ class OmniEngine(Engine):
         rospy.sleep(delta_time)
 
     def apply_force(self, entity_id: int, force: np.ndarray):
-        print(f"Applying force {force} to entity {entity_id}")
+        print(f"Failed Applying force {force} to entity {entity_id} at omni bot")
 
     def control_velocity(self, entity_id, desired_velocity, dt=None):
-        print(f"Controlling velocity of entity {entity_id} to {desired_velocity}")
+        print(f"Failed Controlling velocity of entity {entity_id} to {desired_velocity} at omni bot")
