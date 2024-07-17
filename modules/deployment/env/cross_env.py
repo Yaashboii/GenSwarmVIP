@@ -42,8 +42,7 @@ class CrossEnvironment(EnvironmentBase):
                           size=7.0)
             self.add_entity(robot)
 
-        leader = Leader(leader_id=0, initial_position=(0, 0), size=10.0)
-        self.add_entity(leader)
+
 
     @staticmethod
     def find_farthest_points(points):
