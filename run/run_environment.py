@@ -12,8 +12,8 @@ from modules.deployment.utils.manager import Manager
 def main():
     pygame.init()
 
-    # env = ConfigurableEnvironment(1000, 1000, data_file='../config/env_config.json')
-    env = CrossEnvironment(1000, 1000, radius=450, robot_num=30, obstacle_num=30)
+    env = ConfigurableEnvironment( data_file='../config/env_config.json')
+    # env = CrossEnvironment(1000, 1000, radius=450, robot_num=30, obstacle_num=30)
     # env = FormationEnvironment(1000, 1000, robot_num=150)
     # env = PursuitEnvironment(1000, 1000, robot_num=10, obstacle_num=10)
     # env = ExploreEnvironment(1000, 1000, robot_num=4)
@@ -25,7 +25,7 @@ def main():
     # env=MoveFormationEnvironment(1000, 1000, robot_num=5, obstacle_num=30)
     # env = RealEnvironment(1000, 1000,
     #                       data_file='/home/derrick/catkin_ws/src/code_llm/modules/deployment/env/env_config/real.json')
-    screen = pygame.display.set_mode((env.width, env.height))
+    screen = pygame.display.set_mode((env.width*env.scale_factor, env.height*env.scale_factor))
     clock = pygame.time.Clock()
 
     manager = Manager(env)
