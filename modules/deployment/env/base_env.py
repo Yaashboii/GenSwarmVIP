@@ -19,10 +19,13 @@ class EnvironmentBase(ABC):
         self.data_file = data_file
         with open(self.data_file, 'r') as file:
             self.data = json.load(file)
-        self._scale_factor = self.data['display']['scale_factor']
-        self._width = self.data['display']['width']
-        self._height = self.data['display']['height']
-
+        self._scale_factor = 100
+        self._width = 5
+        self._height = 5
+        if 'display' in self.data:
+            self._scale_factor = self.data['display']['scale_factor']
+            self._width = self.data['display']['width']
+            self._height = self.data['display']['height']
         self._entities = []
         self._engine_type = engine_type
         if engine_type == 'QuadTreeEngine':
@@ -33,7 +36,7 @@ class EnvironmentBase(ABC):
                                           joint_constraint=True)
         elif engine_type == 'Box2DEngine':
             self._engine = Box2DEngine()
-        elif engine_type == 'Omni_Engine':
+        elif engine_type == 'OmniEngine':
             self._engine = OmniEngine()
         else:
             raise ValueError(f"Unsupported engine type: {engine_type}")
@@ -147,23 +150,44 @@ class EnvironmentBase(ABC):
         return obs
 
     def draw(self, screen):
+        def apply_offset(pos):
+            return pos[0] + self._width / 2, self._height / 2 + pos[1]
+
         screen.fill((255, 255, 255))
+
         for entity in self.entities:
-            pixel_pos = [int(i * self.scale_factor) for i in entity.position]
+            pixel_pos = [int(i * self.scale_factor) for i in apply_offset(entity.position)]
+            color = pygame.Color(entity.color)
             if entity.shape == 'circle':
-                pygame.draw.circle(screen, pygame.Color(entity.color), pixel_pos, int(entity.size * self.scale_factor))
+                pygame.draw.circle(screen, color, [pixel_pos[1], pixel_pos[0]], int(entity.size * self.scale_factor))
             else:
                 rect = pygame.Rect(
-                    (entity.position[0] - entity.size[0] / 2) * self.scale_factor,
-                    (entity.position[1] - entity.size[1] / 2) * self.scale_factor,
-                    entity.size[0] * self.scale_factor,
+                    (pixel_pos[1] - entity.size[0] / 2 * self.scale_factor),
+                    (pixel_pos[0] - entity.size[1] / 2 * self.scale_factor),
                     entity.size[1] * self.scale_factor,
+                    entity.size[0] * self.scale_factor,
                 )
-                pygame.draw.rect(screen, pygame.Color(entity.color), rect)
+                pygame.draw.rect(screen, color, rect)
+
         pygame.display.flip()
 
     def save_entities_to_file(self):
         pass
+        # entities_data = []
+        # for entity in self.generated_entities:
+        #     entity_data = {
+        #         'type': entity.__class__.__name__,
+        #         "id": entity.id,
+        #         "position": entity.position.tolist(),
+        #         "size": entity.size if isinstance(entity.size, float) else entity.size.tolist(),
+        #         "color": entity.color,
+        #         "moveable": entity.moveable,
+        #         "collision": entity.collision
+        #     }
+        #     entities_data.append(entity_data)
+        #
+        # with open(self.output_file, 'w') as file:
+        #     json.dump(entities_data, file, indent=4)
 
     @staticmethod
     def sample_points(center, num_points, min_distance, shape='circle', size=None, max_attempts_per_point=10):

@@ -24,7 +24,7 @@ class QuadTreeEngine(Engine):
         super().__init__()
         self.world_size = np.array(world_size)
         self.quad_tree = QuadTree(
-            0, 0, world_size[0], world_size[1]
+            -world_size[0] * 0.5, -world_size[1] * 0.5, world_size[0] * 0.5, world_size[1] * 0.5
         )
         self._damping = damping
         self._alpha = alpha
@@ -96,7 +96,8 @@ class QuadTreeEngine(Engine):
         for entity in self._entities.values():
             if entity.moveable:
                 entity.position += entity.velocity * delta_time
-                entity.position = np.clip(entity.position, 0, self.world_size)
+                # leave 0.05 margin to avoid entities getting stuck at the edge
+                entity.position = np.clip(entity.position, -0.45 * self.world_size, 0.45 * self.world_size)
                 self.set_position(entity.id, entity.position)
 
         # Iteratively resolve overlaps
