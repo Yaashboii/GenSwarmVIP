@@ -1,4 +1,4 @@
-from modules.deployment.engine.engine import Engine
+from .base_engine import Engine
 import rospy
 from geometry_msgs.msg import PoseStamped, TwistStamped
 import numpy as np

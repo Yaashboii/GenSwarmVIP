@@ -4,7 +4,7 @@ import time
 import numpy as np
 import pygame
 
-from modules.deployment.entity.entity import Entity
+from modules.deployment.entity.base_entity import Entity
 from modules.deployment.entity import Landmark, PushableObject, Robot
 from modules.deployment.env import EnvironmentBase
 

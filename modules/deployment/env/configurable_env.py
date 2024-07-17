@@ -3,7 +3,6 @@ import json
 import numpy as np
 import pygame
 
-from modules.deployment.entity.entity import Entity
 from modules.deployment.entity import Landmark, Leader, Obstacle, PushableObject, Robot
 from modules.deployment.env import EnvironmentBase
 

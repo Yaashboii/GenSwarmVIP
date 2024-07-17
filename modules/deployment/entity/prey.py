@@ -1,6 +1,6 @@
 import numpy as np
 
-from .entity import Entity
+from .base_entity import Entity
 
 
 class Prey(Entity):

@@ -1,4 +1,4 @@
-from modules.deployment.entity.entity import Entity
+from modules.deployment.entity.base_entity import Entity
 from modules.deployment.entity.landmark import Landmark
 from modules.deployment.entity.leader import Leader
 from modules.deployment.entity.obstacle import Obstacle

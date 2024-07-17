@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from modules.deployment.entity.entity import Entity
+from modules.deployment.entity.base_entity import Entity
 
 
 class Engine(ABC):

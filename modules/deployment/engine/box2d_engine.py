@@ -2,8 +2,8 @@ from abc import ABC
 import numpy as np
 from Box2D import (b2World, b2CircleShape, b2PolygonShape, b2_dynamicBody, b2_staticBody, b2Vec2, b2DistanceJointDef,
                    b2Body, b2Joint, b2RevoluteJointDef)
-from modules.deployment.engine.engine import Engine
-from modules.deployment.entity.entity import Entity
+from .base_engine import Engine
+from modules.deployment.entity.base_entity import Entity
 
 
 class PIDController:

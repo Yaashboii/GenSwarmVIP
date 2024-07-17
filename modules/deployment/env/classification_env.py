@@ -3,7 +3,7 @@ import json
 import numpy as np
 import pygame
 
-from modules.deployment.entity.entity import Entity
+from modules.deployment.entity.base_entity import Entity
 from modules.deployment.entity.leader import Leader
 from modules.deployment.entity.pushable_object import PushableObject
 from modules.deployment.env import EnvironmentBase

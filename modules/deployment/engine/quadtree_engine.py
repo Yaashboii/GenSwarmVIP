@@ -1,7 +1,7 @@
 import numpy as np
 
-from modules.deployment.engine.engine import Engine
-from modules.deployment.entity.entity import Entity
+from .base_engine import Engine
+from modules.deployment.entity.base_entity import Entity
 from modules.deployment.utils.quad_tree import QuadTree
 
 

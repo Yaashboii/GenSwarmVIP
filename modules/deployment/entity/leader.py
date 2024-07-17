@@ -1,4 +1,4 @@
-from .entity import Entity
+from .base_entity import Entity
 
 
 class Leader(Entity):
