@@ -9,6 +9,7 @@ from .assembly_env import AssemblyEnvironment
 from .cover_env import CoverEnvironment
 from .explore_env import ExploreEnvironment
 from .move_formation import MoveFormationEnvironment
+from .real_env import RealEnvironment
 
 __all__ = [
     'EnvironmentBase',
@@ -20,5 +21,5 @@ __all__ = [
     'AssemblyEnvironment',
     'CoverEnvironment',
     'ExploreEnvironment',
-    'MoveFormationEnvironment'
+    'RealEnvironment'
 ]

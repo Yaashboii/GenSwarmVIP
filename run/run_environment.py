@@ -9,12 +9,11 @@ import rospy
 from modules.deployment.env import *
 from modules.deployment.utils.manager import Manager
 
-
 def main():
     pygame.init()
 
-    env = ConfigurableEnvironment(data_file='../config/env_config.json')
-    # env = CrossEnvironment(1000, 1000, radius=450, robot_num=150, obstacle_num=30)
+    # env = ConfigurableEnvironment(1000, 1000, data_file='../config/env_config.json')
+    env = CrossEnvironment(1000, 1000, radius=450, robot_num=30, obstacle_num=30)
     # env = FormationEnvironment(1000, 1000, robot_num=150)
     # env = PursuitEnvironment(1000, 1000, robot_num=10, obstacle_num=10)
     # env = ExploreEnvironment(1000, 1000, robot_num=4)
@@ -24,7 +23,9 @@ def main():
     # env = AssemblyEnvironment(1000, 1000, robot_num=10)
     # env = MoveEnvironment(1000, 1000, robot_num=6, obstacle_num=100)
     # env=MoveFormationEnvironment(1000, 1000, robot_num=5, obstacle_num=30)
-    screen = pygame.display.set_mode((env.width * env.scale_factor, env.height * env.scale_factor))
+    # env = RealEnvironment(1000, 1000,
+    #                       data_file='/home/derrick/catkin_ws/src/code_llm/modules/deployment/env/env_config/real.json')
+    screen = pygame.display.set_mode((env.width, env.height))
     clock = pygame.time.Clock()
 
     manager = Manager(env)
@@ -37,11 +38,11 @@ def main():
     draw_frequency = 1  # 每帧绘图一次
 
 
-    data_root = f"/home/iusl/Desktop/code_llm_ws/src/code_llm/CodeLLM/workspace/{rospy.get_param('path', 'test')}"
-    count = len(listdir(f"{data_root}/data/frames/"))  # this is used to number the 'frames' folder
-    frame_dir = f"{data_root}/data/frames/frame{count}"
-    if not os.path.exists(frame_dir):
-        makedirs(frame_dir)
+    # data_root = f"/home/iusl/Desktop/code_llm_ws/src/code_llm/CodeLLM/workspace/{rospy.get_param('path', 'test')}"
+    # count = len(listdir(f"{data_root}/data/frames/"))  # this is used to number the 'frames' folder
+    # frame_dir = f"{data_root}/data/frames/frame{count}"
+    # if not os.path.exists(frame_dir):
+    #     makedirs(frame_dir)
 
     frame_files = []
 
@@ -57,13 +58,12 @@ def main():
                 frame = pygame.surfarray.array3d(screen).astype(np.uint8)
                 frame = np.rot90(frame, 3)
                 frame = np.flip(frame, axis=1)
-                frame_image_path = os.path.join(frame_dir, f'{draw_counter}.png')
-                cv2.imwrite(frame_image_path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-                frame_files.append(frame_image_path)
+                # frame_image_path = os.path.join(frame_dir, f'{draw_counter}.png')
+                # cv2.imwrite(frame_image_path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+                # frame_files.append(frame_image_path)
 
             manager.publish_observations()
             draw_counter += 1
-
             rate.sleep()
     finally:
         print("Shutting down")

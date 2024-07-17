@@ -14,6 +14,7 @@ from modules.prompt import (
 from modules.file.log_file import logger
 from modules.framework.constraint import ConstraintPool
 from modules.framework.response import *
+from modules.prompt.user_requirements import get_user_commands
 
 
 class AnalyzeConstraints(ActionNode):
@@ -72,7 +73,9 @@ if __name__ == '__main__':
         "--interaction_mode", type=bool, default=True, help="Whether to run in interaction mode in analyze constraints."
     )
     context = WorkflowContext()
-    context.command = "Integrate into a flock, adhering to cohesion by staying connected, alignment by moving together, and separation by maintaining at least 0.5 meters between robots."
+    task = get_user_commands('cross')[0]
+
+    context.command = task
     args = parser.parse_args()
     context.args = args
     constraint_analyser = AnalyzeConstraints("analyze constraints")

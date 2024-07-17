@@ -19,7 +19,7 @@ class EnvironmentBase(ABC):
         self.data_file = data_file
         with open(self.data_file, 'r') as file:
             self.data = json.load(file)
-        self.scale_factor = self.data['display']['scale_factor']
+        self._scale_factor = self.data['display']['scale_factor']
         self._width = self.data['display']['width']
         self._height = self.data['display']['height']
 
@@ -47,6 +47,10 @@ class EnvironmentBase(ABC):
     @property
     def height(self):
         return self._height
+
+    @property
+    def scale_factor(self):
+        return self._scale_factor
 
     @property
     def entities(self):
@@ -127,7 +131,7 @@ class EnvironmentBase(ABC):
     def update(self, dt: float):
         if self._dt is None:
             self._dt = dt
-        state = self._engine.step(self._dt)
+        self._engine.step(self._dt)
 
     def get_observation(self):
         obs = {}
@@ -147,7 +151,7 @@ class EnvironmentBase(ABC):
         for entity in self.entities:
             pixel_pos = [int(i * self.scale_factor) for i in entity.position]
             if entity.shape == 'circle':
-                pygame.draw.circle(screen, pygame.Color(entity.color), pixel_pos, int(entity.size*self.scale_factor))
+                pygame.draw.circle(screen, pygame.Color(entity.color), pixel_pos, int(entity.size * self.scale_factor))
             else:
                 rect = pygame.Rect(
                     (entity.position[0] - entity.size[0] / 2) * self.scale_factor,
