@@ -49,14 +49,3 @@ def save_entities_to_file(entities, filename):
 
     with open(filename, 'w') as file:
         json.dump(entities_data, file, indent=4)
-
-def generate_random_position(entity_size, entity_shape, entities, env_width, env_height, max_attempts=1000):
-    attempts = 0
-    while attempts < max_attempts:
-        position = np.random.uniform([entity_size, entity_size],
-                                     [env_width - entity_size, env_height - entity_size])
-        if not any(
-                check_collision(position, entity_size, entity_shape, other) for other in entities):
-            return position
-        attempts += 1
-    raise ValueError(f"Failed to generate non-colliding position after {max_attempts} attempts.")
