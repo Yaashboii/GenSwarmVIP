@@ -1,21 +1,21 @@
 import json
 from typing import Optional
+from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar
+
+import numpy as np
+import pygame
 
 import gymnasium
 from gymnasium import spaces
-import numpy as np
-import pygame
 from gymnasium.utils import seeding
 from gymnasium.spaces import Box
 
 from modules.deployment.engine import Box2DEngine, QuadTreeEngine, OmniEngine
 
-from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar
-
-
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
+
 
 class GymnasiumEnvironmentBase(gymnasium.Env):
     metadata = {
@@ -137,7 +137,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         return obs
 
     def step(
-        self, action: ActType
+            self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
         self.dt = self.clock.tick(self.FPS) / 1000
         self.engine.step(self.dt)
@@ -147,7 +147,6 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         truncation = False
         infos = self.get_observation("dict")
         return obs, reward, termination, truncation, infos
-
 
     def reward(self):
         reward = {}
@@ -187,7 +186,8 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
             pixel_pos = [int(i * self.scale_factor) for i in apply_offset(entity.position)]
             color = pygame.Color(entity.color)
             if entity.shape == 'circle':
-                pygame.draw.circle(self.screen, color, [pixel_pos[1], pixel_pos[0]], int(entity.size * self.scale_factor))
+                pygame.draw.circle(self.screen, color, [pixel_pos[1], pixel_pos[0]],
+                                   int(entity.size * self.scale_factor))
             else:
                 rect = pygame.Rect(
                     (pixel_pos[1] - entity.size[0] / 2 * self.scale_factor),
