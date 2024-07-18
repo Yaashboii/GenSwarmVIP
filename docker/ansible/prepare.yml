@@ -1,0 +1,34 @@
+# mkdir 对应的目录
+# 提供权限 sudo chown -R nvidia:nvidia /home/nvidia/docker/code_llm_ws
+
+- name: Ensure directory exists
+  file:
+    path: /home/nvidia/docker/code_llm_ws
+    state: directory
+    mode: 0755
+    owner: nvidia
+    group: nvidia
+#
+#
+- name: copy source code
+  copy:
+    src: "{{ item }}"
+    dest: /home/nvidia/docker/code_llm_ws/src/code_llm/
+    force: yes
+  loop:
+    - "../../modules/deployment/execution_scripts/apis_omni.py"
+    - "../../modules/deployment/execution_scripts/run_omni.py"
+    - "../../modules/deployment/execution_scripts/mqtt_server.py"
+    - "../../workspace/flocking/2024-07-17_17-10-31/functions.py"
+    - "../../msg"
+    - "../../srv"
+    - "../../package.xml"
+    - "../../CMakeLists.txt"
+    - "../code_run.Dockerfile"
+#  become: yes
+
+- name: pull image
+  shell: docker pull 10.0.2.66:6000/huabench/code-run && docker tag 10.0.2.66:6000/huabench/code-run llm_simulator
+
+- name: compile
+  shell: docker run -it --rm -v /home/nvidia/docker/code_llm_ws:/catkin_ws llm_simulator bash -c "cd /catkin_ws && catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3"
