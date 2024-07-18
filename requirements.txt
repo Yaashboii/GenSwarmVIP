@@ -18,6 +18,6 @@ rospkg
 radon
 tabulate
 pygame~=2.5.2
-gym~=0.26.2
+gymnasium~=0.29.1
 pillow~=10.2.0
 box2d-py

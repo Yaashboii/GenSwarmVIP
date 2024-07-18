@@ -16,7 +16,7 @@ from modules.deployment.utils.char_points_generate import validate_contour_point
 
 class Manager:
 
-    def __init__(self, env: EnvironmentBase):
+    def __init__(self, env):
         self.env = env
 
         rospy.init_node('simulation_manager', anonymous=True)
