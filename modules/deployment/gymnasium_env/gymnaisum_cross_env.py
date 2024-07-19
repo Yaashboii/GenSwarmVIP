@@ -34,7 +34,7 @@ class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
                           size=0.15)
             self.add_entity(robot)
 
-    def reset(self,seed):
+    def reset(self, seed):
         super().reset(seed=seed)
         self.init_entities()
 
@@ -89,13 +89,18 @@ if __name__ == '__main__':
     from modules.deployment.utils.manager import Manager
 
     manager = Manager(env)
-    manager.publish_observations()
+    obs = env.get_observation()
+    manager.publish_observations(obs)
     import rospy
 
-    rate = rospy.Rate(100)
+    rate = rospy.Rate(env.FPS)
     while True:
-        env.step(action=None)
+        action = manager.robotID_velocity
+        manager.clear_velocity()
+        env.step(action=action)
         env.render()
-        manager.publish_observations()
+        obs = env.get_observation()
+        manager.publish_observations(obs)
         rate.sleep()
     print("Simulation completed successfully.")
+

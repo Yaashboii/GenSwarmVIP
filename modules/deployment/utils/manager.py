@@ -20,19 +20,19 @@ class Manager:
         self.env = env
 
         rospy.init_node('simulation_manager', anonymous=True)
-        rospy.Subscriber("/leader/velocity", Twist, self.leader_velocity_callback)
-        self.observation_publisher = rospy.Publisher(f"observation", Observations, queue_size=1)
-
         self._pub_list = []
         self._robots = env.get_entities_by_type('Robot')
         robot_start_index = min(self._robots, key=lambda x: x.id).id
         robot_end_index = max(self._robots, key=lambda x: x.id).id
         rospy.set_param("robot_start_index", robot_start_index)
         rospy.set_param("robot_end_index", robot_end_index)
+
         for i in range(robot_start_index, robot_end_index + 1):
             rospy.Subscriber(
                 f"/robot_{i}/velocity", Twist, self.velocity_callback, callback_args=i
             )
+        rospy.Subscriber("/leader/velocity", Twist, self.leader_velocity_callback)
+
         self._target_positions_service = rospy.Service(
             "/get_target_positions", GetTargetPositions, self.get_target_positions_callback
         )
@@ -44,7 +44,10 @@ class Manager:
                                                  self.connect_to_others_callback)
         self._disconnect_service = rospy.Service("/disconnect_from_others", ConnectEntities,
                                                  self.disconnect_from_others_callback)
-        self.received_velocity = {robot.id: False for robot in self._robots}
+
+        self.observation_publisher = rospy.Publisher(f"observation", Observations, queue_size=1)
+
+        self.robotID_velocity = {robot.id: np.array([0, 0], dtype=float) for robot in self._robots}
 
     def velocity_callback(self, data: geometry_msgs.msg.Twist, i):
         """
@@ -52,7 +55,8 @@ class Manager:
         """
         desired_velocity = np.array([data.linear.x, data.linear.y])
         print(f"Received velocity for robot {i}: {desired_velocity}")
-        self.env.set_entity_velocity(i, desired_velocity)
+        self.robotID_velocity[i] = desired_velocity
+        # self.env.set_entity_velocity(i, desired_velocity)
 
     def leader_velocity_callback(self, data: Twist):
         leader = self.env.get_entities_by_type('Leader')[0]
@@ -61,8 +65,8 @@ class Manager:
         current_velocity = leader.velocity
         dt = 0.01  # assuming a fixed timestep, can be adjusted or calculated dynamically
 
-    def publish_observations(self):
-        observation = self.env.get_observation()
+    def publish_observations(self, obs):
+        observation = obs
         observations_msg = Observations()
         observations_msg.observations = []
         for entity_id, entity in observation.items():
@@ -112,3 +116,7 @@ class Manager:
         result = self.env.disconnect_entities(entity1_id=request.self_id, entity2_id=request.target_id)
         response.success = result
         return response
+
+    def clear_velocity(self):
+        self.robotID_velocity = {robot.id: np.array([0, 0], dtype=float) for robot in self._robots}
+

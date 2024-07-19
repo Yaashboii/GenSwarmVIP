@@ -39,6 +39,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         self.height = self.data['display']['height']
 
         self.entities = []
+
         engine_type = self.data.get('engine_type', 'QuadTreeEngine')
         if engine_type == 'QuadTreeEngine':
             self.engine = QuadTreeEngine(world_size=(self.width, self.height),
@@ -139,6 +140,9 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
     def step(
             self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
+        for entity_id, velocity in action.items():
+            self.set_entity_velocity(entity_id, velocity)
+
         self.dt = self.clock.tick(self.FPS) / 1000
         self.engine.step(self.dt)
         obs = self.get_observation("array")
@@ -264,53 +268,6 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
             return False
         self.engine.remove_joint(entity1_id, entity2_id)
         return True
-
-    @staticmethod
-    def sample_points(center, num_points, min_distance, shape='circle', size=None, max_attempts_per_point=10):
-        def distance(p1, p2):
-            return np.sqrt(np.sum((p1 - p2) ** 2, axis=1))
-
-        points = []
-        center = np.array(center)
-        attempts = 0
-
-        if shape == 'circle':
-            if size is None or len(size) != 1:
-                raise ValueError("For circle, size should be a list or tuple with one element: [radius].")
-            radius = size[0] - min_distance
-        elif shape == 'rectangle':
-            if size is None or len(size) != 2:
-                raise ValueError("For rectangle, size should be a list or tuple with two elements: [width, height].")
-            width, height = size
-            width -= 2 * min_distance
-            height -= 2 * min_distance
-        else:
-            raise ValueError(f"Unsupported shape: {shape}")
-
-        while len(points) < num_points and attempts < num_points * max_attempts_per_point:
-            if shape == 'circle':
-                # Generate random points within the bounding square and then filter to within the circle
-                random_points = np.random.uniform(-radius, radius, size=(num_points, 2)) + center
-                valid_mask = np.linalg.norm(random_points - center, axis=1) <= radius
-                random_points = random_points[valid_mask]
-            elif shape == 'rectangle':
-                # Generate random points within the bounding rectangle
-                random_points = np.random.uniform(-0.5, 0.5, size=(num_points, 2)) * np.array([width, height]) + center
-            else:
-                raise ValueError(f"Unsupported shape: {shape}")
-
-            for point in random_points:
-                if len(points) == 0 or np.all(distance(np.array(points), point) >= min_distance):
-                    points.append(point)
-                    if len(points) >= num_points:
-                        break
-
-            attempts += 1
-
-        if len(points) < num_points:
-            raise Exception(f"Warning: Could only place {len(points)} points out of {num_points} requested.")
-
-        return np.array(points)
 
 
 if __name__ == '__main__':

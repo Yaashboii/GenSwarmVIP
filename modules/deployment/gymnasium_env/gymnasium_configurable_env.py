@@ -1,9 +1,8 @@
 from modules.deployment.entity import Landmark, Leader, Obstacle, PushableObject, Robot
-from modules.deployment.gym_env.base_env import GymnasiumEnvironmentBase
-from modules.deployment.gym_env.utils import *
+from modules.deployment.gymnasium_env.base_env import GymnasiumEnvironmentBase
+from modules.deployment.gymnasium_env.utils import *
 from typing import Optional
 from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar
-
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
@@ -13,7 +12,6 @@ RenderFrame = TypeVar("RenderFrame")
 class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str = None):
         super().__init__(data_file)
-        self.generated_entities = []
 
     def add_entities_from_config(self):
 
@@ -24,15 +22,14 @@ class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
                 if color:
                     entity.color = entity_data.get("color", color)
                 self.add_entity(entity)
-                self.generated_entities.append(entity)
                 entity_id += 1
 
         entity_id = 0
 
-        add_specified_entities("leader", Leader, "red")
-        add_specified_entities("obstacle", Obstacle)
-        add_specified_entities("landmark", Landmark)
-        add_specified_entities("pushable_object", PushableObject)
+        # add_specified_entities("leader", Leader, "red")
+        # add_specified_entities("obstacle", Obstacle)
+        # add_specified_entities("landmark", Landmark)
+        # add_specified_entities("pushable_object", PushableObject)
         add_specified_entities("robot", Robot, "green")
 
         # Add remaining robots
@@ -41,17 +38,17 @@ class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
             robot_num = self.data["entities"]["robot"]["count"] - len(self.data["entities"]["robot"]["specified"])
             shape = self.data["entities"]["robot"]["shape"]
             color = self.data["entities"]["robot"]["color"]
-            position = self.sample_points(center=[0, 0], num_points=robot_num, min_distance=size * 2, shape='rectangle',
-                                          size=[self.width, self.height])
+            position = sample_points(center=[0, 0], num_points=robot_num, min_distance=size * 2, shape='rectangle',
+                                     size=[self.width, self.height])
             for i in range(robot_num):
                 robot = Robot(entity_id, position[i], size, color=color)
                 self.add_entity(robot)
-                self.generated_entities.append(robot)
                 entity_id += 1
 
     def step(
-        self, action: ActType
+            self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
+
         return super().step(action)
 
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
@@ -73,17 +70,22 @@ if __name__ == '__main__':
     from modules.deployment.utils.manager import Manager
 
     manager = Manager(env)
-    manager.publish_observations()
+    obs = env.get_observation()
+    manager.publish_observations(obs)
     import rospy
 
-    rate = rospy.Rate(30)
+    rate = rospy.Rate(env.FPS)
 
     import time
 
     start_time = time.time()
     while int(time.time() - start_time) < 1000:
-        env.step(action=None)
+        action = manager.robotID_velocity
+        manager.clear_velocity()
+        env.step(action=action)
         env.render()
-        manager.publish_observations()
+        obs = env.get_observation()
+        manager.publish_observations(obs)
+        manager.clear_velocity()
         rate.sleep()
     env.close()
