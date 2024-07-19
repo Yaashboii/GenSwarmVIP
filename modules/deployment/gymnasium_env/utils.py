@@ -4,7 +4,6 @@ import numpy as np
 import pygame
 
 
-
 def save_entities_to_file(entities, filename):
     entities_data = []
     for entity in entities:
@@ -67,17 +66,25 @@ def check_collide(position, size, shape, entities):
     for entity in entities:
         if shape == 'circle':
             if entity.shape == 'circle':
-                return np.linalg.norm(position - entity.position) < (size + entity.size)
+                if np.linalg.norm(position - entity.position) < (size + entity.size):
+                    return True
+
             elif entity.shape == 'rectangle':
-                return check_circle_rectangle_collision(entity.position, position, entity.size2, size)
+                if check_circle_rectangle_collision(entity.position, position, entity.size2, size):
+                    return True
+
         elif shape == 'rectangle':
             if entity.shape == 'circle':
-                return check_circle_rectangle_collision(position, entity.position, size, entity.size2)
+                if check_circle_rectangle_collision(position, entity.position, size, entity.size2):
+                    return True
             else:
                 rect1 = pygame.Rect(position[0] - size[0] / 2, position[1] - size[1] / 2, size[0], size[1])
                 rect2 = pygame.Rect(entity.position[0] - entity.position[0] / 2, entity.position[1] - entity.position[1] / 2,
                                     entity.position[0], entity.size2[1])
-                return rect1.colliderect(rect2)
+                if rect1.colliderect(rect2):
+                    return True
+
+    return False
 
 
 def check_circle_rectangle_collision(rect_position, circle_position, rect_size, circle_radius):
