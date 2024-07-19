@@ -34,14 +34,16 @@ class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
 
         # Add remaining robots
         if "count" in self.data["entities"]["robot"]:
-            size = self.data["entities"]["robot"]["size"]
+            robot_size = self.data["entities"]["robot"]["size"]
             robot_num = self.data["entities"]["robot"]["count"] - len(self.data["entities"]["robot"]["specified"])
             shape = self.data["entities"]["robot"]["shape"]
             color = self.data["entities"]["robot"]["color"]
-            position = sample_points(center=[0, 0], num_points=robot_num, min_distance=size * 2, shape='rectangle',
-                                     size=[self.width, self.height])
+
             for i in range(robot_num):
-                robot = Robot(entity_id, position[i], size, color=color)
+                position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+                                        robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
+                                        entities=self.entities)
+                robot = Robot(entity_id, position, robot_size, color=color)
                 self.add_entity(robot)
                 entity_id += 1
 
@@ -81,5 +83,5 @@ if __name__ == '__main__':
         obs, reward, termination, truncation, infos = env.step(action=action)
         env.render()
         manager.publish_observations(infos)
-        rate.sleep()
+        # rate.sleep()
     print("Simulation completed successfully.")
