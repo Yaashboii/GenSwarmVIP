@@ -26,10 +26,10 @@ class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
 
         entity_id = 0
 
-        # add_specified_entities("leader", Leader, "red")
-        # add_specified_entities("obstacle", Obstacle)
-        # add_specified_entities("landmark", Landmark)
-        # add_specified_entities("pushable_object", PushableObject)
+        add_specified_entities("leader", Leader, "red")
+        add_specified_entities("obstacle", Obstacle)
+        add_specified_entities("landmark", Landmark)
+        add_specified_entities("pushable_object", PushableObject)
         add_specified_entities("robot", Robot, "green")
 
         # Add remaining robots
@@ -56,7 +56,8 @@ class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
         self.entities = []
         self.add_entities_from_config()
         obs = self.get_observation("array")
-        return obs, None
+        infos = self.get_observation("dict")
+        return obs, infos
         # self.agents = [f"agent_{i}" for i in range(self.num_agent)]
         # self.agent_name_mapping = dict(zip(self.agents, list(range(self.num_agent))))
         # self._agent_selector = agent_selector(self.agents)
@@ -66,26 +67,19 @@ class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
 
 if __name__ == '__main__':
     env = GymnasiumConfigurableEnvironment("../../../config/env_config.json")
-    env.reset()
-    from modules.deployment.utils.manager import Manager
+    obs, infos = env.reset()
 
+    from modules.deployment.utils.manager import Manager
     manager = Manager(env)
-    obs = env.get_observation()
-    manager.publish_observations(obs)
+    manager.publish_observations(infos)
     import rospy
 
     rate = rospy.Rate(env.FPS)
-
-    import time
-
-    start_time = time.time()
-    while int(time.time() - start_time) < 1000:
+    while True:
         action = manager.robotID_velocity
         manager.clear_velocity()
-        env.step(action=action)
+        obs, reward, termination, truncation, infos = env.step(action=action)
         env.render()
-        obs = env.get_observation()
-        manager.publish_observations(obs)
-        manager.clear_velocity()
+        manager.publish_observations(infos)
         rate.sleep()
-    env.close()
+    print("Simulation completed successfully.")

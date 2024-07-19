@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 
 import numpy as np
 import pygame
@@ -34,9 +35,13 @@ class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
                           size=0.15)
             self.add_entity(robot)
 
-    def reset(self, seed):
+    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
         super().reset(seed=seed)
+        self.entities = []
         self.init_entities()
+        obs = self.get_observation("array")
+        infos = self.get_observation("dict")
+        return obs, infos
 
     @staticmethod
     def find_farthest_points(points):
@@ -84,23 +89,21 @@ class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
 
 if __name__ == '__main__':
     env = GymnasiumCrossEnvironment("../../../config/env_config.json")
-    env.reset(None)
+    obs, infos = env.reset()
 
     from modules.deployment.utils.manager import Manager
 
     manager = Manager(env)
-    obs = env.get_observation()
-    manager.publish_observations(obs)
+    manager.publish_observations(infos)
     import rospy
 
     rate = rospy.Rate(env.FPS)
     while True:
         action = manager.robotID_velocity
         manager.clear_velocity()
-        env.step(action=action)
+        obs, reward, termination, truncation, infos = env.step(action=action)
         env.render()
-        obs = env.get_observation()
-        manager.publish_observations(obs)
+        manager.publish_observations(infos)
         rate.sleep()
     print("Simulation completed successfully.")
 
