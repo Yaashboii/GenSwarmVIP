@@ -23,12 +23,8 @@ def save_entities_to_file(entities, filename):
 
 def sample_point(zone_center=(0, 0), zone_shape='circle', zone_size=None, robot_size=None, robot_shape: str = 'circle',
                  min_distance: float = 0, entities=None, max_attempts_per_point=1000):
-    def distance(p1, p2):
-        return np.sqrt(np.sum((p1 - p2) ** 2, axis=1))
 
-    points = []
     center = np.array(zone_center)
-    attempts = 0
 
     if zone_shape == 'circle':
         if zone_size is None or len(zone_size) != 1:
