@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import socket
 import threading
 import time
@@ -18,8 +20,8 @@ class MqttClientThread:
         self.client = self.connect_mqtt()
         self.client.on_message = self.mqtt_callback
         self.client.subscribe('/observation')
-        rospy.init_node("robot_sub")
-        self.observation_pub = rospy.Publisher("/sim_observation", Observations, queue_size=1)
+        rospy.init_node("mqtt_server")
+        self.observation_pub = rospy.Publisher("/observation", Observations, queue_size=1)
 
     def connect_mqtt(self):
         '''连接MQTT代理服务器'''

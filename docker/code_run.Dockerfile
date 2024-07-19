@@ -6,11 +6,12 @@ RUN apt-get update && \
     python3-pip \
     python3-rosdep \
     python3-rospkg \
+    iputils-ping \
     wget \
-    git \
+#    git \
     && rm -rf /var/lib/apt/lists/*
 
-# RUN pip install
+RUN pip3 install numpy paho-mqtt==1.6.1 rospy_message_converter
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
 

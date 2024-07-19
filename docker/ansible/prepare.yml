@@ -16,19 +16,45 @@
     dest: /home/nvidia/docker/code_llm_ws/src/code_llm/
     force: yes
   loop:
-    - "../../modules/deployment/execution_scripts/apis_omni.py"
-    - "../../modules/deployment/execution_scripts/run_omni.py"
-    - "../../modules/deployment/execution_scripts/mqtt_server.py"
-    - "../../workspace/flocking/2024-07-17_17-10-31/functions.py"
+    - "../../modules/deployment/execution_scripts/omni/apis.py"
+    - "../../modules/deployment/execution_scripts/omni/run_omni.py"
+    - "../../modules/deployment/execution_scripts/omni/mqtt_server.py"
+    - "../../modules/deployment/execution_scripts/omni/velocity_limiter.py"
+    - "../../workspace/flocking/2024-07-17_17-26-15/functions.py"
+    - "../../requirements.txt"
     - "../../msg"
     - "../../srv"
     - "../../package.xml"
     - "../../CMakeLists.txt"
     - "../code_run.Dockerfile"
+- name: copy launch file
+  copy:
+    src: "{{ item }}"
+    dest: /home/nvidia/docker/code_llm_ws/src/code_llm/
+    force: yes
+  loop:
+    - "../../modules/deployment/execution_scripts/omni/launch"
+
 #  become: yes
+- name: make python files executable
+  shell: chmod +x run_omni.py && chmod +x mqtt_server.py && chmod +x velocity_limiter.py
+  args:
+    chdir: /home/nvidia/docker/code_llm_ws/src/code_llm/
+
 
 - name: pull image
   shell: docker pull 10.0.2.66:6000/huabench/code-run && docker tag 10.0.2.66:6000/huabench/code-run llm_simulator
+  register: info
+- name: Show container logs
+  debug:
+    var: info.stdout_lines
 
 - name: compile
   shell: docker run -it --rm -v /home/nvidia/docker/code_llm_ws:/catkin_ws llm_simulator bash -c "cd /catkin_ws && catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3"
+  become: true
+  become_user: nvidia  # 替换为你的 ROS 用户
+  register: llm_code_info
+
+- name: Show container logs
+  debug:
+    var: llm_code_info.stdout_lines

@@ -25,8 +25,8 @@ class Manager:
 
         self._pub_list = []
         self._robots = env.get_entities_by_type('Robot')
-        robot_start_index = self._robots[0].id
-        robot_end_index = self._robots[-1].id
+        robot_start_index = min(self._robots, key=lambda x: x.id).id
+        robot_end_index = max(self._robots, key=lambda x: x.id).id
         rospy.set_param("robot_start_index", robot_start_index)
         rospy.set_param("robot_end_index", robot_end_index)
         for i in range(robot_start_index, robot_end_index + 1):

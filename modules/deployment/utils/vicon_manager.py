@@ -68,7 +68,7 @@ def twist_callback(msg, args):
 
 
 def save_data_to_json():
-    file_path = os.path.join(os.path.dirname(__file__), '../env/env_config/robot_data.json')
+    file_path = os.path.join(os.path.dirname(__file__), '../../../config/vicon_data.json')
     with open(file_path, 'w') as json_file:
         json.dump(data, json_file, indent=4)
     print("Data saved to JSON.")
