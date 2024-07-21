@@ -17,6 +17,14 @@ class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
         self.radius = radius
         self.center = center
 
+    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
+        super().reset(seed=seed)
+        self.entities = []
+        self.init_entities()
+        obs = self.get_observation("array")
+        infos = self.get_observation("dict")
+        return obs, infos
+
     def init_entities(self):
 
         obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.num_obstacles, 0.15)
@@ -34,14 +42,6 @@ class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
                           target_position=target_position,
                           size=0.15)
             self.add_entity(robot)
-
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed)
-        self.entities = []
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
 
     @staticmethod
     def find_farthest_points(points):
@@ -106,4 +106,3 @@ if __name__ == '__main__':
         manager.publish_observations(infos)
         rate.sleep()
     print("Simulation completed successfully.")
-

@@ -13,6 +13,14 @@ class GymAssemblyEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
+    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
+        super().reset(seed=seed, options=options)
+        self.entities = []
+        self.add_entities_from_config()
+        obs = self.get_observation("array")
+        infos = self.get_observation("dict")
+        return obs, infos
+
     def add_entities_from_config(self):
         entity_id = 0
         robot_size = self.data["entities"]["robot"]["size"]
@@ -43,14 +51,6 @@ class GymAssemblyEnvironment(GymnasiumEnvironmentBase):
             self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
         return super().step(action)
-
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
-        self.entities = []
-        self.add_entities_from_config()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
 
 
 if __name__ == "__main__":
