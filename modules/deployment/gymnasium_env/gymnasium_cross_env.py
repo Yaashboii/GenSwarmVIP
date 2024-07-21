@@ -5,7 +5,7 @@ import numpy as np
 import pygame
 
 from modules.deployment.entity import Leader, Obstacle, Robot
-from modules.deployment.gymnasium_env.base_env import GymnasiumEnvironmentBase
+from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 
 
 class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):

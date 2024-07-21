@@ -293,6 +293,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
 
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
         super().reset(seed=seed, options=options)
+        self.entities = []
 
     def add_entity(self, entity):
         self.entities.append(entity)
