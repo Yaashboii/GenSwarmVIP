@@ -21,7 +21,7 @@ class Manager:
 
         rospy.init_node('simulation_manager', anonymous=True)
         self._pub_list = []
-        self._robots = env.get_entities_by_type('Robot')
+        self._robots = env.get_entities_by_type('Robot') + env.get_entities_by_type('Leader')
         robot_start_index = min(self._robots, key=lambda x: x.id).id
         robot_end_index = max(self._robots, key=lambda x: x.id).id
         rospy.set_param("robot_start_index", robot_start_index)
