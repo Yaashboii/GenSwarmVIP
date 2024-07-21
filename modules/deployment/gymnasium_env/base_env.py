@@ -4,11 +4,9 @@ from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar
 
 import numpy as np
 import pygame
-
 import gymnasium
 from gymnasium import spaces
 from gymnasium.utils import seeding
-from gymnasium.spaces import Box
 
 from modules.deployment.engine import Box2DEngine, QuadTreeEngine, OmniEngine
 
@@ -16,11 +14,28 @@ ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
 
+"""
+This function converts coordinates in pymunk into pygame coordinates.
+
+The coordinate system in pygame is:
+         (0, 0) +-------+ (width, 0)      + ──── → x
+                |       |                 │
+                |       |                 │
+   (0, -height) +-------+ (width, height) ↓ y
+
+The coordinate system in ours system is:
+(-width/2, -height/2)+-------+ (-width/2, height/2) +──── → y
+                    |       |                       │
+                      (0, 0)                        │
+                    |       |                       ↓ x
+(-width/2, height/2)+-------+ (width/2, height/2)
+"""
+
 
 class GymnasiumEnvironmentBase(gymnasium.Env):
     metadata = {
         'render.modes': ['human'],
-        'fps': 30
+        'fps': 300
     }
 
     def __init__(self, data_file: str):
@@ -30,9 +45,15 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
             data_file (str): The environment display info and entity info
         """
         self.data_file = data_file
-        with open(self.data_file, 'r') as file:
-            self.data = json.load(file)
-        self.dt = None
+        try:
+            with open(self.data_file, 'r') as file:
+                self.data = json.load(file)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"Data file not found: {self.data_file}") from e
+        except json.JSONDecodeError as e:
+            raise json.JSONDecodeError(f"Error decoding JSON from the data file: {self.data_file}") from e
+
+        self.dt = self.data.get('dt', 0.01)
         self.simulation_data = {}
         self.scale_factor = self.data['display']['scale_factor']
         self.width = self.data['display']['width']
@@ -54,51 +75,76 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         else:
             raise ValueError(f"Unsupported engine type: {engine_type}")
 
-        self.num_robots = self.data["entities"]["robot"]["count"] + self.data["entities"]["leader"]["count"]
-        self.num_obstacles = self.data["entities"]["obstacle"]["count"]
+        self.moveable_agents = {}
+        self.num_robots = self.data.get("entities", {}).get("robot", {}).get("count", 0)
+        self.num_leaders = self.data.get("entities", {}).get("leader", {}).get("count", 0)
+        self.num_obstacles = self.data.get("entities", {}).get("obstacle", {}).get("count", 0)
+        self.num_sheep = self.data.get("entities", {}).get("sheep", {}).get("count", 0)
         self.get_spaces()
 
         self.screen = pygame.display.set_mode((self.width * self.scale_factor, self.height * self.scale_factor))
         self.render_mode = self.data.get('render_mode', 'human')
         self.output_file = self.data.get('output_file', 'output.json')
         self.clock = pygame.time.Clock()
-        self.FPS = 30
+        self.FPS = 3000
 
     def _seed(self, seed=None):
+        """
+        Set the random seed for the environment to ensure reproducibility.
+
+        This function initializes the environment's random number generator with
+        a specified seed or a randomly generated seed if none is provided. By
+        controlling the seed, you ensure that the random processes in the environment
+        produce the same results across different runs, which is crucial for debugging
+        and reproducible experiments.
+
+        Args:
+            seed (int, optional): The seed value to initialize the random number generator.
+                                  If not provided, a random seed is generated.
+
+        Returns:
+            list: A list containing the seed value used for the random number generator.
+                  This list always contains one element which is the seed used.
+
+        Examples:
+            >>> env = CustomEnv()
+            >>> env._seed(42)  # Setting the seed to 42
+            [42]
+
+            >>> env._seed()  # Setting a random seed
+            [123456789]  # Example of a randomly generated seed value
+        """
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
     def close(self):
+        """
+        Properly close the environment and clean up resources.
+
+        This method ensures that if a Pygame screen is open, it is properly closed
+        and Pygame is properly quit. It sets the screen attribute to None after quitting.
+
+        Returns:
+            None
+       """
         if self.screen is not None:
-            pygame.quit()
+            if pygame.get_init():  # Check if Pygame is initialized
+                pygame.quit()
             self.screen = None
 
-    def convert_coordinates_pygame_to_real(self, value, option="position"):
-        """This function converts coordinates in pymunk into pygame coordinates.
-
-        The coordinate system in pygame is:
-                 (0, 0) +-------+ (width, 0)      + ──── → x
-                        |       |                 │
-                        |       |                 │
-           (0, -height) +-------+ (width, height) ↓ y
-
-        The coordinate system in ours real system is:
-   (-width/2, -height/2)+-------+ (-width/2, height/2)  +──── → y
-                        |       |                       │
-                          (0, 0)                        │
-                        |       |                       ↓ x
-    (-width/2, height/2)+-------+ (width/2, height/2)
-
-        """
-        if option == "position":
-            return int(value[0]), - int(value[1])
-
-        if option == "velocity":
-            return value[0], -value[1]
-
     def get_spaces(self):
-        """Define the action and observation spaces for all agents."""
+        """
+        Define and set the observation and action spaces for the environment.
 
+        This method sets the `observation_space` and `action_space` attributes of the
+        environment based on the number of robots.
+        The observation space and action space are defined as continuous spaces using `gymnasium.spaces.Box`.
+
+        Returns:
+            None
+        """
+
+        # TODO: update obs_space
         obs_dim = 3
         obs_space = spaces.Box(
             low=np.float32(-np.sqrt(2)),
@@ -118,7 +164,29 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         self.action_space = [act_space for _ in range(self.num_robots)]
 
     def get_observation(self, type: str = "dict"):
+        """
+        Retrieve observations of the entities in the environment.
 
+        This method returns the observations of the entities (e.g., robots) in the environment.
+        The observations can be returned in two formats based on the specified type:
+
+        1. "dict" (default): Returns a dictionary where each key is an entity's ID and the value
+           is another dictionary containing the entity's position, velocity, size, type, target position,
+           and color. This format is useful for detailed information, often used in `infos`.
+
+        2. "array": Returns a list of positions for all entities, where each element is the position
+           of an entity. This format is useful for representing the observation space in a simplified
+           manner.
+
+        Args:
+            type (str): The format of the observation. Can be "dict" or "array".
+                        Default is "dict".
+
+        Returns:
+            dict or list: The observation of the entities. If `type` is "dict", returns a dictionary
+                          with detailed information of each entity. If `type` is "array", returns a list
+                          of positions of each entity.
+        """
         if type == "dict":
             obs = {}
             for entity in self.entities:
@@ -130,20 +198,42 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
                     "target_position": entity.target_position if hasattr(entity, "target_position") else None,
                     "color": entity.color
                 }
+
         elif type == "array":
             obs = []
             for entity in self.entities:
                 obs.append(entity.position)
+        else:
+            raise ValueError(f"Unsupported observation type: {type}")
 
         return obs
 
     def step(
             self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
+        """
+        Perform one step of the environment using the given actions.
+
+        This method takes the actions for the current step, updates the environment state,
+        and returns the observation, reward, termination status, truncation status, and additional info.
+
+        Args:
+            action (ActType): A dictionary where keys are entity IDs and values are the velocities
+                              to be set for each entity. The specific structure of ActType should
+                              be defined based on the environment's requirements.
+
+        Returns:
+            tuple:
+                ObsType: The observation after performing the step, formatted as an array of positions.
+                SupportsFloat: The reward obtained after performing the step.
+                bool: A boolean indicating whether the episode has terminated.
+                bool: A boolean indicating whether the episode has been truncated.
+                dict[str, Any]: Additional information about the environment, formatted as a dictionary
+                                with detailed information for each entity.
+        """
         for entity_id, velocity in action.items():
             self.set_entity_velocity(entity_id, velocity)
 
-        self.dt = self.clock.tick(self.FPS) / 1000
         self.engine.step(self.dt)
         obs = self.get_observation("array")
         reward = self.reward()
@@ -208,6 +298,8 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         self.entities.append(entity)
         if entity.collision:
             self.engine.add_entity(entity)
+        if entity.moveable:
+            self.moveable_agents[entity.id] = entity.__class__.__name__
 
     def remove_entity(self, entity_id):
 

@@ -56,6 +56,7 @@ class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
         super().reset(seed=seed, options=options)
         self.entities = []
+        self.moveable_agents = {}
         self.add_entities_from_config()
         obs = self.get_observation("array")
         infos = self.get_observation("dict")
@@ -68,20 +69,41 @@ class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
 
 
 if __name__ == '__main__':
-    env = GymnasiumConfigurableEnvironment("../../../config/env_config.json")
-    obs, infos = env.reset()
 
-    from modules.deployment.utils.manager import Manager
-    manager = Manager(env)
-    manager.publish_observations(infos)
+    import time
     import rospy
 
+    from modules.deployment.utils.manager import Manager
+
+    env = GymnasiumConfigurableEnvironment("../../../config/env_config.json")
+    obs, infos = env.reset()
+    print(env.moveable_agents)
+    manager = Manager(env)
+    manager.publish_observations(infos)
     rate = rospy.Rate(env.FPS)
+
+    start_time = time.time()  # 记录起始时间
+    frame_count = 0  # 初始化帧数计数器
+
     while True:
         action = manager.robotID_velocity
+        # action = {}
+
         manager.clear_velocity()
+        # print(action)
         obs, reward, termination, truncation, infos = env.step(action=action)
-        env.render()
+        # env.render()
         manager.publish_observations(infos)
-        # rate.sleep()
+        rate.sleep()
+
+        frame_count += 1  # 增加帧数计数器
+        current_time = time.time()  # 获取当前时间
+        elapsed_time = current_time - start_time  # 计算已过去的时间
+
+        # 当达到1秒时，计算并打印FPS，然后重置计数器和时间
+        if elapsed_time >= 1.0:
+            fps = frame_count / elapsed_time
+            print(f"FPS: {fps:.2f}")  # 打印FPS，保留两位小数
+            frame_count = 0  # 重置帧数计数器
+            start_time = current_time  # 重置起始时间戳
     print("Simulation completed successfully.")
