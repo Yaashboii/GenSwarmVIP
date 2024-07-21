@@ -1,5 +1,5 @@
 from modules.deployment.entity import Landmark, Leader, Obstacle, PushableObject, Robot
-from modules.deployment.gymnasium_env.base_env import GymnasiumEnvironmentBase
+from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 from modules.deployment.gymnasium_env.utils import *
 from typing import Optional
 from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar

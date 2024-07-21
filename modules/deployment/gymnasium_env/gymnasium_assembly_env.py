@@ -1,7 +1,7 @@
 from typing import Optional
 from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar
 from modules.deployment.entity import Entity, Landmark, Robot
-from modules.deployment.gymnasium_env.base_env import GymnasiumEnvironmentBase
+from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 from modules.deployment.gymnasium_env.utils import *
 
 ObsType = TypeVar("ObsType")
