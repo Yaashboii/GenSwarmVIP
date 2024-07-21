@@ -1,6 +1,6 @@
 from typing import Optional
 from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar
-from modules.deployment.entity import Entity, Landmark, Robot
+from modules.deployment.entity import Robot, PushableObject
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 from modules.deployment.gymnasium_env.utils import *
 
@@ -9,7 +9,7 @@ ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
 
 
-class GymnasiumFormationEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumMoveEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
@@ -22,7 +22,15 @@ class GymnasiumFormationEnvironment(GymnasiumEnvironmentBase):
         return obs, infos
 
     def init_entities(self):
-        entity_id = 0
+        object = PushableObject(object_id=0,
+                                initial_position=(0, 0),
+                                size=0.15,
+                                color='red')
+        object.density = 0.5
+        object.target_position = (1, 2)
+        self.add_entity(object)
+
+        entity_id = 1
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
@@ -40,6 +48,7 @@ class GymnasiumFormationEnvironment(GymnasiumEnvironmentBase):
             self.add_entity(robot)
 
 
+
 if __name__ == "__main__":
 
     import time
@@ -47,7 +56,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumFormationEnvironment("../../../config/env_config.json")
+    env = GymnasiumMoveEnvironment("../../../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)
