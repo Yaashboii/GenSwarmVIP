@@ -66,12 +66,12 @@ def check_collide(position, size, shape, entities):
                     return True
 
             elif entity.shape == 'rectangle':
-                if check_circle_rectangle_collision(entity.position, position, entity.size2, size):
+                if check_circle_rectangle_collision(entity.position, position, entity.size, size*2):
                     return True
 
         elif shape == 'rectangle':
             if entity.shape == 'circle':
-                if check_circle_rectangle_collision(position, entity.position, size, entity.size2):
+                if check_circle_rectangle_collision(position, entity.position, size*2, entity.size):
                     return True
             else:
                 rect1 = pygame.Rect(position[0] - size[0] / 2, position[1] - size[1] / 2, size[0], size[1])
@@ -84,14 +84,11 @@ def check_collide(position, size, shape, entities):
 
 
 def check_circle_rectangle_collision(rect_position, circle_position, rect_size, circle_radius):
-    circle_center = circle_position
-    rect_center = rect_position
-    rect_half_size = np.array(rect_size) / 2
 
-    # Find the closest point to the circle within the rectangle
-    closest_point = np.clip(circle_center, rect_center - rect_half_size, rect_center + rect_half_size)
 
-    # Calculate the distance between the circle's center and this closest point
-    distance = np.linalg.norm(circle_center - closest_point)
-
-    return distance < circle_radius
+    if rect_size[0]/2 + circle_radius < abs(rect_position[0] - circle_position[0]):
+        return False
+    elif rect_size[1]/2 + circle_radius < abs(rect_position[1] - circle_position[1]):
+        return False
+    else:
+        return True
