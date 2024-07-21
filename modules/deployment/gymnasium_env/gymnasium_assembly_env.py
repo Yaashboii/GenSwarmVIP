@@ -9,19 +9,19 @@ ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
 
 
-class GymAssemblyEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumAssemblyEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
         super().reset(seed=seed, options=options)
         self.entities = []
-        self.add_entities_from_config()
+        self.init_entities()
         obs = self.get_observation("array")
         infos = self.get_observation("dict")
         return obs, infos
 
-    def add_entities_from_config(self):
+    def init_entities(self):
         entity_id = 0
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
@@ -39,7 +39,7 @@ class GymAssemblyEnvironment(GymnasiumEnvironmentBase):
                            initial_position=(1, 1),
                            size=np.array((0.2, 0.2)),
                            color='gray')
-        range_b = Landmark(landmark_id=entity_id ,
+        range_b = Landmark(landmark_id=entity_id,
                            initial_position=(-1, -1),
                            size=np.array((0.5, 0.2)),
                            color='gray')
