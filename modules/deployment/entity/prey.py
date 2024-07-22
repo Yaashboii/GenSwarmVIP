@@ -68,7 +68,7 @@ class Prey(Entity):
         robot_avoidance_vector = self.calculate_avoidance_vector(all_robots, separation_distance)
         wall_avoidance_vector = self.calculate_wall_avoidance_vector()
 
-        total_avoidance_vector = robot_avoidance_vector * self.__robot_avoidance_weight + wall_avoidance_vector * self.wall_avoidance_weight
+        total_avoidance_vector = robot_avoidance_vector * self.__robot_avoidance_weight + wall_avoidance_vector * self.__wall_avoidance_weight
 
         # Adjust the velocity with the total avoidance vector
         new_velocity = total_avoidance_vector

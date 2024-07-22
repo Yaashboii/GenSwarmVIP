@@ -1,6 +1,6 @@
 from typing import Optional
 from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar
-from modules.deployment.entity import Robot, PushableObject
+from modules.deployment.entity import Robot, Obstacle, Prey
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 from modules.deployment.gymnasium_env.utils import *
 
@@ -9,7 +9,7 @@ ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
 
 
-class GymnasiumMoveEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumPursuitEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
@@ -22,15 +22,8 @@ class GymnasiumMoveEnvironment(GymnasiumEnvironmentBase):
         return obs, infos
 
     def init_entities(self):
-        object = PushableObject(object_id=0,
-                                initial_position=(0, 0),
-                                size=0.15,
-                                color='red')
-        object.density = 0.5
-        object.target_position = (1, 2)
-        self.add_entity(object)
 
-        entity_id = 1
+        entity_id = 0
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
@@ -47,7 +40,41 @@ class GymnasiumMoveEnvironment(GymnasiumEnvironmentBase):
             self.add_entity(robot)
             entity_id += 1
 
+        obstacle_size = self.data["entities"]["obstacle"]["size"]
+        shape = self.data["entities"]["obstacle"]["shape"]
+        color = self.data["entities"]["obstacle"]["color"]
 
+        for i in range(self.num_obstacles):
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+                                    robot_size=obstacle_size, robot_shape=shape, min_distance=obstacle_size,
+                                    entities=self.entities)
+            obstacle = Obstacle(obstacle_id=entity_id,
+                                initial_position=position,
+                                size=obstacle_size)
+            self.add_entity(obstacle)
+            entity_id += 1
+
+        prey_size = 0.1
+        position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+                                robot_size=prey_size, robot_shape=shape, min_distance=prey_size,
+                                entities=self.entities)
+        prey = Prey(prey_id=entity_id,
+                    initial_position=position,
+                    size=prey_size,
+                    mass=1,
+                    density=0.5)
+        self.add_entity(prey)
+
+    def step(self, action:ActType):
+
+        obs, reward, termination, truncation, infos = super().step(action)
+
+        for entity in self.entities:
+            if entity.__class__.__name__ == "Prey":
+                entity.avoid_robots_and_walls(self.get_entities_by_type('Robot'))
+                self.set_entity_velocity(entity.id, entity.velocity)
+
+        return obs, reward, termination, truncation, infos
 
 if __name__ == "__main__":
 
@@ -56,7 +83,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumMoveEnvironment("../../../config/env_config.json")
+    env = GymnasiumPursuitEnvironment("../../../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)
