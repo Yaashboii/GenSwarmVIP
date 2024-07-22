@@ -5,7 +5,7 @@
         "height": 5,
 
         "#scale_factor_note": "1 meter = 100 pixel",
-        "scale_factor": 300
+        "scale_factor": 100
     },
 
     "task_name": "cross",
@@ -20,8 +20,8 @@
             "color": "green",
             "shape": "circle",
             "specified": [
-                {"position": [0, 1.5], "size": 0.15},
-                {"position": [1, 2.5], "size": 0.15}
+                {"position": [0, 1], "size": 0.15},
+                {"position": [1, 2], "size": 0.15}
             ],
             "perceptual_range": 1
         },
@@ -30,7 +30,10 @@
             "specified": []
         },
         "obstacle": {
-            "count": 10,
+            "count": 20,
+            "size": 0.15,
+            "shape": "circle",
+            "color": "green",
             "specified": [
                 {"position": [2.5, 2.50], "size": 0.15, "color": "blue"},
                 {"position": [2.5, -2.50], "size": 0.15, "color": "blue"},
