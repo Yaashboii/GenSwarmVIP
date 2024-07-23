@@ -17,17 +17,9 @@ class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
         self.radius = radius
         self.center = center
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed)
-        self.entities = []
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
-
     def init_entities(self):
 
-        obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.num_obstacles, 0.15)
+        obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.num_obstacles, 0.50)
         robot_points = self.sample_points_on_circle(self.radius, self.center, self.num_robots)
         farthest_points = self.find_farthest_points(robot_points)
         for entity_id, initial_position in enumerate(obstacle_points, start=len(robot_points)):
@@ -42,6 +34,15 @@ class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
                           target_position=target_position,
                           size=0.15)
             self.add_entity(robot)
+
+    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
+        super().reset(seed=seed)
+        self.entities = []
+        self.engine.clear_entities()
+        self.init_entities()
+        obs = self.get_observation("array")
+        infos = self.get_observation("dict")
+        return obs, infos
 
     @staticmethod
     def find_farthest_points(points):
@@ -93,7 +94,7 @@ if __name__ == '__main__':
 
     from modules.deployment.utils.manager import Manager
 
-    manager = Manager(env)
+    manager = Manager(env, max_speed=1.0)
     manager.publish_observations(infos)
     import rospy
 
@@ -106,3 +107,4 @@ if __name__ == '__main__':
         manager.publish_observations(infos)
         rate.sleep()
     print("Simulation completed successfully.")
+

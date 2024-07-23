@@ -109,6 +109,13 @@ class Engine(ABC):
             raise ValueError("Entity does not exist in the environment.")
         return self._entities[entity_id].position, self._entities[entity_id].velocity
 
+    def clear_entities(self):
+        """
+        Clear all entities from the environment.
+        """
+        self._entities.clear()
+        self._joints.clear()
+
     @abstractmethod
     def step(self, delta_time: float):
         """
