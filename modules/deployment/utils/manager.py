@@ -16,12 +16,13 @@ from modules.deployment.utils.char_points_generate import validate_contour_point
 
 class Manager:
 
-    def __init__(self, env):
+    def __init__(self, env, max_speed=0.2):
         self.env = env
 
         rospy.init_node('simulation_manager', anonymous=True)
         self._pub_list = []
         self._robots = env.get_entities_by_type('Robot') + env.get_entities_by_type('Leader')
+        self._max_speed = max_speed
         robot_start_index = min(self._robots, key=lambda x: x.id).id
         robot_end_index = max(self._robots, key=lambda x: x.id).id
         rospy.set_param("robot_start_index", robot_start_index)
@@ -53,8 +54,9 @@ class Manager:
         """
         velocity_callback is a callback function for the velocity topic.
         """
-        desired_velocity = np.array([data.linear.x, data.linear.y])
-        print(f"Received velocity for robot {i}: {desired_velocity}")
+        desired_velocity = np.array([data.linear.x, data.linear.y]) / (np.linalg.norm(
+            [data.linear.x, data.linear.y]) + 0.001) * self._max_speed
+        # print(f"Received velocity for robot {i}: {desired_velocity}")
         self.robotID_velocity[i] = desired_velocity
         # self.env.set_entity_velocity(i, desired_velocity)
 
@@ -65,8 +67,11 @@ class Manager:
         current_velocity = leader.velocity
         dt = 0.01  # assuming a fixed timestep, can be adjusted or calculated dynamically
 
-    def publish_observations(self, obs):
-        observation = obs
+    def publish_observations(self, obs=None):
+        if obs:
+            observation = obs
+        else:
+            observation = self.env.get_observation()
         observations_msg = Observations()
         observations_msg.observations = []
         for entity_id, entity in observation.items():
