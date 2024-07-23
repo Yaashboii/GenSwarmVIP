@@ -6,7 +6,7 @@ import sys
 import rospy
 
 from modules.framework.action import ActionNode
-from modules.utils.root import root_manager
+from modules.utils.root import root_manager, get_project_root
 from modules.utils.common import get_param, call_reset_environment
 from modules.framework.code_error import Bug, Feedback
 from modules.file.log_file import logger
@@ -169,10 +169,24 @@ if __name__ == "__main__":
     from modules.framework.actions import *
     import argparse
 
-    # data = '2024-06-19_10-50-33'
-    # data = '2024-06-21_09-55-56'
-    data = 'dog_sheep/2024-07-15_20-18-59'
-    path = f"../../../workspace/{data}"
+    parser = argparse.ArgumentParser(
+        description="Run simulation with custom parameters."
+    )
+
+    parser.add_argument(
+        "--timeout", type=int, default=30, help="Total time for the simulation"
+    )
+    parser.add_argument(
+        "--feedback", type=str, default="None", help="Optional: human, VLM, None,Result feedback",
+    )
+    parser.add_argument(
+        "--data", type=str, default='cross/2024-07-19_10-00-29', help="Data path for the simulation"
+    )
+
+    args = parser.parse_args()
+
+    data = args.data
+    path = f'{get_project_root()}/workspace/{data}'
 
     rospy.set_param("path", data)
     root_manager.update_root(path)
@@ -185,30 +199,20 @@ if __name__ == "__main__":
     bug_handler = BugLevelHandler()
     bug_handler.next_action = debug_code
     debug_code._next = run_code
-    # critic_handler = CriticLevelHandler()
     hf_handler = FeedbackHandler()
     hf_handler.next_action = human_feedback
     human_feedback._next = run_code
+
     # link error handlers
     chain_of_handler = bug_handler
     bug_handler.successor = hf_handler
-    run_code.error_handler = chain_of_handler
-    run_code._next = video_critic
-    video_critic.error_handler = chain_of_handler
-    parser = argparse.ArgumentParser(
-        description="Run simulation with custom parameters."
-    )
 
-    parser.add_argument(
-        "--timeout", type=int, default=200, help="Total time for the simulation"
-    )
-    parser.add_argument(
-        "--feedback", type=str, default="None", help="Optional:human、VLM、None",
-    )
+    if args.feedback != 'None':
+        run_code.error_handler = chain_of_handler
+        run_code._next = video_critic
+        video_critic.error_handler = chain_of_handler
 
-    args = parser.parse_args()
-    run_code.context.load_from_file(path + "/GrammarCheckAsync.pkl")
+    run_code.context.load_from_file(path + "/WriteRun.pkl")
     run_code.context.args = args
     asyncio.run(run_code.run())
     run_code.context.save_to_file(f"{path}/run_code.pkl")
-
