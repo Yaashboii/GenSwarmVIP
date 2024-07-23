@@ -7,7 +7,7 @@ import json
 import numpy as np
 from tqdm import tqdm
 
-from modules.deployment.gymnasium_env.gymnaisum_cross_env import GymnasiumCrossEnvironment
+from modules.deployment.gymnasium_env import GymnasiumCrossEnvironment
 from modules.deployment.utils.manager import Manager
 
 
@@ -31,7 +31,6 @@ class AutoRunner:
         directories = []
         for item in os.listdir(f"../workspace/{self.experiment_path}"):
             item_path = os.path.join(f"../workspace/{self.experiment_path}", item)
-
             if os.path.isdir(item_path):
                 if self.run_mode == 'continue':
                     if self.experiment_completed(item_path):
@@ -201,6 +200,6 @@ if __name__ == "__main__":
     runner = AutoRunner("../config/env_config.json",
                         workspace_path='layer/cross',
                         experiment_duration=40,
-                        run_mode='rerun'
+                        run_mode='continue'
                         )
     runner.run_multiple_experiments()
