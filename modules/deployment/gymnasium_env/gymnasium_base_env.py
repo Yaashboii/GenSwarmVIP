@@ -66,8 +66,8 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
             self.engine = QuadTreeEngine(world_size=(self.width, self.height),
                                          alpha=0.9,
                                          damping=0.75,
-                                         collision_check=True,
-                                         joint_constraint=True)
+                                         collision_check=False,
+                                         joint_constraint=False)
         elif engine_type == 'Box2DEngine':
             self.engine = Box2DEngine()
         elif engine_type == 'Omni_Engine':
