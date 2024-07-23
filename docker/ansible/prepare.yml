@@ -20,7 +20,7 @@
     - "../../modules/deployment/execution_scripts/omni/run_omni.py"
     - "../../modules/deployment/execution_scripts/omni/mqtt_server.py"
     - "../../modules/deployment/execution_scripts/omni/velocity_limiter.py"
-    - "../../workspace/flocking/2024-07-17_17-26-15/functions.py"
+    - "../../workspace/cross/2024-07-19_10-00-29/functions.py"
     - "../../requirements.txt"
     - "../../msg"
     - "../../srv"

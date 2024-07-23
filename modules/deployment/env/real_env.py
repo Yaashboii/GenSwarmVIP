@@ -11,9 +11,8 @@ from modules.deployment.env.base_env import EnvironmentBase
 
 
 class RealEnvironment(EnvironmentBase):
-    def __init__(self, data_file: str = None, output_file: str = "output.json"):
-        # super().__init__(data_file=data_file, engine_type='QuadTreeEngine')
-        super().__init__(data_file=data_file, engine_type='OmniEngine')
+    def __init__(self, data_file: str = None, output_file: str = "output.json", engine_type='OmniEngine'):
+        super().__init__(data_file=data_file, engine_type=engine_type)
         self.output_file = output_file
         self.generated_entities = []
 
@@ -37,4 +36,3 @@ class RealEnvironment(EnvironmentBase):
         add_specified_entities("landmark", Landmark)
         add_specified_entities("pushable_object", PushableObject)
         add_specified_entities("robot", Robot, "green")
-
