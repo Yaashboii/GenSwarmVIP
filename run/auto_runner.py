@@ -5,6 +5,7 @@ import subprocess
 import rospy
 import json
 import numpy as np
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from modules.deployment.gymnasium_env import GymnasiumCrossEnvironment
@@ -16,7 +17,8 @@ class AutoRunner:
                  workspace_path,
                  experiment_duration,
                  run_mode='rerun',
-                 max_speed=1.0):
+                 max_speed=1.0,
+                 tolerance=0.05):
         self.env_config_path = env_config_path
         self.experiment_path = workspace_path
         self.experiment_duration = experiment_duration
@@ -26,6 +28,7 @@ class AutoRunner:
         self.manager = Manager(self.env, max_speed=max_speed)
         self.stop_event = threading.Event()
         self.run_mode = run_mode
+        self.tolerance = tolerance
 
     def get_experiment_directories(self):
         directories = []
@@ -33,10 +36,13 @@ class AutoRunner:
             item_path = os.path.join(f"../workspace/{self.experiment_path}", item)
             if os.path.isdir(item_path):
                 if self.run_mode == 'continue':
-                    if self.experiment_completed(item_path):
+                    if not self.experiment_completed(item_path):
                         directories.append(item)
                 elif self.run_mode == 'rerun':
                     directories.append(item)
+                elif self.run_mode == 'analyze':
+                    if self.experiment_completed(item_path):
+                        directories.append(item)
         return directories
 
     def experiment_completed(self, path):
@@ -134,8 +140,8 @@ class AutoRunner:
             raise ValueError("Trajectories have different lengths")
 
         return {
-            'collision': collision_check(run_result),
-            'target_achieve': target_achieve(run_result)
+            'collision': collision_check(run_result, tolerance=self.tolerance),
+            'target_achieve': target_achieve(run_result, tolerance=self.tolerance)
         }
 
     def run_and_analyze_experiment(self, experiment):
@@ -195,11 +201,63 @@ class AutoRunner:
 
         print("All experiments completed successfully.")
 
+    def analyze_all_results(self):
+        experiment_dirs = self.get_experiment_directories()
+        collision_count = 0
+        target_achieve_count = 0
+        no_collision_and_target_achieve_count = 0
+        total_experiments = len(experiment_dirs)
+
+        for experiment in experiment_dirs:
+            result_path = os.path.join(f"../workspace/{self.experiment_path}", experiment, 'result.json')
+            if os.path.exists(result_path):
+                with open(result_path, 'r') as f:
+                    result_data = json.load(f)
+                    analysis = result_data.get('analysis', {})
+                    if analysis.get('collision') is False:
+                        collision_count += 1
+                    if analysis.get('target_achieve') is True:
+                        target_achieve_count += 1
+                    if analysis.get('collision') is False and analysis.get('target_achieve') is True:
+                        no_collision_and_target_achieve_count += 1
+
+        collision_rate = collision_count / total_experiments if total_experiments else 0
+        target_achieve_rate = target_achieve_count / total_experiments if total_experiments else 0
+        no_collision_and_target_achieve_rate = no_collision_and_target_achieve_count / total_experiments if total_experiments else 0
+
+        # Plotting the results
+        labels = ['No Collision Rate', 'Target Achieve Rate', 'No Collision and Target Achieve Rate']
+        rates = [collision_rate, target_achieve_rate, no_collision_and_target_achieve_rate]
+
+        plt.figure(figsize=(10, 6))
+        plt.bar(labels, rates, color=['red', 'green', 'blue'])
+        plt.ylabel('Rate')
+        plt.title('Experiment Analysis Rates')
+        plt.ylim(0, 1)
+
+        for i, rate in enumerate(rates):
+            plt.text(i, rate + 0.01, f"{rate:.2f}", ha='center')
+
+        plt_path = os.path.join(f"../workspace/{self.experiment_path}", 'experiment_analysis.png')
+        plt.savefig(plt_path)
+        plt.show()
+
+        print(f"Collision Rate: {collision_rate:.2f}")
+        print(f"Target Achieve Rate: {target_achieve_rate:.2f}")
+        print(f"No Collision and Target Achieve Rate: {no_collision_and_target_achieve_rate:.2f}")
+
 
 if __name__ == "__main__":
     runner = AutoRunner("../config/env_config.json",
                         workspace_path='layer/cross',
                         experiment_duration=40,
-                        run_mode='continue'
+                        run_mode='analyze',
+                        max_speed=1.0,
+                        tolerance=0.05
                         )
-    runner.run_multiple_experiments()
+
+    if runner.run_mode in ['rerun', 'continue']:
+        runner.run_multiple_experiments()
+
+    if runner.run_mode == 'analyze':
+        runner.analyze_all_results()
