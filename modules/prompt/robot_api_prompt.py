@@ -66,6 +66,12 @@ def get_surrounding_obstacles_info():
         - position (numpy.ndarray): The current position of the obstacle.
         - radius (float): The radius of the obstacle.
     '''
+def get_target_position():
+    '''
+    Description: Get the target position for the robot to reach.
+    Returns:
+    - numpy.ndarray: The current position of the target.
+    '''
 
     
 """.strip()

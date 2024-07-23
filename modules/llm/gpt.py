@@ -72,6 +72,6 @@ class GPT(BaseLLM):
 if __name__ == '__main__':
     import asyncio
 
-    gpt= GPT()
+    gpt = GPT()
     response = asyncio.run(gpt.ask("Hello, who are you?"))
     print(response)

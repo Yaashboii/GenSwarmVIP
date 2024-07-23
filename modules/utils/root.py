@@ -4,6 +4,25 @@ from pathlib import Path
 import argparse
 
 
+def get_project_root():
+    """Search upwards to find the project root directory."""
+    current_path = Path.cwd()
+    while True:
+        if (
+                (current_path / ".git").exists()
+                or (current_path / ".project_root").exists()
+                or (current_path / ".gitignore").exists()
+        ):
+            # use metagpt with git clone will land here
+            return current_path
+        parent_path = current_path.parent
+        if parent_path == current_path:
+            # use metagpt with pip install will land here
+            cwd = Path.cwd()
+            return cwd
+        current_path = parent_path
+
+
 class _RootManager:
     _instance = None
 
@@ -18,7 +37,7 @@ class _RootManager:
 
     def update_root(self, workspace_root: str = None, args: argparse.Namespace = None) -> None:
         if workspace_root is None or args is not None:
-            self.project_root = self.get_project_root()
+            self.project_root = get_project_root()
             current_datetime = datetime.datetime.now()
             formatted_date = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
             generate_mode = ''
@@ -32,24 +51,6 @@ class _RootManager:
         else:
             self.workspace_root = Path(workspace_root)
         self.data_root = self.workspace_root / "data"
-
-    def get_project_root(self):
-        """Search upwards to find the project root directory."""
-        current_path = Path.cwd()
-        while True:
-            if (
-                    (current_path / ".git").exists()
-                    or (current_path / ".project_root").exists()
-                    or (current_path / ".gitignore").exists()
-            ):
-                # use metagpt with git clone will land here
-                return current_path
-            parent_path = current_path.parent
-            if parent_path == current_path:
-                # use metagpt with pip install will land here
-                cwd = Path.cwd()
-                return cwd
-            current_path = parent_path
 
 
 root_manager = _RootManager()

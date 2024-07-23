@@ -10,6 +10,7 @@ from .cover_env import CoverEnvironment
 from .explore_env import ExploreEnvironment
 from .move_formation import MoveFormationEnvironment
 from .real_env import RealEnvironment
+from .real_cross_env import RealCrossEnvironment
 
 __all__ = [
     'EnvironmentBase',
@@ -21,5 +22,6 @@ __all__ = [
     'AssemblyEnvironment',
     'CoverEnvironment',
     'ExploreEnvironment',
-    'RealEnvironment'
+    'RealEnvironment',
+    'RealCrossEnvironment',
 ]

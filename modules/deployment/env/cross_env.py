@@ -9,14 +9,14 @@ from modules.deployment.env import EnvironmentBase
 
 class CrossEnvironment(EnvironmentBase):
     def __init__(self,
-                 width: int,
-                 height: int,
                  radius: int,
                  robot_num: int,
                  obstacle_num: int,
+                 data_file: str = None,
                  center: tuple = (500, 500),
                  output_file: str = "output.json"):
-        super().__init__(width, height)
+        super().__init__(data_file=data_file, engine_type='OmniEngine')
+        super().__init__(data_file=data_file, engine_type='QuadTreeEngine')
         self.radius = radius
         self.center = center
         self.output_file = output_file
@@ -26,23 +26,22 @@ class CrossEnvironment(EnvironmentBase):
 
     def init_entities(self):
 
-        obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.obstacle_num, 50)
+        obstacle_points = self.sample_points(self.center, self.obstacle_num, size=self.radius,
+                                             min_distance=0.3)
         robot_points = self.sample_points_on_circle(self.radius, self.center, self.robot_num)
         farthest_points = self.find_farthest_points(robot_points)
         for entity_id, initial_position in enumerate(obstacle_points, start=len(robot_points)):
             obstacle = Obstacle(obstacle_id=entity_id,
                                 initial_position=initial_position,
-                                size=20.0)
+                                size=0.15)
             self.add_entity(obstacle)
 
         for entity_id, (initial_position, target_position) in enumerate(zip(robot_points, farthest_points)):
-            robot = Robot(robot_id=entity_id,
+            robot = Robot(robot_id=entity_id+self.obstacle_num,
                           initial_position=initial_position,
                           target_position=target_position,
-                          size=7.0)
+                          size=0.15)
             self.add_entity(robot)
-
-
 
     @staticmethod
     def find_farthest_points(points):
@@ -57,35 +56,6 @@ class CrossEnvironment(EnvironmentBase):
         points = [(center[0] + radius * np.cos(angle),
                    center[1] + radius * np.sin(angle)) for angle in angles]
         return points
-
-    @staticmethod
-    def sample_points_inside_circle(radius, center, num_points, min_distance, max_attempts_per_point=10):
-        def distance(p1, p2):
-            return np.sqrt(np.sum((p1 - p2) ** 2, axis=1))
-
-        points = []
-        center = np.array(center)
-        attempts = 0
-
-        radius -= min_distance
-        while len(points) < num_points and attempts < num_points * max_attempts_per_point:
-            # Generate random points within the bounding square
-            random_points = np.random.uniform(-radius, radius, size=(num_points, 2)) + center
-            valid_mask = np.linalg.norm(random_points - center, axis=1) <= radius
-            random_points = random_points[valid_mask]
-
-            for point in random_points:
-                if len(points) == 0 or np.all(distance(np.array(points), point) >= min_distance):
-                    points.append(point)
-                    if len(points) >= num_points:
-                        break
-
-            attempts += 1
-
-        if len(points) < num_points:
-            print(f"Warning: Could only place {len(points)} points out of {num_points} requested.")
-
-        return np.array(points)
 
 
 if __name__ == '__main__':

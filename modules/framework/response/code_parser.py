@@ -156,7 +156,7 @@ def example_function(param1, param2='default'):
     
 """
 
-parser = CodeParser()
-parser.parse_code(code)
-print(f"Function Lines: {parser.function_lines}")
-print(f"Comment Lines: {parser.comment_lines}")
+# parser = CodeParser()
+# parser.parse_code(code)
+# print(f"Function Lines: {parser.function_lines}")
+# print(f"Comment Lines: {parser.comment_lines}")
