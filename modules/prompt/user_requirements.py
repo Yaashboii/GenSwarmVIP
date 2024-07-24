@@ -17,8 +17,8 @@ tasks = {
                "The robots move along this path to fully explore their assigned region.",
     "pursuit": "Some robots play the role of shepherd dogs. There are many sheep in the environment, and you need to work together to herd them into a designated area."
                "You must be fast while ensuring the sheep do not escape the boundaries of the environment.",
-    "cross": "The robot needs to maintain a distance of at least 0.3 meters from other robots and obstacles while moving to the target position to avoid collisions. During movement, it should implement adjustment strategies to avoid congestion among multiple robots and improve overall efficiency.",
-    "formation": "You need to form a specific shape with other robots. Avoid collisions with other robots as much as possible."
+    "cross": "The robot needs to maintain a distance of at least 0.15 meters from other robots and obstacles while moving to the target position to avoid collisions. During movement, it should implement adjustment strategies to avoid congestion among multiple robots and improve overall efficiency.",
+    "formation": "You need to form a circle shape with other robots around position (0,0). Avoid collisions with other robots."
                  "The number of robots is not fixed, so you can design a highly efficient target allocation algorithm based on robot id."
                  "It is important to collaborate effectively and use high-efficiency algorithms to find your position while also avoiding competition for the same spot with others."
                  "Design a safe and efficient algorithm to reach the target position as quickly as possible.",
