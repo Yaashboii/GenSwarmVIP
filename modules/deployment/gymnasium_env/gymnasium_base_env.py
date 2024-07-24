@@ -83,8 +83,10 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         self.num_sheep = self.data.get("entities", {}).get("sheep", {}).get("count", 0)
         self.get_spaces()
 
-        self.screen = pygame.display.set_mode((self.width * self.scale_factor, self.height * self.scale_factor))
+        self.screen = pygame.Surface((self.width * self.scale_factor, self.height * self.scale_factor))
+
         self.render_mode = self.data.get('render_mode', 'human')
+
         self.output_file = self.data.get('output_file', 'output.json')
         self.clock = pygame.time.Clock()
         self.FPS = 300
@@ -292,6 +294,11 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
         super().reset(seed=seed, options=options)
         self.entities = []
+        if self.render_mode == 'human':
+            self.screen = pygame.display.set_mode((self.width * self.scale_factor, self.height * self.scale_factor))
+        else:
+            self.screen = pygame.Surface((self.width * self.scale_factor, self.height * self.scale_factor))
+
 
     def add_entity(self, entity):
         self.entities.append(entity)
