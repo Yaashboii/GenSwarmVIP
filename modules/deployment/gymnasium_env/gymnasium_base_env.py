@@ -35,7 +35,7 @@ The coordinate system in ours system is:
 class GymnasiumEnvironmentBase(gymnasium.Env):
     metadata = {
         'render.modes': ['human'],
-        'fps': 300
+        'fps': 30
     }
 
     def __init__(self, data_file: str):
@@ -54,6 +54,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
             raise json.JSONDecodeError(f"Error decoding JSON from the data file: {self.data_file}") from e
 
         self.dt = self.data.get('dt', 0.01)
+        self.FPS = 10
         self.simulation_data = {}
         self.scale_factor = self.data['display']['scale_factor']
         self.width = self.data['display']['width']
@@ -86,7 +87,6 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         self.render_mode = self.data.get('render_mode', 'human')
         self.output_file = self.data.get('output_file', 'output.json')
         self.clock = pygame.time.Clock()
-        self.FPS = 3000
 
     def _seed(self, seed=None):
         """
