@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymAssemblyEnvironment("../../../config/env_config.json")
+    env = GymnasiumAssemblyEnvironment("../../../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)
