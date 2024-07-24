@@ -37,8 +37,8 @@ def run_robot(robot_id, target_position, formation_points):
 def run_multiple_robot(start_idx, end_idx):
     rospy.init_node(f'multi_robot_publisher_node{start_idx}_{end_idx}', anonymous=True)
     target_positions = get_target_positions()
-    # char_points = get_contour_points('智')
-    char_points = []
+    char_points = get_contour_points('R')
+    # char_points = []
     threads = []
     for i in range(start_idx, end_idx + 1):
         thread = threading.Thread(target=run_robot, args=(i, target_positions[i], char_points))
