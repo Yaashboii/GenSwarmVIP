@@ -60,5 +60,6 @@
     },
     "engine_type": "QuadTreeEngine",
     "render_mode": "rgb_array",
-    "output_file": "output.json"
+    "output_file": "output.json",
+    "dt": 0.1
 }

@@ -1,8 +1,10 @@
 import math
 import os
-from os import listdir, makedirs
 import threading
 import subprocess
+import time
+
+import imageio
 import rospy
 import json
 import cv2
@@ -12,7 +14,6 @@ from tqdm import tqdm
 
 from modules.deployment.gymnasium_env import GymnasiumCrossEnvironment
 from modules.deployment.utils.manager import Manager
-from modules.utils.media import generate_video_from_frames
 
 
 class AutoRunner:
@@ -32,6 +33,7 @@ class AutoRunner:
         self.stop_event = threading.Event()
         self.run_mode = run_mode
         self.tolerance = tolerance
+        self.frames = []
 
     def get_experiment_directories(self):
         directories = []
@@ -85,18 +87,10 @@ class AutoRunner:
                 result[entity_id]["trajectory"].append(infos[entity_id]["position"])
             return result
 
-        frame_dir = f"../workspace/{self.experiment_path}/{experiment_id}/data/frames"
-        print(f"Experiment {experiment_id} starts")
-        if not os.path.exists(frame_dir):
-            makedirs(frame_dir)
-        frame_count = 0
-        frame_frequency = 10
-
         result = init_result(infos)
         self.manager.publish_observations(infos)
         rate = rospy.Rate(self.env.FPS)
         start_time = rospy.get_time()
-
 
         while not rospy.is_shutdown() and not self.stop_event.is_set():
             current_time = rospy.get_time()
@@ -107,19 +101,33 @@ class AutoRunner:
             obs, reward, termination, truncation, infos = self.env.step(action=action)
             for entity_id in infos:
                 result[entity_id]["trajectory"].append(infos[entity_id]["position"])
-            if frame_count % frame_frequency == 0:
-                rgb_array = self.env.render()
-                frame_image_path = os.path.join(frame_dir, f'{frame_count}.png')
-                cv2.imwrite(frame_image_path, cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR))
-            frame_count += 1
+            self.frames.append(self.env.render())
             self.manager.publish_observations(infos)
             rate.sleep()
-        generate_video_from_frames(
-            frames_folder=frame_dir,
-            video_path=f"{frame_dir}/../video.mp4",
-        )
         print(f"Experiment {experiment_id} completed successfully.")
+        self.save_frames_as_animations(experiment_id)
+
         return result
+
+    def save_frames_as_animations(self, experiment_id):
+        # Save as GIF
+        gif_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id, 'animation.gif')
+        imageio.mimsave(gif_path, self.frames, fps=self.env.FPS)
+        print(f"Saved animation for experiment {experiment_id} as GIF at {gif_path}")
+
+        # Save as MP4
+        mp4_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id, 'animation.mp4')
+        height, width, layers = self.frames[0].shape
+        size = (width, height)
+        out = cv2.VideoWriter(mp4_path, cv2.VideoWriter_fourcc(*'mp4v'), self.env.FPS, size)
+
+        for frame in self.frames:
+            out.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+
+        out.release()
+        print(f"Saved animation for experiment {experiment_id} as MP4 at {mp4_path}")
+
+        self.frames.clear()
 
     def analyze_result(self, run_result):
         def are_trajectories_equal_length(data):
@@ -240,6 +248,7 @@ class AutoRunner:
             with tqdm(total=len(experiment_list), desc="Running Experiments") as pbar:
                 for experiment in experiment_list:
                     self.stop_event.clear()
+                    time.sleep(1)
 
                     t1 = threading.Thread(target=self.run_code, args=(experiment,))
                     t2 = threading.Thread(target=self.run_and_analyze_experiment, args=(experiment,))
@@ -318,7 +327,7 @@ class AutoRunner:
         mean_target_achieve_ratio = np.mean(target_achievement_ratios) if target_achievement_ratios else 0
         mean_steps_ratios = np.mean(steps_ratios) if steps_ratios else 0
         metrics = [
-            ([mean_collision_frequency, mean_collision_severity], ['Collision Frequency*1000', 'Collision Severity'],
+            ([mean_collision_frequency, mean_collision_severity], ['Collision Frequency', 'Collision Severity'],
              'Value', 'Collision Metrics', ['purple', 'orange'], 'collision_metrics.png'),
             ([mean_distance_ratio, mean_target_achieve_ratio, mean_steps_ratios],
              ['Distance Ratio', 'Target Achieve Ratio', 'Steps Ratio'], 'Ratio',
@@ -349,9 +358,9 @@ class AutoRunner:
 if __name__ == "__main__":
     runner = AutoRunner("../config/env_config.json",
                         workspace_path='layer/cross',
-                        experiment_duration=40,
+                        experiment_duration=20,
                         run_mode='rerun',
-                        max_speed=4.0,
+                        max_speed=1.0,
                         tolerance=0.05
                         )
 
