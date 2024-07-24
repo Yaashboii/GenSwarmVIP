@@ -2,6 +2,9 @@ import math
 import os
 import threading
 import subprocess
+import time
+
+import imageio
 import rospy
 import json
 import numpy as np
@@ -29,6 +32,7 @@ class AutoRunner:
         self.stop_event = threading.Event()
         self.run_mode = run_mode
         self.tolerance = tolerance
+        self.frames = []
 
     def get_experiment_directories(self):
         directories = []
@@ -95,11 +99,19 @@ class AutoRunner:
             obs, reward, termination, truncation, infos = self.env.step(action=action)
             for entity_id in infos:
                 result[entity_id]["trajectory"].append(infos[entity_id]["position"])
-            self.env.render()
+            self.frames.append(self.env.render())
             self.manager.publish_observations(infos)
             rate.sleep()
         print(f"Experiment {experiment_id} completed successfully.")
+        self.save_frames_as_gif(experiment_id)
+
         return result
+
+    def save_frames_as_gif(self, experiment_id):
+        gif_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id, 'animation.gif')
+        imageio.mimsave(gif_path, self.frames, fps=self.env.FPS)
+        print(f"Saved animation for experiment {experiment_id} as GIF at {gif_path}")
+        self.frames.clear()
 
     def analyze_result(self, run_result):
         def are_trajectories_equal_length(data):
@@ -219,6 +231,7 @@ class AutoRunner:
             with tqdm(total=len(experiment_list), desc="Running Experiments") as pbar:
                 for experiment in experiment_list:
                     self.stop_event.clear()
+                    time.sleep(1)
 
                     t1 = threading.Thread(target=self.run_code, args=(experiment,))
                     t2 = threading.Thread(target=self.run_and_analyze_experiment, args=(experiment,))
@@ -233,7 +246,6 @@ class AutoRunner:
                         self.stop_event.set()
                         t1.join()
                         t2.join()
-
                     pbar.update(1)
 
         except KeyboardInterrupt:
@@ -297,7 +309,7 @@ class AutoRunner:
         mean_target_achieve_ratio = np.mean(target_achievement_ratios) if target_achievement_ratios else 0
         mean_steps_ratios = np.mean(steps_ratios) if steps_ratios else 0
         metrics = [
-            ([mean_collision_frequency, mean_collision_severity], ['Collision Frequency*1000', 'Collision Severity'],
+            ([mean_collision_frequency, mean_collision_severity], ['Collision Frequency', 'Collision Severity'],
              'Value', 'Collision Metrics', ['purple', 'orange'], 'collision_metrics.png'),
             ([mean_distance_ratio, mean_target_achieve_ratio, mean_steps_ratios],
              ['Distance Ratio', 'Target Achieve Ratio', 'Steps Ratio'], 'Ratio',
@@ -328,9 +340,9 @@ class AutoRunner:
 if __name__ == "__main__":
     runner = AutoRunner("../config/env_config.json",
                         workspace_path='layer/cross',
-                        experiment_duration=40,
-                        run_mode='analyze',
-                        max_speed=4.0,
+                        experiment_duration=20,
+                        run_mode='rerun',
+                        max_speed=1.0,
                         tolerance=0.05
                         )
 
