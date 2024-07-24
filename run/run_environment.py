@@ -6,73 +6,60 @@ import numpy as np
 import pygame
 import rospy
 
-from modules.deployment.env import *
 from modules.deployment.utils.manager import Manager
-from modules.deployment.gym_env.gym_configurable_env import GymnasiumConfigurableEnvironment
+from modules.deployment.gymnasium_env.gymnasium_formation_env import GymnasiumFormationEnvironment
 
 
 def main():
-    pygame.init()
+    import time
+    import rospy
 
-    # env = ConfigurableEnvironment( data_file='../config/env_config.json')
-    env = GymnasiumConfigurableEnvironment(data_file='../config/env_config.json')
-    # env = CrossEnvironment(1000, 1000, radius=450, robot_num=30, obstacle_num=30)
-    # env = FormationEnvironment(1000, 1000, robot_num=150)
-    # env = PursuitEnvironment(1000, 1000, robot_num=10, obstacle_num=10)
-    # env = ExploreEnvironment(1000, 1000, robot_num=4)
-    # env = SheepdogEnvironment(1000, 1000, sheep_num=30, dog_num=6)
-    # env = CoverEnvironment(1000, 1000, robot_num=200)
-    # env = CollectEnvironment(1000, 1000, num_1=10, num_2=5, robot_num=3)
-    # env = AssemblyEnvironment(1000, 1000, robot_num=10)
-    # env = MoveEnvironment(1000, 1000, robot_num=6, obstacle_num=100)
-    # env=MoveFormationEnvironment(1000, 1000, robot_num=5, obstacle_num=30)
-    # env = RealEnvironment(1000, 1000,
-    #                       data_file='/home/derrick/catkin_ws/src/code_llm/modules/deployment/env/env_config/real.json')
-    # screen = pygame.display.set_mode((env.width * env.scale_factor, env.height * env.scale_factor))
+    from modules.deployment.utils.manager import Manager
 
-    env.reset()
-    manager = Manager(env.env)
-    manager.publish_observations()
-
-    running = True
-    rate = rospy.Rate(100)
-    # env.save_entities_to_file()
+    data_root = f"/home/iusl/Desktop/code_llm_ws/src/code_llm/CodeLLM/workspace/{rospy.get_param('path', 'test')}"
+    count = len(listdir(f"{data_root}/data/frames/"))  # this is used to number the 'frames' folder
+    frame_dir = f"{data_root}/data/frames/frame{count}"
+    if not os.path.exists(frame_dir):
+        makedirs(frame_dir)
+    frame_files = []
     draw_counter = 0
-    draw_frequency = 1  # 每帧绘图一次
+    draw_frequency = 10
 
-    # data_root = f"/home/iusl/Desktop/code_llm_ws/src/code_llm/CodeLLM/workspace/{rospy.get_param('path', 'test')}"
-    # count = len(listdir(f"{data_root}/data/frames/"))  # this is used to number the 'frames' folder
-    # frame_dir = f"{data_root}/data/frames/frame{count}"
-    # if not os.path.exists(frame_dir):
-    #     makedirs(frame_dir)
+    env = GymnasiumFormationEnvironment("../config/env_config.json")
 
-    # frame_files = []
-    # clock = pygame.time.Clock()
-    try:
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-            env.step()
-            manager.publish_observations()
+    obs, infos = env.reset()
+    manager = Manager(env)
+    manager.publish_observations(infos)
+    rate = rospy.Rate(env.FPS)
 
-            rate.sleep()
-            # dt = clock.tick(10) / 1000
-            # env.update(dt)
-            # if draw_counter % draw_frequency == 0:
-            #     env.draw(screen)
-            #     frame = pygame.surfarray.array3d(screen).astype(np.uint8)
-            #     frame = np.rot90(frame, 3)
-            #     frame = np.flip(frame, axis=1)
-                # frame_image_path = os.path.join(frame_dir, f'{draw_counter}.png')
-                # cv2.imwrite(frame_image_path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-                # frame_files.append(frame_image_path)
+    start_time = time.time()  # 记录起始时间
+    frame_count = 0  # 初始化帧数计数器
 
-            # draw_counter += 1
-    finally:
-        print("Shutting down")
-        # pygame.quit()
-        # env.save_entities_to_file()
+    while True:
+        action = manager.robotID_velocity
+        obs, reward, termination, truncation, infos = env.step(action=action)
+        # env.render()
+        if draw_counter % draw_frequency == 0:
+            frame = env.render()
+            frame_image_path = os.path.join(frame_dir, f'{draw_counter}.png')
+            cv2.imwrite(frame_image_path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            frame_files.append(frame_image_path)
+        draw_counter += 1
+
+        manager.publish_observations(infos)
+        rate.sleep()
+
+        frame_count += 1  # 增加帧数计数器
+        current_time = time.time()  # 获取当前时间
+        elapsed_time = current_time - start_time  # 计算已过去的时间
+
+        # 当达到1秒时，计算并打印FPS，然后重置计数器和时间
+        if elapsed_time >= 1.0:
+            fps = frame_count / elapsed_time
+            print(f"FPS: {fps:.2f}")  # 打印FPS，保留两位小数
+            frame_count = 0  # 重置帧数计数器
+            start_time = current_time  # 重置起始时间戳
+    print("Simulation completed successfully.")
 
 
 if __name__ == "__main__":
