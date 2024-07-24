@@ -1,6 +1,7 @@
 import json
 from typing import Optional
 from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar
+from math import isnan
 
 import numpy as np
 import pygame
@@ -86,7 +87,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         self.render_mode = self.data.get('render_mode', 'human')
         self.output_file = self.data.get('output_file', 'output.json')
         self.clock = pygame.time.Clock()
-        self.FPS = 3000
+        self.FPS = 300
 
     def _seed(self, seed=None):
         """
@@ -232,6 +233,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
                                 with detailed information for each entity.
         """
         for entity_id, velocity in action.items():
+            valid_velocity = [i if not isnan(i) else 0 for i in velocity]
             self.set_entity_velocity(entity_id, velocity)
 
         self.engine.step(self.dt)
@@ -264,11 +266,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         if self.render_mode == "human":
             pygame.event.pump()
             pygame.display.update()
-        return (
-            np.transpose(new_rgb_array, axes=(1, 0, 2))
-            if self.render_mode == "rgb_array"
-            else None
-        )
+        return np.transpose(new_rgb_array, axes=(1, 0, 2))
 
     def draw(self):
         def apply_offset(pos):
