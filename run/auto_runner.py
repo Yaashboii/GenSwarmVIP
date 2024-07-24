@@ -7,6 +7,7 @@ import time
 import imageio
 import rospy
 import json
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -90,6 +91,7 @@ class AutoRunner:
         self.manager.publish_observations(infos)
         rate = rospy.Rate(self.env.FPS)
         start_time = rospy.get_time()
+
         while not rospy.is_shutdown() and not self.stop_event.is_set():
             current_time = rospy.get_time()
             if current_time - start_time > self.experiment_duration:
@@ -103,14 +105,28 @@ class AutoRunner:
             self.manager.publish_observations(infos)
             rate.sleep()
         print(f"Experiment {experiment_id} completed successfully.")
-        self.save_frames_as_gif(experiment_id)
+        self.save_frames_as_animations(experiment_id)
 
         return result
 
-    def save_frames_as_gif(self, experiment_id):
+    def save_frames_as_animations(self, experiment_id):
+        # Save as GIF
         gif_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id, 'animation.gif')
         imageio.mimsave(gif_path, self.frames, fps=self.env.FPS)
         print(f"Saved animation for experiment {experiment_id} as GIF at {gif_path}")
+
+        # Save as MP4
+        mp4_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id, 'animation.mp4')
+        height, width, layers = self.frames[0].shape
+        size = (width, height)
+        out = cv2.VideoWriter(mp4_path, cv2.VideoWriter_fourcc(*'mp4v'), self.env.FPS, size)
+
+        for frame in self.frames:
+            out.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+
+        out.release()
+        print(f"Saved animation for experiment {experiment_id} as MP4 at {mp4_path}")
+
         self.frames.clear()
 
     def analyze_result(self, run_result):
@@ -226,7 +242,8 @@ class AutoRunner:
             print(f"Errors: {e.stderr}")
 
     def run_multiple_experiments(self):
-        experiment_list = self.get_experiment_directories()
+        experiment_list = sorted(self.get_experiment_directories())
+
         try:
             with tqdm(total=len(experiment_list), desc="Running Experiments") as pbar:
                 for experiment in experiment_list:
@@ -246,6 +263,7 @@ class AutoRunner:
                         self.stop_event.set()
                         t1.join()
                         t2.join()
+
                     pbar.update(1)
 
         except KeyboardInterrupt:

@@ -11,7 +11,7 @@ from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnviron
 class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
     def __init__(self,
                  data_file: str = None,
-                 radius: int = 2,
+                 radius: float = 2.5,
                  center: tuple = (0, 0)):
         super().__init__(data_file)
         self.radius = radius
@@ -19,7 +19,8 @@ class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
 
     def init_entities(self):
 
-        obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.num_obstacles, 0.50)
+        # obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.num_obstacles, 1.5)
+        obstacle_points = np.array([(-1.4, -1.4), (1.4, -1.4), (0, 2), (0, 0)]) * 0.7
         robot_points = self.sample_points_on_circle(self.radius, self.center, self.num_robots)
         farthest_points = self.find_farthest_points(robot_points)
         for entity_id, initial_position in enumerate(obstacle_points, start=len(robot_points)):
@@ -39,6 +40,7 @@ class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
         super().reset(seed=seed)
         self.entities = []
         self.engine.clear_entities()
+
         self.init_entities()
         obs = self.get_observation("array")
         infos = self.get_observation("dict")
@@ -107,4 +109,3 @@ if __name__ == '__main__':
         manager.publish_observations(infos)
         rate.sleep()
     print("Simulation completed successfully.")
-
