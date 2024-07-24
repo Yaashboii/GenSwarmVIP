@@ -13,6 +13,7 @@ pynput==1.7.6
 anthropic
 pylint
 coverage
+imageio
 pre-commit
 rospkg
 radon
