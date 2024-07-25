@@ -150,6 +150,8 @@ class RunCodeAsync(ActionNode):
                 video_path=f"{data_root}/output{number}.mp4",
             )
             logger.log(f"synthesize frame{number} ---> output{number}.mp4")
+            os.system("pgrep -f run.py | xargs kill -9")
+
             return self._process_response(result_list)
 
     def _process_response(self, result: list):
