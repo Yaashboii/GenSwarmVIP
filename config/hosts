@@ -1,5 +1,14 @@
 [SWARM]
-# 192.168.50.204 ansible_user=nvidia ansible_password=123
-192.168.51.124 ansible_user=nvidia ansible_password=123
+192.168.50.200 ansible_user=nvidia ansible_password=123
+192.168.50.201 ansible_user=nvidia ansible_password=123
+192.168.50.202 ansible_user=nvidia ansible_password=123
+192.168.50.203 ansible_user=nvidia ansible_password=123
+192.168.50.204 ansible_user=nvidia ansible_password=123
+
 
 # new_IP ansible_user=username ansible_password=password
+# 0 3 4 2
+#192.168.51.120 ansible_user=nvidia ansible_password=123
+#192.168.51.220 ansible_user=nvidia ansible_password=123
+#192.168.51.124 ansible_user=nvidia ansible_password=123
+#192.168.51.178 ansible_user=nvidia ansible_password=123

@@ -1,7 +1,11 @@
 - name: Copy Source Code
   hosts: SWARM
+  become: yes
+  become_method: sudo
+  become_user: root
   vars:
-    stage: 2
+    ansible_become_pass: 123
+    stage: 1
   tasks:
     - include_tasks: prepare.yml
       when: stage == 0

@@ -3,7 +3,7 @@ import pickle
 from abc import ABC, abstractmethod
 
 from modules.file.file import File
-from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.constraint import ConstraintPool
 from modules.framework.code.function_tree import FunctionTree
 
 
@@ -38,11 +38,7 @@ class WorkflowContext(Context):
         self.feedbacks = []
         self.run_code = File(
             name="run.py",
-            message="""import sys
-from functions import run_loop
-robot_id = sys.argv[1]
-if __name__ == '__main__':
-    run_loop()
+            message="""
 """,
         )
         # self.sequence_diagram = FileInfo(name='sequence_diagram.md')
@@ -58,6 +54,13 @@ if __name__ == '__main__':
     def load_from_file(self, file_path):
         with open(file_path, "rb") as file:
             self._instance = pickle.load(file)
+
+    def set_root_for_files(self, root_value):
+        for file_attr in vars(self).values():
+            if isinstance(file_attr, File):
+                file_attr.root = root_value
+            if isinstance(file_attr, FunctionTree):
+                file_attr.file.root= root_value
 
     @property
     def command(self):

@@ -7,9 +7,13 @@ from modules.framework.error import CodeParseError
 class CodeParser(ast.NodeVisitor):
     def __init__(self):
         super().__init__()
+        self._code_str = None
         self._imports = set()
         self._function_dict: dict[str, str] = {}
         self._function_defs: dict[str, str] = {}
+        self._function_lines: dict[str, int] = {}
+        self._comment_lines: dict[str, int] = {}
+
 
     @property
     def imports(self):
@@ -31,7 +35,16 @@ class CodeParser(ast.NodeVisitor):
     def function_defs(self):
         return self._function_defs
 
+    @property
+    def function_lines(self):
+        return self._function_lines
+
+    @property
+    def comment_lines(self):
+        return self._comment_lines
+
     def parse_code(self, code_str):
+        self._code_str = code_str
         tree = ast.parse(code_str)
         self.visit(tree)
 
@@ -79,8 +92,17 @@ class CodeParser(ast.NodeVisitor):
             body_part = ""
             return f"{func_header}\n{docstring_part}{body_part}"
 
-        self._function_dict[node.name] = ast.unparse(node).strip()
+        function_body_with_comments = ast.get_source_segment(self._code_str, node)
+
+        self._function_dict[node.name] = function_body_with_comments.strip()
         self._function_defs[node.name] = reconstruct_function_definition(node)
+        start_line = node.lineno
+        end_line = node.end_lineno
+        self._function_lines[node.name] = end_line - start_line + 1
+        code_without_comment = ast.unparse(node).strip()
+        line_count = len(code_without_comment.splitlines()) - 1
+
+        self.comment_lines[node.name] = self._function_lines[node.name] - line_count
 
 
 class SingleFunctionParser(CodeParser):
@@ -118,3 +140,23 @@ class SingleFunctionParser(CodeParser):
             )
         if not function_name:
             raise CodeParseError(f"Failed: No function detected in the response")
+
+
+# Example usage
+code = """
+
+def example_function(param1, param2='default'):
+    '''
+    aaa
+    '''
+    # This is a comment
+    result = param1 + param2
+    return result
+    
+    
+"""
+
+# parser = CodeParser()
+# parser.parse_code(code)
+# print(f"Function Lines: {parser.function_lines}")
+# print(f"Comment Lines: {parser.comment_lines}")

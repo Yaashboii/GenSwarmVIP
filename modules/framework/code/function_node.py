@@ -1,4 +1,4 @@
-from modules.framework.context.node import Node
+from modules.framework.node import Node
 from enum import Enum
 
 
@@ -19,6 +19,8 @@ class FunctionNode(Node):
         self.content: str = ""
         self._definition: str = ""
         self._state: State = State.NOT_STARTED
+        self._num_of_lines: int = 0
+
 
     @property
     def callees(self):
@@ -85,4 +87,3 @@ class FunctionNode(Node):
         self.content = ""
         self._definition = ""
         self._state = State.NOT_STARTED
-        self._description = ""

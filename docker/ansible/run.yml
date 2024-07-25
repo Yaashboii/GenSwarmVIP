@@ -1,15 +1,19 @@
-
 - name: Start LLM code
   command: >
-    nvidia-docker run -it --rm -d
+    nvidia-docker run -it --rm
         --name llm-code
-        -v /home/nvidia/docker/code_llm_ws/src/code_llm:/home/nvidia
-        --workdir /home/nvidia
+        -v /home/nvidia/docker/code_llm_ws:/catkin_ws
+        --workdir /catkin_ws
         --network host
         llm_simulator
-        bash -c "python3 run.py 0 && tail -f /dev/null"
-  async: 3000  # 设置任务的超时时间（秒），这里设置为 300 秒（5分钟）
-  poll: 0  # 立即返回，不等待任务完成
+        bash -c "source /catkin_ws/devel/setup.bash && roslaunch code_llm run.launch"
+  #  async: 3000  # 设置任务的超时时间（秒），这里设置为 300 秒（5分钟）
+  #  poll: 0  # 立即返回，不等待任务完成
   become: true
   become_user: nvidia  # 替换为你的 ROS 用户
-  register: llm_code
+  register: llm_code_info
+#
+#- name: Show container logs
+#  debug:
+#    var: llm_code_info.stdout_lines
+#

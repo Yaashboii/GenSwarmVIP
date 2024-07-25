@@ -1,20 +1,20 @@
 import json
 
 from modules.framework.action import ActionNode
-from modules.llm.gpt import GPT
-from modules.prompt.analyze_stage_prompt import (
+from modules.llm import GPT
+from modules.prompt import (
     ANALYZE_CONSTRAINT_PROMPT_TEMPLATE,
     CONSTRAIN_TEMPLATE,
     CONTINUE_ANALYZE_CONSTRAINT_PROMPT_TEMPLATE,
     MODIFY_CONSTRAIN_TEMPLATE,
+    ROBOT_API,
+    ENV_DES,
+    TASK_DES,
 )
-from modules.prompt.robot_api_prompt import ROBOT_API
-from modules.prompt.env_description_prompt import ENV_DES
-from modules.prompt.task_description import TASK_DES
-from modules.framework.response.text_parser import parse_text
 from modules.file.log_file import logger
-from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.constraint import ConstraintPool
 from modules.framework.response import *
+from modules.prompt.user_requirements import get_user_commands
 
 
 class AnalyzeConstraints(ActionNode):
@@ -64,7 +64,7 @@ class AnalyzeConstraints(ActionNode):
 
 if __name__ == "__main__":
     import asyncio
-    from modules.framework.context.workflow_context import WorkflowContext
+    from modules.framework.context import WorkflowContext
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -78,7 +78,9 @@ if __name__ == "__main__":
         help="Whether to run in interaction mode in analyze constraints.",
     )
     context = WorkflowContext()
-    context.command = "Integrate into a flock, adhering to cohesion by staying connected, alignment by moving together, and separation by maintaining at least 0.5 meters between robots."
+    task = get_user_commands("cross")[0]
+
+    context.command = task
     args = parser.parse_args()
     context.args = args
     constraint_analyser = AnalyzeConstraints("analyze constraints")

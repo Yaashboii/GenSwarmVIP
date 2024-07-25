@@ -5,7 +5,7 @@ import asyncio
 
 from modules.utils import root_manager
 from modules.framework.actions import *
-from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.constraint import ConstraintPool
 from modules.framework.code.function_tree import FunctionTree
 from modules.file import logger, File
 

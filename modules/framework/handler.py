@@ -52,7 +52,7 @@ class Handler(ABC):
 
 class BugLevelHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
-        if isinstance(request, Bug):
+        if isinstance(request, Bug | Bugs):
             self._logger.log("Handled by BugLevelHandler")
             self._next_action.error = request.error_msg
             return self._next_action

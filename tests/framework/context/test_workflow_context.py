@@ -1,8 +1,8 @@
 import unittest
 import os
 import shutil
-from modules.framework.context.workflow_context import WorkflowContext
-from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.context import WorkflowContext
+from modules.framework.constraint import ConstraintPool
 from modules.framework.code.function_tree import FunctionTree
 
 

@@ -1,8 +1,7 @@
 import unittest
 from unittest.mock import patch, PropertyMock, Mock
-from modules.framework.context.node import ConstraintNode
+from modules.framework.constraint import ConstraintNode, ConstraintPool
 from modules.file.file import File
-from modules.framework.context.contraint_info import ConstraintPool
 
 
 class TestConstraintPool(unittest.TestCase):

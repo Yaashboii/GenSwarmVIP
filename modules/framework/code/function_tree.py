@@ -1,6 +1,6 @@
 from modules.framework.code.function_layer import FunctionLayer
 from modules.framework.code.function_node import FunctionNode, State
-from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.constraint import ConstraintPool
 from modules.file.log_file import logger
 from modules.file.file import File
 
@@ -37,6 +37,14 @@ class FunctionTree:
     @property
     def nodes(self):
         return self._function_nodes.values()
+
+    @property
+    def file(self):
+        return self._file
+
+    @file.setter
+    def file(self, value):
+        self._file = value
 
     @property
     def names(self):
@@ -194,7 +202,7 @@ class FunctionTree:
     def update_from_parser(self, imports: set, function_dict: dict):
         self._update_imports(imports)
         self._update_function_dict(function_dict)
-        self.update()
+        # self.update()
 
     def get_min_layer_index_by_state(self, state: State) -> int:
         for layer_index, layer in enumerate(self._layers):
@@ -232,7 +240,7 @@ class FunctionTree:
         if isinstance(function, str):
             function = self._function_nodes[function]
         relative_function = self._find_all_relative_functions(function)
-        logger.log(f"relative_ function: {relative_function}", level="warning")
+        logger.log(f"relative_function: {relative_function}", level="warning")
         self.save_functions_to_file(relative_function)
 
     def _update_imports(self, imports: set):

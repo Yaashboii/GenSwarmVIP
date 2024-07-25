@@ -1,6 +1,6 @@
 import time
 
-from modules.framework.action import ActionNode
+from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.code.function_node import State, FunctionNode
 from modules.framework.code.function_tree import FunctionTree
 from modules.framework.code.grammar_checker import GrammarChecker
@@ -33,10 +33,10 @@ class GrammarCheck(ActionNode):
             errors = self._grammar_checker.check_code_errors(
                 file_path=f"{root_manager.workspace_root}/functions.py"
             )
-            return str(self._process_response(errors))
+            return self._process_response(str(errors))
 
     def _process_response(self, response: str) -> str | Bugs | Bug:
-        if response:
+        if eval(response):
             bug_list = [
                 Bug(error_msg=e["error_message"], error_function=e["function_name"])
                 for e in eval(response)
@@ -53,36 +53,56 @@ class GrammarCheck(ActionNode):
             return response
 
 
-class GrammarCheckAsync(ActionNode):
-    def __init__(self, next_text: str = "", node_name: str = ""):
-        super().__init__(next_text, node_name)
+class GrammarCheckAsync(AsyncNode):
+    def __init__(
+        self, run_mode="layer", start_state=State.REVIEWED, end_state=State.CHECKED
+    ):
+        super().__init__(run_mode, start_state, end_state)
 
     def _build_prompt(self):
-        return super()._build_prompt()
+        pass
+
+    async def operate(self, function: FunctionNode):
+        action = GrammarCheck()
+        action.error_handler = self.error_handler
+        action.setup(function)
+        return await action.run()
+
+    async def _run_layer_mode(self):
+        layer_index = self.function_pool.get_min_layer_index_by_state(self._start_state)
+        if layer_index == -1:
+            logger.log("No functions in NOT_STARTED state", "error")
+            raise SystemExit
+
+        if not all(
+            function_node.state == self._start_state
+            for function_node in self.function_pool._layers[layer_index].functions
+        ):
+            logger.log(
+                "All functions in the layer are not in NOT_STARTED state", "error"
+            )
+            raise SystemExit
+
+        for function_node in self.function_pool._layers[layer_index].functions:
+            await self.operate(function_node)
+            function_node.state = State.CHECKED
+
+    async def _run_sequential_mode(self):
+        for function in self.function_pool.nodes:
+            if function.state == self._start_state:
+                await self.operate(function)
 
     async def _run(self):
-        function_pool = FunctionTree()
-
-        async def operation(function: FunctionNode):
-            action = GrammarCheck()
-            action.setup(function)
-            return await action.run()
-
-        layer_index = function_pool.get_min_layer_index_by_state(State.WRITTEN)
-        if not all(
-            function_node.state == State.WRITTEN
-            for function_node in function_pool._layers[layer_index].functions
-        ):
-            logger.log("All functions in the layer are not in WRITTEN state", "error")
-            # TODO: 解决当出现生成的函数跑到前面层的问题。跑到后面层是通过重置State来解决的，但是跑到前面层的问题还没有解决
-            time.sleep(1)
+        if self._run_mode == "layer":
+            await self._run_layer_mode()
+        elif self._run_mode == "sequential":
+            await self._run_sequential_mode()
+            for function in self.function_pool.nodes:
+                function.state = self._end_state
+        elif self._run_mode == "parallel":
+            await self._run_sequential_mode()
+            for function in self.function_pool.nodes:
+                function.state = self._end_state
+        else:
+            logger.log("Unknown generate_mode", "error")
             raise SystemExit
-        # layer_index = function_pool.get_min_layer_index_by_state(State.REVIEWED)
-        # if not all(function_node.state == State.REVIEWED for function_node in
-        #            function_pool._layers[layer_index].functions):
-        #     logger.log("All functions in the layer are not in REVIEWED state", "error")
-        #     # TODO: 解决当出现生成的函数跑到前面层的问题。跑到后面层是通过重置State来解决的，但是跑到前面层的问题还没有解决
-        #     time.sleep(1)
-        #     raise SystemExit
-        for function_node in function_pool._layers[layer_index].functions:
-            await operation(function_node)

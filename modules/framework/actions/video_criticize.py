@@ -5,27 +5,23 @@ from openai import AsyncOpenAI
 from modules.framework.action import ActionNode
 from modules.framework.code.function_node import State, FunctionNode
 from modules.framework.code.function_tree import FunctionTree
-from modules.framework.context.contraint_info import ConstraintPool
+from modules.framework.constraint import ConstraintPool
 from modules.framework.code.grammar_checker import GrammarChecker
 from modules.framework.code_error import Bug, Bugs, Feedback
 
 from modules.file.log_file import logger
 from modules.framework.response import parse_text
-from modules.llm.gpt import GPT
-from modules.prompt.video_critic_prompt import VIDEO_PROMPT_TEMPLATE, OUTPUT_TEMPLATE
-from modules.prompt.task_description import TASK_DES
+from modules.prompt import (
+    VIDEO_PROMPT_TEMPLATE,
+    OUTPUT_TEMPLATE,
+    TASK_DES,
+)
 from modules.utils.media import process_video, create_video_from_frames
 
 
 class VideoCriticize(ActionNode):
     def __init__(self, next_text: str = "", node_name: str = ""):
-        llm = GPT(
-            client=AsyncOpenAI(
-                api_key="sk-88p6V4R1Hh5bjCn985132cCc8c314c278bFe21Ba637997Ec",
-                base_url="https://api.zhiyunai168.com/v1",
-            )
-        )
-        super().__init__(next_text, node_name, llm=llm)
+        super().__init__(next_text, node_name)
 
         self._frames: list
         self._function_pool = FunctionTree()
@@ -69,8 +65,12 @@ class VideoCriticize(ActionNode):
             # HumanFeedback
             if_feedback = input("If task is done? Press y/n")
             if if_feedback == "y":
+                logger.log("run code:success", "warning")
                 return "NONE"
             else:
+                if self.context.args.feedback == "None":
+                    logger.log("run code:fail", "warning")
+                    return "NONE"
                 feedback = input("Please provide feedback:")
                 self.context.feedbacks.append(feedback)
                 return Feedback(feedback)
