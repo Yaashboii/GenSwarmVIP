@@ -298,8 +298,9 @@ class AutoRunner:
         print(f"{title}: {data}")
 
     def analyze_all_results(self):
-        metric_name = ["collision_frequency", "collision_severity_sum", "distance_ratio_average", "target_achievement_ratio",
-                  "steps_ratio_average"]
+        metric_name = ["collision_frequency", "collision_severity_sum", "distance_ratio_average",
+                       "target_achievement_ratio",
+                       "steps_ratio_average"]
         experiment_dirs = sorted(self.get_experiment_directories())
         collision_files = []
         no_target_achieve_files = []
@@ -340,7 +341,8 @@ class AutoRunner:
                 'collision_metrics.png'
             ),
             (
-                [mean_metric_value["distance_ratio_average"], mean_metric_value["target_achievement_ratio"], mean_metric_value["steps_ratio_average"]],
+                [mean_metric_value["distance_ratio_average"], mean_metric_value["target_achievement_ratio"],
+                 mean_metric_value["steps_ratio_average"]],
                 ['Distance Ratio', 'Target Achieve Ratio', 'Steps Ratio'],
                 'Ratio',
                 'Distance Metrics',
@@ -352,9 +354,10 @@ class AutoRunner:
         for data, labels, ylabel, title, colors, filename in metrics_data:
             self.plot_and_print_results(data, labels, ylabel, title, colors, filename)
 
-        collision_rate = len(collision_files) / len(experiment_dirs) if experiment_dirs else 0
-        target_achieve_rate = len(no_target_achieve_files) / len(experiment_dirs) if experiment_dirs else 0
-        no_collision_and_target_rate = len(no_collision_and_target_achieve) / len(experiment_dirs) if experiment_dirs else 0
+        collision_rate = 1 - len(collision_files) / len(experiment_dirs) if experiment_dirs else 0
+        target_achieve_rate = 1 - len(no_target_achieve_files) / len(experiment_dirs) if experiment_dirs else 0
+        no_collision_and_target_rate = len(no_collision_and_target_achieve) / len(
+            experiment_dirs) if experiment_dirs else 0
         self.plot_and_print_results(
             [collision_rate, target_achieve_rate, no_collision_and_target_rate],
             ['No Collision', 'Target Achieve', 'No Collision & Target Achieve'],
@@ -380,7 +383,6 @@ class AutoRunner:
                 rotation=True,
             )
 
-
         collision_files = '\n'.join(collision_files)
         no_target_achieve_files = '\n'.join(no_target_achieve_files)
         print(f"Experiments with collisions:\n{collision_files}")
@@ -389,7 +391,7 @@ class AutoRunner:
 
 if __name__ == "__main__":
     runner = AutoRunner("../config/env_config.json",
-                        workspace_path='layer/cross',
+                        workspace_path='parallel/cross',
                         experiment_duration=20,
                         run_mode='analyze',
                         max_speed=1.0,
