@@ -248,7 +248,7 @@ class AutoRunner:
             with tqdm(total=len(experiment_list), desc="Running Experiments") as pbar:
                 for experiment in experiment_list:
                     self.stop_event.clear()
-                    time.sleep(1)
+                    # time.sleep(1)
 
                     t1 = threading.Thread(target=self.run_code, args=(experiment,))
                     t2 = threading.Thread(target=self.run_and_analyze_experiment, args=(experiment,))
@@ -337,8 +337,8 @@ class AutoRunner:
         for data, labels, ylabel, title, colors, filename in metrics:
             self.plot_and_print_results(data, labels, ylabel, title, colors, filename)
 
-        collision_rate = len(collision_files) / len(experiment_dirs) if experiment_dirs else 0
-        target_achieve_rate = len(no_target_achieve_files) / len(experiment_dirs) if experiment_dirs else 0
+        collision_rate = 1 - len(collision_files) / len(experiment_dirs) if experiment_dirs else 1
+        target_achieve_rate = 1 - len(no_target_achieve_files) / len(experiment_dirs) if experiment_dirs else 0
         no_collision_and_target_rate = len(no_collision_and_target_achieve) / len(
             experiment_dirs) if experiment_dirs else 0
         self.plot_and_print_results(
@@ -358,9 +358,9 @@ class AutoRunner:
 if __name__ == "__main__":
     runner = AutoRunner("../config/env_config.json",
                         workspace_path='layer/cross',
-                        experiment_duration=20,
-                        run_mode='rerun',
-                        max_speed=1.0,
+                        experiment_duration=50,
+                        run_mode='analyze',
+                        max_speed=0.5,
                         tolerance=0.05
                         )
 

@@ -60,9 +60,12 @@ def initialize_ros_node(robot_id):
     robot_info["id"] = robot_id
     if not ros_initialized:
         ros_initialized = True
+
         rospy.Subscriber("/observation", Observations, observation_callback)
-        velocity_publisher = rospy.Publisher("/robot/velcmd", Twist, queue_size=10)
+        velocity_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+        print(f"Waiting for position message from /observation...")
         msg = rospy.wait_for_message("/observation", Observations)
+        print(f"Observations data init successfully")
         observation_callback(msg)
         rospy.Timer(rospy.Duration(0.1), publish_velocities)
 
@@ -72,6 +75,7 @@ def publish_velocities(event):
     velocity_msg.linear.x = robot_info["velocity"][0]
     velocity_msg.linear.y = robot_info["velocity"][1]
     velocity_publisher.publish(velocity_msg)
+    print(f"Publishing velocity: {robot_info['velocity']}")
 
 
 def get_position():
