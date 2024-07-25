@@ -124,7 +124,7 @@ class RunCodeAsync(ActionNode):
         end_idx = rospy.get_param("robot_end_index")
         total_robots = end_idx - start_idx + 1
 
-        num_processes = min(10, total_robots)  # Number of processes
+        num_processes = min(2, total_robots)  # Number of processes
         robots_per_process = total_robots // num_processes
 
         robot_ids = list(range(start_idx, end_idx + 1))

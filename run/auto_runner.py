@@ -10,8 +10,9 @@ import json
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from tqdm import tqdm
+from matplotlib.colors import LinearSegmentedColormap
 
+from tqdm import tqdm
 from modules.deployment.gymnasium_env import GymnasiumCrossEnvironment
 from modules.deployment.utils.manager import Manager
 
@@ -290,16 +291,14 @@ class AutoRunner:
         print(f"{title}: {data}")
 
     def analyze_all_results(self):
-        experiment_dirs = self.get_experiment_directories()
+        metric_name = ["collision_frequency", "collision_severity_sum", "distance_ratio_average", "target_achievement_ratio",
+                  "steps_ratio_average"]
+        experiment_dirs = sorted(self.get_experiment_directories())
         collision_files = []
         no_target_achieve_files = []
         no_collision_and_target_achieve = []
-        collision_frequencies = []
-        collision_severities = []
-        distance_ratios = []
-        target_achievement_ratios = []
-        steps_ratios = []
 
+        exp_data = {}
         for experiment in experiment_dirs:
             result_path = os.path.join(f"../workspace/{self.experiment_path}", experiment, 'result.json')
             if os.path.exists(result_path):
@@ -313,34 +312,42 @@ class AutoRunner:
                     if not analysis.get('collision_occurred') and analysis.get('target_achieved'):
                         no_collision_and_target_achieve.append(experiment)
 
-                    collision_frequencies.append(analysis.get('collision_frequency'))
-                    collision_severities.append(analysis.get('collision_severity_sum'))
-                    distance_ratios.append(analysis.get('distance_ratio_average'))
+                    exp_data[experiment] = {}
+                    for m in metric_name:
+                        exp_data[experiment][m] = analysis.get(m)
+                        if m == 'steps_ratio_average' and analysis.get(m) == 'inf':
+                            print(experiment, "inf steps_ratio_average")
+                            exp_data[experiment][m] = 0
 
-                    target_achievement_ratios.append(analysis.get('target_achievement_ratio'))
-                    if analysis.get('steps_ratio_average') != 'inf':
-                        steps_ratios.append(analysis.get('steps_ratio_average'))
+        mean_metric_value = {}
+        for m in metric_name:
+            mean_metric_value[m] = np.mean([exp_data[i][m] for i in exp_data.keys()])
 
-        mean_collision_frequency = np.mean(collision_frequencies) if collision_frequencies else 0
-        mean_collision_severity = np.mean(collision_severities) if collision_severities else 0
-        mean_distance_ratio = np.mean(distance_ratios) if distance_ratios else 0
-        mean_target_achieve_ratio = np.mean(target_achievement_ratios) if target_achievement_ratios else 0
-        mean_steps_ratios = np.mean(steps_ratios) if steps_ratios else 0
-        metrics = [
-            ([mean_collision_frequency, mean_collision_severity], ['Collision Frequency', 'Collision Severity'],
-             'Value', 'Collision Metrics', ['purple', 'orange'], 'collision_metrics.png'),
-            ([mean_distance_ratio, mean_target_achieve_ratio, mean_steps_ratios],
-             ['Distance Ratio', 'Target Achieve Ratio', 'Steps Ratio'], 'Ratio',
-             'Distance Metrics', ['cyan', 'blue', 'green'], 'distance_metrics.png'),
+        metrics_data = [
+            (
+                [mean_metric_value["collision_frequency"], mean_metric_value["collision_severity_sum"]],
+                ['Collision Frequency', 'Collision Severity'],
+                'Value',
+                'Collision Metrics',
+                ['purple', 'orange'],
+                'collision_metrics.png'
+            ),
+            (
+                [mean_metric_value["distance_ratio_average"], mean_metric_value["target_achievement_ratio"], mean_metric_value["steps_ratio_average"]],
+                ['Distance Ratio', 'Target Achieve Ratio', 'Steps Ratio'],
+                'Ratio',
+                'Distance Metrics',
+                ['cyan', 'blue', 'green'],
+                'distance_metrics.png'
+            ),
         ]
 
-        for data, labels, ylabel, title, colors, filename in metrics:
+        for data, labels, ylabel, title, colors, filename in metrics_data:
             self.plot_and_print_results(data, labels, ylabel, title, colors, filename)
 
         collision_rate = len(collision_files) / len(experiment_dirs) if experiment_dirs else 0
         target_achieve_rate = len(no_target_achieve_files) / len(experiment_dirs) if experiment_dirs else 0
-        no_collision_and_target_rate = len(no_collision_and_target_achieve) / len(
-            experiment_dirs) if experiment_dirs else 0
+        no_collision_and_target_rate = len(no_collision_and_target_achieve) / len(experiment_dirs) if experiment_dirs else 0
         self.plot_and_print_results(
             [collision_rate, target_achieve_rate, no_collision_and_target_rate],
             ['No Collision', 'Target Achieve', 'No Collision & Target Achieve'],
@@ -349,6 +356,23 @@ class AutoRunner:
             ['red', 'green', 'blue'],
             'experiment_outcomes.png'
         )
+
+        start_color = "#0000FF"  # 蓝色
+        end_color = "#FF0000"  # 红色
+        cmap = LinearSegmentedColormap.from_list("my_colormap", [start_color, end_color])
+        for m in metric_name:
+            num_colors = len(exp_data.keys())
+            colors_list = [cmap(i / (num_colors - 1)) for i in range(num_colors)]
+            self.plot_and_print_results(
+                data=[exp_data[i][m] for i in exp_data.keys()],
+                labels=exp_data.keys(),
+                ylabel=m,
+                title=f"Experiment Outcomes in {m}",
+                colors=colors_list,
+                save_filename=f'{m} metric.png',
+            )
+
+
         collision_files = '\n'.join(collision_files)
         no_target_achieve_files = '\n'.join(no_target_achieve_files)
         print(f"Experiments with collisions:\n{collision_files}")
@@ -359,7 +383,7 @@ if __name__ == "__main__":
     runner = AutoRunner("../config/env_config.json",
                         workspace_path='layer/cross',
                         experiment_duration=20,
-                        run_mode='rerun',
+                        run_mode='analyze',
                         max_speed=1.0,
                         tolerance=0.05
                         )
