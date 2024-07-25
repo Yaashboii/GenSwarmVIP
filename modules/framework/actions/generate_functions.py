@@ -14,7 +14,6 @@ from modules.framework.code.function_node import State
 from modules.framework.handler import BugLevelHandler
 from modules.file.log_file import logger
 from modules.framework.code.function_tree import FunctionTree
-from modules.utils.function import CodeAnalyzer
 
 
 class GenerateFunctions(ActionNode):
