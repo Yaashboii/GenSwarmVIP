@@ -278,14 +278,21 @@ class AutoRunner:
 
         print("All experiments completed successfully.")
 
-    def plot_and_print_results(self, data, labels, ylabel, title, colors, save_filename):
+    def plot_and_print_results(self, data, labels, ylabel, title, colors, save_filename, rotation=False):
+        if rotation:
+            rotation = -90
+        else:
+            rotation = 0
+
         plt.figure(figsize=(10, 6))
         plt.bar(labels, data, color=colors)
+        plt.xticks(rotation=rotation)
         plt.ylabel(ylabel)
         plt.title(title)
         for i, v in enumerate(data):
-            plt.text(i, v + 0.01, f"{v:.2f}", ha='center')
+            plt.text(i, v + 0.01, f"{v:.2f}", ha='center', rotation=rotation)
         plt_path = os.path.join(f"../workspace/{self.experiment_path}", save_filename)
+        plt.tight_layout()
         plt.savefig(plt_path)
         plt.show()
         print(f"{title}: {data}")
@@ -370,6 +377,7 @@ class AutoRunner:
                 title=f"Experiment Outcomes in {m}",
                 colors=colors_list,
                 save_filename=f'{m} metric.png',
+                rotation=True,
             )
 
 
