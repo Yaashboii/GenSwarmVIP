@@ -95,16 +95,16 @@
 
 1. 先自动化测试以下环节的消融对结果的影响，每次只去除其中一个部分**（jwk）**
 
-   > - [ ] **约束池 analyze constraints  （由于该部分较为特殊，需要单独写一个分支）**
-   > - [ ] 函数分析 analyze request
-   > - [ ] 函数设计 design functions
+   > - [ ] **约束池 analyze constraints （由于该部分较为特殊，需要单独写一个分支）**
+   > - [ ] 函数分析 analyze request (不做消融)
+   > - [ ] 函数设计 design functions (不做消融)
    >
-   > - [ ] 多个函数的layer、parallel生成方式 write functions
+   > - [ ] 多个函数的layer、parallel生成方式 write functions (已做)
    >
-   > - [ ] 自代码检查 functions review
-   > - [ ] 错误反馈 bug 
+   > - [ ] 自代码检查 functions review (要做消融，代码更改不大，只要修改一下generate functions 部分的action即可)
+   > - [ ] 错误反馈 bug （不做消融）
    >
-   > - [ ] 视觉反馈 video critic
+   > - [ ] 视觉反馈 video critic (和Human feedback一起做)
 
 2. 统计失败的类型，然后每种找5个例子，用一个固定的反馈意见对这5个进行human feedback，然后评估反馈后的效果**（cmy）**
 
