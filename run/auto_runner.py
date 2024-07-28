@@ -1,5 +1,6 @@
 import math
 import os
+import queue
 import threading
 import subprocess
 import time
@@ -55,7 +56,7 @@ class AutoRunner:
         result_file = os.path.join(path, 'result.json')
         return os.path.exists(result_file)
 
-    def save_experiment_result(self, path, result, analysis):
+    def save_experiment_result(self, path, result, analysis, run_code_result):
         def convert_to_serializable(obj):
             if isinstance(obj, np.ndarray):
                 return obj.tolist()
@@ -68,6 +69,7 @@ class AutoRunner:
         serializable_result = convert_to_serializable(result)
         serializable_analysis = convert_to_serializable(analysis)
         combined_result = {
+            'run_code_result': run_code_result,
             'analysis': serializable_analysis,
             'experiment_data': serializable_result,
         }
@@ -76,44 +78,10 @@ class AutoRunner:
         with open(result_file, 'w') as f:
             json.dump(combined_result, f, indent=4)
 
-    def run_single_experiment(self, experiment_id):
-        obs, infos = self.env.reset()
-
-        def init_result(infos):
-            result = {}
-            for entity_id in infos:
-                result[entity_id] = {"size": 0, "target": None, "trajectory": []}
-                result[entity_id]["size"] = infos[entity_id]["size"]
-                result[entity_id]["target"] = infos[entity_id]["target_position"]
-                result[entity_id]["trajectory"].append(infos[entity_id]["position"])
-            return result
-
-        result = init_result(infos)
-        self.manager.publish_observations(infos)
-        rate = rospy.Rate(self.env.FPS)
-        start_time = rospy.get_time()
-
-        while not rospy.is_shutdown() and not self.stop_event.is_set():
-            current_time = rospy.get_time()
-            if current_time - start_time > self.experiment_duration:
-                break
-            action = self.manager.robotID_velocity
-            self.manager.clear_velocity()
-            obs, reward, termination, truncation, infos = self.env.step(action=action)
-            for entity_id in infos:
-                result[entity_id]["trajectory"].append(infos[entity_id]["position"])
-            self.frames.append(self.env.render())
-            self.manager.publish_observations(infos)
-            rate.sleep()
-        print(f"Experiment {experiment_id} completed successfully.")
-        self.save_frames_as_animations(experiment_id)
-
-        return result
-
     def save_frames_as_animations(self, experiment_id):
         # Save as GIF
         gif_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id, 'animation.gif')
-        imageio.mimsave(gif_path, self.frames, fps=self.env.FPS)
+        imageio.mimsave(gif_path, self.frames, fps=10)
         print(f"Saved animation for experiment {experiment_id} as GIF at {gif_path}")
 
         # Save as MP4
@@ -220,15 +188,41 @@ class AutoRunner:
             'steps_ratio_average': average_steps_ratio
         }
 
-    def run_and_analyze_experiment(self, experiment):
-        result = self.run_single_experiment(experiment)
-        analysis = self.analyze_result(result)
+    def run_single_experiment(self, experiment_id, result_queue):
+        obs, infos = self.env.reset()
 
-        print(f"Analysis for experiment {experiment}: {analysis}")
-        self.results[experiment] = analysis
-        self.save_experiment_result(os.path.join(f"../workspace/{self.experiment_path}", experiment), result, analysis)
+        def init_result(infos):
+            result = {}
+            for entity_id in infos:
+                result[entity_id] = {"size": 0, "target": None, "trajectory": []}
+                result[entity_id]["size"] = infos[entity_id]["size"]
+                result[entity_id]["target"] = infos[entity_id]["target_position"]
+                result[entity_id]["trajectory"].append(infos[entity_id]["position"])
+            return result
 
-    def run_code(self, experiment):
+        result = init_result(infos)
+        self.manager.publish_observations(infos)
+        rate = rospy.Rate(self.env.FPS)
+        start_time = rospy.get_time()
+
+        while not rospy.is_shutdown() and not self.stop_event.is_set():
+            current_time = rospy.get_time()
+            if current_time - start_time > self.experiment_duration:
+                break
+            action = self.manager.robotID_velocity
+            self.manager.clear_velocity()
+            obs, reward, termination, truncation, infos = self.env.step(action=action)
+            for entity_id in infos:
+                result[entity_id]["trajectory"].append(infos[entity_id]["position"])
+            self.frames.append(self.env.render())
+            self.manager.publish_observations(infos)
+            rate.sleep()
+        print(f"Experiment {experiment_id} completed successfully.")
+        self.save_frames_as_animations(experiment_id)
+
+        result_queue.put({'source': 'run_single_experiment', 'result': result})
+
+    def run_code(self, experiment, result_queue):
         experiment_path = os.path.join(self.experiment_path, experiment)
         command = ['python', '../modules/framework/actions/run_code.py', '--data', experiment_path, '--timeout',
                    str(self.experiment_duration - 3)]
@@ -236,23 +230,27 @@ class AutoRunner:
         try:
             result = subprocess.run(command, timeout=self.experiment_duration - 2, capture_output=True, text=True,
                                     check=True)
+            result_queue.put({'source': 'run_code', 'error': False, 'reason': ''})
         except subprocess.TimeoutExpired:
             print(f"\nExperiment {experiment} timed out and was terminated.")
+            result_queue.put({'source': 'run_code', 'error': False, 'reason': 'timeout'})
+
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while running {experiment}: {e}")
             print(f"Errors: {e.stderr}")
+            result_queue.put({'source': 'run_code', 'error': True, 'reason': e.stderr})
 
-    def run_multiple_experiments(self):
-        experiment_list = sorted(self.get_experiment_directories())
-
+    def run_multiple_experiments(self, experiment_list):
+        if not experiment_list:
+            experiment_list = sorted(self.get_experiment_directories())
         try:
             with tqdm(total=len(experiment_list), desc="Running Experiments") as pbar:
                 for experiment in experiment_list:
                     self.stop_event.clear()
-                    time.sleep(1)
+                    result_queue = queue.Queue()
 
-                    t1 = threading.Thread(target=self.run_code, args=(experiment,))
-                    t2 = threading.Thread(target=self.run_and_analyze_experiment, args=(experiment,))
+                    t1 = threading.Thread(target=self.run_code, args=(experiment, result_queue))
+                    t2 = threading.Thread(target=self.run_single_experiment, args=(experiment, result_queue))
 
                     t1.start()
                     t2.start()
@@ -264,7 +262,20 @@ class AutoRunner:
                         self.stop_event.set()
                         t1.join()
                         t2.join()
+                    single_experiment_result = None
+                    run_code_result = None
+                    while not result_queue.empty():
+                        result = result_queue.get()
+                        if result['source'] == 'run_single_experiment':
+                            single_experiment_result = result['result']
+                        elif result['source'] == 'run_code':
+                            run_code_result = result
 
+                    analysis = self.analyze_result(single_experiment_result)
+                    print(f"Analysis for experiment {experiment}: {analysis}")
+                    self.results[experiment] = analysis
+                    self.save_experiment_result(os.path.join(f"../workspace/{self.experiment_path}", experiment),
+                                                single_experiment_result, analysis, run_code_result)
                     pbar.update(1)
 
         except KeyboardInterrupt:
@@ -297,14 +308,24 @@ class AutoRunner:
         plt.show()
         print(f"{title}: {data}")
 
+    def analyze_code(self, functions_path):
+        from modules.utils.function import CodeAnalyzer
+        with open(functions_path, 'r') as f:
+            analyzer = CodeAnalyzer(f.read())
+            analysis_result = analyzer.analyze()
+        # TODO:add more metrics
+        return analysis_result["code_lines"]
+
     def analyze_all_results(self):
         metric_name = ["collision_frequency", "collision_severity_sum", "distance_ratio_average",
                        "target_achievement_ratio",
                        "steps_ratio_average"]
         experiment_dirs = sorted(self.get_experiment_directories())
         collision_files = []
+        error_files = []
         no_target_achieve_files = []
         no_collision_and_target_achieve = []
+        code_lines = []
 
         exp_data = {}
         for experiment in experiment_dirs:
@@ -319,6 +340,10 @@ class AutoRunner:
                         no_target_achieve_files.append(experiment)
                     if not analysis.get('collision_occurred') and analysis.get('target_achieved'):
                         no_collision_and_target_achieve.append(experiment)
+                    run_result = result_data.get('run_code_result', {})
+                    if run_result.get('error'):
+                        error_files.append(experiment)
+                        print(run_result.get('reason'))
 
                     exp_data[experiment] = {}
                     for m in metric_name:
@@ -326,7 +351,9 @@ class AutoRunner:
                         if m == 'steps_ratio_average' and analysis.get(m) == 'inf':
                             print(experiment, "inf steps_ratio_average")
                             exp_data[experiment][m] = 0
-
+            code_path = os.path.join(f"../workspace/{self.experiment_path}", experiment, 'functions.py')
+            if os.path.exists(code_path):
+                code_lines.append(self.analyze_code(code_path))
         mean_metric_value = {}
         for m in metric_name:
             mean_metric_value[m] = np.mean([exp_data[i][m] for i in exp_data.keys()])
@@ -358,12 +385,14 @@ class AutoRunner:
         target_achieve_rate = 1 - len(no_target_achieve_files) / len(experiment_dirs) if experiment_dirs else 0
         no_collision_and_target_rate = len(no_collision_and_target_achieve) / len(
             experiment_dirs) if experiment_dirs else 0
+        bug_rate = len(error_files) / len(experiment_dirs) if experiment_dirs else 0
+        code_lines_avg = np.mean(code_lines) / 200
         self.plot_and_print_results(
-            [collision_rate, target_achieve_rate, no_collision_and_target_rate],
-            ['No Collision', 'Target Achieve', 'No Collision & Target Achieve'],
+            [bug_rate, collision_rate, target_achieve_rate, no_collision_and_target_rate, code_lines_avg],
+            ['Bug', 'No Collision', 'Target Achieve', 'No Collision & Target Achieve', 'code_lines'],
             'Rate',
             'Experiment Outcomes',
-            ['red', 'green', 'blue'],
+            ['red', 'yellow', 'blue', 'green', 'orange'],
             'experiment_outcomes.png'
         )
 
@@ -391,15 +420,21 @@ class AutoRunner:
 
 if __name__ == "__main__":
     runner = AutoRunner("../config/env_config.json",
-                        workspace_path='parallel/cross',
-                        experiment_duration=20,
+                        workspace_path='layer/cross',
+                        experiment_duration=30,
                         run_mode='analyze',
-                        max_speed=1.0,
-                        tolerance=0.05
+                        max_speed=0.75,
+                        tolerance=0.15
                         )
+    # experiment_list = ['2024-07-21_19-18-02',
+    #                    '2024-07-21_19-17-59',
+    #                    '2024-07-21_19-21-06',
+    #                    '2024-07-21_19-09-04',
+    #                    '2024-07-21_19-10-21', ]
+    experiment_list = None
 
     if runner.run_mode in ['rerun', 'continue']:
-        runner.run_multiple_experiments()
+        runner.run_multiple_experiments(experiment_list)
 
     if runner.run_mode == 'analyze':
         runner.analyze_all_results()
