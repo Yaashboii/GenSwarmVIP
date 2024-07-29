@@ -110,11 +110,13 @@ class AutoRunner:
             collision_count = 0
             collision_severity_sum = 0
 
+            processed_pairs = set()
+
             for id1, info1 in target_entities.items():
                 for t in range(num_timesteps):
                     pos1 = info1["trajectory"][t]
                     for id2, info2 in data.items():
-                        if id1 == id2:
+                        if id1 == id2 or (id2, id1) in processed_pairs:
                             continue
                         pos2 = info2["trajectory"][t]
                         distance = math.sqrt((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2)
@@ -122,6 +124,8 @@ class AutoRunner:
                             collision_count += 1
                             overlap = info1["size"] + info2["size"] - distance
                             collision_severity_sum += overlap / (info1["size"] + info2["size"])
+                            processed_pairs.add((id1, id2))
+
 
             num_target_entities = len(target_entities)
             collision_frequency = collision_count / (
