@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 
 from tqdm import tqdm
+
+from experiment.ablation.utils import extra_exp
 from modules.deployment.gymnasium_env import GymnasiumCrossEnvironment
 from modules.deployment.utils.manager import Manager
 
@@ -23,6 +25,7 @@ class AutoRunner:
                  workspace_path,
                  experiment_duration,
                  run_mode='rerun',
+                 target_pkl='WriteRun.pkl',
                  max_speed=1.0,
                  tolerance=0.05):
         self.env_config_path = env_config_path
@@ -31,6 +34,7 @@ class AutoRunner:
         self.env = GymnasiumCrossEnvironment(self.env_config_path, radius=2.20)
         self.env.reset()
         self.results = {}
+        self.target_pkl = target_pkl
         self.manager = Manager(self.env, max_speed=max_speed)
         self.stop_event = threading.Event()
         self.run_mode = run_mode
@@ -77,6 +81,10 @@ class AutoRunner:
         os.makedirs(path, exist_ok=True)
         with open(result_file, 'w') as f:
             json.dump(combined_result, f, indent=4)
+
+    def save_frame_to_disk(self, frame, frame_index):
+        frame_path = os.path.join(self.frame_dir, f'frame_{frame_index:06d}.png')
+        imageio.imwrite(frame_path, frame)
 
     def save_frames_as_animations(self, experiment_id):
         # Save as GIF
@@ -125,7 +133,6 @@ class AutoRunner:
                             overlap = info1["size"] + info2["size"] - distance
                             collision_severity_sum += overlap / (info1["size"] + info2["size"])
                             processed_pairs.add((id1, id2))
-
 
             num_target_entities = len(target_entities)
             collision_frequency = collision_count / (
@@ -208,7 +215,12 @@ class AutoRunner:
         self.manager.publish_observations(infos)
         rate = rospy.Rate(self.env.FPS)
         start_time = rospy.get_time()
+        experiment_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id)
 
+        self.frame_dir = os.path.join(experiment_path, 'frames')
+        os.makedirs(self.frame_dir, exist_ok=True)
+
+        frame_index = 0
         while not rospy.is_shutdown() and not self.stop_event.is_set():
             current_time = rospy.get_time()
             if current_time - start_time > self.experiment_duration:
@@ -229,7 +241,7 @@ class AutoRunner:
     def run_code(self, experiment, result_queue):
         experiment_path = os.path.join(self.experiment_path, experiment)
         command = ['python', '../modules/framework/actions/run_code.py', '--data', experiment_path, '--timeout',
-                   str(self.experiment_duration - 3)]
+                   str(self.experiment_duration - 3), '--target_pkl', self.target_pkl]
 
         try:
             result = subprocess.run(command, timeout=self.experiment_duration - 2, capture_output=True, text=True,
@@ -320,11 +332,12 @@ class AutoRunner:
         # TODO:add more metrics
         return analysis_result["code_lines"]
 
-    def analyze_all_results(self):
+    def analyze_all_results(self, experiment_dirs=None):
         metric_name = ["collision_frequency", "collision_severity_sum", "distance_ratio_average",
                        "target_achievement_ratio",
                        "steps_ratio_average"]
-        experiment_dirs = sorted(self.get_experiment_directories())
+        if not experiment_dirs:
+            experiment_dirs = sorted(self.get_experiment_directories())
         collision_files = []
         error_files = []
         no_target_achieve_files = []
@@ -427,19 +440,19 @@ if __name__ == "__main__":
                         workspace_path='layer/cross',
                         experiment_duration=30,
                         run_mode='analyze',
+                        target_pkl='human_feedback.pkl',
                         max_speed=0.75,
                         tolerance=0.15
                         )
     # 人工复核，哪些任务需要重新跑，写在下面
-    # experiment_list = ['2024-07-21_19-18-02',
-    #                    '2024-07-21_19-17-59',
-    #                    '2024-07-21_19-21-06',
-    #                    '2024-07-21_19-09-04',
-    #                    '2024-07-21_19-10-21', ]
+    # experiment_list = ['2024-07-21_18-26-12', ]
     experiment_list = None
 
     if runner.run_mode in ['rerun', 'continue']:
-        runner.run_multiple_experiments(experiment_list)
+        exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))
+        runner.run_multiple_experiments(exp_list)
 
     if runner.run_mode == 'analyze':
-        runner.analyze_all_results()
+        exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))
+
+        runner.analyze_all_results(exp_list)

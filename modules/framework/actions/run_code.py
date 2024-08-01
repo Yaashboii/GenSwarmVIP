@@ -184,7 +184,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data", type=str, default='cross/2024-07-19_10-00-29', help="Data path for the simulation"
     )
-
+    parser.add_argument(
+        "--target_pkl", type=str, default="WriteRun.pkl", help="Data path for the simulation"
+    )
     args = parser.parse_args()
 
     data = args.data
@@ -214,7 +216,7 @@ if __name__ == "__main__":
         run_code._next = video_critic
         video_critic.error_handler = chain_of_handler
 
-    run_code.context.load_from_file(path + "/WriteRun.pkl")
+    run_code.context.load_from_file(path + "/" + args.target_pkl)
     run_code.context.args = args
     asyncio.run(run_code.run())
     run_code.context.save_to_file(f"{path}/run_code.pkl")

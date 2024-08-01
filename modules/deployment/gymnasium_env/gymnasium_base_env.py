@@ -66,7 +66,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         engine_type = self.data.get('engine_type', 'QuadTreeEngine')
         if engine_type == 'QuadTreeEngine':
             self.engine = QuadTreeEngine(world_size=(self.width, self.height),
-                                         alpha=0.9,
+                                         alpha=0.5,
                                          damping=0.75,
                                          collision_check=False,
                                          joint_constraint=False)

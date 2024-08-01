@@ -20,17 +20,16 @@ from modules.utils.media import process_video, create_video_from_frames
 
 
 class VideoCriticize(ActionNode):
-    def __init__(self, next_text: str = "",
-                 node_name: str = "",
-                  ):
+    def __init__(self, next_text: str = "", node_name: str = ""):
 
         super().__init__(next_text, node_name)
 
-        self.frames: list
+        self._frames: list
         self._function_pool = FunctionTree()
         self._constraint_pool = ConstraintPool()
 
     def _build_prompt(self):
+        self.setup()
 
         self.prompt = [VIDEO_PROMPT_TEMPLATE.format(task_des=TASK_DES,
                                                     command=self.context.command,
@@ -39,23 +38,50 @@ class VideoCriticize(ActionNode):
                                                     out_put=OUTPUT_TEMPLATE),
                        *map(lambda x: {"type": "image_url",
                                        "image_url": {"url": f'data:image/jpg;base64,{x}', "detail": "low"}},
-                            self.frames),
+                            self._frames),
                        ]
         pass
 
-    def setup(self, frames):
-        self.frames = frames
+    def setup(self):
+        from modules.utils import root_manager
+
+        number = len(listdir(f"{root_manager.data_root}/frames")) - 1
+        video_path = f"{root_manager.data_root}/output{number}.mp4"
+        self._frames = process_video(video_path, end_time=10, seconds_per_frame=1)
+        create_video_from_frames(self._frames, output_path=f"{root_manager.data_root}/extra{number}.mp4")
 
     async def _process_response(self, response: str) -> str | Feedback:
         response = parse_text(text=response, lang="json")
         result = eval(response)
         if result["result"].strip().lower() == "success":
-            return result["feedback"]
+            # HumanFeedback
+            if_feedback = input("If task is done? Press y/n")
+            if if_feedback == "y":
+                logger.log("run code:success", "warning")
+                return "NONE"
+            else:
+                if self.context.args.feedback == 'None':
+                    logger.log("run code:fail", "warning")
+                    return 'NONE'
+                feedback = input("Please provide feedback:")
+                self.context.feedbacks.append(feedback)
+                return Feedback(feedback)
+
         elif result["result"].strip().lower() == "fail":
             return Feedback(result["feedback"])
         else:
             logger.log(f"Invalid result: {result}", "error")
             raise Exception("Invalid result")
+
+    async def _run(self) -> str:
+        sim = """```json
+        {
+        "result": "SUCCESS",
+        "feedback": "..."     
+        }```
+        """
+        res = await self._process_response(response=sim)
+        return res
 
 
 if __name__ == '__main__':

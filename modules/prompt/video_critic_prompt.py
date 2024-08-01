@@ -25,6 +25,8 @@ VIDEO_PROMPT_TEMPLATE = """
 - You need to reason step by step and consider carefully before drawing a conclusion.
 -The user's feedback may be inconsistent with the initial requirements, and even the feedback itself may be inconsistent. In case of any conflict, the most recent feedback should take precedence.
 - For certain requirements where the details are difficult to define, such as precise numerical values, the criteria can be appropriately relaxed to allow for approximate values.
+- Green represents the robot, gray represents obstacles, and an overlap indicates a collision.
+-For constraints that can be assessed through video, judgments will be made. Constraints that cannot be determined through video will not be judged. For example, exact numerical values will not be assessed, but qualitative collision detection will be.
 - The output should be in the specified format.
 ## This is the video frame information:
 """.strip()
