@@ -1,6 +1,7 @@
 import math
 import os
 import queue
+import shutil
 import threading
 import subprocess
 import time
@@ -26,6 +27,7 @@ class AutoRunner:
                  experiment_duration,
                  run_mode='rerun',
                  target_pkl='WriteRun.pkl',
+                 script_name='run.py',
                  max_speed=1.0,
                  tolerance=0.05):
         self.env_config_path = env_config_path
@@ -36,6 +38,7 @@ class AutoRunner:
         self.results = {}
         self.target_pkl = target_pkl
         self.manager = Manager(self.env, max_speed=max_speed)
+        self.script_name = script_name
         self.stop_event = threading.Event()
         self.run_mode = run_mode
         self.tolerance = tolerance
@@ -238,10 +241,11 @@ class AutoRunner:
 
         result_queue.put({'source': 'run_single_experiment', 'result': result})
 
-    def run_code(self, experiment, result_queue):
+    def run_code(self, experiment, script_name, result_queue):
         experiment_path = os.path.join(self.experiment_path, experiment)
         command = ['python', '../modules/framework/actions/run_code.py', '--data', experiment_path, '--timeout',
-                   str(self.experiment_duration - 3), '--target_pkl', self.target_pkl]
+                   str(self.experiment_duration - 3), '--target_pkl', self.target_pkl,
+                   '--script', f"{script_name}"]
 
         try:
             result = subprocess.run(command, timeout=self.experiment_duration - 2, capture_output=True, text=True,
@@ -256,16 +260,130 @@ class AutoRunner:
             print(f"Errors: {e.stderr}")
             result_queue.put({'source': 'run_code', 'error': True, 'reason': e.stderr})
 
+    def setup_metagpt(self, directory):
+        # 确保目录存在
+        if not os.path.exists(directory):
+            print(f"目录 {directory} 不存在")
+            return
+        # 如果目录下没有py文件，遍历所以的文件夹找到有py文件的，将其内部的所以py文件复制到directory下
+        has_py_files = any(file.endswith('.py') for file in os.listdir(directory))
+        if not has_py_files:
+            for root, _, files in os.walk(directory):
+                for file in files:
+                    if file.endswith('.py'):
+                        src_file = os.path.join(root, file)
+                        dest_file = os.path.join(directory, file)
+                        shutil.copy(src_file, dest_file)
+                        print(f"复制文件 {src_file} 到 {dest_file}")
+        # 将apis.py文件复制到directory下
+        source_file = os.path.join('../modules/deployment/execution_scripts', 'apis_meta.py')
+        if os.path.exists(source_file):
+            shutil.copy(source_file, directory)
+        else:
+            print(f"文件 {source_file} 不存在")
+            return
+        source_file = os.path.join('../modules/deployment/execution_scripts', 'run_meta.py')
+        if os.path.exists(source_file):
+            shutil.copy(source_file, directory)
+        else:
+            print(f"文件 {source_file} 不存在")
+            return
+
+        # 遍历文件夹下所有python文件，开头加上from apis import *
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.py') and file != 'apis_meta.py':
+                    file_path = os.path.join(root, file)
+                    with open(file_path, 'r+', encoding='utf-8') as f:
+                        content = f.read()
+                        if not content.startswith('from apis_meta import *'):
+                            f.seek(0, 0)
+                            f.write('from apis_meta import *\n' + content)
+
+        # 查找是否存在time.sleep(xx),或者rate.sleep() 如果有将其注释
+        import re
+        sleep_patterns = [
+            re.compile(r'(\s*)time\.sleep\(\s*.*?\s*\)'),
+            re.compile(r'(\s*)rate\.sleep\(\s*.*?\s*\)')
+        ]
+
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.py'):
+                    file_path = os.path.join(root, file)
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        for line in lines:
+                            for pattern in sleep_patterns:
+                                match = pattern.match(line)
+                                if match:
+                                    line = f"{match.group(1)}# {line}"
+                                    break
+                            f.write(line)
+
+    def setup_cap(self, directory):
+        source_file = os.path.join('../modules/deployment/execution_scripts', 'apis_meta.py')
+
+        if os.path.exists(source_file):
+            shutil.copy(source_file, directory)
+        else:
+            print(f"文件 {source_file} 不存在")
+            return
+        source_file = os.path.join('../modules/deployment/execution_scripts', 'run_cap.py')
+        if os.path.exists(source_file):
+            shutil.copy(source_file, directory)
+        else:
+            print(f"文件 {source_file} 不存在")
+            return
+
+        # 遍历文件夹下所有python文件，开头加上from apis import *
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.py') and file != 'apis_meta.py':
+                    file_path = os.path.join(root, file)
+                    with open(file_path, 'r+', encoding='utf-8') as f:
+                        content = f.read()
+                        if not content.startswith('from apis_meta import *'):
+                            f.seek(0, 0)
+                            f.write('from apis_meta import *\n' + content)
+        import re
+        sleep_patterns = [
+            re.compile(r'(\s*)time\.sleep\(\s*.*?\s*\)'),
+            re.compile(r'(\s*)rate\.sleep\(\s*.*?\s*\)')
+        ]
+
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.py'):
+                    file_path = os.path.join(root, file)
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        for line in lines:
+                            for pattern in sleep_patterns:
+                                match = pattern.match(line)
+                                if match:
+                                    line = f"{match.group(1)}# {line}"
+                                    break
+                            f.write(line)
+
     def run_multiple_experiments(self, experiment_list):
         if not experiment_list:
             experiment_list = sorted(self.get_experiment_directories())
         try:
             with tqdm(total=len(experiment_list), desc="Running Experiments") as pbar:
                 for experiment in experiment_list:
+                    if self.script_name == 'run_meta.py':
+                        self.setup_metagpt(os.path.join(f"../workspace/{self.experiment_path}", experiment))
+                    if self.script_name == 'run_cap.py':
+                        self.setup_cap(os.path.join(f"../workspace/{self.experiment_path}", experiment))
                     self.stop_event.clear()
                     result_queue = queue.Queue()
 
-                    t1 = threading.Thread(target=self.run_code, args=(experiment, result_queue))
+                    t1 = threading.Thread(target=self.run_code, args=(experiment, self.script_name, result_queue))
                     t2 = threading.Thread(target=self.run_single_experiment, args=(experiment, result_queue))
 
                     t1.start()
@@ -318,7 +436,9 @@ class AutoRunner:
         plt.title(title)
         for i, v in enumerate(data):
             plt.text(i, v + 0.01, f"{v:.2f}", ha='center', rotation=rotation)
-        plt_path = os.path.join(f"../workspace/{self.experiment_path}", save_filename)
+        if not os.path.exists(f"../workspace/{self.experiment_path}/pic"):
+            os.makedirs(f"../workspace/{self.experiment_path}/pic")
+        plt_path = os.path.join(f"../workspace/{self.experiment_path}/pic", save_filename)
         plt.tight_layout()
         plt.savefig(plt_path)
         plt.show()
@@ -338,7 +458,7 @@ class AutoRunner:
                        "steps_ratio_average"]
         if not experiment_dirs:
             experiment_dirs = sorted(self.get_experiment_directories())
-        collision_files = []
+        no_collision_files = []
         error_files = []
         no_target_achieve_files = []
         no_collision_and_target_achieve = []
@@ -351,14 +471,14 @@ class AutoRunner:
                 with open(result_path, 'r') as f:
                     result_data = json.load(f)
                     analysis = result_data.get('analysis', {})
-                    if analysis.get('collision_occurred'):
-                        collision_files.append(experiment)
+                    if not analysis.get('collision_occurred'):
+                        no_collision_files.append(experiment)
                     if not analysis.get('target_achieved'):
                         no_target_achieve_files.append(experiment)
                     if not analysis.get('collision_occurred') and analysis.get('target_achieved'):
                         no_collision_and_target_achieve.append(experiment)
                     run_result = result_data.get('run_code_result', {})
-                    if run_result.get('error'):
+                    if run_result.get('error') == True:
                         error_files.append(experiment)
                         print(run_result.get('reason'))
 
@@ -398,14 +518,16 @@ class AutoRunner:
         for data, labels, ylabel, title, colors, filename in metrics_data:
             self.plot_and_print_results(data, labels, ylabel, title, colors, filename)
 
-        collision_rate = 1 - len(collision_files) / len(experiment_dirs) if experiment_dirs else 0
+        bug_rate = len(error_files) / len(experiment_dirs) if experiment_dirs else 0
+
+        no_collision_rate = len(no_collision_files) / len(
+            experiment_dirs) if experiment_dirs else 0
         target_achieve_rate = 1 - len(no_target_achieve_files) / len(experiment_dirs) if experiment_dirs else 0
         no_collision_and_target_rate = len(no_collision_and_target_achieve) / len(
             experiment_dirs) if experiment_dirs else 0
-        bug_rate = len(error_files) / len(experiment_dirs) if experiment_dirs else 0
         code_lines_avg = np.mean(code_lines) / 200
         self.plot_and_print_results(
-            [bug_rate, collision_rate, target_achieve_rate, no_collision_and_target_rate, code_lines_avg],
+            [bug_rate, no_collision_rate, target_achieve_rate, no_collision_and_target_rate, code_lines_avg],
             ['Bug', 'No Collision', 'Target Achieve', 'No Collision & Target Achieve', 'code_lines'],
             'Rate',
             'Experiment Outcomes',
@@ -429,18 +551,18 @@ class AutoRunner:
                 rotation=True,
             )
 
-        collision_files = '\n'.join(collision_files)
-        no_target_achieve_files = '\n'.join(no_target_achieve_files)
-        print(f"Experiments with collisions:\n{collision_files}")
-        print(f"\nExperiments without target achievement:\n{no_target_achieve_files}")
-
 
 if __name__ == "__main__":
     runner = AutoRunner("../config/env_config.json",
-                        workspace_path='layer/cross',
+                        workspace_path='ablation/human_feedback',
+                        # workspace_path='metagpt',
+                        # workspace_path='cap/cross',
                         experiment_duration=30,
                         run_mode='analyze',
-                        target_pkl='human_feedback.pkl',
+                        # target_pkl='video_critic.pkl',
+                        target_pkl='None',
+                        # script_name='run_meta.py',
+                        script_name='run_cap.py',
                         max_speed=0.75,
                         tolerance=0.15
                         )

@@ -104,7 +104,8 @@ class RunCode(ActionNode):
                 await process.wait()
 
     async def run(self) -> str:
-        command = ["python", "run.py", str(self.start_id), str(self.end_id)]
+        script = self.context.args.script
+        command = ["python", script, str(self.start_id), str(self.end_id)]
         # print(f"running command: {command}")
 
         result = await self._run_script(
@@ -143,13 +144,13 @@ class RunCodeAsync(ActionNode):
         finally:
             logger.log(content="call reset environment: end")
             # call_reset_environment(False)
-            data_root = root_manager.data_root
-            number = len(listdir(f"{data_root}/frames")) - 1
-            generate_video_from_frames(
-                frames_folder=f"{data_root}/frames/frame{number}",
-                video_path=f"{data_root}/output{number}.mp4",
-            )
-            logger.log(f"synthesize frame{number} ---> output{number}.mp4")
+            # data_root = root_manager.data_root
+            # number = len(listdir(f"{data_root}/frames")) - 1
+            # generate_video_from_frames(
+            #     frames_folder=f"{data_root}/frames/frame{number}",
+            #     video_path=f"{data_root}/output{number}.mp4",
+            # )
+            # logger.log(f"synthesize frame{number} ---> output{number}.mp4")
             os.system("pgrep -f run.py | xargs kill -9")
 
             return self._process_response(result_list)
@@ -187,6 +188,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--target_pkl", type=str, default="WriteRun.pkl", help="Data path for the simulation"
     )
+    parser.add_argument(
+        "--script", type=str, default="run.py", help="Script to run"
+    )
     args = parser.parse_args()
 
     data = args.data
@@ -215,8 +219,8 @@ if __name__ == "__main__":
         run_code.error_handler = chain_of_handler
         run_code._next = video_critic
         video_critic.error_handler = chain_of_handler
-
-    run_code.context.load_from_file(path + "/" + args.target_pkl)
+    if args.target_pkl != 'None':
+        run_code.context.load_from_file(path + "/" + args.target_pkl)
     run_code.context.args = args
     asyncio.run(run_code.run())
     run_code.context.save_to_file(f"{path}/run_code.pkl")
