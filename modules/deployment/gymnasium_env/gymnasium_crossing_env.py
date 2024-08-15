@@ -8,7 +8,7 @@ from modules.deployment.entity import Leader, Obstacle, Robot
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 
 
-class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumCrossingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self,
                  data_file: str = None,
                  radius: float = 2.5,
@@ -91,7 +91,7 @@ class GymnasiumCrossEnvironment(GymnasiumEnvironmentBase):
 
 
 if __name__ == '__main__':
-    env = GymnasiumCrossEnvironment("../../../config/env_config.json")
+    env = GymnasiumCrossingEnvironment("../../../config/env_config.json")
     obs, infos = env.reset()
 
     from modules.deployment.utils.manager import Manager

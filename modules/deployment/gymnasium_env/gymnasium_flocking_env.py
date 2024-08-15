@@ -9,7 +9,7 @@ ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
 
 
-class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str = None):
         super().__init__(data_file)
 
@@ -61,11 +61,6 @@ class GymnasiumConfigurableEnvironment(GymnasiumEnvironmentBase):
         obs = self.get_observation("array")
         infos = self.get_observation("dict")
         return obs, infos
-        # self.agents = [f"agent_{i}" for i in range(self.num_agent)]
-        # self.agent_name_mapping = dict(zip(self.agents, list(range(self.num_agent))))
-        # self._agent_selector = agent_selector(self.agents)
-        # self._agent_selector.reinit(self.agents)
-        # self.agent_selection = self._agent_selector.next()
 
 
 if __name__ == '__main__':
@@ -75,7 +70,7 @@ if __name__ == '__main__':
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumConfigurableEnvironment("../../../config/env_config.json")
+    env = GymnasiumFlockingEnvironment("../../../config/env_config.json")
     obs, infos = env.reset()
     print(env.moveable_agents)
     manager = Manager(env)
@@ -84,15 +79,13 @@ if __name__ == '__main__':
 
     start_time = time.time()  # 记录起始时间
     frame_count = 0  # 初始化帧数计数器
-
-    while True:
+    current_time = time.time()
+    while current_time - start_time < 60:
         action = manager.robotID_velocity
-        # action = {}
-
         manager.clear_velocity()
         # print(action)
         obs, reward, termination, truncation, infos = env.step(action=action)
-        # env.render()
+        env.render()
         manager.publish_observations(infos)
         rate.sleep()
 

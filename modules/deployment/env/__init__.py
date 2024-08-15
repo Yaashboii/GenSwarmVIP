@@ -1,6 +1,6 @@
 # modules/deployment/env/__init__.py
 from .base_env import EnvironmentBase
-from .configurable_env import ConfigurableEnvironment
+from .flocking import Flocking
 from .collect_env import CollectEnvironment
 from .move_env import MoveEnvironment
 from .sheepdog_env import SheepdogEnvironment
@@ -14,7 +14,7 @@ from .real_cross_env import RealCrossEnvironment
 
 __all__ = [
     'EnvironmentBase',
-    'ConfigurableEnvironment',
+    'Flocking',
     'CollectEnvironment',
     'MoveEnvironment',
     'SheepdogEnvironment',

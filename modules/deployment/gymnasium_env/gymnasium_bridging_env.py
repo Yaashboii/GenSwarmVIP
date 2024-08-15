@@ -9,7 +9,7 @@ ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
 
 
-class GymnasiumCoverEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
@@ -31,13 +31,21 @@ class GymnasiumCoverEnvironment(GymnasiumEnvironmentBase):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
                                     robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
                                     entities=self.entities)
-            robot = Robot(robot_id=entity_id,
-                          initial_position=position,
-                          target_position=None,
-                          size=robot_size,
-                          color=color)
+            robot = Robot(entity_id, position, robot_size, color=color)
             self.add_entity(robot)
             entity_id += 1
+
+        range_a = Landmark(landmark_id=entity_id,
+                           initial_position=(1, 1),
+                           size=np.array((0.2, 0.2)),
+                           color='gray')
+        range_b = Landmark(landmark_id=entity_id,
+                           initial_position=(-1, -1),
+                           size=np.array((0.5, 0.2)),
+                           color='gray')
+
+        self.add_entity(range_a)
+        self.add_entity(range_b)
 
     def step(
             self, action: ActType
@@ -52,7 +60,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumCoverEnvironment("../../../config/env_config.json")
+    env = GymnasiumAssemblyEnvironment("../../../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

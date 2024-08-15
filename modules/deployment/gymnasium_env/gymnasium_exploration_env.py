@@ -9,7 +9,7 @@ ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
 
 
-class GymnasiumExploreEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumExploreEnvironment("../../../config/env_config.json")
+    env = GymnasiumExplorationEnvironment("../../../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

@@ -7,7 +7,7 @@ import pygame
 import rospy
 
 from modules.deployment.utils.manager import Manager
-from modules.deployment.gymnasium_env.gymnasium_formation_env import GymnasiumFormationEnvironment
+from modules.deployment.gymnasium_env import GymnasiumFlockingEnvironment
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     draw_counter = 0
     draw_frequency = 10
 
-    env = GymnasiumFormationEnvironment("../config/env_config.json")
+    env = GymnasiumFlockingEnvironment("../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

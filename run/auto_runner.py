@@ -17,7 +17,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from tqdm import tqdm
 
 from experiment.ablation.utils import extra_exp
-from modules.deployment.gymnasium_env import GymnasiumCrossEnvironment
+from modules.deployment.gymnasium_env import GymnasiumCrossingEnvironment
 from modules.deployment.utils.manager import Manager
 
 
@@ -33,7 +33,7 @@ class AutoRunner:
         self.env_config_path = env_config_path
         self.experiment_path = workspace_path
         self.experiment_duration = experiment_duration
-        self.env = GymnasiumCrossEnvironment(self.env_config_path, radius=2.20)
+        self.env = GymnasiumCrossingEnvironment(self.env_config_path, radius=2.20)
         self.env.reset()
         self.results = {}
         self.target_pkl = target_pkl
@@ -534,6 +534,7 @@ class AutoRunner:
             ['red', 'yellow', 'blue', 'green', 'orange'],
             'experiment_outcomes.png'
         )
+        colors = ['#96B6C5', '#ADC4CE', '#EEE0C9', '#F1F0E8']
 
         start_color = "#0000FF"  # 蓝色
         end_color = "#FF0000"  # 红色
