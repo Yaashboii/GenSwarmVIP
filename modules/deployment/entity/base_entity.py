@@ -8,10 +8,11 @@ class Entity:
                  size: list[float] | tuple | np.ndarray | float,
                  color: str | tuple,
                  collision: bool = False,
-                 moveable: bool = False,
+                 movable: bool = False,
                  max_speed: float = 1.0,
                  mass: float = 1.0,
                  density: float = 0.1,
+                 shape: str = 'circle',
                  ):
         self.__id: int = entity_id
         self.__size = size
@@ -20,7 +21,7 @@ class Entity:
         self.__shape: str = 'circle' if isinstance(size, float) else 'rectangle'
         self.__color: str | tuple = color
         self.__collision: bool = collision
-        self.__moveable: bool = moveable
+        self.__moveable: bool = movable
         self.__force: np.ndarray = np.array([0.0, 0.0], dtype=float)
         self.__acceleration: np.ndarray = np.array([0.0, 0.0], dtype=float)
         self.__velocity: np.ndarray = np.array([0.0, 0.0], dtype=float)

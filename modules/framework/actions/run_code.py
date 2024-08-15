@@ -177,13 +177,13 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--timeout", type=int, default=30, help="Total time for the simulation"
+        "--timeout", type=int, default=60, help="Total time for the simulation"
     )
     parser.add_argument(
         "--feedback", type=str, default="None", help="Optional: human, VLM, None,Result feedback",
     )
     parser.add_argument(
-        "--data", type=str, default='cross/2024-07-19_10-00-29', help="Data path for the simulation"
+        "--data", type=str, default='flocking/2024-08-15_15-18-24', help="Data path for the simulation"
     )
     parser.add_argument(
         "--target_pkl", type=str, default="WriteRun.pkl", help="Data path for the simulation"

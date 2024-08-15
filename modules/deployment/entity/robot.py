@@ -4,12 +4,7 @@ import numpy as np
 
 class Robot(Entity):
     def __init__(self, robot_id, initial_position, size, target_position=None, color='green'):
-        super().__init__(robot_id,
-                         initial_position,
-                         size,
-                         color=color,
-                         collision=True,
-                         moveable=True)
+        super().__init__(robot_id, initial_position, size, color=color, collision=True, movable=True)
 
         self.__target_position = np.array(target_position, dtype=float) if target_position is not None else None
 

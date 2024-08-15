@@ -5,15 +5,8 @@ from .base_entity import Entity
 
 class Prey(Entity):
     def __init__(self, prey_id, initial_position, size, mass, density):
-        super().__init__(prey_id,
-                         initial_position,
-                         size,
-                         color='blue',
-                         collision=True,
-                         moveable=True,
-                         max_speed=1.0,
-                         mass=mass,
-                         density=density)
+        super().__init__(prey_id, initial_position, size, color='blue', collision=True, movable=True, max_speed=1.0,
+                         mass=mass, density=density)
         self.__wall_avoidance_weight = 1.0
         self.__robot_avoidance_weight = 1.0
         self.__smooth_factor = 0.1

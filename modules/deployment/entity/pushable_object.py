@@ -3,12 +3,7 @@ from .base_entity import Entity
 
 class PushableObject(Entity):
     def __init__(self, object_id, initial_position, size, color='yellow'):
-        super().__init__(object_id,
-                         initial_position,
-                         size,
-                         color=color,
-                         collision=True,
-                         moveable=True)
+        super().__init__(object_id, initial_position, size, color=color, collision=True, movable=True)
         self.__target_position = None
 
     @property

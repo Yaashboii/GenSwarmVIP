@@ -80,7 +80,7 @@ if __name__ == '__main__':
     start_time = time.time()  # 记录起始时间
     frame_count = 0  # 初始化帧数计数器
     current_time = time.time()
-    while current_time - start_time < 60:
+    while current_time - start_time < 120:
         action = manager.robotID_velocity
         manager.clear_velocity()
         # print(action)
