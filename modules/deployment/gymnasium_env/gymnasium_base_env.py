@@ -284,8 +284,8 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
                                    int(entity.size * self.scale_factor))
             else:
                 rect = pygame.Rect(
-                    (pixel_pos[1] - entity.size[0] / 2 * self.scale_factor),
-                    (pixel_pos[0] - entity.size[1] / 2 * self.scale_factor),
+                    (pixel_pos[1] - entity.size[1] / 2 * self.scale_factor),
+                    (pixel_pos[0] - entity.size[0] / 2 * self.scale_factor),
                     entity.size[1] * self.scale_factor,
                     entity.size[0] * self.scale_factor,
                 )
