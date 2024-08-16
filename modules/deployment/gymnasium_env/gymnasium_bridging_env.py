@@ -46,13 +46,6 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
             entity_id += 1
 
 
-
-    def step(
-            self, action: ActType
-    ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
-        return super().step(action)
-
-
 if __name__ == "__main__":
 
     import time

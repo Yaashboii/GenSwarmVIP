@@ -62,10 +62,9 @@ if __name__ == "__main__":
     start_time = time.time()  # 记录起始时间
     frame_count = 0  # 初始化帧数计数器
 
-    while True:
-        # action = manager.robotID_velocity
-        action = {}
-        # manager.clear_velocity()
+    while time.time() - start_time < 60:
+        action = manager.robotID_velocity
+        manager.clear_velocity()
         obs, reward, termination, truncation, infos = env.step(action=action)
         env.render()
         manager.publish_observations(infos)
