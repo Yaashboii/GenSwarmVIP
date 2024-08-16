@@ -26,7 +26,17 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
+        range_a = Landmark(landmark_id=entity_id,
+                           initial_position=(0, 2),
+                           size=np.array((5, 1)),
+                           color='gray')
+        range_b = Landmark(landmark_id=entity_id,
+                           initial_position=(0, -2),
+                           size=np.array((5, 1)),
+                           color='gray')
 
+        self.add_entity(range_a)
+        self.add_entity(range_b)
         for i in range(self.num_robots):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
                                     robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
@@ -35,17 +45,7 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
             self.add_entity(robot)
             entity_id += 1
 
-        range_a = Landmark(landmark_id=entity_id,
-                           initial_position=(1, 1),
-                           size=np.array((0.2, 0.2)),
-                           color='gray')
-        range_b = Landmark(landmark_id=entity_id,
-                           initial_position=(-1, -1),
-                           size=np.array((0.5, 0.2)),
-                           color='gray')
 
-        self.add_entity(range_a)
-        self.add_entity(range_b)
 
     def step(
             self, action: ActType
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumAssemblyEnvironment("../../../config/env_config.json")
+    env = GymnasiumBridgingEnvironment("../../../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)
