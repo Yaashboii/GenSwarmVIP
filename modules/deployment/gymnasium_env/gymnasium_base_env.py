@@ -82,6 +82,8 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         self.num_leaders = self.data.get("entities", {}).get("leader", {}).get("count", 0)
         self.num_obstacles = self.data.get("entities", {}).get("obstacle", {}).get("count", 0)
         self.num_sheep = self.data.get("entities", {}).get("sheep", {}).get("count", 0)
+        self.num_pushable_object = self.data.get("entities", {}).get("pushable_object", {}).get("count", 0)
+
         self.get_spaces()
 
         # self.screen = pygame.Surface((self.width * self.scale_factor, self.height * self.scale_factor))
