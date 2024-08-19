@@ -7,7 +7,9 @@ import pygame
 import rospy
 
 from modules.deployment.utils.manager import Manager
-from modules.deployment.gymnasium_env import GymnasiumBridgingEnvironment, GymnasiumCoveringEnvironment, GymnasiumFlockingEnvironment
+from modules.deployment.gymnasium_env import GymnasiumBridgingEnvironment, GymnasiumCoveringEnvironment, \
+    GymnasiumExplorationEnvironment, GymnasiumCirclingEnvironment, \
+    GymnasiumEncirclingEnvironment, GymnasiumFlockingEnvironment
 
 
 def main():
@@ -23,9 +25,9 @@ def main():
         makedirs(frame_dir)
     frame_files = []
     draw_counter = 0
-    draw_frequency = 10
+    draw_frequency = 100
 
-    env = GymnasiumCoveringEnvironment("../config/env_config.json")
+    env = GymnasiumFlockingEnvironment("../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)
@@ -35,8 +37,9 @@ def main():
     start_time = time.time()  # 记录起始时间
     frame_count = 0  # 初始化帧数计数器
 
-    while time.time() - start_time < 90:
+    while time.time() - start_time < 180:
         action = manager.robotID_velocity
+        manager.clear_velocity()
         obs, reward, termination, truncation, infos = env.step(action=action)
         if draw_counter % draw_frequency == 0:
             frame = env.render()
@@ -46,7 +49,7 @@ def main():
         draw_counter += 1
 
         manager.publish_observations(infos)
-        rate.sleep()
+        # rate.sleep()
 
         frame_count += 1  # 增加帧数计数器
         current_time = time.time()  # 获取当前时间
