@@ -1,8 +1,8 @@
-from modules.deployment.entity import Landmark, Leader, Obstacle, PushableObject, Robot
+from modules.deployment.entity import Landmark, PushableObject, Robot
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
-from modules.deployment.gymnasium_env.utils import *
+from modules.deployment.utils.sample_point import *
 from typing import Optional
-from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar
+from typing import TypeVar
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")

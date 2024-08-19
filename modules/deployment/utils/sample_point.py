@@ -1,29 +1,9 @@
-import json
-
 import numpy as np
 import pygame
 
 
-def save_entities_to_file(entities, filename):
-    entities_data = []
-    for entity in entities:
-        entity_data = {
-            'type': entity.__class__.__name__,
-            "id": entity.id,
-            "position": entity.position.tolist(),
-            "size": entity.size if isinstance(entity.size, float) else entity.size.tolist(),
-            "color": entity.color,
-            "moveable": entity.moveable,
-            "collision": entity.collision
-        }
-        entities_data.append(entity_data)
-
-    with open(filename, 'w') as file:
-        json.dump(entities_data, file, indent=4)
-
 def sample_point(zone_center=(0, 0), zone_shape='circle', zone_size=None, robot_size=None, robot_shape: str = 'circle',
                  min_distance: float = 0, entities=None, max_attempts_per_point=1000):
-
     center = np.array(zone_center)
 
     if zone_shape == 'circle':
@@ -58,6 +38,7 @@ def sample_point(zone_center=(0, 0), zone_shape='circle', zone_size=None, robot_
 
     return np.array(new_random_point)
 
+
 def check_collide(position, size, shape, entities):
     for entity in entities:
         if shape == 'circle':
@@ -66,16 +47,17 @@ def check_collide(position, size, shape, entities):
                     return True
 
             elif entity.shape == 'rectangle':
-                if check_circle_rectangle_collision(entity.position, position, entity.size, size*2):
+                if check_circle_rectangle_collision(entity.position, position, entity.size, size * 2):
                     return True
 
         elif shape == 'rectangle':
             if entity.shape == 'circle':
-                if check_circle_rectangle_collision(position, entity.position, size*2, entity.size):
+                if check_circle_rectangle_collision(position, entity.position, size * 2, entity.size):
                     return True
             else:
                 rect1 = pygame.Rect(position[0] - size[0] / 2, position[1] - size[1] / 2, size[0], size[1])
-                rect2 = pygame.Rect(entity.position[0] - entity.position[0] / 2, entity.position[1] - entity.position[1] / 2,
+                rect2 = pygame.Rect(entity.position[0] - entity.position[0] / 2,
+                                    entity.position[1] - entity.position[1] / 2,
                                     entity.position[0], entity.size2[1])
                 if rect1.colliderect(rect2):
                     return True
@@ -84,11 +66,9 @@ def check_collide(position, size, shape, entities):
 
 
 def check_circle_rectangle_collision(rect_position, circle_position, rect_size, circle_radius):
-
-
-    if rect_size[0]/2 + circle_radius < abs(rect_position[0] - circle_position[0]):
+    if rect_size[0] / 2 + circle_radius < abs(rect_position[0] - circle_position[0]):
         return False
-    elif rect_size[1]/2 + circle_radius < abs(rect_position[1] - circle_position[1]):
+    elif rect_size[1] / 2 + circle_radius < abs(rect_position[1] - circle_position[1]):
         return False
     else:
         return True
