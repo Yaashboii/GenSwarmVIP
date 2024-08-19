@@ -4,10 +4,11 @@ import numpy as np
 import pygame
 
 from modules.deployment.entity import Leader, Obstacle, Robot
-from modules.deployment.env import EnvironmentBase, RealEnvironment
+from .gymnasium_real_env import GymnasiumRealEnvironment
 
 
-class RealCrossEnvironment(RealEnvironment):
+
+class RealCrossEnvironment(GymnasiumRealEnvironment):
     def __init__(self,
                  data_file: str = None,
                  engine_type='OmniEngine',
