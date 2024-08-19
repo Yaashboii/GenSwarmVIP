@@ -4,7 +4,7 @@ import subprocess
 from modules.file.file import logger
 
 
-class GrammarChecker:
+class GrammarParser:
     def check_code_errors(self, file_path: str):
         errors = self._run_pylint_check(file_path)
         if errors:
