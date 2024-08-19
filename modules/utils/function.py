@@ -2,7 +2,7 @@ import radon.complexity as cc
 from radon.metrics import mi_visit
 import ast
 
-from modules.framework.response import CodeParser
+from modules.framework.parser import CodeParser
 
 
 class CodeAnalyzer:

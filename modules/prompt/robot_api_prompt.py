@@ -1,4 +1,4 @@
-from modules.framework.response.code_parser import CodeParser
+from modules.framework.parser.code_parser import CodeParser
 
 robot_api = """
 def get_position():

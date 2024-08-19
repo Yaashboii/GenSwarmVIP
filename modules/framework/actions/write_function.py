@@ -2,9 +2,8 @@ import asyncio
 import time
 
 from modules.framework.action import ActionNode, AsyncNode
-from modules.framework.response.code_parser import SingleFunctionParser
+from modules.framework.parser import SingleFunctionParser, parse_text
 from modules.framework.code.function_node import FunctionNode, State
-from modules.framework.response.text_parser import parse_text
 from modules.prompt import (
     WRITE_FUNCTION_PROMPT_TEMPLATE,
     TASK_DES,

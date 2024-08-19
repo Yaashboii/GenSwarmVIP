@@ -9,7 +9,7 @@ from modules.prompt import (
 from modules.framework.constraint import ConstraintPool
 from modules.framework.code.function_tree import FunctionTree
 from modules.file.log_file import logger
-from modules.framework.response import *
+from modules.framework.parser import *
 
 
 class AnalyzeFunctions(ActionNode):

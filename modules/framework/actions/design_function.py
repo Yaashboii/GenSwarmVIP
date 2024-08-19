@@ -2,9 +2,7 @@ import asyncio
 import time
 
 from modules.framework.action import ActionNode, AsyncNode
-from modules.framework.response.code_parser import SingleFunctionParser
 from modules.framework.code.function_node import FunctionNode, State
-from modules.framework.response.text_parser import parse_text
 from modules.prompt import (
     DesignFunction_PROMPT_TEMPLATE,
     ROBOT_API,
@@ -14,6 +12,7 @@ from modules.prompt import (
 from modules.file.log_file import logger
 from modules.framework.constraint import ConstraintPool
 from modules.framework.code.function_tree import FunctionTree
+from modules.framework.parser import SingleFunctionParser, parse_text
 
 
 class DesignFunction(ActionNode):

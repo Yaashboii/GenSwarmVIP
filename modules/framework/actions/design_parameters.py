@@ -5,7 +5,7 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
-from modules.framework.response.text_parser import parse_text
+from modules.framework.parser import parse_text
 from modules.file.log_file import logger
 from modules.framework.code.function_tree import FunctionTree
 

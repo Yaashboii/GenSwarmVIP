@@ -1,7 +1,6 @@
 from modules.framework.action import ActionNode
 from modules.framework.code.function_node import State
-from modules.framework.response.code_parser import SingleFunctionParser
-from modules.framework.response.text_parser import parse_text
+from modules.framework.parser import SingleFunctionParser, parse_text
 from modules.prompt import (
     WRITE_RUN_PROMPT_TEMPLATE,
     ROBOT_API,

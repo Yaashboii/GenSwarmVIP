@@ -10,7 +10,7 @@ from modules.framework.code.grammar_checker import GrammarChecker
 from modules.framework.code_error import Bug, Bugs, Feedback
 
 from modules.file.log_file import logger
-from modules.framework.response import parse_text
+from modules.framework.parser import parse_text
 from modules.prompt import (
     VIDEO_PROMPT_TEMPLATE,
     OUTPUT_TEMPLATE,
