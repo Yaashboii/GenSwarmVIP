@@ -1,24 +1,10 @@
 import argparse
 import pickle
-from abc import ABC, abstractmethod
 
 from modules.file.file import File
 from modules.framework.constraint import ConstraintPool
 from modules.framework.code.function_tree import FunctionTree
-
-
-class Context(ABC):
-    @abstractmethod
-    def save_to_file(self, filename):
-        pass
-
-    @abstractmethod
-    def load_from_file(self, filename):
-        pass
-
-    @property
-    def command(self):
-        raise NotImplementedError
+from .context import Context
 
 
 class WorkflowContext(Context):
@@ -60,7 +46,7 @@ class WorkflowContext(Context):
             if isinstance(file_attr, File):
                 file_attr.root = root_value
             if isinstance(file_attr, FunctionTree):
-                file_attr.file.root= root_value
+                file_attr.file.root = root_value
 
     @property
     def command(self):
