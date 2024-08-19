@@ -1,9 +1,6 @@
-import time
-
 from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.code.function_node import State, FunctionNode
-from modules.framework.code.function_tree import FunctionTree
-from modules.framework.code.grammar_checker import GrammarChecker
+from modules.framework.parser import GrammarParser
 from modules.framework.code_error import Bug, Bugs
 
 from modules.file.log_file import logger
@@ -15,7 +12,7 @@ class GrammarCheck(ActionNode):
         super().__init__(next_text, node_name)
         self.function_name: str
         self.function: FunctionNode
-        self._grammar_checker = GrammarChecker()
+        self._grammar_checker = GrammarParser()
 
     def _build_prompt(self):
         pass

@@ -1,13 +1,7 @@
-from os import listdir
-
-from openai import AsyncOpenAI
-
 from modules.framework.action import ActionNode
-from modules.framework.code.function_node import State, FunctionNode
 from modules.framework.code.function_tree import FunctionTree
 from modules.framework.constraint import ConstraintPool
-from modules.framework.code.grammar_checker import GrammarChecker
-from modules.framework.code_error import Bug, Bugs, Feedback
+from modules.framework.code_error import Feedback
 
 from modules.file.log_file import logger
 from modules.framework.parser import parse_text
@@ -16,7 +10,6 @@ from modules.prompt import (
     OUTPUT_TEMPLATE,
     TASK_DES,
 )
-from modules.utils.media import process_video, create_video_from_frames
 
 
 class VideoCriticize(ActionNode):

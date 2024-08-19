@@ -2,13 +2,13 @@ import os
 import unittest
 from unittest.mock import patch
 
-from modules.framework.code.grammar_checker import GrammarChecker
+from modules.framework.parser import GrammarParser
 from modules.utils.root import root_manager
 
 
 class TestGrammarChecker(unittest.TestCase):
     def setUp(self):
-        self.grammar_checker = GrammarChecker()
+        self.grammar_checker = GrammarParser()
         self.file_path = "tests/framework/code/example.py"
 
         self.errors = [
