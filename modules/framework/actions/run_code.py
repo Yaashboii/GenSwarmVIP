@@ -7,7 +7,6 @@ import rospy
 
 from modules.framework.action import ActionNode
 from modules.utils.root import root_manager, get_project_root
-from modules.utils.common import get_param, call_reset_environment
 from modules.framework.code_error import Bug, Feedback
 from modules.file.log_file import logger
 from modules.framework.code.function_tree import FunctionTree
