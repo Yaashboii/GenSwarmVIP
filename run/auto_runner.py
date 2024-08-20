@@ -445,7 +445,7 @@ class AutoRunner:
         print(f"{title}: {data}")
 
     def analyze_code(self, functions_path):
-        from modules.utils.function import CodeAnalyzer
+        from modules.utils import CodeAnalyzer
         with open(functions_path, 'r') as f:
             analyzer = CodeAnalyzer(f.read())
             analysis_result = analyzer.analyze()

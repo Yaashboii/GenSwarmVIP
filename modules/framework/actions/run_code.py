@@ -1,15 +1,12 @@
-import asyncio
 import os
-from os import listdir
 import sys
 
 import rospy
 
+from modules.file import logger
 from modules.framework.action import ActionNode
-from modules.utils.root import root_manager, get_project_root
-from modules.framework.code_error import Bug, Feedback
-from modules.file.log_file import logger
-from modules.framework.code.function_tree import FunctionTree
+from modules.framework.code_error import Bug
+from modules.utils import root_manager, get_project_root
 
 
 class RunCode(ActionNode):
@@ -118,7 +115,7 @@ class RunCode(ActionNode):
 
 class RunCodeAsync(ActionNode):
     async def _run(self):
-        from modules.utils.media import generate_video_from_frames
+        from modules.utils import generate_video_from_frames
 
         start_idx = rospy.get_param("robot_start_index")
         end_idx = rospy.get_param("robot_end_index")
@@ -164,7 +161,6 @@ class RunCodeAsync(ActionNode):
 
 
 if __name__ == "__main__":
-    from modules.utils import root_manager
     import asyncio
     from modules.framework.handler import BugLevelHandler
     from modules.framework.handler import FeedbackHandler

@@ -1,4 +1,4 @@
-from modules.utils.logger import setup_logger, LoggerLevel
+from modules.utils import setup_logger, LoggerLevel
 from .base_file import BaseFile
 
 

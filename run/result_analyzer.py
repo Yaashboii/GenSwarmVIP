@@ -3,7 +3,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 
-from modules.utils.function import CodeAnalyzer
+from modules.utils import CodeAnalyzer
 
 
 class LogAnalyzer:

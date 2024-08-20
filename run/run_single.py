@@ -1,5 +1,4 @@
 import argparse
-import sys
 
 from modules.file import logger
 from modules.framework.workflow import Workflow
