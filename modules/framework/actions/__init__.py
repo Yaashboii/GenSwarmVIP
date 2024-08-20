@@ -4,6 +4,7 @@ from .code_review import CodeReviewAsync
 from .criticize import Criticize
 from .debug_error import DebugError
 from .design_function import DesignFunction, DesignFunctionAsync
+from .generate_functions import GenerateFunctions
 from .grammar_check import GrammarCheck, GrammarCheckAsync
 from .run_code import RunCode, RunCodeAsync
 from .video_criticize import VideoCriticize
@@ -18,6 +19,7 @@ __all__ = [
     'DebugError',
     'DesignFunction',
     'DesignFunctionAsync',
+    'GenerateFunctions',
     'GrammarCheck',
     'GrammarCheckAsync',
     'RunCode',

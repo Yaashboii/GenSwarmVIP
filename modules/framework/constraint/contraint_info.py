@@ -1,4 +1,4 @@
-from modules.file.file import File, logger
+from modules.file import File, logger
 from .constraint_node import ConstraintNode
 
 

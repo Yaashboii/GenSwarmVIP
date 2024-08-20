@@ -1,6 +1,6 @@
+from modules.file import logger
 from modules.framework.code_error import *
 from modules.framework.action import BaseNode
-from modules.file.log_file import logger
 
 
 class Handler(ABC):

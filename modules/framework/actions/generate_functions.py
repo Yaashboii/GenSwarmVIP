@@ -2,20 +2,21 @@ import time
 
 from modules.file import logger
 from modules.framework.action import ActionNode, ActionLinkedList
-from modules.framework.actions import (
-    DesignFunctionAsync,
-    WriteFunctionsAsync,
-    CodeReviewAsync,
-    WriteRun,
-    DebugError,
-    GrammarCheckAsync,
-)
 from modules.framework.code import FunctionTree, State
 from modules.framework.handler import BugLevelHandler
 
 
 class GenerateFunctions(ActionNode):
     def __init__(self, next_text: str = "", node_name: str = "", run_mode="layer"):
+        from modules.framework.actions import (
+            DesignFunctionAsync,
+            WriteFunctionsAsync,
+            CodeReviewAsync,
+            WriteRun,
+            DebugError,
+            GrammarCheckAsync,
+        )
+
         super().__init__(next_text, node_name)
         self._cost_time = 0
         self._function_pool = FunctionTree()

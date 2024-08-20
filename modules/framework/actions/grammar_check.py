@@ -1,10 +1,10 @@
+from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.code import State, FunctionNode
-from modules.framework.parser import GrammarParser
 from modules.framework.code_error import Bug, Bugs
-
-from modules.file import logger
+from modules.framework.parser import GrammarParser
 from modules.utils import root_manager
+
 
 
 class GrammarCheck(ActionNode):

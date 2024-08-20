@@ -1,7 +1,6 @@
 import os
 from os import listdir, makedirs
 
-import cv2
 from modules.deployment.gymnasium_env import GymnasiumBridgingEnvironment, GymnasiumCoveringEnvironment, \
     GymnasiumExplorationEnvironment, GymnasiumCirclingEnvironment, GymnasiumCrossingEnvironment,\
     GymnasiumEncirclingEnvironment, GymnasiumFlockingEnvironment

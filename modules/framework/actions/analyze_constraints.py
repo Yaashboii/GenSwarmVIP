@@ -1,5 +1,6 @@
 import json
 
+from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.llm import GPT
 from modules.prompt import (
@@ -11,7 +12,6 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
-from modules.file.log_file import logger
 from modules.framework.constraint import ConstraintPool
 from modules.framework.parser import *
 from modules.prompt.user_requirements import get_user_commands
