@@ -1,6 +1,4 @@
-import asyncio
-
-from modules.framework.code.function_node import FunctionNode
+from .function_node import FunctionNode
 
 
 class FunctionLayer:
@@ -46,11 +44,3 @@ class FunctionLayer:
 
     def add_function(self, function: FunctionNode):
         self._layer.add(function)
-
-    async def operate_on_nodes(self, operation):
-        tasks = []
-        # logger.log(f"Layer: {start_layer_index + index}", "warning")
-        for function_node in self._layer:
-            task = asyncio.create_task(operation(function_node))
-            tasks.append(task)
-        await asyncio.gather(*tasks)

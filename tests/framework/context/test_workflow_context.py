@@ -1,9 +1,9 @@
 import unittest
 import os
-import shutil
+
+from modules.framework.code import FunctionTree
 from modules.framework.context import WorkflowContext
 from modules.framework.constraint import ConstraintPool
-from modules.framework.code.function_tree import FunctionTree
 
 
 class TestWorkflowContext(unittest.TestCase):

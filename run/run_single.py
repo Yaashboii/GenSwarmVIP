@@ -1,9 +1,8 @@
 import argparse
-import sys
 
 from modules.file import logger
 from modules.framework.workflow import Workflow
-from modules.prompt.user_requirements import get_user_commands
+from modules.prompt import get_user_commands
 
 
 async def run_task(task: str, args: argparse.Namespace):
@@ -26,7 +25,9 @@ if __name__ == '__main__':
     parameter_service = ParameterService()
     config_file = 'experiment_config.yaml'
     parameter_service.add_arguments_from_yaml(f'../config/{config_file}')
-    task = get_user_commands('cross')[0]
+
+    experiment_name = parameter_service.args.run_experiment_name[0]
+    task = get_user_commands(experiment_name)[0]
 
     args = parameter_service.args
     root_manager.update_root(args=args)

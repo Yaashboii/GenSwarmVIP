@@ -4,13 +4,13 @@ DesignFunction_PROMPT_TEMPLATE = """
 ## Role setting:
 - Your task is to refine the designed function based on the existing descriptions while keeping the function name unchanged.
 
+## These are the environment description:
+{env_des}
+
 ## Existing robot APIs:
 ```python
 {robot_api}
 ```
-
-## These are the environment description:
-{env_des}
 
 ## These are the existing functions' descriptions and names:
 {other_functions}

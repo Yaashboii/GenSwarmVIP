@@ -1,12 +1,9 @@
-import time
-
 from modules.framework.action import ActionNode, AsyncNode
-from modules.framework.code.function_node import State, FunctionNode
-from modules.framework.code.function_tree import FunctionTree
-from modules.framework.code.grammar_checker import GrammarChecker
+from modules.framework.code import State, FunctionNode
+from modules.framework.parser import GrammarParser
 from modules.framework.code_error import Bug, Bugs
 
-from modules.file.log_file import logger
+from modules.file import logger
 from modules.utils import root_manager
 
 
@@ -15,7 +12,7 @@ class GrammarCheck(ActionNode):
         super().__init__(next_text, node_name)
         self.function_name: str
         self.function: FunctionNode
-        self._grammar_checker = GrammarChecker()
+        self._grammar_checker = GrammarParser()
 
     def _build_prompt(self):
         pass
@@ -55,7 +52,7 @@ class GrammarCheck(ActionNode):
 
 class GrammarCheckAsync(AsyncNode):
     def __init__(
-        self, run_mode="layer", start_state=State.REVIEWED, end_state=State.CHECKED
+            self, run_mode='layer', start_state=State.REVIEWED, end_state=State.CHECKED
     ):
         super().__init__(run_mode, start_state, end_state)
 
@@ -75,8 +72,8 @@ class GrammarCheckAsync(AsyncNode):
             raise SystemExit
 
         if not all(
-            function_node.state == self._start_state
-            for function_node in self.function_pool._layers[layer_index].functions
+                function_node.state == self._start_state
+                for function_node in self.function_pool._layers[layer_index].functions
         ):
             logger.log(
                 "All functions in the layer are not in NOT_STARTED state", "error"

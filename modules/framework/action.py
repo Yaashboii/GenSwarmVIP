@@ -1,17 +1,16 @@
 import asyncio
 import traceback
-from abc import ABC, abstractmethod
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from modules.framework.code.function_tree import FunctionTree
+from modules.file import logger
+from modules.framework.code import FunctionTree
+from modules.framework.code_error import CodeError
 from modules.framework.context import WorkflowContext
 from modules.framework.constraint import ConstraintPool
-from modules.utils import setup_logger, LoggerLevel, root_manager
-from modules.llm import GPT
-from modules.framework.code_error import CodeError
 from modules.framework.node_renderer import *
-from modules.file.log_file import logger
+from modules.llm import GPT
+from modules.utils import setup_logger, LoggerLevel, root_manager
 
 
 class BaseNode(ABC):
@@ -99,12 +98,8 @@ class ActionNode(BaseNode):
             print_to_terminal = True
             if hasattr(self.context.args, "print_to_terminal"):
                 print_to_terminal = self.context.args.print_to_terminal
-            logger.log(
-                f"Prompt:\n {self.prompt}", "debug", print_to_terminal=print_to_terminal
-            )
-            logger.log(
-                f"Response:\n {code}", "info", print_to_terminal=print_to_terminal
-            )
+            logger.log(f"Prompt:\n {self.prompt}", "debug", print_to_terminal=print_to_terminal)
+            logger.log(f"Response:\n {code}", "info", print_to_terminal=print_to_terminal)
             code = await self._process_response(code)
             return code
         except Exception as e:
@@ -117,8 +112,8 @@ class ActionNode(BaseNode):
 
 
 class AsyncNode(ActionNode):
-    def __init__(self, run_mode="layer", start_state=None, end_state=None):
-        super().__init__("")
+    def __init__(self, run_mode='layer', start_state=None, end_state=None):
+        super().__init__('')
         self._run_mode = run_mode
         self._start_state = start_state
         self._end_state = end_state
@@ -152,18 +147,12 @@ class AsyncNode(ActionNode):
             logger.log("No functions in NOT_STARTED state", "error")
             raise SystemExit
 
-        if not all(
-            function_node.state == self._start_state
-            for function_node in self.function_pool._layers[layer_index].functions
-        ):
-            logger.log(
-                "All functions in the layer are not in NOT_STARTED state", "error"
-            )
+        if not all(function_node.state == self._start_state for function_node in
+                   self.function_pool._layers[layer_index].functions):
+            logger.log("All functions in the layer are not in NOT_STARTED state", "error")
             raise SystemExit
 
-        await self.function_pool.process_function_layer(
-            self.operate, self._end_state, layer_index
-        )
+        await self.function_pool.process_function_layer(self.operate, self._end_state, layer_index)
 
     async def _run_sequential_mode(self):
         for function in self.function_pool.nodes:

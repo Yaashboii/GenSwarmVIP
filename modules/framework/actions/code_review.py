@@ -1,18 +1,13 @@
-import asyncio
-import time
-
+from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
-from modules.framework.response.code_parser import SingleFunctionParser
-from modules.framework.code.function_node import FunctionNode, State
+from modules.framework.code import FunctionNode, FunctionTree, State
+from modules.framework.parser import SingleFunctionParser, parse_text
 from modules.prompt import (
     HIGH_LEVEL_FUNCTION_REVIEW,
     ROBOT_API,
     ENV_DES,
     TASK_DES,
 )
-from modules.framework.response.text_parser import parse_text
-from modules.file.log_file import logger
-from modules.framework.code.function_tree import FunctionTree
 
 
 class CodeReview(ActionNode):
@@ -61,15 +56,9 @@ class CodeReview(ActionNode):
             logger.log(f"High Level Function Review Failed: {e}", "error")
             raise Exception  # trigger retry
 
-    async def operate_on_node(self, function_node: FunctionNode):
-        self._function = function_node
-        return await self.run()
-
 
 class CodeReviewAsync(AsyncNode):
-    def __init__(
-        self, run_mode="layer", start_state=State.WRITTEN, end_state=State.REVIEWED
-    ):
+    def __init__(self, run_mode='layer', start_state=State.WRITTEN, end_state=State.REVIEWED):
         super().__init__(run_mode, start_state, end_state)
 
     def _build_prompt(self):
@@ -81,7 +70,7 @@ class CodeReviewAsync(AsyncNode):
         return await action.run()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import asyncio
     from modules.framework.context import WorkflowContext
     import argparse
@@ -89,7 +78,7 @@ if __name__ == "__main__":
     context = WorkflowContext()
     path = "../../../workspace/test"
 
-    code_reviewer = CodeReviewAsync("sequential")
+    code_reviewer = CodeReviewAsync('sequential')
     code_reviewer.context.load_from_file(f"{path}/designed_function.pkl")
     asyncio.run(code_reviewer.run())
     context.save_to_file("../../../workspace/test/reviewed_function.pkl")

@@ -13,7 +13,7 @@ from modules.prompt import (
 )
 from modules.file.log_file import logger
 from modules.framework.constraint import ConstraintPool
-from modules.framework.response import *
+from modules.framework.parser import *
 from modules.prompt.user_requirements import get_user_commands
 
 
@@ -21,10 +21,8 @@ class AnalyzeConstraints(ActionNode):
     def __init__(self, next_text, node_name=""):
         super().__init__(next_text, node_name)
         self._interaction_mode = False
-        if (
-            hasattr(self.context.args, "interaction_mode")
-            and self.context.args.interaction_mode is True
-        ):
+        if (hasattr(self.context.args, "interaction_mode")
+                and self.context.args.interaction_mode is True):
             self.__llm = GPT(memorize=True)
             self._interaction_mode = True
         else:
@@ -62,7 +60,7 @@ class AnalyzeConstraints(ActionNode):
         await self._run()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import asyncio
     from modules.framework.context import WorkflowContext
     import argparse
@@ -78,7 +76,7 @@ if __name__ == "__main__":
         help="Whether to run in interaction mode in analyze constraints.",
     )
     context = WorkflowContext()
-    task = get_user_commands("cross")[0]
+    task = get_user_commands('cross')[0]
 
     context.command = task
     args = parser.parse_args()

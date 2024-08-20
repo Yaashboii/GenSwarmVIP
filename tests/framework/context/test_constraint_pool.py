@@ -27,7 +27,7 @@ class TestConstraintPool(unittest.TestCase):
 
     @patch("modules.file.file.logger.log")
     def test_getitem_with_non_existing_constraint(self, mock_logger):
-        with self.assertRaises(Exception):
+        with self.assertRaises(SystemExit):
             self.constraint_pool["non_existing_constraint"]
 
         mock_logger.assert_called_once()

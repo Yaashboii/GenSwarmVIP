@@ -1,8 +1,8 @@
-from modules.framework.code.function_layer import FunctionLayer
-from modules.framework.code.function_node import FunctionNode, State
 from modules.framework.constraint import ConstraintPool
-from modules.file.log_file import logger
-from modules.file.file import File
+from modules.file import logger, File
+
+from .function_layer import FunctionLayer
+from .function_node import FunctionNode, State
 
 
 class FunctionTree:
@@ -151,7 +151,7 @@ class FunctionTree:
         import asyncio
 
         for index, layer in enumerate(
-            self._layers[start_layer_index : start_layer_index + 1]
+            self._layers[start_layer_index: start_layer_index + 1]
         ):
             tasks = []
             logger.log(f"Layer: {start_layer_index + index}", "warning")

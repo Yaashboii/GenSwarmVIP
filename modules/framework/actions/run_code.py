@@ -1,16 +1,12 @@
-import asyncio
 import os
-from os import listdir
 import sys
 
 import rospy
 
+from modules.file import logger
 from modules.framework.action import ActionNode
-from modules.utils.root import root_manager, get_project_root
-from modules.utils.common import get_param, call_reset_environment
-from modules.framework.code_error import Bug, Feedback
-from modules.file.log_file import logger
-from modules.framework.code.function_tree import FunctionTree
+from modules.framework.code_error import Bug
+from modules.utils import root_manager, get_project_root
 
 
 class RunCode(ActionNode):
@@ -27,7 +23,7 @@ class RunCode(ActionNode):
         self.end_id = end
 
     async def _run_script(
-        self, working_directory, command=[], print_output=True
+            self, working_directory, command=[], print_output=True
     ) -> str:
         working_directory = str(working_directory)
         env = os.environ.copy()
@@ -104,7 +100,8 @@ class RunCode(ActionNode):
                 await process.wait()
 
     async def run(self) -> str:
-        command = ["python", "run.py", str(self.start_id), str(self.end_id)]
+        script = self.context.args.script
+        command = ["python", script, str(self.start_id), str(self.end_id)]
         # print(f"running command: {command}")
 
         result = await self._run_script(
@@ -118,20 +115,17 @@ class RunCode(ActionNode):
 
 class RunCodeAsync(ActionNode):
     async def _run(self):
-        from modules.utils.media import generate_video_from_frames
+        from modules.utils import generate_video_from_frames
 
         start_idx = rospy.get_param("robot_start_index")
         end_idx = rospy.get_param("robot_end_index")
         total_robots = end_idx - start_idx + 1
 
-        num_processes = min(10, total_robots)  # Number of processes
+        num_processes = min(2, total_robots)  # Number of processes
         robots_per_process = total_robots // num_processes
 
         robot_ids = list(range(start_idx, end_idx + 1))
-        robot_id_chunks = [
-            robot_ids[i : i + robots_per_process]
-            for i in range(0, total_robots, robots_per_process)
-        ]
+        robot_id_chunks = [robot_ids[i:i + robots_per_process] for i in range(0, total_robots, robots_per_process)]
         tasks = []
         result_list = []
         try:
@@ -146,13 +140,15 @@ class RunCodeAsync(ActionNode):
         finally:
             logger.log(content="call reset environment: end")
             # call_reset_environment(False)
-            data_root = root_manager.data_root
-            number = len(listdir(f"{data_root}/frames")) - 1
-            generate_video_from_frames(
-                frames_folder=f"{data_root}/frames/frame{number}",
-                video_path=f"{data_root}/output{number}.mp4",
-            )
-            logger.log(f"synthesize frame{number} ---> output{number}.mp4")
+            # data_root = root_manager.data_root
+            # number = len(listdir(f"{data_root}/frames")) - 1
+            # generate_video_from_frames(
+            #     frames_folder=f"{data_root}/frames/frame{number}",
+            #     video_path=f"{data_root}/output{number}.mp4",
+            # )
+            # logger.log(f"synthesize frame{number} ---> output{number}.mp4")
+            os.system("pgrep -f run.py | xargs kill -9")
+
             return self._process_response(result_list)
 
     def _process_response(self, result: list):
@@ -161,11 +157,10 @@ class RunCodeAsync(ActionNode):
             return "NONE"
         logger.log(content=f"Run code failed,result{result}", level="error")
         result_content = "\n".join(result)
-        return Bug(error_msg=result_content, error_function="")
+        return Bug(error_msg=result_content, error_function='')
 
 
 if __name__ == "__main__":
-    from modules.utils import root_manager
     import asyncio
     from modules.framework.handler import BugLevelHandler
     from modules.framework.handler import FeedbackHandler
@@ -177,25 +172,24 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--timeout", type=int, default=30, help="Total time for the simulation"
+        "--timeout", type=int, default=60, help="Total time for the simulation"
     )
     parser.add_argument(
-        "--feedback",
-        type=str,
-        default="None",
-        help="Optional: human, VLM, None,Result feedback",
+        "--feedback", type=str, default="None", help="Optional: human, VLM, None,Result feedback",
     )
     parser.add_argument(
-        "--data",
-        type=str,
-        default="cross/2024-07-19_10-00-29",
-        help="Data path for the simulation",
+        "--data", type=str, default='flocking/2024-08-15_15-18-24', help="Data path for the simulation"
     )
-
+    parser.add_argument(
+        "--target_pkl", type=str, default="WriteRun.pkl", help="Data path for the simulation"
+    )
+    parser.add_argument(
+        "--script", type=str, default="run.py", help="Script to run"
+    )
     args = parser.parse_args()
 
     data = args.data
-    path = f"{get_project_root()}/workspace/{data}"
+    path = f'{get_project_root()}/workspace/{data}'
 
     rospy.set_param("path", data)
     root_manager.update_root(path)
@@ -216,12 +210,12 @@ if __name__ == "__main__":
     chain_of_handler = bug_handler
     bug_handler.successor = hf_handler
 
-    if args.feedback != "None":
+    if args.feedback != 'None':
         run_code.error_handler = chain_of_handler
         run_code._next = video_critic
         video_critic.error_handler = chain_of_handler
-
-    run_code.context.load_from_file(path + "/WriteRun.pkl")
+    if args.target_pkl != 'None':
+        run_code.context.load_from_file(path + "/" + args.target_pkl)
     run_code.context.args = args
     asyncio.run(run_code.run())
     run_code.context.save_to_file(f"{path}/run_code.pkl")

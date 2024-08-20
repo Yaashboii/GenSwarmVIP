@@ -1,7 +1,6 @@
 import unittest
 
-from modules.framework.response.code_parser import CodeParser, SingleFunctionParser
-from modules.framework.response.text_parser import parse_text
+from modules.framework.parser import CodeParser, SingleFunctionParser, parse_text
 from modules.framework.error import CodeParseError
 
 

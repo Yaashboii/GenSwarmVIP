@@ -1,7 +1,6 @@
-import datetime
-import os
-from pathlib import Path
 import argparse
+import datetime
+from pathlib import Path
 
 
 def get_project_root():

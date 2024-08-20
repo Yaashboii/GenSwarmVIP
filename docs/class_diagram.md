@@ -199,7 +199,7 @@ classDiagram
         - functions_dict: dict[str, FunctionNode]
         - function_tree: FunctionTree
         - file: File
-        - grammar_checker : GrammarChecker
+        - grammar_parser : GrammarParser
 
         + init_functions(content)
         + add_functions(content)
@@ -221,10 +221,10 @@ classDiagram
     ConstraintPool *--> ConstraintNode : contains
     FunctionPool *--> FunctionNode : contains
     FunctionPool *--> FunctionTree : contains
-    FunctionPool *--> GrammarChecker : contains
+    FunctionPool *--> GrammarParser : contains
     ActionNode ..> Context : depends
 
-    class GrammarChecker {
+    class GrammarParser {
         + check_code_errors(file_path: str): list
         -_run_pylint_check(file_path: str): list
         -_find_function_name_from_error(file_path, error_line): tuple

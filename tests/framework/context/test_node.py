@@ -1,5 +1,5 @@
 import unittest
-from modules.framework.code.function_node import FunctionNode, State
+from modules.framework.code import FunctionNode, State
 from modules.framework.constraint import ConstraintNode
 
 
@@ -62,12 +62,9 @@ class TestNodes(unittest.TestCase):
         self.function_node1.state = 3
         self.assertEqual(self.function_node1.state, State.REVIEWED)
 
-        self.function_node1.state = 4
-        self.assertEqual(self.function_node1.state, State.CHECKED)
-
         # 测试设置无效状态
         with self.assertRaises(ValueError):
-            self.function_node1.state = 99
+            self.function_node1.state = 4
 
 
 if __name__ == "__main__":

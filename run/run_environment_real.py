@@ -6,7 +6,7 @@ import numpy as np
 import pygame
 import rospy
 
-from modules.deployment.env import *
+from modules.deployment.real_env.real_cross_env import RealCrossEnvironment
 from modules.deployment.utils.manager import Manager
 
 
@@ -25,7 +25,6 @@ def main():
     # env = MoveEnvironment(1000, 1000, robot_num=6, obstacle_num=100)
     # env=MoveFormationEnvironment(1000, 1000, robot_num=5, obstacle_num=30)
     # env = RealEnvironment(data_file='../config/vicon_data.json')
-    # env = RealCrossEnvironment(data_file='../config/vicon_data.json', engine_type='OmniEngine')
     env = RealCrossEnvironment(data_file='../config/vicon_data.json', engine_type='QuadTreeEngine')
     screen = pygame.display.set_mode((env.width * env.scale_factor, env.height * env.scale_factor))
     clock = pygame.time.Clock()

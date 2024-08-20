@@ -1,6 +1,6 @@
-import argparse
 import time
 
+from modules.file import logger
 from modules.framework.action import ActionNode, ActionLinkedList
 from modules.framework.actions import (
     DesignFunctionAsync,
@@ -10,11 +10,8 @@ from modules.framework.actions import (
     DebugError,
     GrammarCheckAsync,
 )
-from modules.framework.code.function_node import State
+from modules.framework.code import FunctionTree, State
 from modules.framework.handler import BugLevelHandler
-from modules.file.log_file import logger
-from modules.framework.code.function_tree import FunctionTree
-from modules.utils.function import CodeAnalyzer
 
 
 class GenerateFunctions(ActionNode):
@@ -36,12 +33,12 @@ class GenerateFunctions(ActionNode):
         grammar_check.error_handler = bug_handler
 
         # link actions
-        self._actions = ActionLinkedList("Generate Functions", design_functions)
+        self._actions = ActionLinkedList('Generate Functions', design_functions)
         self._actions.add(write_functions)
         self._actions.add(code_review)
         self._actions.add(grammar_check)
 
-        self._write_run = ActionLinkedList("Write Run", write_run)
+        self._write_run = ActionLinkedList('Write Run', write_run)
         # self._write_run.add(code_review)
         # self._write_run.add(grammar_check)
 

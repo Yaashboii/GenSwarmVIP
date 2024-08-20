@@ -52,7 +52,7 @@ class Workflow:
         # initialize actions
         analyze_constraints = AnalyzeConstraints("constraint pool")
         analyze_functions = AnalyzeFunctions("function pool")
-        generate_mode = "layer"
+        generate_mode = 'layer'
         if hasattr(self._context.args, "generate_mode"):
             generate_mode = self._context.args.generate_mode
 

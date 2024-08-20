@@ -1,18 +1,13 @@
-import asyncio
-import time
-
+from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
-from modules.framework.response.code_parser import SingleFunctionParser
-from modules.framework.code.function_node import FunctionNode, State
-from modules.framework.response.text_parser import parse_text
+from modules.framework.code import FunctionNode, FunctionTree, State
+from modules.framework.parser import SingleFunctionParser, parse_text
 from modules.prompt import (
     WRITE_FUNCTION_PROMPT_TEMPLATE,
     TASK_DES,
     ENV_DES,
     robot_api,
 )
-from modules.file.log_file import logger
-from modules.framework.code.function_tree import FunctionTree
 
 
 class WriteFunction(ActionNode):
@@ -22,7 +17,11 @@ class WriteFunction(ActionNode):
         self._constraint_text = ""
         self._other_functions_str = ""
         self._function_pool = FunctionTree()
-        self._constraint_pool: ConstraintPool = ConstraintPool()
+
+    def setup(self, function, constraint_text, other_functions_str):
+        self._function: FunctionNode = function
+        self._constraint_text = constraint_text
+        self._other_functions_str = other_functions_str
 
     def _build_prompt(self):
         self.prompt = WRITE_FUNCTION_PROMPT_TEMPLATE.format(
@@ -43,23 +42,9 @@ class WriteFunction(ActionNode):
         self._function_pool.update_from_parser(parser.imports, parser.function_dict)
         return code
 
-    async def operate_on_node(self, function_node: FunctionNode):
-        logger.log(f"Function: {function_node.name}", "warning")
-        other_functions = self._function_pool.filtered_functions(function)
-        other_functions_str = "\n\n".join([f.body for f in other_functions])
-
-        self._function = function_node
-        self._constraint_text = self._constraint_pool.filtered_constraints(
-            function_node.connections
-        )
-        self._other_functions_str = other_functions_str
-        return await self.run()
-
 
 class WriteFunctionsAsync(AsyncNode):
-    def __init__(
-        self, run_mode="layer", start_state=State.DESIGNED, end_state=State.WRITTEN
-    ):
+    def __init__(self, run_mode='layer', start_state=State.DESIGNED, end_state=State.WRITTEN):
         super().__init__(run_mode, start_state, end_state)
 
     def _build_prompt(self):
@@ -81,7 +66,7 @@ class WriteFunctionsAsync(AsyncNode):
         return await action.run()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import asyncio
     from modules.framework.context import WorkflowContext
     import argparse

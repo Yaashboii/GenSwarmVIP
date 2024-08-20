@@ -66,7 +66,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         engine_type = self.data.get('engine_type', 'QuadTreeEngine')
         if engine_type == 'QuadTreeEngine':
             self.engine = QuadTreeEngine(world_size=(self.width, self.height),
-                                         alpha=0.9,
+                                         alpha=0.5,
                                          damping=0.75,
                                          collision_check=False,
                                          joint_constraint=False)
@@ -82,6 +82,8 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         self.num_leaders = self.data.get("entities", {}).get("leader", {}).get("count", 0)
         self.num_obstacles = self.data.get("entities", {}).get("obstacle", {}).get("count", 0)
         self.num_sheep = self.data.get("entities", {}).get("sheep", {}).get("count", 0)
+        self.num_pushable_object = self.data.get("entities", {}).get("pushable_object", {}).get("count", 0)
+
         self.get_spaces()
 
         # self.screen = pygame.Surface((self.width * self.scale_factor, self.height * self.scale_factor))
@@ -284,8 +286,8 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
                                    int(entity.size * self.scale_factor))
             else:
                 rect = pygame.Rect(
-                    (pixel_pos[1] - entity.size[0] / 2 * self.scale_factor),
-                    (pixel_pos[0] - entity.size[1] / 2 * self.scale_factor),
+                    (pixel_pos[1] - entity.size[1] / 2 * self.scale_factor),
+                    (pixel_pos[0] - entity.size[0] / 2 * self.scale_factor),
                     entity.size[1] * self.scale_factor,
                     entity.size[0] * self.scale_factor,
                 )

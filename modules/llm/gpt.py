@@ -71,7 +71,7 @@ class GPT(BaseLLM):
             raise  # Re-raise exception to trigge
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import asyncio
 
     gpt = GPT()

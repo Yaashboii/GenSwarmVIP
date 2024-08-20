@@ -1,7 +1,6 @@
 import logging
 from enum import Enum
 
-__all__ = ["setup_logger", "LoggerLevel", "format_log_message"]
 
 # ANSI 转义码
 _ANSI_COLOR_CODES = {
@@ -76,12 +75,6 @@ def setup_logger(name, level=LoggerLevel.INFO):
     logger.addHandler(ch)
 
     return logger
-
-
-def format_log_message(label: str, message: str) -> str:
-    """Format a log message."""
-    separator = "=" * 20
-    return f"{label}:\n{separator}\n{message}\n{separator}"
 
 
 if __name__ == "__main__":

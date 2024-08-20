@@ -1,5 +1,4 @@
-from modules.framework.code.function_layer import FunctionLayer
-from modules.framework.code.function_node import FunctionNode
+from modules.framework.code import FunctionLayer, FunctionNode
 
 
 import unittest

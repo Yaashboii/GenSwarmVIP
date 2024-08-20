@@ -1,5 +1,7 @@
 import math
 import os
+import queue
+import shutil
 import threading
 import subprocess
 import time
@@ -10,9 +12,12 @@ import json
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+
 from tqdm import tqdm
 
-from modules.deployment.gymnasium_env import GymnasiumCrossEnvironment
+from experiment.ablation.utils import extra_exp
+from modules.deployment.gymnasium_env import GymnasiumCrossingEnvironment
 from modules.deployment.utils.manager import Manager
 
 
@@ -21,15 +26,19 @@ class AutoRunner:
                  workspace_path,
                  experiment_duration,
                  run_mode='rerun',
+                 target_pkl='WriteRun.pkl',
+                 script_name='run.py',
                  max_speed=1.0,
                  tolerance=0.05):
         self.env_config_path = env_config_path
         self.experiment_path = workspace_path
         self.experiment_duration = experiment_duration
-        self.env = GymnasiumCrossEnvironment(self.env_config_path, radius=2.20)
+        self.env = GymnasiumCrossingEnvironment(self.env_config_path, radius=2.20)
         self.env.reset()
         self.results = {}
+        self.target_pkl = target_pkl
         self.manager = Manager(self.env, max_speed=max_speed)
+        self.script_name = script_name
         self.stop_event = threading.Event()
         self.run_mode = run_mode
         self.tolerance = tolerance
@@ -54,7 +63,7 @@ class AutoRunner:
         result_file = os.path.join(path, 'result.json')
         return os.path.exists(result_file)
 
-    def save_experiment_result(self, path, result, analysis):
+    def save_experiment_result(self, path, result, analysis, run_code_result):
         def convert_to_serializable(obj):
             if isinstance(obj, np.ndarray):
                 return obj.tolist()
@@ -67,6 +76,7 @@ class AutoRunner:
         serializable_result = convert_to_serializable(result)
         serializable_analysis = convert_to_serializable(analysis)
         combined_result = {
+            'run_code_result': run_code_result,
             'analysis': serializable_analysis,
             'experiment_data': serializable_result,
         }
@@ -75,44 +85,14 @@ class AutoRunner:
         with open(result_file, 'w') as f:
             json.dump(combined_result, f, indent=4)
 
-    def run_single_experiment(self, experiment_id):
-        obs, infos = self.env.reset()
-
-        def init_result(infos):
-            result = {}
-            for entity_id in infos:
-                result[entity_id] = {"size": 0, "target": None, "trajectory": []}
-                result[entity_id]["size"] = infos[entity_id]["size"]
-                result[entity_id]["target"] = infos[entity_id]["target_position"]
-                result[entity_id]["trajectory"].append(infos[entity_id]["position"])
-            return result
-
-        result = init_result(infos)
-        self.manager.publish_observations(infos)
-        rate = rospy.Rate(self.env.FPS)
-        start_time = rospy.get_time()
-
-        while not rospy.is_shutdown() and not self.stop_event.is_set():
-            current_time = rospy.get_time()
-            if current_time - start_time > self.experiment_duration:
-                break
-            action = self.manager.robotID_velocity
-            self.manager.clear_velocity()
-            obs, reward, termination, truncation, infos = self.env.step(action=action)
-            for entity_id in infos:
-                result[entity_id]["trajectory"].append(infos[entity_id]["position"])
-            self.frames.append(self.env.render())
-            self.manager.publish_observations(infos)
-            rate.sleep()
-        print(f"Experiment {experiment_id} completed successfully.")
-        self.save_frames_as_animations(experiment_id)
-
-        return result
+    def save_frame_to_disk(self, frame, frame_index):
+        frame_path = os.path.join(self.frame_dir, f'frame_{frame_index:06d}.png')
+        imageio.imwrite(frame_path, frame)
 
     def save_frames_as_animations(self, experiment_id):
         # Save as GIF
         gif_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id, 'animation.gif')
-        imageio.mimsave(gif_path, self.frames, fps=self.env.FPS)
+        imageio.mimsave(gif_path, self.frames, fps=10)
         print(f"Saved animation for experiment {experiment_id} as GIF at {gif_path}")
 
         # Save as MP4
@@ -141,11 +121,13 @@ class AutoRunner:
             collision_count = 0
             collision_severity_sum = 0
 
+            processed_pairs = set()
+
             for id1, info1 in target_entities.items():
                 for t in range(num_timesteps):
                     pos1 = info1["trajectory"][t]
                     for id2, info2 in data.items():
-                        if id1 == id2:
+                        if id1 == id2 or (id2, id1) in processed_pairs:
                             continue
                         pos2 = info2["trajectory"][t]
                         distance = math.sqrt((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2)
@@ -153,6 +135,7 @@ class AutoRunner:
                             collision_count += 1
                             overlap = info1["size"] + info2["size"] - distance
                             collision_severity_sum += overlap / (info1["size"] + info2["size"])
+                            processed_pairs.add((id1, id2))
 
             num_target_entities = len(target_entities)
             collision_frequency = collision_count / (
@@ -219,39 +202,189 @@ class AutoRunner:
             'steps_ratio_average': average_steps_ratio
         }
 
-    def run_and_analyze_experiment(self, experiment):
-        result = self.run_single_experiment(experiment)
-        analysis = self.analyze_result(result)
+    def run_single_experiment(self, experiment_id, result_queue):
+        obs, infos = self.env.reset()
 
-        print(f"Analysis for experiment {experiment}: {analysis}")
-        self.results[experiment] = analysis
-        self.save_experiment_result(os.path.join(f"../workspace/{self.experiment_path}", experiment), result, analysis)
+        def init_result(infos):
+            result = {}
+            for entity_id in infos:
+                result[entity_id] = {"size": 0, "target": None, "trajectory": []}
+                result[entity_id]["size"] = infos[entity_id]["size"]
+                result[entity_id]["target"] = infos[entity_id]["target_position"]
+                result[entity_id]["trajectory"].append(infos[entity_id]["position"])
+            return result
 
-    def run_code(self, experiment):
+        result = init_result(infos)
+        self.manager.publish_observations(infos)
+        rate = rospy.Rate(self.env.FPS)
+        start_time = rospy.get_time()
+        experiment_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id)
+
+        self.frame_dir = os.path.join(experiment_path, 'frames')
+        os.makedirs(self.frame_dir, exist_ok=True)
+
+        frame_index = 0
+        while not rospy.is_shutdown() and not self.stop_event.is_set():
+            current_time = rospy.get_time()
+            if current_time - start_time > self.experiment_duration:
+                break
+            action = self.manager.robotID_velocity
+            self.manager.clear_velocity()
+            obs, reward, termination, truncation, infos = self.env.step(action=action)
+            for entity_id in infos:
+                result[entity_id]["trajectory"].append(infos[entity_id]["position"])
+            self.frames.append(self.env.render())
+            self.manager.publish_observations(infos)
+            rate.sleep()
+        print(f"Experiment {experiment_id} completed successfully.")
+        self.save_frames_as_animations(experiment_id)
+
+        result_queue.put({'source': 'run_single_experiment', 'result': result})
+
+    def run_code(self, experiment, script_name, result_queue):
         experiment_path = os.path.join(self.experiment_path, experiment)
         command = ['python', '../modules/framework/actions/run_code.py', '--data', experiment_path, '--timeout',
-                   str(self.experiment_duration - 3)]
+                   str(self.experiment_duration - 3), '--target_pkl', self.target_pkl,
+                   '--script', f"{script_name}"]
 
         try:
             result = subprocess.run(command, timeout=self.experiment_duration - 2, capture_output=True, text=True,
                                     check=True)
+            result_queue.put({'source': 'run_code', 'error': False, 'reason': ''})
         except subprocess.TimeoutExpired:
             print(f"\nExperiment {experiment} timed out and was terminated.")
+            result_queue.put({'source': 'run_code', 'error': False, 'reason': 'timeout'})
+
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while running {experiment}: {e}")
             print(f"Errors: {e.stderr}")
+            result_queue.put({'source': 'run_code', 'error': True, 'reason': e.stderr})
 
-    def run_multiple_experiments(self):
-        experiment_list = sorted(self.get_experiment_directories())
+    def setup_metagpt(self, directory):
+        # 确保目录存在
+        if not os.path.exists(directory):
+            print(f"目录 {directory} 不存在")
+            return
+        # 如果目录下没有py文件，遍历所以的文件夹找到有py文件的，将其内部的所以py文件复制到directory下
+        has_py_files = any(file.endswith('.py') for file in os.listdir(directory))
+        if not has_py_files:
+            for root, _, files in os.walk(directory):
+                for file in files:
+                    if file.endswith('.py'):
+                        src_file = os.path.join(root, file)
+                        dest_file = os.path.join(directory, file)
+                        shutil.copy(src_file, dest_file)
+                        print(f"复制文件 {src_file} 到 {dest_file}")
+        # 将apis.py文件复制到directory下
+        source_file = os.path.join('../modules/deployment/execution_scripts', 'apis_meta.py')
+        if os.path.exists(source_file):
+            shutil.copy(source_file, directory)
+        else:
+            print(f"文件 {source_file} 不存在")
+            return
+        source_file = os.path.join('../modules/deployment/execution_scripts', 'run_meta.py')
+        if os.path.exists(source_file):
+            shutil.copy(source_file, directory)
+        else:
+            print(f"文件 {source_file} 不存在")
+            return
 
+        # 遍历文件夹下所有python文件，开头加上from apis import *
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.py') and file != 'apis_meta.py':
+                    file_path = os.path.join(root, file)
+                    with open(file_path, 'r+', encoding='utf-8') as f:
+                        content = f.read()
+                        if not content.startswith('from apis_meta import *'):
+                            f.seek(0, 0)
+                            f.write('from apis_meta import *\n' + content)
+
+        # 查找是否存在time.sleep(xx),或者rate.sleep() 如果有将其注释
+        import re
+        sleep_patterns = [
+            re.compile(r'(\s*)time\.sleep\(\s*.*?\s*\)'),
+            re.compile(r'(\s*)rate\.sleep\(\s*.*?\s*\)')
+        ]
+
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.py'):
+                    file_path = os.path.join(root, file)
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        for line in lines:
+                            for pattern in sleep_patterns:
+                                match = pattern.match(line)
+                                if match:
+                                    line = f"{match.group(1)}# {line}"
+                                    break
+                            f.write(line)
+
+    def setup_cap(self, directory):
+        source_file = os.path.join('../modules/deployment/execution_scripts', 'apis_meta.py')
+
+        if os.path.exists(source_file):
+            shutil.copy(source_file, directory)
+        else:
+            print(f"文件 {source_file} 不存在")
+            return
+        source_file = os.path.join('../modules/deployment/execution_scripts', 'run_cap.py')
+        if os.path.exists(source_file):
+            shutil.copy(source_file, directory)
+        else:
+            print(f"文件 {source_file} 不存在")
+            return
+
+        # 遍历文件夹下所有python文件，开头加上from apis import *
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.py') and file != 'apis_meta.py':
+                    file_path = os.path.join(root, file)
+                    with open(file_path, 'r+', encoding='utf-8') as f:
+                        content = f.read()
+                        if not content.startswith('from apis_meta import *'):
+                            f.seek(0, 0)
+                            f.write('from apis_meta import *\n' + content)
+        import re
+        sleep_patterns = [
+            re.compile(r'(\s*)time\.sleep\(\s*.*?\s*\)'),
+            re.compile(r'(\s*)rate\.sleep\(\s*.*?\s*\)')
+        ]
+
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.py'):
+                    file_path = os.path.join(root, file)
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        for line in lines:
+                            for pattern in sleep_patterns:
+                                match = pattern.match(line)
+                                if match:
+                                    line = f"{match.group(1)}# {line}"
+                                    break
+                            f.write(line)
+
+    def run_multiple_experiments(self, experiment_list):
+        if not experiment_list:
+            experiment_list = sorted(self.get_experiment_directories())
         try:
             with tqdm(total=len(experiment_list), desc="Running Experiments") as pbar:
                 for experiment in experiment_list:
+                    if self.script_name == 'run_meta.py':
+                        self.setup_metagpt(os.path.join(f"../workspace/{self.experiment_path}", experiment))
+                    if self.script_name == 'run_cap.py':
+                        self.setup_cap(os.path.join(f"../workspace/{self.experiment_path}", experiment))
                     self.stop_event.clear()
-                    # time.sleep(1)
+                    result_queue = queue.Queue()
 
-                    t1 = threading.Thread(target=self.run_code, args=(experiment,))
-                    t2 = threading.Thread(target=self.run_and_analyze_experiment, args=(experiment,))
+                    t1 = threading.Thread(target=self.run_code, args=(experiment, self.script_name, result_queue))
+                    t2 = threading.Thread(target=self.run_single_experiment, args=(experiment, result_queue))
 
                     t1.start()
                     t2.start()
@@ -263,7 +396,20 @@ class AutoRunner:
                         self.stop_event.set()
                         t1.join()
                         t2.join()
+                    single_experiment_result = None
+                    run_code_result = None
+                    while not result_queue.empty():
+                        result = result_queue.get()
+                        if result['source'] == 'run_single_experiment':
+                            single_experiment_result = result['result']
+                        elif result['source'] == 'run_code':
+                            run_code_result = result
 
+                    analysis = self.analyze_result(single_experiment_result)
+                    print(f"Analysis for experiment {experiment}: {analysis}")
+                    self.results[experiment] = analysis
+                    self.save_experiment_result(os.path.join(f"../workspace/{self.experiment_path}", experiment),
+                                                single_experiment_result, analysis, run_code_result)
                     pbar.update(1)
 
         except KeyboardInterrupt:
@@ -277,95 +423,159 @@ class AutoRunner:
 
         print("All experiments completed successfully.")
 
-    def plot_and_print_results(self, data, labels, ylabel, title, colors, save_filename):
+    def plot_and_print_results(self, data, labels, ylabel, title, colors, save_filename, rotation=False):
+        if rotation:
+            rotation = -90
+        else:
+            rotation = 0
+
         plt.figure(figsize=(10, 6))
         plt.bar(labels, data, color=colors)
+        plt.xticks(rotation=rotation)
         plt.ylabel(ylabel)
         plt.title(title)
         for i, v in enumerate(data):
-            plt.text(i, v + 0.01, f"{v:.2f}", ha='center')
-        plt_path = os.path.join(f"../workspace/{self.experiment_path}", save_filename)
+            plt.text(i, v + 0.01, f"{v:.2f}", ha='center', rotation=rotation)
+        if not os.path.exists(f"../workspace/{self.experiment_path}/pic"):
+            os.makedirs(f"../workspace/{self.experiment_path}/pic")
+        plt_path = os.path.join(f"../workspace/{self.experiment_path}/pic", save_filename)
+        plt.tight_layout()
         plt.savefig(plt_path)
         plt.show()
         print(f"{title}: {data}")
 
-    def analyze_all_results(self):
-        experiment_dirs = self.get_experiment_directories()
-        collision_files = []
+    def analyze_code(self, functions_path):
+        from modules.utils import CodeAnalyzer
+        with open(functions_path, 'r') as f:
+            analyzer = CodeAnalyzer(f.read())
+            analysis_result = analyzer.analyze()
+        # TODO:add more metrics
+        return analysis_result["code_lines"]
+
+    def analyze_all_results(self, experiment_dirs=None):
+        metric_name = ["collision_frequency", "collision_severity_sum", "distance_ratio_average",
+                       "target_achievement_ratio",
+                       "steps_ratio_average"]
+        if not experiment_dirs:
+            experiment_dirs = sorted(self.get_experiment_directories())
+        no_collision_files = []
+        error_files = []
         no_target_achieve_files = []
         no_collision_and_target_achieve = []
-        collision_frequencies = []
-        collision_severities = []
-        distance_ratios = []
-        target_achievement_ratios = []
-        steps_ratios = []
+        code_lines = []
 
+        exp_data = {}
         for experiment in experiment_dirs:
             result_path = os.path.join(f"../workspace/{self.experiment_path}", experiment, 'result.json')
             if os.path.exists(result_path):
                 with open(result_path, 'r') as f:
                     result_data = json.load(f)
                     analysis = result_data.get('analysis', {})
-                    if analysis.get('collision_occurred'):
-                        collision_files.append(experiment)
+                    if not analysis.get('collision_occurred'):
+                        no_collision_files.append(experiment)
                     if not analysis.get('target_achieved'):
                         no_target_achieve_files.append(experiment)
                     if not analysis.get('collision_occurred') and analysis.get('target_achieved'):
                         no_collision_and_target_achieve.append(experiment)
+                    run_result = result_data.get('run_code_result', {})
+                    if run_result.get('error') == True:
+                        error_files.append(experiment)
+                        print(run_result.get('reason'))
 
-                    collision_frequencies.append(analysis.get('collision_frequency'))
-                    collision_severities.append(analysis.get('collision_severity_sum'))
-                    distance_ratios.append(analysis.get('distance_ratio_average'))
+                    exp_data[experiment] = {}
+                    for m in metric_name:
+                        exp_data[experiment][m] = analysis.get(m)
+                        if m == 'steps_ratio_average' and analysis.get(m) == 'inf':
+                            print(experiment, "inf steps_ratio_average")
+                            exp_data[experiment][m] = 0
+            code_path = os.path.join(f"../workspace/{self.experiment_path}", experiment, 'functions.py')
+            if os.path.exists(code_path):
+                code_lines.append(self.analyze_code(code_path))
+        mean_metric_value = {}
+        for m in metric_name:
+            mean_metric_value[m] = np.mean([exp_data[i][m] for i in exp_data.keys()])
 
-                    target_achievement_ratios.append(analysis.get('target_achievement_ratio'))
-                    if analysis.get('steps_ratio_average') != 'inf':
-                        steps_ratios.append(analysis.get('steps_ratio_average'))
-
-        mean_collision_frequency = np.mean(collision_frequencies) if collision_frequencies else 0
-        mean_collision_severity = np.mean(collision_severities) if collision_severities else 0
-        mean_distance_ratio = np.mean(distance_ratios) if distance_ratios else 0
-        mean_target_achieve_ratio = np.mean(target_achievement_ratios) if target_achievement_ratios else 0
-        mean_steps_ratios = np.mean(steps_ratios) if steps_ratios else 0
-        metrics = [
-            ([mean_collision_frequency, mean_collision_severity], ['Collision Frequency', 'Collision Severity'],
-             'Value', 'Collision Metrics', ['purple', 'orange'], 'collision_metrics.png'),
-            ([mean_distance_ratio, mean_target_achieve_ratio, mean_steps_ratios],
-             ['Distance Ratio', 'Target Achieve Ratio', 'Steps Ratio'], 'Ratio',
-             'Distance Metrics', ['cyan', 'blue', 'green'], 'distance_metrics.png'),
+        metrics_data = [
+            (
+                [mean_metric_value["collision_frequency"], mean_metric_value["collision_severity_sum"]],
+                ['Collision Frequency', 'Collision Severity'],
+                'Value',
+                'Collision Metrics',
+                ['purple', 'orange'],
+                'collision_metrics.png'
+            ),
+            (
+                [mean_metric_value["distance_ratio_average"], mean_metric_value["target_achievement_ratio"],
+                 mean_metric_value["steps_ratio_average"]],
+                ['Distance Ratio', 'Target Achieve Ratio', 'Steps Ratio'],
+                'Ratio',
+                'Distance Metrics',
+                ['cyan', 'blue', 'green'],
+                'distance_metrics.png'
+            ),
         ]
 
-        for data, labels, ylabel, title, colors, filename in metrics:
+        for data, labels, ylabel, title, colors, filename in metrics_data:
             self.plot_and_print_results(data, labels, ylabel, title, colors, filename)
 
-        collision_rate = 1 - len(collision_files) / len(experiment_dirs) if experiment_dirs else 1
+        bug_rate = len(error_files) / len(experiment_dirs) if experiment_dirs else 0
+
+        no_collision_rate = len(no_collision_files) / len(
+            experiment_dirs) if experiment_dirs else 0
         target_achieve_rate = 1 - len(no_target_achieve_files) / len(experiment_dirs) if experiment_dirs else 0
         no_collision_and_target_rate = len(no_collision_and_target_achieve) / len(
             experiment_dirs) if experiment_dirs else 0
+        code_lines_avg = np.mean(code_lines) / 200
         self.plot_and_print_results(
-            [collision_rate, target_achieve_rate, no_collision_and_target_rate],
-            ['No Collision', 'Target Achieve', 'No Collision & Target Achieve'],
+            [bug_rate, no_collision_rate, target_achieve_rate, no_collision_and_target_rate, code_lines_avg],
+            ['Bug', 'No Collision', 'Target Achieve', 'No Collision & Target Achieve', 'code_lines'],
             'Rate',
             'Experiment Outcomes',
-            ['red', 'green', 'blue'],
+            ['red', 'yellow', 'blue', 'green', 'orange'],
             'experiment_outcomes.png'
         )
-        collision_files = '\n'.join(collision_files)
-        no_target_achieve_files = '\n'.join(no_target_achieve_files)
-        print(f"Experiments with collisions:\n{collision_files}")
-        print(f"\nExperiments without target achievement:\n{no_target_achieve_files}")
+        colors = ['#96B6C5', '#ADC4CE', '#EEE0C9', '#F1F0E8']
+
+        start_color = "#0000FF"  # 蓝色
+        end_color = "#FF0000"  # 红色
+        cmap = LinearSegmentedColormap.from_list("my_colormap", [start_color, end_color])
+        for m in metric_name:
+            num_colors = len(exp_data.keys())
+            colors_list = [cmap(i / (num_colors - 1)) for i in range(num_colors)]
+            self.plot_and_print_results(
+                data=[exp_data[i][m] for i in exp_data.keys()],
+                labels=exp_data.keys(),
+                ylabel=m,
+                title=f"Experiment Outcomes in {m}",
+                colors=colors_list,
+                save_filename=f'{m} metric.png',
+                rotation=True,
+            )
 
 
 if __name__ == "__main__":
     runner = AutoRunner("../config/env_config.json",
-                        workspace_path='layer/cross',
-                        experiment_duration=50,
+                        workspace_path='ablation/human_feedback',
+                        # workspace_path='metagpt',
+                        # workspace_path='cap/cross',
+                        experiment_duration=30,
                         run_mode='analyze',
-                        max_speed=0.5,
-                        tolerance=0.05
+                        # target_pkl='video_critic.pkl',
+                        target_pkl='None',
+                        # script_name='run_meta.py',
+                        script_name='run_cap.py',
+                        max_speed=0.75,
+                        tolerance=0.15
                         )
+    # 人工复核，哪些任务需要重新跑，写在下面
+    # experiment_list = ['2024-07-21_18-26-12', ]
+    experiment_list = None
 
     if runner.run_mode in ['rerun', 'continue']:
-        runner.run_multiple_experiments()
+        exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))
+        runner.run_multiple_experiments(exp_list)
 
     if runner.run_mode == 'analyze':
-        runner.analyze_all_results()
+        exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))
+
+        runner.analyze_all_results(exp_list)

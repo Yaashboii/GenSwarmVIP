@@ -1,6 +1,6 @@
-from modules.framework.response.code_parser import CodeParser
+from modules.framework.parser import CodeParser
 
-robot_api = """
+base_robot_api_prompt = """
 def get_position():
     '''
     Description: Get the current position of the robot itself in real-time.
@@ -17,7 +17,7 @@ def get_all_robots_info():
     '''
     Get real-time information of all the robots id information in the environment.
     Returns:
-    - dict:
+    - dict: 
         - self_id (int): The unique ID of the robot itself.
         - start_id (int): The unique ID of the first robot in the environment.
         - end_id (int): The unique ID of the last robot in the environment.
@@ -44,7 +44,7 @@ def get_radius():
     Returns:
     - float: The radius of the robot itself.
     '''
-
+    
 def get_surrounding_robots_info():
     '''
     Get real-time information of the surrounding robots.
@@ -66,15 +66,28 @@ def get_surrounding_obstacles_info():
         - position (numpy.ndarray): The current position of the obstacle.
         - radius (float): The radius of the obstacle.
     '''
-def get_target_position():
+def get_prey_position():
     '''
-    Description: Get the target position for the robot to reach.
+    Description: Get the position of the prey.
     Returns:
-    - numpy.ndarray: The current position of the target.
+    - numpy.ndarray: The position of the prey.
     '''
 
 
+    
 """.strip()
+
+specific_robot_api_prompt = {
+    "bridging": "",
+    "circling": "",
+    "covering": "",
+    "encircling": "",
+    "exploration": "",
+    "flocking": "",
+    "herding": "",
+    "shaping": "",
+    "transportation": "",
+}
 
 add = """
 def get_target_position():
@@ -189,7 +202,7 @@ def get_all_robots_info():
     '''
     Get real-time information of all the robots id information in the environment.
     Returns:
-    - dict:
+    - dict: 
         - self_id (int): The unique ID of the robot itself.
         - start_id (int): The unique ID of the first robot in the environment.
         - end_id (int): The unique ID of the last robot in the environment.
@@ -200,17 +213,21 @@ def get_all_robots_info():
 """
 
 
-# data_api = read_file("modules/env/", filename="data_apis.py")
-
-
 class RobotApi:
     def __init__(self, content):
         self.content = content
-        code_obj = CodeParser()
-        code_obj.parse_code(content)
-        self.apis = code_obj.function_defs
+
+
+    def set_task(self, task_name):
+        self.task_name = task_name
+        self.content = self.content + specific_robot_api_prompt[task_name]
+
 
     def get_prompt(self, name: list[str] | str = None) -> str:
+        code_obj = CodeParser()
+        code_obj.parse_code(self.content)
+        self.apis = code_obj.function_defs
+
         if isinstance(name, str):
             name = [name]
         if name is None:
@@ -224,7 +241,5 @@ class RobotApi:
             )
 
 
-robot_api = RobotApi(content=robot_api)
+robot_api = RobotApi(content=base_robot_api_prompt)
 ROBOT_API = robot_api.get_prompt()
-# data_api = RobotApi(content=data_api)
-# DATA_API = data_api.get_prompt()

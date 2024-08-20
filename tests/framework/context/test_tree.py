@@ -1,8 +1,6 @@
 import unittest
-from unittest.mock import patch, ANY, MagicMock, call
-from modules.framework.code.function_node import FunctionNode, State
-from modules.framework.code.function_tree import FunctionTree
 from modules.file import logger, File
+from modules.framework.code import FunctionNode, FunctionTree
 
 
 class TestFunctionTree(unittest.TestCase):
@@ -195,11 +193,11 @@ class TestFunctionTree(unittest.TestCase):
         function_node4 = FunctionNode("function4", "description4")
         function_node5 = FunctionNode("function5", "description5")
 
-        function_node1.state = State.NOT_STARTED
-        function_node2.state = State.WRITTEN
-        function_node3.state = State.WRITTEN
-        function_node4.state = State.DESIGNED
-        function_node5.state = State.REVIEWED
+        function_node1.state = FunctionNode.State.NOT_STARTED
+        function_node2.state = FunctionNode.State.WRITTEN
+        function_node3.state = FunctionNode.State.WRITTEN
+        function_node4.state = FunctionNode.State.DESIGNED
+        function_node5.state = FunctionNode.State.REVIEWED
 
         function_node1.add_callee(function_node2)
         function_node1.add_callee(function_node3)
@@ -215,16 +213,16 @@ class TestFunctionTree(unittest.TestCase):
         self.function_tree.update()
 
         min_layer_index_written = self.function_tree.get_min_layer_index_by_state(
-            State.WRITTEN
+            FunctionNode.State.WRITTEN
         )
         min_layer_index_designed = self.function_tree.get_min_layer_index_by_state(
-            State.DESIGNED
+            FunctionNode.State.DESIGNED
         )
         min_layer_index_not_started = self.function_tree.get_min_layer_index_by_state(
-            State.NOT_STARTED
+            FunctionNode.State.NOT_STARTED
         )
         min_layer_index_reviewed = self.function_tree.get_min_layer_index_by_state(
-            State.REVIEWED
+            FunctionNode.State.REVIEWED
         )
         min_layer_index_nonexistent = self.function_tree.get_min_layer_index_by_state(5)
 
@@ -234,88 +232,32 @@ class TestFunctionTree(unittest.TestCase):
         self.assertEqual(min_layer_index_reviewed, 3)
         self.assertEqual(min_layer_index_nonexistent, -1)
 
-        function_node2.state = State.DESIGNED
-        function_node3.state = State.DESIGNED
+        function_node2.state = FunctionNode.State.DESIGNED
+        function_node3.state = FunctionNode.State.DESIGNED
         self.function_tree.update()
 
         min_layer_index_written_after_state_change = (
-            self.function_tree.get_min_layer_index_by_state(State.WRITTEN)
+            self.function_tree.get_min_layer_index_by_state(FunctionNode.State.WRITTEN)
         )
         self.assertEqual(min_layer_index_written_after_state_change, -1)
 
-    def test_functions_brief(self):
-        self.function_tree._function_nodes = {
-            "func1": FunctionNode(name="func1", description="Function 1"),
-            "func2": FunctionNode(name="func2", description="Function 2"),
-        }
 
-        # 断言 functions_brief 返回的列表包含了所有函数的简要描述
-        self.assertEqual(
-            self.function_tree.functions_brief,
-            ["**func1**: Function 1", "**func2**: Function 2"],
-        )
+class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):
+    async def test_process_function_layers(self):
+        function_tree = FunctionTree()
+        function_tree.reset()
+        # Test process_function_layers method
+        function_node1 = FunctionNode("function1", "description1")
+        function_node2 = FunctionNode("function2", "description2")
+        output_names = []
 
-    def test_function_valid_content(self):
-        func1 = FunctionNode(name="func1", description="")
-        func1.content = "def func1():\n    pass"
-        func2 = FunctionNode(name="func2", description="")
-        func2.content = "def func2():\n    pass"
+        async def mock_operation(node):
+            output_names.append(node.name)
 
-        self.function_tree._function_nodes = {
-            "func1": func1,
-            "func2": func2,
-            "func3": FunctionNode(name="func3", description=""),
-        }
-
-        # 断言 function_valid_content 返回的列表包含了所有有效的函数内容
-        self.assertEqual(
-            self.function_tree.function_valid_content,
-            ["def func1():\n    pass", "def func2():\n    pass"],
-        )
-
-    def test_save_functions_to_file(self):
-        # 设置一些假的数据
-        self.function_tree.import_list = {"import os", "import sys"}
-        self.function1.content = "def func1():\n    pass"
-        self.function2.content = "def func2():\n    pass"
-        self.function_tree._function_nodes = {
-            "func1": self.function1,
-            "func2": self.function2,
-        }
-
-        # 设置模拟的 File 对象
-        self.function_tree._file = MagicMock()
-
-        # 运行方法
-        self.function_tree.save_functions_to_file()
-
-        # 断言文件消息设置正确
-        expected_message = "import os\nimport sys\n\ndef func1():\n    pass\n\n\ndef func2():\n    pass\n\n"
-        self.function_tree._file._message = expected_message
-
-
-# class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):
-#     async def test_process_function_layers(self):
-#         function_tree = FunctionTree()
-#         function_tree.reset()
-#         # Test process_function_layers method
-#         function_node1 = FunctionNode("function1", "description1")
-#         function_node2 = FunctionNode("function2", "description2")
-#         output_names = []
-
-#         from modules.framework.code.function_layer import FunctionLayer
-
-#         layer = FunctionLayer()
-#         layer.add_function(function_node1)
-#         layer.add_function(function_node2)
-
-#         async def mock_operation(node):
-#             output_names.append(node.name)
-
-#         function_tree._layers = [layer]
-#         await function_tree.process_function_layer(mock_operation)
-#         self.assertIn("function1", output_names)
-#         self.assertIn("function2", output_names)
+        function_tree._layers = [[function_node1, function_node2]]
+        await function_tree.process_function_layer(mock_operation)
+        self.assertIn("function1", output_names)
+        self.assertIn("function2", output_names)
 
 
 if __name__ == "__main__":

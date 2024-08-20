@@ -75,16 +75,17 @@ ANALYZE_CONSTRAINT_PROMPT_TEMPLATE: str = """
 ## Role setting:
 - You need to analyze what functional constraints are needed to meet the user's requirements.
 
-These APIs can be directly called by you.
-```python
-{robot_api}
-```
-## User commands:
-{instruction}
-
 ## These are the environment description:
 These are the basic descriptions of the environment.
 {env_des}
+
+## These APIs can be directly called by you.
+```python
+{robot_api}
+```
+
+## User commands:
+{instruction}
 
 ## These are the constraints that user defined:
 {user_constraints}
@@ -120,7 +121,7 @@ The output TEXT format is as follows:
 - Your output should strictly adhere to the specified format.
 - Perform operations such as addition, deletion, and modification based on the existing foundation.
 - Output the complete constraint information instead of just a part of it.
--
+- 
 """.strip()
 
 CONSTRAIN_TEMPLATE: str = """
@@ -134,6 +135,7 @@ CONSTRAIN_TEMPLATE: str = """
   ]
 }
 """.strip()
+
 MODIFY_CONSTRAIN_TEMPLATE: str = """
 {
   "reasoning": "think step by step, and analyze which constraints need to be modified in the task,which constraints need to be added, and which constraints need to be deleted according to the user's feedback.",
