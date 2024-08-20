@@ -1,5 +1,6 @@
 "api_base": {
-  "GPT": "https://xa.blackbox.red/v1",
+#  "GPT": "https://xa.blackbox.red/v1",
+  "GPT": "https://xiaoai.plus/v1",
   "QWEN": "https://dashscope.aliyuncs.com/compatible-mode/v1",
 }
 "api_key": {
