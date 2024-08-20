@@ -2,7 +2,7 @@ import argparse
 
 from modules.file import logger
 from modules.framework.workflow import Workflow
-from modules.prompt.user_requirements import get_user_commands
+from modules.prompt import get_user_commands
 
 
 async def run_task(task: str, args: argparse.Namespace):

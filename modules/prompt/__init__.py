@@ -10,7 +10,7 @@ from .robot_api_prompt import robot_api, ROBOT_API
 from .run_code_prompt import DEBUG_PROMPT, CONTINUE_DEBUG_PROMPT, FEEDBACK_PROMPT_TEMPLATE, \
     CONTINUE_FEEDBACK_PROMPT_TEMPLATE, GRAMMAR_CHECK_PROMPT_TEMPLATE
 from .task_description import TASK_DES
-from .user_requirements import tasks
+from .user_requirements import tasks, get_user_commands
 from .video_critic_prompt import VIDEO_PROMPT_TEMPLATE, OUTPUT_TEMPLATE
 
 __all__ = [
@@ -22,5 +22,6 @@ __all__ = [
     'FILTER_CONSTRAINTS_TEMPLATE', 'DesignFunction_PROMPT_TEMPLATE', 'WriteSeqDiagram_PROMPT_TEMPLATE',
     'ENV_DES', 'robot_api', 'ROBOT_API', 'DEBUG_PROMPT', 'CONTINUE_DEBUG_PROMPT',
     'FEEDBACK_PROMPT_TEMPLATE', 'CONTINUE_FEEDBACK_PROMPT_TEMPLATE', 'GRAMMAR_CHECK_PROMPT_TEMPLATE',
-    'TASK_DES', 'tasks', 'VIDEO_PROMPT_TEMPLATE', 'OUTPUT_TEMPLATE'
+    'TASK_DES', 'tasks', 'VIDEO_PROMPT_TEMPLATE', 'OUTPUT_TEMPLATE',
+    'get_user_commands'
 ]
