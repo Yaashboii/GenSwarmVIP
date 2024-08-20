@@ -5,14 +5,14 @@ from modules.framework.code.function_tree import FunctionTree
 from modules.framework.constraint import ConstraintPool
 from modules.framework.code_error import Feedback
 
-from modules.file.log_file import logger
+from modules.file import logger
 from modules.framework.parser import parse_text
 from modules.prompt import (
     VIDEO_PROMPT_TEMPLATE,
     OUTPUT_TEMPLATE,
     TASK_DES,
 )
-from modules.utils.media import process_video, create_video_from_frames
+from modules.utils import process_video, create_video_from_frames
 
 
 class VideoCriticize(ActionNode):

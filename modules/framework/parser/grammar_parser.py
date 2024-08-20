@@ -1,7 +1,7 @@
 import re
 import subprocess
 
-from modules.file.file import logger
+from modules.file import logger
 
 
 class GrammarParser:

@@ -2,7 +2,6 @@ import os
 import shutil
 from enum import Enum
 
-from modules.utils import root_manager
 from .base_file import BaseFile
 from .log_file import logger
 
@@ -18,6 +17,7 @@ class File(BaseFile):
     def __init__(self, name: str = "", message: str = "", root: str = ""):
         self.version = 0
         self._name = name
+        from modules.utils import root_manager
         self._root = root if root else root_manager.workspace_root
         self._status = FileStatus.NOT_WRITTEN
         self._message = message
