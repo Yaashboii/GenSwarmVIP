@@ -1,5 +1,5 @@
-from modules.file.base_file import BaseFile
 from modules.utils.logger import setup_logger, LoggerLevel
+from .base_file import BaseFile
 
 
 class _Logger:

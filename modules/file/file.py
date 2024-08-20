@@ -2,10 +2,9 @@ import os
 import shutil
 from enum import Enum
 
-from modules.file.base_file import BaseFile
 from modules.utils import root_manager
-
-from modules.file.log_file import logger
+from .base_file import BaseFile
+from .log_file import logger
 
 
 class FileStatus(Enum):

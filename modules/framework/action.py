@@ -167,7 +167,6 @@ class AsyncNode(ActionNode):
         await asyncio.gather(*tasks)
 
 
-
 class ActionLinkedList(BaseNode):
     def __init__(self, name: str, head: BaseNode):
         super().__init__()
