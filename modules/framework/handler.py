@@ -80,21 +80,22 @@ class FeedbackHandler(Handler):
 
 
 if __name__ == "__main__":
-    h1 = BugLevelHandler()
-    h2 = CriticLevelHandler()
-    h3 = HumanFeedbackHandler()
-
-    h2.successor = h1
-    h1.successor = h3
-
-    handle_pipeline = h2
-
-    e1 = Bug()
-    e2 = CriticNotSatisfied()
-    e3 = Feedback()
-
-    handle_pipeline.display()
-
-    errors = [e1, e2, e3]
-    for error in errors:
-        handle_pipeline.handle(error)
+    # h1 = BugLevelHandler()
+    # h2 = CriticLevelHandler()
+    # h3 = HumanFeedbackHandler()
+    #
+    # h2.successor = h1
+    # h1.successor = h3
+    #
+    # handle_pipeline = h2
+    #
+    # e1 = Bug()
+    # e2 = CriticNotSatisfied()
+    # e3 = Feedback()
+    #
+    # handle_pipeline.display()
+    #
+    # errors = [e1, e2, e3]
+    # for error in errors:
+    #     handle_pipeline.handle(error)
+    pass

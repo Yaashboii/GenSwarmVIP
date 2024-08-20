@@ -63,7 +63,3 @@ class WorkflowContext(Context):
     @parameters.setter
     def parameters(self, value):
         self._instance.parameters.message = value
-
-
-if __name__ == "__main__":
-    context = WorkflowContext()
