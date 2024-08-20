@@ -2,11 +2,6 @@ import os
 from os import listdir, makedirs
 
 import cv2
-import numpy as np
-import pygame
-import rospy
-
-from modules.deployment.utils.manager import Manager
 from modules.deployment.gymnasium_env import GymnasiumBridgingEnvironment, GymnasiumCoveringEnvironment, \
     GymnasiumExplorationEnvironment, GymnasiumCirclingEnvironment, \
     GymnasiumEncirclingEnvironment, GymnasiumFlockingEnvironment
