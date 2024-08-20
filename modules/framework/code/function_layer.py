@@ -1,4 +1,4 @@
-from modules.framework.code.function_node import FunctionNode
+from .function_node import FunctionNode
 
 
 class FunctionLayer:

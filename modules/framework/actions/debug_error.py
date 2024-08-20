@@ -1,5 +1,7 @@
 from modules.framework.action import ActionNode
+from modules.framework.code import FunctionTree
 from modules.framework.parser import parse_text, CodeParser
+from modules.llm import GPT
 from modules.prompt import (
     DEBUG_PROMPT,
     CONTINUE_DEBUG_PROMPT,
@@ -7,8 +9,6 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
-from modules.framework.code.function_tree import FunctionTree
-from modules.llm import GPT
 
 
 class DebugError(ActionNode):

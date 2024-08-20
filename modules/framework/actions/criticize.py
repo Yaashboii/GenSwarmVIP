@@ -1,5 +1,6 @@
 from modules.framework.action import ActionNode
-from modules.framework.code.function_tree import FunctionTree
+from modules.framework.code import FunctionTree
+from modules.framework.parser import CodeParser, parse_text
 from modules.llm import GPT
 from modules.prompt import (
     FEEDBACK_PROMPT_TEMPLATE,
@@ -8,7 +9,6 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
-from modules.framework.parser import CodeParser, parse_text
 
 
 class Criticize(ActionNode):

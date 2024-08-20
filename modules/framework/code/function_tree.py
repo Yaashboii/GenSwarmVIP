@@ -1,8 +1,8 @@
-from modules.framework.code.function_layer import FunctionLayer
-from modules.framework.code.function_node import FunctionNode, State
 from modules.framework.constraint import ConstraintPool
-from modules.file.log_file import logger
-from modules.file.file import File
+from modules.file import logger, File
+
+from .function_layer import FunctionLayer
+from .function_node import FunctionNode, State
 
 
 class FunctionTree:

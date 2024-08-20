@@ -1,8 +1,6 @@
 import unittest
-from unittest.mock import patch, ANY
-from modules.framework.code.function_node import FunctionNode
-from modules.framework.code.function_tree import FunctionTree
 from modules.file import logger, File
+from modules.framework.code import FunctionNode, FunctionTree
 
 
 class TestFunctionTree(unittest.TestCase):

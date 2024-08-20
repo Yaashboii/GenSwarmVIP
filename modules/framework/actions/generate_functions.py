@@ -1,6 +1,6 @@
-import argparse
 import time
 
+from modules.file import logger
 from modules.framework.action import ActionNode, ActionLinkedList
 from modules.framework.actions import (
     DesignFunctionAsync,
@@ -10,10 +10,8 @@ from modules.framework.actions import (
     DebugError,
     GrammarCheckAsync,
 )
-from modules.framework.code.function_node import State
+from modules.framework.code import FunctionTree, State
 from modules.framework.handler import BugLevelHandler
-from modules.file.log_file import logger
-from modules.framework.code.function_tree import FunctionTree
 
 
 class GenerateFunctions(ActionNode):

@@ -1,9 +1,10 @@
 import argparse
 import pickle
 
-from modules.file.file import File
+from modules.file import File
+from modules.framework.code import FunctionTree
 from modules.framework.constraint import ConstraintPool
-from modules.framework.code.function_tree import FunctionTree
+
 from .context import Context
 
 

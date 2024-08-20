@@ -1,5 +1,5 @@
 import unittest
-from modules.framework.code.function_node import FunctionNode, State
+from modules.framework.code import FunctionNode, State
 from modules.framework.constraint import ConstraintNode
 
 
