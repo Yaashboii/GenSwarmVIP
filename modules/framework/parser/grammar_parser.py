@@ -51,7 +51,7 @@ class GrammarParser:
             return errors
         except Exception as e:
             logger.log(f"Error occurred when check grammar: {e}", level="error")
-            raise Exception(f"Error occurred when check grammar:{e}")
+            raise Exception(f"Error occurred when check grammar: {e}")
 
     def _find_function_name_from_error(self, file_path, error_line):
         with open(file_path, "r") as file:

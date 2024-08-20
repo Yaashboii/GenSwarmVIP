@@ -29,7 +29,6 @@ class Criticize(ActionNode):
                 feedback=self.feedback,
             )
         else:
-
             self.prompt = CONTINUE_FEEDBACK_PROMPT_TEMPLATE.format(
                 feedback=self.feedback,
             )

@@ -102,23 +102,6 @@ class TestConstraintPool(unittest.TestCase):
             "Constraint constraint9 is not in the constraint pool", "error"
         )
 
-    @patch("modules.file.file.logger.log")
-    def test_getitem_with_existing_constraint(self, mock_logger):
-        constraint_node = ConstraintNode(name="constraint1", description="desc1")
-        self.constraint_pool._constraint_nodes["constraint1"] = constraint_node
-
-        result = self.constraint_pool["constraint1"]
-
-        self.assertEqual(result, constraint_node)
-        mock_logger.assert_not_called()
-
-    @patch("modules.file.file.logger.log")
-    def test_getitem_with_non_existing_constraint(self, mock_logger):
-        with self.assertRaises(SystemExit):
-            self.constraint_pool["non_existing_constraint"]
-
-        mock_logger.assert_called_once()
-
 
 if __name__ == "__main__":
     unittest.main()

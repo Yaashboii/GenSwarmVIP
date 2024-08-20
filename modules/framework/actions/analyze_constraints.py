@@ -70,7 +70,10 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        "--interaction_mode", type=bool, default=True, help="Whether to run in interaction mode in analyze constraints."
+        "--interaction_mode",
+        type=bool,
+        default=True,
+        help="Whether to run in interaction mode in analyze constraints.",
     )
     context = WorkflowContext()
     task = get_user_commands('cross')[0]

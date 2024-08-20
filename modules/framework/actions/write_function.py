@@ -74,7 +74,9 @@ if __name__ == '__main__':
     context = WorkflowContext()
     path = "../../../workspace/test"
 
-    function_writer = WriteFunctionsAsync('sequential', start_state=State.DESIGNED, end_state=State.WRITTEN)
+    function_writer = WriteFunctionsAsync(
+        "sequential", start_state=State.DESIGNED, end_state=State.WRITTEN
+    )
     function_writer.context.load_from_file(f"{path}/designed_function.pkl")
     asyncio.run(function_writer.run())
     context.save_to_file("../../../workspace/test/written_function.pkl")

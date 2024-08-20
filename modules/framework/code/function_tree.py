@@ -86,7 +86,6 @@ class FunctionTree:
         return result
 
     def update(self):
-
         old_layers = self._layers.copy()
 
         self._reset_layers()
@@ -144,15 +143,15 @@ class FunctionTree:
             raise Exception
 
     async def process_function_layer(
-            self,
-            operation,
-            operation_type: State,
-            start_layer_index=0,
+        self,
+        operation,
+        operation_type: State,
+        start_layer_index=0,
     ):
         import asyncio
 
         for index, layer in enumerate(
-                self._layers[start_layer_index: start_layer_index + 1]
+            self._layers[start_layer_index: start_layer_index + 1]
         ):
             tasks = []
             logger.log(f"Layer: {start_layer_index + index}", "warning")
@@ -169,7 +168,6 @@ class FunctionTree:
         self._layers.clear()
 
     def _build_up(self, current_layer: FunctionLayer, set_visited_nodes: set):
-
         if len(current_layer) > 0:
             self._layers.append(current_layer)
         else:

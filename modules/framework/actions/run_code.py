@@ -67,8 +67,8 @@ class RunCode(ActionNode):
             )
 
             if (
-                    "WARNING: cannot load logging configuration file, logging is disabled\n"
-                    in stderr_chunks
+                "WARNING: cannot load logging configuration file, logging is disabled\n"
+                in stderr_chunks
             ):
                 stderr_chunks.remove(
                     "WARNING: cannot load logging configuration file, logging is disabled\n"

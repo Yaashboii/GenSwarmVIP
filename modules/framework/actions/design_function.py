@@ -31,7 +31,9 @@ class DesignFunction(ActionNode):
         other_functions: list[FunctionNode] = self._function_pool.filtered_functions(
             self._function
         )
-        other_functions_str = "\n".join([f.brief if not f.body else f.body for f in other_functions])
+        other_functions_str = "\n".join(
+            [f.brief if not f.body else f.body for f in other_functions]
+        )
 
         self.prompt = DesignFunction_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
@@ -56,9 +58,15 @@ class DesignFunction(ActionNode):
         self._function_pool.set_definition(function_name, new_definition)
         return str(code)
 
+    async def operate_on_node(self, function_node: FunctionNode):
+        self._function = function_node
+        return await self.run()
+
 
 class DesignFunctionAsync(AsyncNode):
-    def __init__(self, run_mode='layer', start_state=State.NOT_STARTED, end_state=State.DESIGNED):
+    def __init__(
+        self, run_mode="layer", start_state=State.NOT_STARTED, end_state=State.DESIGNED
+    ):
         super().__init__(run_mode, start_state, end_state)
 
     def _build_prompt(self):
@@ -70,7 +78,7 @@ class DesignFunctionAsync(AsyncNode):
         return await action.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import asyncio
     from modules.framework.context import WorkflowContext
     import argparse
@@ -78,7 +86,7 @@ if __name__ == '__main__':
     context = WorkflowContext()
     path = "../../../workspace/test"
 
-    function_designer = DesignFunctionAsync('layer')
+    function_designer = DesignFunctionAsync("layer")
     function_designer.context.load_from_file(f"{path}/analyze_functions.pkl")
     asyncio.run(function_designer.run())
     context.save_to_file("../../../workspace/test/designed_function.pkl")

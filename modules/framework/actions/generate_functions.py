@@ -15,8 +15,7 @@ from modules.framework.handler import BugLevelHandler
 
 
 class GenerateFunctions(ActionNode):
-
-    def __init__(self, next_text: str = "", node_name: str = "", run_mode='layer'):
+    def __init__(self, next_text: str = "", node_name: str = "", run_mode="layer"):
         super().__init__(next_text, node_name)
         self._cost_time = 0
         self._function_pool = FunctionTree()
@@ -55,7 +54,9 @@ class GenerateFunctions(ActionNode):
         while not finish:
             time.sleep(1)
             await self._actions.run_internal_actions()
-            finish = all(node.state == State.CHECKED for node in self._function_pool.nodes)
+            finish = all(
+                node.state == State.CHECKED for node in self._function_pool.nodes
+            )
         await self._write_run.run_internal_actions()
         end_time = time.time()
         self._cost_time = end_time - start_time

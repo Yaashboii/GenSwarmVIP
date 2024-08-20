@@ -27,7 +27,9 @@ class GrammarCheck(ActionNode):
             raise SystemExit
         else:
             self.context._function_pool.save_by_function(function=self.function_name)
-            errors = self._grammar_checker.check_code_errors(file_path=f"{root_manager.workspace_root}/functions.py")
+            errors = self._grammar_checker.check_code_errors(
+                file_path=f"{root_manager.workspace_root}/functions.py"
+            )
             return self._process_response(str(errors))
 
     def _process_response(self, response: str) -> str | Bugs | Bug:
@@ -36,16 +38,22 @@ class GrammarCheck(ActionNode):
                 Bug(error_msg=e["error_message"], error_function=e["function_name"])
                 for e in eval(response)
             ]
-            logger.log(f"Grammar check failed for function: {self.function_name}", "error")
+            logger.log(
+                f"Grammar check failed for function: {self.function_name}", "error"
+            )
             return Bugs(bug_list)
         else:
             self.function.state = State.CHECKED
-            logger.log(f"Grammar check passed for function: {self.function_name}", "warning")
+            logger.log(
+                f"Grammar check passed for function: {self.function_name}", "warning"
+            )
             return response
 
 
 class GrammarCheckAsync(AsyncNode):
-    def __init__(self, run_mode='layer', start_state=State.REVIEWED, end_state=State.CHECKED):
+    def __init__(
+            self, run_mode='layer', start_state=State.REVIEWED, end_state=State.CHECKED
+    ):
         super().__init__(run_mode, start_state, end_state)
 
     def _build_prompt(self):
@@ -63,9 +71,13 @@ class GrammarCheckAsync(AsyncNode):
             logger.log("No functions in NOT_STARTED state", "error")
             raise SystemExit
 
-        if not all(function_node.state == self._start_state for function_node in
-                   self.function_pool._layers[layer_index].functions):
-            logger.log("All functions in the layer are not in NOT_STARTED state", "error")
+        if not all(
+                function_node.state == self._start_state
+                for function_node in self.function_pool._layers[layer_index].functions
+        ):
+            logger.log(
+                "All functions in the layer are not in NOT_STARTED state", "error"
+            )
             raise SystemExit
 
         for function_node in self.function_pool._layers[layer_index].functions:

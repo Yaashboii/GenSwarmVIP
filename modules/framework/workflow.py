@@ -36,10 +36,16 @@ class Workflow:
         project_root = root_manager.project_root
         os.makedirs(os.path.join(workspace_root, "data/frames"))
 
-        util_file = File(root=os.path.join(project_root, "modules/deployment/execution_scripts"), name="apis.py")
+        util_file = File(
+            root=os.path.join(project_root, "modules/deployment/execution_scripts"),
+            name="apis.py",
+        )
         util_file.copy(root=workspace_root)
 
-        run_file = File(root=os.path.join(project_root, "modules/deployment/execution_scripts"), name="run.py")
+        run_file = File(
+            root=os.path.join(project_root, "modules/deployment/execution_scripts"),
+            name="run.py",
+        )
         run_file.copy(root=workspace_root)
 
     def build_up(self):
@@ -83,18 +89,21 @@ class Workflow:
 
         # combine stages
         if not hasattr(self._context.args, "generate_mode"):
-
             code_llm = ActionLinkedList("Code-LLM", analysis_stage)
             code_llm.add(coding_stage)
         else:
             from modules.utils.root import root_manager
-            if hasattr(self._context.args, "test_dir_name"):
 
+            if hasattr(self._context.args, "test_dir_name"):
                 self._context.load_from_file(
-                    f"{root_manager.project_root}/workspace/{self._context.args.test_dir_name}/analyze_functions.pkl")
+                    f"{root_manager.project_root}/workspace/{self._context.args.test_dir_name}/analyze_functions.pkl"
+                )
                 self._context.set_root_for_files(root_value=root_manager.workspace_root)
             else:
-                logger.log(f"Load analyze_functions.pkl from {root_manager.workspace_root}", "warning")
+                logger.log(
+                    f"Load analyze_functions.pkl from {root_manager.workspace_root}",
+                    "warning",
+                )
             code_llm = ActionLinkedList("Code-LLM", coding_stage)
         if self._run_code:
             code_llm.add(test_stage)

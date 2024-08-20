@@ -53,7 +53,9 @@ class GPT(BaseLLM):
 
                 full_reply_content = "".join(
                     [
-                        m.content if hasattr(m, "content") and m.content is not None else ""
+                        m.content
+                        if hasattr(m, "content") and m.content is not None
+                        else ""
                         for m in collected_messages
                     ]
                 )
