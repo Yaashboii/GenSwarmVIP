@@ -2,13 +2,8 @@ import os
 from os import listdir, makedirs
 
 import cv2
-import numpy as np
-import pygame
-import rospy
-
-from modules.deployment.utils.manager import Manager
 from modules.deployment.gymnasium_env import GymnasiumBridgingEnvironment, GymnasiumCoveringEnvironment, \
-    GymnasiumExplorationEnvironment, GymnasiumCirclingEnvironment, \
+    GymnasiumExplorationEnvironment, GymnasiumCirclingEnvironment, GymnasiumCrossingEnvironment,\
     GymnasiumEncirclingEnvironment, GymnasiumFlockingEnvironment
 
 
@@ -27,7 +22,7 @@ def main():
     draw_counter = 0
     draw_frequency = 100
 
-    env = GymnasiumFlockingEnvironment("../config/env_config.json")
+    env = GymnasiumCrossingEnvironment("../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)
@@ -43,9 +38,9 @@ def main():
         obs, reward, termination, truncation, infos = env.step(action=action)
         if draw_counter % draw_frequency == 0:
             frame = env.render()
-            frame_image_path = os.path.join(frame_dir, f'{draw_counter}.png')
-            cv2.imwrite(frame_image_path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-            frame_files.append(frame_image_path)
+            # frame_image_path = os.path.join(frame_dir, f'{draw_counter}.png')
+            # cv2.imwrite(frame_image_path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            # frame_files.append(frame_image_path)
         draw_counter += 1
 
         manager.publish_observations(infos)

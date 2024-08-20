@@ -1,6 +1,6 @@
+import asyncio
 import os
 import sys
-
 import rospy
 
 from modules.file import logger
@@ -115,8 +115,6 @@ class RunCode(ActionNode):
 
 class RunCodeAsync(ActionNode):
     async def _run(self):
-        from modules.utils import generate_video_from_frames
-
         start_idx = rospy.get_param("robot_start_index")
         end_idx = rospy.get_param("robot_end_index")
         total_robots = end_idx - start_idx + 1
@@ -129,26 +127,16 @@ class RunCodeAsync(ActionNode):
         tasks = []
         result_list = []
         try:
-            logger.log(content="call reset environment: start")
-            # call_reset_environment(False)
             for chunk in robot_id_chunks:
                 action = RunCode()
                 action.setup(chunk[0], chunk[-1])
                 task = asyncio.create_task(action.run())
                 tasks.append(task)
             result_list = list(set(await asyncio.gather(*tasks)))
+        except Exception as e:
+            print("Error in RunCodeAsync: ", e)
         finally:
-            logger.log(content="call reset environment: end")
-            # call_reset_environment(False)
-            # data_root = root_manager.data_root
-            # number = len(listdir(f"{data_root}/frames")) - 1
-            # generate_video_from_frames(
-            #     frames_folder=f"{data_root}/frames/frame{number}",
-            #     video_path=f"{data_root}/output{number}.mp4",
-            # )
-            # logger.log(f"synthesize frame{number} ---> output{number}.mp4")
             os.system("pgrep -f run.py | xargs kill -9")
-
             return self._process_response(result_list)
 
     def _process_response(self, result: list):
@@ -161,7 +149,6 @@ class RunCodeAsync(ActionNode):
 
 
 if __name__ == "__main__":
-    import asyncio
     from modules.framework.handler import BugLevelHandler
     from modules.framework.handler import FeedbackHandler
     from modules.framework.actions import *
@@ -178,7 +165,7 @@ if __name__ == "__main__":
         "--feedback", type=str, default="None", help="Optional: human, VLM, None,Result feedback",
     )
     parser.add_argument(
-        "--data", type=str, default='crossing/2024-08-20_16-47-36', help="Data path for the simulation"
+        "--data", type=str, default='crossing/2024-08-20_18-55-04', help="Data path for the simulation"
     )
     parser.add_argument(
         "--target_pkl", type=str, default="WriteRun.pkl", help="Data path for the simulation"
