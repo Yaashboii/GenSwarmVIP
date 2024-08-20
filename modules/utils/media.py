@@ -5,10 +5,9 @@ import base64
 
 import numpy as np
 
-from modules.file.log_file import logger
-
 
 def generate_video_from_frames(frames_folder, video_path, fps=100):
+    from modules.file import logger
     logger.log(f"Generating video from frames in {frames_folder}...")
     try:
         frame_files = sorted(
@@ -66,6 +65,8 @@ def process_video(video_path, seconds_per_frame=2, start_time=0, end_time=None):
         curr_frame += frames_to_skip
 
     video.release()
+
+    from modules.file import logger
     logger.log(f"Extracted {len(base64Frames)} frames from {start_time}s to {end_time}s", level="info")
     return base64Frames
 

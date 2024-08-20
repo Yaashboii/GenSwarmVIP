@@ -1,8 +1,5 @@
 import radon.complexity as cc
 from radon.metrics import mi_visit
-import ast
-
-from modules.framework.parser import CodeParser
 
 
 class CodeAnalyzer:
@@ -12,6 +9,7 @@ class CodeAnalyzer:
 
     def __init__(self, code: str):
         self.code = code
+        from modules.framework.parser import CodeParser
         self.parser = CodeParser()
         self.parser.parse_code(code)
 
