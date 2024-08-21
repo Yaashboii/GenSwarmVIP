@@ -8,7 +8,6 @@ from .gymnasium_base_env import GymnasiumEnvironmentBase
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
-RenderFrame = TypeVar("RenderFrame")
 
 
 class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):

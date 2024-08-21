@@ -1,7 +1,9 @@
 from typing import Optional, TypeVar
+
 from modules.deployment.entity import Robot, Sheep
 from modules.deployment.utils.sample_point import *
-from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
+
+from gymnasium_base_env import GymnasiumEnvironmentBase
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
@@ -79,9 +81,9 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
             self.add_entity(dog)
             entity_id += 1
 
-        sheep_size = self.data.get("entities").get("sheep",{}).get("size", 0.15)
-        shape = self.data.get("entities").get("sheep",{}).get("shape", "circle")
-        color = self.data.get("entities").get("sheep",{}).get("color", "blue")
+        sheep_size = self.data.get("entities").get("sheep", {}).get("size", 0.15)
+        shape = self.data.get("entities").get("sheep", {}).get("shape", "circle")
+        color = self.data.get("entities").get("sheep", {}).get("color", "blue")
 
         for i in range(self.num_sheep):
             # position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],

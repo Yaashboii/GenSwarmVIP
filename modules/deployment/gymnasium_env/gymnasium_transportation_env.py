@@ -1,12 +1,12 @@
-from typing import Optional
-from typing import TypeVar
+from typing import Optional, TypeVar
+
 from modules.deployment.entity import Robot, PushableObject, Landmark
-from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 from modules.deployment.utils.sample_point import *
+
+from gymnasium_base_env import GymnasiumEnvironmentBase
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
-RenderFrame = TypeVar("RenderFrame")
 
 
 class GymnasiumTransportationEnvironment(GymnasiumEnvironmentBase):
@@ -33,7 +33,7 @@ class GymnasiumTransportationEnvironment(GymnasiumEnvironmentBase):
         target_zone = Landmark(landmark_id=1,
                                initial_position=object.target_position,
                                size=np.array((1, 1)),
-                               color='gray',)
+                               color='gray', )
         self.add_entity(target_zone)
 
         entity_id = 2

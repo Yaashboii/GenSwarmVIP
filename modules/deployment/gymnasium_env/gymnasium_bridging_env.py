@@ -1,8 +1,9 @@
-from typing import Optional
-from typing import TypeVar
+from typing import Optional, TypeVar
+
 from modules.deployment.entity import Landmark, Robot
-from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 from modules.deployment.utils.sample_point import *
+
+from gymnasium_base_env import GymnasiumEnvironmentBase
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
@@ -26,7 +27,7 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
                            initial_position=(0, 2),
                            size=np.array((5, 1)),
                            color='gray')
-        range_b = Landmark(landmark_id=0,
+        range_b = Landmark(landmark_id=1,
                            initial_position=(0, -2),
                            size=np.array((5, 1)),
                            color='gray')
@@ -34,7 +35,7 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
         self.add_entity(range_a)
         self.add_entity(range_b)
 
-        entity_id = 0
+        entity_id = 2
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]

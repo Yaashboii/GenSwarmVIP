@@ -1,13 +1,12 @@
 from typing import Optional, TypeVar
 
-from modules.deployment.entity import Robot, Sheep, Landmark, Wall
+from modules.deployment.entity import Robot, Sheep, Wall
 from modules.deployment.utils.sample_point import *
 
 from gymnasium_base_env import GymnasiumEnvironmentBase
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
-RenderFrame = TypeVar("RenderFrame")
 
 
 class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):

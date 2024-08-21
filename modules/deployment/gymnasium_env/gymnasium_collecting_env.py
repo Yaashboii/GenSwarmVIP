@@ -1,12 +1,14 @@
+from typing import Optional, TypeVar
+
 from modules.deployment.entity import Landmark, PushableObject, Robot
-from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 from modules.deployment.utils.sample_point import *
-from typing import Optional
-from typing import TypeVar
+
+from gymnasium_base_env import GymnasiumEnvironmentBase
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
+
 
 class GymnasiumCollectingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str, num_1, num_2):
@@ -46,8 +48,8 @@ class GymnasiumCollectingEnvironment(GymnasiumEnvironmentBase):
 
         for i in range(self.num_robots):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                    robot_size=robot_size, robot_shape=robot_shape, min_distance=robot_size,
-                    entities=self.entities)
+                                    robot_size=robot_size, robot_shape=robot_shape, min_distance=robot_size,
+                                    entities=self.entities)
             robot = Robot(robot_id=entity_id,
                           initial_position=position,
                           size=robot_size, color=robot_color)
@@ -56,8 +58,8 @@ class GymnasiumCollectingEnvironment(GymnasiumEnvironmentBase):
 
         for i in range(self.entity_1_num):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                    robot_size=robot_size, robot_shape=robot_shape, min_distance=robot_size,
-                    entities=self.entities)
+                                    robot_size=robot_size, robot_shape=robot_shape, min_distance=robot_size,
+                                    entities=self.entities)
             object = PushableObject(object_id=entity_id,
                                     initial_position=position,
                                     size=0.1,
@@ -69,8 +71,8 @@ class GymnasiumCollectingEnvironment(GymnasiumEnvironmentBase):
 
         for i in range(self.entity_2_num):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                    robot_size=robot_size, robot_shape=robot_shape, min_distance=robot_size,
-                    entities=self.entities)
+                                    robot_size=robot_size, robot_shape=robot_shape, min_distance=robot_size,
+                                    entities=self.entities)
             object = PushableObject(object_id=entity_id,
                                     initial_position=position,
                                     size=0.1,
@@ -78,10 +80,6 @@ class GymnasiumCollectingEnvironment(GymnasiumEnvironmentBase):
             object.density = 0.01
             self.add_entity(object)
             entity_id += 1
-
-
-
-
 
     def step(self, action: ActType):
 
