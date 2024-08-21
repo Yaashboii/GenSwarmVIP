@@ -89,14 +89,15 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
                                     robot_size=sheep_size, robot_shape=shape, min_distance=sheep_size,
                                     entities=self.entities)
+            # position = [0,0]
             sheep = Sheep(prey_id=entity_id,
                           initial_position=position,
                           size=sheep_size)
             self.add_entity(sheep)
             entity_id += 1
 
-    def update(self, action=ActType):
-        super().step(action)
+    def step(self, action=ActType):
+        obs, reward, termination, truncation, infos = super().step(action)
 
         for entity in self.entities:
             if isinstance(entity, Sheep):
@@ -105,6 +106,8 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
                 robots = [e for e in self.entities if isinstance(e, Robot)]
                 speed = entity.calculate_velocity(sheep, robots)
                 self.set_entity_velocity(entity.id, speed)
+
+        return obs, reward, termination, truncation, infos
 
 
 if __name__ == "__main__":

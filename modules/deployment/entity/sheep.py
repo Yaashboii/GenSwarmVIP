@@ -7,14 +7,17 @@ class Sheep(Prey):
                  prey_id,
                  initial_position,
                  size,
-                 max_speed=50,
+                 max_speed=1,
+                 danger_zone=1,
                  damping=0.9,
                  random_factor=0.1,
                  alpha=0.1,
                  density=0.1,
                  mass=1.0):
         super().__init__(prey_id, initial_position, size, mass=mass, density=density)
+
         self.max_speed = max_speed
+        self.danger_zone = danger_zone  # 当离开狗这个圆半径后，就不会被狗影响速度
         self.damping = damping
         self.random_factor = random_factor
         self.alpha = alpha
@@ -67,9 +70,9 @@ class Sheep(Prey):
         avoidance_force = np.zeros(2)
         for dog in dogs:
             distance = np.linalg.norm(self.position - dog.position)
-            if distance < 100:
+            if distance < self.danger_zone:
                 if distance == 0:
                     distance = 0.01  # 防止除以零
                 avoidance_strength = 1 / distance * 100  # 距离越近，力量越大
                 avoidance_force -= (dog.position - self.position) * avoidance_strength
-        return avoidance_force * 7.0  # 调整避开狗的权重
+        return avoidance_force  # 调整避开狗的权重

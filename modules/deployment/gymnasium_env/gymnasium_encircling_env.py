@@ -94,16 +94,18 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
             self.add_entity(sheep)
             entity_id += 1
 
-    def update(self, action=ActType):
-        super().step(action)
+    def step(self, action=ActType):
+        obs, reward, termination, truncation, infos = super().step(action)
 
         for entity in self.entities:
             if isinstance(entity, Sheep):
                 # 获取邻居羊群和机器人列表
-                flock = [e for e in self.entities if isinstance(e, Sheep) and e != entity]
+                sheep = [e for e in self.entities if isinstance(e, Sheep) and e != entity]
                 robots = [e for e in self.entities if isinstance(e, Robot)]
-                speed = entity.calculate_velocity(flock, robots)
+                speed = entity.calculate_velocity(sheep, robots)
                 self.set_entity_velocity(entity.id, speed)
+
+        return obs, reward, termination, truncation, infos
 
 
 if __name__ == "__main__":
