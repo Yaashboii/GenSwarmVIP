@@ -200,6 +200,7 @@ class RobotApi:
                 f"input task name:{task_name},expected name:{self.task_apis[task_name]}"
             )
 
+
 robot_api = RobotApi(content=robot_api_prompt)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
