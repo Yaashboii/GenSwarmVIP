@@ -1,3 +1,4 @@
+import os
 import yaml
 
 from modules.framework.parser import CodeParser
@@ -201,7 +202,9 @@ class RobotApi:
 
 robot_api = RobotApi(content=robot_api_prompt)
 
-with open('../../config/experiment_config.yaml', 'r', encoding='utf-8') as file:
+script_dir = os.path.dirname(os.path.abspath(__file__))
+yaml_file_path = os.path.join(script_dir, '../../config/', 'experiment_config.yaml')
+with open(yaml_file_path, 'r', encoding='utf-8') as file:
     data = yaml.safe_load(file)
 task_name = data['arguments']['--run_experiment_name']['default'][0]
 ROBOT_API = robot_api.get_prompt(task_name)
