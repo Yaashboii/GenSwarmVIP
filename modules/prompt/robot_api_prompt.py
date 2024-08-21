@@ -1,3 +1,5 @@
+import yaml
+
 from modules.framework.parser import CodeParser
 
 robot_api_prompt = """
@@ -163,6 +165,7 @@ class RobotApi:
             "bridging": [],
             "circling": [],
             "covering": [],
+            "crossing": [],
             "encircling": ["get_prey_position"],
             "exploration": [],
             "flocking": [],
@@ -196,9 +199,12 @@ class RobotApi:
                 f"input task name:{task_name},expected name:{self.task_apis[task_name]}"
             )
 
-
 robot_api = RobotApi(content=robot_api_prompt)
-ROBOT_API = robot_api.get_prompt()
+
+with open('../../config/experiment_config.yaml', 'r', encoding='utf-8') as file:
+    data = yaml.safe_load(file)
+task_name = data['arguments']['--run_experiment_name']['default'][0]
+ROBOT_API = robot_api.get_prompt(task_name)
 
 if __name__ == '__main__':
     for task_name in robot_api.task_apis.keys():

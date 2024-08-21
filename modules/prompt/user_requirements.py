@@ -17,7 +17,7 @@ tasks = {
              "The number of robots is not fixed, but it is crucial to ensure that all robots are evenly distributed on the map."
              "Robot should adjust their velocity in real-time to avoid collisions and move towards its target positions.",
 
-    "pursuit": "Some robots play the role of shepherd dogs. There are many sheep in the environment, and you need to work together to herd them into a designated area."
+    "herding": "Some robots play the role of shepherd dogs. There are many sheep in the environment, and you need to work together to herd them into a designated area."
                "You must be fast while ensuring the sheep do not escape the boundaries of the environment.",
 
     "circling": "You need to form a circle with other robots around position (0,0). Avoid collisions with other robots."
