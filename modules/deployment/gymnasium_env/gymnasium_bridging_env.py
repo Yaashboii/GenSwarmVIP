@@ -22,21 +22,22 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
         return obs, infos
 
     def init_entities(self):
-        entity_id = 0
-        robot_size = self.data["entities"]["robot"]["size"]
-        shape = self.data["entities"]["robot"]["shape"]
-        color = self.data["entities"]["robot"]["color"]
-        range_a = Landmark(landmark_id=entity_id,
+        range_a = Landmark(landmark_id=0,
                            initial_position=(0, 2),
                            size=np.array((5, 1)),
                            color='gray')
-        range_b = Landmark(landmark_id=entity_id,
+        range_b = Landmark(landmark_id=0,
                            initial_position=(0, -2),
                            size=np.array((5, 1)),
                            color='gray')
 
         self.add_entity(range_a)
         self.add_entity(range_b)
+
+        entity_id = 0
+        robot_size = self.data["entities"]["robot"]["size"]
+        shape = self.data["entities"]["robot"]["shape"]
+        color = self.data["entities"]["robot"]["color"]
         for i in range(self.num_robots):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
                                     robot_size=robot_size, robot_shape=shape, min_distance=robot_size,

@@ -1,6 +1,6 @@
 from typing import Optional, TypeVar
 
-from modules.deployment.entity import Robot, Sheep
+from modules.deployment.entity import Robot, Sheep, Landmark, Wall
 from modules.deployment.utils.sample_point import *
 
 from gymnasium_base_env import GymnasiumEnvironmentBase
@@ -24,33 +24,26 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
         return obs, infos
 
     def init_entities(self):
-        # wall_width = 10
-        # wall = Wall(wall_id=0,
-        #             initial_position=(0.5 * self.width, 0.5 * wall_width),
-        #             size=(self.width, wall_width))
-        # self.add_entity(wall)
+
+        wall_width = 0.1
+        wall = Wall(wall_id=0,
+                    initial_position=(-0.5 * self.width, -0.5 * self.height),
+                    size=(self.height, wall_width))
+        self.add_entity(wall)
         # wall = Wall(wall_id=1,
-        #             initial_position=(0.5 * self.width, self.height - 0.5 * wall_width),
-        #             size=(self.width, wall_width))
+        #             initial_position=(-0.5 * self.width, -0.5 * self.height),
+        #             size=(wall_width, self.width))
         # self.add_entity(wall)
         # wall = Wall(wall_id=2,
-        #             initial_position=(0.5 * wall_width, 0.5 * self.height),
-        #             size=(wall_width, self.height))
+        #             initial_position=(0.5 * self.width, -0.5 * self.height),
+        #             size=(self.height, wall_width))
         # self.add_entity(wall)
         # wall = Wall(wall_id=3,
-        #             initial_position=(self.width - 0.5 * wall_width, 0.5 * self.height),
-        #             size=(wall_width, self.height))
+        #             initial_position=(0.5 * self.width, 0.5 * self.height),
+        #             size=(wall_width, self.width))
         # self.add_entity(wall)
-        # left_wall = Wall(wall_id=4,
-        #                  initial_position=(200, 400),
-        #                  size=(0.45 * self.width, wall_width))
-        # self.add_entity(left_wall)
-        # right_wall = Wall(wall_id=5,
-        #                   initial_position=(800, 400),
-        #                   size=(0.45 * self.width, wall_width))
-        # self.add_entity(right_wall)
 
-        entity_id = 0
+        entity_id = 1
 
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
