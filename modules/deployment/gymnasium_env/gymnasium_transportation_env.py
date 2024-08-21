@@ -1,6 +1,6 @@
 from typing import Optional
 from typing import TypeVar
-from modules.deployment.entity import Robot, PushableObject
+from modules.deployment.entity import Robot, PushableObject, Landmark
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 from modules.deployment.utils.sample_point import *
 
@@ -24,13 +24,19 @@ class GymnasiumTransportationEnvironment(GymnasiumEnvironmentBase):
     def init_entities(self):
         object = PushableObject(object_id=0,
                                 initial_position=(0, 0),
-                                size=0.15,
+                                size=0.3,
                                 color='red')
         object.density = 0.5
         object.target_position = (1, 2)
         self.add_entity(object)
 
-        entity_id = 1
+        target_zone = Landmark(landmark_id=1,
+                               initial_position=object.target_position,
+                               size=np.array((1, 1)),
+                               color='gray',)
+        self.add_entity(target_zone)
+
+        entity_id = 2
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
@@ -46,7 +52,6 @@ class GymnasiumTransportationEnvironment(GymnasiumEnvironmentBase):
                           color=color)
             self.add_entity(robot)
             entity_id += 1
-
 
 
 if __name__ == "__main__":
