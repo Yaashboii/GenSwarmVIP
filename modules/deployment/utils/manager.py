@@ -58,11 +58,14 @@ class Manager:
         # self.env.set_entity_velocity(i, desired_velocity)
 
     def leader_velocity_callback(self, data: Twist):
-        leader = self.env.get_entities_by_type('Leader')[0]
+        leader = self.env.get_entities_by_type('Leader')
+        if len(leader) == 0:
+            if len(self._robots) > 0:
+                leader = self._robots[0]
+        else:
+            leader = leader[0]
         desired_velocity = np.array([data.linear.x, data.linear.y])
-
-        current_velocity = leader.velocity
-        dt = 0.01  # assuming a fixed timestep, can be adjusted or calculated dynamically
+        self.env.set_entity_velocity(entity_id=leader.id, velocity=desired_velocity)
 
     def publish_observations(self, obs=None):
         if obs:
@@ -121,4 +124,3 @@ class Manager:
 
     def clear_velocity(self):
         self.robotID_velocity = {robot.id: np.array([0, 0], dtype=float) for robot in self._robots}
-

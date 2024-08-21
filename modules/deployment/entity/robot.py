@@ -8,22 +8,6 @@ class Robot(Entity):
 
         self.__target_position = np.array(target_position, dtype=float) if target_position is not None else None
 
-    def connected_to(self, entity):
-        """
-        Connect the robot to another entity.
-        :param entity: The entity to connect to.
-        """
-        self.add_connector(entity)
-        entity.add_connector(self)
-
-    def disconnect_from(self, entity):
-        """
-        Disconnect the robot from another entity.
-        :param entity: The entity to disconnect from.
-        """
-        self.remove_connector(entity)
-        entity.remove_connector(self)
-
     @property
     def target_position(self):
         """Get the target position of the robot."""

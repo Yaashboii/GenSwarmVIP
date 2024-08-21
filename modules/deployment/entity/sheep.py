@@ -24,14 +24,19 @@ class Sheep(Prey):
         self.velocity = np.zeros(2)
         self.filtered_velocity = np.zeros(2)
 
-    def calculate_velocity(self, flock, robots):
-        alignment = self.align(flock)
-        cohesion = self.cohere(flock)
-        separation = self.separate(flock)
-        avoidance = self.avoid_dogs(robots)
+    def calculate_velocity(self, flock, robots, environment_bounds):
         random_movement = np.random.randn(2) * self.random_factor
 
-        new_velocity = (alignment * 4 + cohesion * 1.0 + separation * 0.5 + avoidance * 4 + random_movement)
+        repulsion = self.separate(flock + robots)
+
+        # 边缘避免行为
+        avoid_edge = self.avoid_edges(environment_bounds=environment_bounds)
+        avoid_dogs = self.avoid_dogs(flock=flock, robots=robots)
+        new_velocity = (self.velocity +
+                        2 * repulsion +
+                        0 * avoid_edge +
+                        2 * avoid_dogs +
+                        random_movement)
 
         self.filtered_velocity = self.alpha * new_velocity + (1 - self.alpha) * self.filtered_velocity
 
@@ -42,37 +47,51 @@ class Sheep(Prey):
         self.velocity = self.filtered_velocity
         return self.velocity
 
-    def align(self, flock):
-        if len(flock) == 0:
-            return np.zeros(2)
-        avg_velocity = np.mean([sheep.velocity for sheep in flock], axis=0)
-        return (avg_velocity - self.velocity) * 0.5  # 调整对齐权重
+    def avoid_edges(self, environment_bounds):
+        avoidance_force = np.zeros(2)
+        x, y = self.position
 
-    def cohere(self, flock):
-        if len(flock) == 0:
-            return np.zeros(2)
-        avg_position = np.mean([sheep.position for sheep in flock], axis=0)
-        return (avg_position - self.position) * 0.35  # 调整聚集权重
+        if x < environment_bounds[0] + 0.5:
+            avoidance_force[1] = 0.5 * (0.5 / (x - environment_bounds[0] + 1e-5))  # 加速因子
+            avoidance_force[0] = -avoidance_force[0]
+        elif x > environment_bounds[1] - 0.5:
+            avoidance_force[1] = -0.5 * (0.5 / (environment_bounds[1] - x + 1e-5))  # 加速因子
+            avoidance_force[0] = -avoidance_force[0]
 
-    def separate(self, flock):
-        if len(flock) == 0:
+        if y < environment_bounds[2] + 0.5:
+            avoidance_force[0] = 0.5 * (0.5 / (y - environment_bounds[2] + 1e-5))  # 加速因子
+            avoidance_force[1] = -avoidance_force[1]
+
+        elif y > environment_bounds[3] - 0.5:
+            avoidance_force[0] = -0.5 * (0.5 / (environment_bounds[3] - y + 1e-5))  # 加速因子
+            avoidance_force[1] = -avoidance_force[1]
+
+        if np.any(avoidance_force) != 0:
+            avoidance_force = avoidance_force / np.linalg.norm(avoidance_force)
+        return avoidance_force
+
+    def separate(self, others):
+        if len(others) == 0:
             return np.zeros(2)
         separation_force = np.zeros(2)
-        for sheep in flock:
-            distance = np.linalg.norm(self.position - sheep.position)
-            if distance < (self.size + sheep.size) + 20:  # 距离阈值
-                separation_force -= (sheep.position - self.position)
-        return separation_force * 3.5  # 调整分离权重
+        for other in others:
+            distance = np.linalg.norm(self.position - other.position)
+            if distance < 0.5:  # 0.5m 范围内的排斥力
+                separation_force -= (other.position - self.position) / (distance + 1e-5)
+        if any(separation_force) != 0:
+            separation_force = separation_force / np.linalg.norm(separation_force)
+        return separation_force
 
-    def avoid_dogs(self, dogs):
-        if len(dogs) == 0:
-            return np.zeros(2)
-        avoidance_force = np.zeros(2)
-        for dog in dogs:
-            distance = np.linalg.norm(self.position - dog.position)
-            if distance < self.danger_zone:
-                if distance == 0:
-                    distance = 0.01  # 防止除以零
-                avoidance_strength = 1 / distance * 100  # 距离越近，力量越大
-                avoidance_force -= (dog.position - self.position) * avoidance_strength
-        return avoidance_force  # 调整避开狗的权重
+    def avoid_dogs(self, robots, flock):
+        new_velocity = 0
+        if any([np.linalg.norm(self.position - dog.position) < self.danger_zone for dog in robots]):
+            flock_center = np.mean([sheep.position for sheep in flock], axis=0)
+            direction_to_flock = (flock_center - self.position)
+            distance_to_flock = np.linalg.norm(direction_to_flock)
+            distance_to_dog = min([np.linalg.norm(self.position - dog.position) for dog in robots])
+
+            direction_to_flock_normalized = direction_to_flock / distance_to_flock if distance_to_flock != 0 else np.zeros(
+                2)
+            speed_factor = distance_to_dog / (distance_to_flock + 1e-5)
+            new_velocity = direction_to_flock_normalized * speed_factor * self.max_speed
+        return new_velocity
