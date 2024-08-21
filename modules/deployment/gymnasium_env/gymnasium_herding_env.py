@@ -1,14 +1,16 @@
 from typing import Optional, TypeVar
+
 from modules.deployment.entity import Robot, Sheep
 from modules.deployment.utils.sample_point import *
-from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
+
+from gymnasium_base_env import GymnasiumEnvironmentBase
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
 
 
-class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
 
     def __init__(self, data_file: str):
         super().__init__(data_file)
@@ -79,15 +81,14 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
             self.add_entity(dog)
             entity_id += 1
 
-        sheep_size = self.data.get("entities").get("sheep",{}).get("size", 0.15)
-        shape = self.data.get("entities").get("sheep",{}).get("shape", "circle")
-        color = self.data.get("entities").get("sheep",{}).get("color", "blue")
+        sheep_size = self.data.get("entities").get("sheep", {}).get("size", 0.15)
+        shape = self.data.get("entities").get("sheep", {}).get("shape", "circle")
+        color = self.data.get("entities").get("sheep", {}).get("color", "blue")
 
         for i in range(self.num_sheep):
-            # position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-            #                         robot_size=sheep_size, robot_shape=shape, min_distance=sheep_size,
-            #                         entities=self.entities)
-            position = [0, 0]
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+                                    robot_size=sheep_size, robot_shape=shape, min_distance=sheep_size,
+                                    entities=self.entities)
             sheep = Sheep(prey_id=entity_id,
                           initial_position=position,
                           size=sheep_size)
@@ -100,9 +101,9 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
         for entity in self.entities:
             if isinstance(entity, Sheep):
                 # 获取邻居羊群和机器人列表
-                flock = [e for e in self.entities if isinstance(e, Sheep) and e != entity]
+                sheep = [e for e in self.entities if isinstance(e, Sheep) and e != entity]
                 robots = [e for e in self.entities if isinstance(e, Robot)]
-                speed = entity.calculate_velocity(flock, robots)
+                speed = entity.calculate_velocity(sheep, robots)
                 self.set_entity_velocity(entity.id, speed)
 
 
@@ -113,7 +114,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumEncirclingEnvironment("../../../config/env_config.json")
+    env = GymnasiumHerdingEnvironment("../../../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

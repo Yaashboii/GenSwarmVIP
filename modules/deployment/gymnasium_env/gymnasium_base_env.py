@@ -1,6 +1,5 @@
 import json
-from typing import Optional
-from typing import TYPE_CHECKING, Any, Generic, SupportsFloat, TypeVar
+from typing import Any, Optional, SupportsFloat, TypeVar
 from math import isnan
 
 import numpy as np
