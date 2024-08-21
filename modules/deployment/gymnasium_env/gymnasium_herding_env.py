@@ -24,50 +24,18 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
 
     def init_entities(self):
 
-        wall_width = 0.1
-        wall = Wall(wall_id=0,
-                    initial_position=(-0.5 * self.width, -0.5 * self.height),
-                    size=(self.height, wall_width))
-        self.add_entity(wall)
-        # wall = Wall(wall_id=1,
-        #             initial_position=(-0.5 * self.width, -0.5 * self.height),
-        #             size=(wall_width, self.width))
-        # self.add_entity(wall)
-        # wall = Wall(wall_id=2,
-        #             initial_position=(0.5 * self.width, -0.5 * self.height),
-        #             size=(self.height, wall_width))
-        # self.add_entity(wall)
-        # wall = Wall(wall_id=3,
-        #             initial_position=(0.5 * self.width, 0.5 * self.height),
-        #             size=(wall_width, self.width))
-        # self.add_entity(wall)
-
-        entity_id = 1
+        entity_id = 0
 
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
 
         for i in range(self.num_robots):
-            # Calculate the angle for even distribution along the boundary
-            angle = (entity_id / self.num_robots) * 2 * np.pi
-
-            # Determine x and y coordinates based on angle
-            if 0 <= angle < np.pi / 2:  # Top side
-                x = 1 * angle / (np.pi / 2)
-                y = 0
-            elif np.pi / 2 <= angle < np.pi:  # Right side
-                x = 1
-                y = 1 * (angle - np.pi / 2) / (np.pi / 2)
-            elif np.pi <= angle < 3 * np.pi / 2:  # Bottom side
-                x = 1 * (1 - (angle - np.pi) / (np.pi / 2))
-                y = 1
-            else:  # Left side
-                x = 0
-                y = 1 * (1 - (angle - 3 * np.pi / 2) / (np.pi / 2))
-
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+                                    robot_size=robot_size, robot_shape=shape, min_distance=0.5,
+                                    entities=self.entities)
             dog = Robot(robot_id=entity_id,
-                        initial_position=np.array([x, y]),
+                        initial_position=position,
                         size=robot_size,
                         color=color)
             self.add_entity(dog)
@@ -96,7 +64,9 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
                 # 获取邻居羊群和机器人列表
                 sheep = [e for e in self.entities if isinstance(e, Sheep) and e != entity]
                 robots = [e for e in self.entities if isinstance(e, Robot)]
-                speed = entity.calculate_velocity(sheep, robots)
+                speed = entity.calculate_velocity(sheep, robots,
+                                                  environment_bounds=[-0.5 * self.width, 0.5 * self.width,
+                                                                      -0.5 * self.height, 0.5 * self.height])
                 self.set_entity_velocity(entity.id, speed)
 
         return obs, reward, termination, truncation, infos

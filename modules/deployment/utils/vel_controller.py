@@ -23,12 +23,12 @@ class SpeedController:
 
 class KeyboardController(SpeedController):
     def __init__(
-            self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 50
+            self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 1
     ):
         super().__init__(topic_name_pub, topic_name_sub, init_speed)
         self.listener = Listener(on_press=self.on_press)
         self.listener.start()
-        self._direction_map = {"w": (0, -1), "a": (-1, 0), "s": (0, 1), "d": (1, 0)}
+        self._direction_map = {"w": (-1, 0), "a": (0, -1), "s": (1, 0), "d": (0, 1)}
         self._direction = np.array([0, 0])
 
     def on_press(self, key):
