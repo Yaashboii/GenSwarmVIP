@@ -9,7 +9,6 @@
     },
 
     "task_name": "herding",
-
     "#entity note": "position/size/perceptual_range unit: meter",
     "#size note": "the radium of the circle # | the side length of the square robot",
     "#agent number note": "sum of robot + leader",

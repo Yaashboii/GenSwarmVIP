@@ -2,8 +2,7 @@ from typing import Optional, TypeVar
 
 from modules.deployment.entity import Robot, Obstacle,Prey
 from modules.deployment.utils.sample_point import *
-
-from gymnasium_base_env import GymnasiumEnvironmentBase
+from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
