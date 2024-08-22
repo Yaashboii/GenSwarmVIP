@@ -6,7 +6,6 @@ from modules.framework.parser import GrammarParser
 from modules.utils import root_manager
 
 
-
 class GrammarCheck(ActionNode):
     def __init__(self, next_text: str = "", node_name: str = ""):
         super().__init__(next_text, node_name)
@@ -43,9 +42,8 @@ class GrammarCheck(ActionNode):
             )
             return Bugs(bug_list)
         else:
-            self.function.state = State.CHECKED
             logger.log(
-                f"Grammar check passed for function: {self.function_name}", "warning"
+                f"Grammar check passed for function: {self.function_name}", "waring"
             )
             return response
 
@@ -63,26 +61,17 @@ class GrammarCheckAsync(AsyncNode):
         action = GrammarCheck()
         action.error_handler = self.error_handler
         action.setup(function)
-        return await action.run()
+        await action.run()
+        function.state = State.CHECKED
 
     async def _run_layer_mode(self):
         layer_index = self.function_pool.get_min_layer_index_by_state(self._start_state)
         if layer_index == -1:
-            logger.log("No functions in NOT_STARTED state", "error")
-            raise SystemExit
-
-        if not all(
-                function_node.state == self._start_state
-                for function_node in self.function_pool._layers[layer_index].functions
-        ):
-            logger.log(
-                "All functions in the layer are not in NOT_STARTED state", "error"
-            )
+            logger.log(f"No functions in {self._start_state} state", "error")
             raise SystemExit
 
         for function_node in self.function_pool._layers[layer_index].functions:
             await self.operate(function_node)
-            function_node.state = State.CHECKED
 
     async def _run_sequential_mode(self):
         for function in self.function_pool.nodes:
