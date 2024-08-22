@@ -1,6 +1,6 @@
 from typing import Optional, TypeVar
 
-from modules.deployment.entity import Robot, Sheep, Wall
+from modules.deployment.entity import Robot, Sheep, Wall, Landmark
 from modules.deployment.utils.sample_point import *
 
 from gymnasium_base_env import GymnasiumEnvironmentBase
@@ -23,8 +23,14 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
         return obs, infos
 
     def init_entities(self):
-
         entity_id = 0
+        target_zone = Landmark(landmark_id=entity_id,
+                               initial_position=(0, 0),
+                               size=np.array((1, 1)),
+                               color='gray', )
+        self.add_entity(target_zone)
+        entity_id += 1
+
 
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
@@ -55,6 +61,7 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
                           size=sheep_size)
             self.add_entity(sheep)
             entity_id += 1
+
 
     def step(self, action=ActType):
         obs, reward, termination, truncation, infos = super().step(action)
