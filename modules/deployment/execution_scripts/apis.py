@@ -136,16 +136,16 @@ class RobotNode:
             print(f"Service call failed: {e}")
             return False
 
-    def get_position(self):
+    def get_self_position(self):
         return self.robot_info["position"]
 
-    def get_velocity(self):
+    def get_self_velocity(self):
         return self.robot_info["velocity"]
 
-    def get_radius(self):
+    def get_self_radius(self):
         return self.robot_info["radius"]
 
-    def set_velocity(self, velocity):
+    def set_self_velocity(self, velocity):
         self.robot_info["velocity"] = np.array(velocity)
 
     def get_surrounding_robots_info(self):
@@ -197,20 +197,20 @@ def initialize_ros_node(robot_id, **kwargs):
     set_current_robot_id(robot_id, **kwargs)
 
 
-def get_position():
-    return get_current_robot_node().get_position()
+def get_self_position():
+    return get_current_robot_node().get_self_position()
 
 
-def get_velocity():
-    return get_current_robot_node().get_velocity()
+def get_self_velocity():
+    return get_current_robot_node().get_self_velocity()
 
 
-def get_radius():
-    return get_current_robot_node().get_radius()
+def get_self_radius():
+    return get_current_robot_node().get_self_radius()
 
 
-def set_velocity(velocity):
-    get_current_robot_node().set_velocity(velocity)
+def set_self_velocity(velocity):
+    get_current_robot_node().set_self_velocity(velocity)
 
 
 def get_surrounding_robots_info():

@@ -78,19 +78,19 @@ def publish_velocities(event):
     print(f"Publishing velocity: {robot_info['velocity']}")
 
 
-def get_position():
+def get_self_position():
     return robot_info["position"]
 
 
-def get_velocity():
+def get_self_velocity():
     return robot_info["velocity"]
 
 
-def get_radius():
+def get_self_radius():
     return robot_info["radius"]
 
 
-def set_velocity(velocity):
+def set_self_velocity(velocity):
     robot_info["velocity"] = np.array(velocity)
 
 
