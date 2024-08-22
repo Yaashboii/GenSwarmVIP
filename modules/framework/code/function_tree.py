@@ -123,7 +123,9 @@ class FunctionTree:
     def init_functions(self, content: str):
         constraint_pool = ConstraintPool()
         try:
-            for function in eval(content)["functions"]:
+            functions = eval(content)["functions"]
+            functions_name = [func["name"] for func in functions]
+            for function in functions:
                 name = function["name"]
                 new_node = self._obtain_node(name, description=function["description"])
                 [
@@ -135,7 +137,7 @@ class FunctionTree:
                 [
                     new_node.add_callee(self._obtain_node(name=call))
                     for call in function["calls"]
-                    if call not in robot_api.apis.keys()
+                    if (call not in robot_api.apis.keys()) and (call in functions_name)
                 ]
             self.update()
         except Exception as e:
@@ -143,15 +145,15 @@ class FunctionTree:
             raise Exception
 
     async def process_function_layer(
-        self,
-        operation,
-        operation_type: State,
-        start_layer_index=0,
+            self,
+            operation,
+            operation_type: State,
+            start_layer_index=0,
     ):
         import asyncio
 
         for index, layer in enumerate(
-            self._layers[start_layer_index: start_layer_index + 1]
+                self._layers[start_layer_index: start_layer_index + 1]
         ):
             tasks = []
             logger.log(f"Layer: {start_layer_index + index}", "warning")
