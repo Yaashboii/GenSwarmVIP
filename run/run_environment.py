@@ -14,7 +14,7 @@ def main():
 
     from modules.deployment.utils.manager import Manager
 
-    data_root = f"/home/iusl/Desktop/code_llm_ws/src/code_llm/CodeLLM/workspace/{rospy.get_param('path', 'test')}"
+    data_root = f"../workspace/{rospy.get_param('path', 'test')}"
     count = len(listdir(f"{data_root}/data/frames/"))  # this is used to number the 'frames' folder
     frame_dir = f"{data_root}/data/frames/frame{count}"
     if not os.path.exists(frame_dir):
