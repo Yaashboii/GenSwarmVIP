@@ -15,7 +15,7 @@
     "#agent number note": "sum of robot + leader",
     "entities": {
         "robot": {
-            "count": 1,
+            "count": 10,
             "size": 0.15,
             "color": "green",
             "shape": "circle",

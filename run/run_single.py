@@ -1,3 +1,4 @@
+import asyncio
 import argparse
 
 from modules.file import logger
@@ -13,15 +14,7 @@ async def run_task(task: str, args: argparse.Namespace):
 if __name__ == '__main__':
     from modules.utils import root_manager
     from parser import ParameterService
-    import asyncio
 
-    #
-    # parameter_service = ParameterService()
-    # file_path = sys.argv[1]
-    # # parameter_service.remove_argument(file_path)
-    # args = parameter_service.add_arguments_from_yaml(file_path)
-    # args = parameter_service.args
-    # run_task(task, args)
     parameter_service = ParameterService()
     config_file = 'experiment_config.yaml'
     parameter_service.add_arguments_from_yaml(f'../config/{config_file}')
