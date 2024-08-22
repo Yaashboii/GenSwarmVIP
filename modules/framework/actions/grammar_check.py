@@ -43,7 +43,7 @@ class GrammarCheck(ActionNode):
             return Bugs(bug_list)
         else:
             logger.log(
-                f"Grammar check passed for function: {self.function_name}", "waring"
+                f"Grammar check passed for function: {self.function_name}", "warning"
             )
             return response
 
