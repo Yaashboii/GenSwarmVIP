@@ -1,6 +1,6 @@
 from typing import Optional, TypeVar
 
-from modules.deployment.entity import Robot, Sheep
+from modules.deployment.entity import Robot, Obstacle,Prey
 from modules.deployment.utils.sample_point import *
 
 from gymnasium_base_env import GymnasiumEnvironmentBase
@@ -24,88 +24,57 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
         return obs, infos
 
     def init_entities(self):
-        # wall_width = 10
-        # wall = Wall(wall_id=0,
-        #             initial_position=(0.5 * self.width, 0.5 * wall_width),
-        #             size=(self.width, wall_width))
-        # self.add_entity(wall)
-        # wall = Wall(wall_id=1,
-        #             initial_position=(0.5 * self.width, self.height - 0.5 * wall_width),
-        #             size=(self.width, wall_width))
-        # self.add_entity(wall)
-        # wall = Wall(wall_id=2,
-        #             initial_position=(0.5 * wall_width, 0.5 * self.height),
-        #             size=(wall_width, self.height))
-        # self.add_entity(wall)
-        # wall = Wall(wall_id=3,
-        #             initial_position=(self.width - 0.5 * wall_width, 0.5 * self.height),
-        #             size=(wall_width, self.height))
-        # self.add_entity(wall)
-        # left_wall = Wall(wall_id=4,
-        #                  initial_position=(200, 400),
-        #                  size=(0.45 * self.width, wall_width))
-        # self.add_entity(left_wall)
-        # right_wall = Wall(wall_id=5,
-        #                   initial_position=(800, 400),
-        #                   size=(0.45 * self.width, wall_width))
-        # self.add_entity(right_wall)
 
         entity_id = 0
-
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
 
         for i in range(self.num_robots):
-            # Calculate the angle for even distribution along the boundary
-            angle = (entity_id / self.num_robots) * 2 * np.pi
-
-            # Determine x and y coordinates based on angle
-            if 0 <= angle < np.pi / 2:  # Top side
-                x = 1 * angle / (np.pi / 2)
-                y = 0
-            elif np.pi / 2 <= angle < np.pi:  # Right side
-                x = 1
-                y = 1 * (angle - np.pi / 2) / (np.pi / 2)
-            elif np.pi <= angle < 3 * np.pi / 2:  # Bottom side
-                x = 1 * (1 - (angle - np.pi) / (np.pi / 2))
-                y = 1
-            else:  # Left side
-                x = 0
-                y = 1 * (1 - (angle - 3 * np.pi / 2) / (np.pi / 2))
-
-            dog = Robot(robot_id=entity_id,
-                        initial_position=np.array([x, y]),
-                        size=robot_size,
-                        color=color)
-            self.add_entity(dog)
-            entity_id += 1
-
-        sheep_size = self.data.get("entities").get("sheep", {}).get("size", 0.15)
-        shape = self.data.get("entities").get("sheep", {}).get("shape", "circle")
-        color = self.data.get("entities").get("sheep", {}).get("color", "blue")
-
-        for i in range(self.num_sheep):
-            # position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-            #                         robot_size=sheep_size, robot_shape=shape, min_distance=sheep_size,
-            #                         entities=self.entities)
-            position = [0, 0]
-            sheep = Sheep(prey_id=entity_id,
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+                                    robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
+                                    entities=self.entities)
+            robot = Robot(robot_id=entity_id,
                           initial_position=position,
-                          size=sheep_size)
-            self.add_entity(sheep)
+                          target_position=None,
+                          size=robot_size,
+                          color=color)
+            self.add_entity(robot)
             entity_id += 1
 
-    def step(self, action=ActType):
+        obstacle_size = self.data["entities"]["obstacle"]["size"]
+        shape = self.data["entities"]["obstacle"]["shape"]
+        color = self.data["entities"]["obstacle"]["color"]
+
+        for i in range(self.num_obstacles):
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+                                    robot_size=obstacle_size, robot_shape=shape, min_distance=obstacle_size,
+                                    entities=self.entities)
+            obstacle = Obstacle(obstacle_id=entity_id,
+                                initial_position=position,
+                                size=obstacle_size)
+            self.add_entity(obstacle)
+            entity_id += 1
+
+        prey_size = 0.1
+        position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+                                robot_size=prey_size, robot_shape=shape, min_distance=prey_size,
+                                entities=self.entities)
+        prey = Prey(prey_id=entity_id,
+                    initial_position=position,
+                    size=prey_size,
+                    mass=1,
+                    density=0.5)
+        self.add_entity(prey)
+
+    def step(self, action: ActType):
+
         obs, reward, termination, truncation, infos = super().step(action)
 
         for entity in self.entities:
-            if isinstance(entity, Sheep):
-                # 获取邻居羊群和机器人列表
-                sheep = [e for e in self.entities if isinstance(e, Sheep) and e != entity]
-                robots = [e for e in self.entities if isinstance(e, Robot)]
-                speed = entity.calculate_velocity(sheep, robots)
-                self.set_entity_velocity(entity.id, speed)
+            if entity.__class__.__name__ == "Prey":
+                entity.avoid_robots_and_walls(self.get_entities_by_type('Robot'))
+                self.set_entity_velocity(entity.id, entity.velocity)
 
         return obs, reward, termination, truncation, infos
 
