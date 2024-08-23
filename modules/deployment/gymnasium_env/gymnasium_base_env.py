@@ -76,7 +76,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         else:
             raise ValueError(f"Unsupported engine type: {engine_type}")
 
-        self.moveable_agents = {}
+        self.movable_agents = {}
         self.num_robots = self.data.get("entities", {}).get("robot", {}).get("count", 0)
         self.num_leaders = self.data.get("entities", {}).get("leader", {}).get("count", 0)
         self.num_obstacles = self.data.get("entities", {}).get("obstacle", {}).get("count", 0)
@@ -236,8 +236,9 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
                                 with detailed information for each entity.
         """
         for entity_id, velocity in action.items():
-            valid_velocity = [i if not isnan(i) else 0 for i in velocity]
-            self.set_entity_velocity(entity_id, velocity)
+            valid_velocity = np.array([i if not isnan(i) else 0 for i in velocity])
+            # valid_velocity = np.array([1, 1,], dtype=float)
+            self.set_entity_velocity(entity_id, valid_velocity)
 
         self.engine.step(self.dt)
         obs = self.get_observation("array")
@@ -306,7 +307,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
         if entity.collision:
             self.engine.add_entity(entity)
         if entity.moveable:
-            self.moveable_agents[entity.id] = entity.__class__.__name__
+            self.movable_agents[entity.id] = entity.__class__.__name__
 
     def remove_entity(self, entity_id):
 
