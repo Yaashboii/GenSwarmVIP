@@ -160,17 +160,17 @@ class RobotApi:
                           'get_self_velocity',
                           'get_self_radius',
                           'get_surrounding_robots_info',
-                          'get_surrounding_obstacles_info']
+                          ]
         self.base_prompt = [self.apis[api] for api in self.base_apis]
         self.task_apis = {
             "bridging": [],
             "circling": [],
             "covering": [],
-            "crossing": [],
-            "encircling": ["get_prey_position"],
+            "crossing": ['get_surrounding_obstacles_info'],
+            "encircling": ["get_prey_position", 'get_surrounding_obstacles_info'],
             "exploration": [],
-            "flocking": [],
-            "herding": ['get_sheep_positions'],
+            "flocking": ['get_surrounding_obstacles_info'],
+            "herding": ['get_sheep_positions', 'get_surrounding_obstacles_info'],
             "shaping": ['get_target_formation_points'],
             "transportation": ['pick_up_object',
                                'put_down_object',
