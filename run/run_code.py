@@ -5,12 +5,13 @@ def task_mapping(task_name: str) -> type(AutoRunnerBase):
     task_dict = {
         "exploration": AutoRunnerExplore,
         "crossing": AutoRunnerCross,
+        'flocking': AutoRunnerFlocking,
     }
     return task_dict[task_name]
 
 
 if __name__ == "__main__":
-    task_name = 'exploration'
+    task_name = 'flocking'
     runner_class = task_mapping(task_name)
     runner = runner_class(env_config_path="../config/env_config.json",
                           workspace_path='exploration',

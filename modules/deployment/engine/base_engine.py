@@ -19,7 +19,8 @@ class Engine(ABC):
             entity (Entity): The entity to add.
         """
         if entity.id in self._entities:
-            raise ValueError("Entity with the same ID already exists.")
+            raise ValueError(f"Entity_{entity.id} with the same ID already exists."
+                             f"Current entities: {list(self._entities.keys())}")
         self._entities[entity.id] = entity
 
     def remove_entity(self, entity_id: int):

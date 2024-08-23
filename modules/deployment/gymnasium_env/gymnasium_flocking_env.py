@@ -4,7 +4,6 @@ from modules.deployment.entity import Landmark, Leader, Obstacle, PushableObject
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 
-
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
 
@@ -13,7 +12,7 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str = None):
         super().__init__(data_file)
 
-    def add_entities_from_config(self):
+    def init_entities(self):
 
         def add_specified_entities(entity_type, entity_class, color=None):
             nonlocal entity_id
@@ -52,15 +51,6 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
 
         return super().step(action)
-
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
-        self.entities = []
-        self.movable_agents = {}
-        self.add_entities_from_config()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
 
 
 if __name__ == '__main__':
