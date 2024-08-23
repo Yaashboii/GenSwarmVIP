@@ -165,7 +165,7 @@ if __name__ == "__main__":
         "--feedback", type=str, default="None", help="Optional: human, VLM, None,Result feedback",
     )
     parser.add_argument(
-        "--data", type=str, default='crossing/2024-08-20_18-55-04', help="Data path for the simulation"
+        "--data", type=str, default='2024-08-22_15-01-37', help="Data path for the simulation"
     )
     parser.add_argument(
         "--target_pkl", type=str, default="WriteRun.pkl", help="Data path for the simulation"
