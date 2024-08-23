@@ -4,7 +4,7 @@ import json
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from modules.deployment.gymnasium_env import GymnasiumCrossingEnvironment
-from auto_runner_base import AutoRunnerBase
+from run.auto_runner import AutoRunnerBase
 
 
 class AutoRunnerCross(AutoRunnerBase):

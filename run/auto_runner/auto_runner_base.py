@@ -274,22 +274,4 @@ class AutoRunnerBase(ABC):
         """
 
 
-if __name__ == "__main__":
-    runner = AutoRunner("../config/env_config.json",
-                        workspace_path='ablation/human_feedback',
-                        # workspace_path='metagpt',
-                        # workspace_path='cap/cross',
-                        experiment_duration=30,
-                        run_mode='analyze',
-                        # target_pkl='video_critic.pkl',
-                        target_pkl='None',
-                        # script_name='run_meta.py',
-                        script_name='run_cap.py',
-                        max_speed=0.75,
-                        tolerance=0.15
-                        )
-    # 人工复核，哪些任务需要重新跑，写在下面
-    # experiment_list = ['2024-07-21_18-26-12', ]
-    # exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))
 
-    runner.run(exp_list=None)
