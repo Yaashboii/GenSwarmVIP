@@ -56,7 +56,7 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
         super().reset(seed=seed, options=options)
         self.entities = []
-        self.moveable_agents = {}
+        self.movable_agents = {}
         self.add_entities_from_config()
         obs = self.get_observation("array")
         infos = self.get_observation("dict")
@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     env = GymnasiumFlockingEnvironment("../../../config/env_config.json")
     obs, infos = env.reset()
-    print(env.moveable_agents)
+    print(env.movable_agents)
     manager = Manager(env)
     manager.publish_observations(infos)
     rate = rospy.Rate(env.FPS)

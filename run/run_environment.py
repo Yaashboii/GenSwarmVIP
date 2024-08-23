@@ -5,7 +5,7 @@ import cv2
 
 from modules.deployment.gymnasium_env import GymnasiumBridgingEnvironment, GymnasiumCoveringEnvironment, \
     GymnasiumExplorationEnvironment, GymnasiumCirclingEnvironment, GymnasiumCrossingEnvironment,\
-    GymnasiumEncirclingEnvironment, GymnasiumFlockingEnvironment
+    GymnasiumEncirclingEnvironment, GymnasiumFlockingEnvironment, GymnasiumHerdingEnvironment
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
     draw_counter = 0
     draw_frequency = 100
 
-    env = GymnasiumBridgingEnvironment("../config/env_config.json")
+    env = GymnasiumFlockingEnvironment("../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)
@@ -36,16 +36,18 @@ def main():
     while time.time() - start_time < 180:
         action = manager.robotID_velocity
         manager.clear_velocity()
+
         obs, reward, termination, truncation, infos = env.step(action=action)
+
+        frame = env.render()
         if draw_counter % draw_frequency == 0:
-            frame = env.render()
             frame_image_path = os.path.join(frame_dir, f'{draw_counter}.png')
             cv2.imwrite(frame_image_path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
             frame_files.append(frame_image_path)
         draw_counter += 1
 
         manager.publish_observations(infos)
-        # rate.sleep()
+        rate.sleep()
 
         frame_count += 1  # 增加帧数计数器
         current_time = time.time()  # 获取当前时间
