@@ -34,16 +34,6 @@ class GymnasiumCrossingEnvironment(GymnasiumEnvironmentBase):
                           size=0.15)
             self.add_entity(robot)
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed)
-        self.entities = []
-        self.engine.clear_entities()
-
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
-
     @staticmethod
     def find_farthest_points(points):
         points = np.array(points)

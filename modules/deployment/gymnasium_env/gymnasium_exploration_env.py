@@ -13,18 +13,10 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
-        self.entities = []
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
-
     def init_entities(self):
         entity_id = 0
-        for x in np.arange(-self.width * 0.6, self.width * 0.6, 0.1 * self.width):
-            for y in np.arange(-self.height * 0.6, self.height * 0.6, 0.1 * self.height):
+        for x in np.arange(-self.width * 0.45, self.width * 0.5, 0.1 * self.width):
+            for y in np.arange(-self.height * 0.45, self.height * 0.5, 0.1 * self.height):
                 landmark = Landmark(landmark_id=entity_id,
                                     initial_position=(x, y),
                                     size=np.array([0.1 * self.width, 0.1 * self.height]),
@@ -37,7 +29,7 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
         color = self.data["entities"]["robot"]["color"]
 
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[0.1, 0.1],
                                     robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
                                     entities=self.entities)
             robot = Robot(robot_id=entity_id,

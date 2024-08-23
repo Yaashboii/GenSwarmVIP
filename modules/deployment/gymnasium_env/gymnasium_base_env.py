@@ -9,6 +9,7 @@ from gymnasium import spaces
 from gymnasium.utils import seeding
 
 from modules.deployment.engine import Box2DEngine, QuadTreeEngine, OmniEngine
+from abc import ABC, abstractmethod
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
@@ -32,7 +33,7 @@ The coordinate system in ours system is:
 """
 
 
-class GymnasiumEnvironmentBase(gymnasium.Env):
+class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
     metadata = {
         'render.modes': ['human'],
         'fps': 30
@@ -55,6 +56,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
 
         self.dt = self.data.get('dt', 0.01)
         self.FPS = 10
+        self.screen = None
         self.simulation_data = {}
         self.scale_factor = self.data['display']['scale_factor']
         self.width = self.data['display']['width']
@@ -293,14 +295,28 @@ class GymnasiumEnvironmentBase(gymnasium.Env):
                 )
                 pygame.draw.rect(self.screen, color, rect)
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
+    def reset(
+            self,
+            *,
+            seed: int | None = None,
+            options: dict[str, Any] | None = None,
+    ) -> tuple[ObsType, dict[str, Any]]:
+        super().reset(seed=seed)
         self.entities = []
+        self.engine.clear_entities()
+        self.init_entities()
+        obs = self.get_observation("array")
+        infos = self.get_observation("dict")
         if self.render_mode == 'human':
             self.screen = pygame.display.set_mode((self.width * self.scale_factor, self.height * self.scale_factor))
         else:
             self.screen = pygame.Surface((self.width * self.scale_factor, self.height * self.scale_factor))
 
+        return obs, infos
+
+    @abstractmethod
+    def init_entities(self):
+        raise NotImplementedError(f"{str(self)}.init_entities method must be implemented.")
 
     def add_entity(self, entity):
         self.entities.append(entity)
