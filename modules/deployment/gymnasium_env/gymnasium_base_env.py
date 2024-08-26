@@ -199,9 +199,11 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                 obs[entity.id] = {
                     "position": entity.position,
                     "velocity": entity.velocity,
+                    'moveable': entity.moveable,
                     "size": entity.size,
                     "type": entity.__class__.__name__,
                     "target_position": entity.target_position if hasattr(entity, "target_position") else None,
+                    "state": entity.state if hasattr(entity, "state") else None,
                     "color": entity.color
                 }
 

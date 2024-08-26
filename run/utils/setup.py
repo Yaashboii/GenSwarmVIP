@@ -2,7 +2,7 @@ import os
 import shutil
 
 
-def setup_metagpt( directory):
+def setup_metagpt(directory):
     # 确保目录存在
     if not os.path.exists(directory):
         print(f"目录 {directory} 不存在")
@@ -66,7 +66,7 @@ def setup_metagpt( directory):
                         f.write(line)
 
 
-def setup_cap( directory):
+def setup_cap(directory):
     source_file = os.path.join('../modules/deployment/execution_scripts', 'apis_meta.py')
 
     if os.path.exists(source_file):

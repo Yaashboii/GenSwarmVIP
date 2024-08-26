@@ -15,22 +15,28 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
 
     def init_entities(self):
         entity_id = 0
-        for x in np.arange(-self.width * 0.45, self.width * 0.5, 0.1 * self.width):
-            for y in np.arange(-self.height * 0.45, self.height * 0.5, 0.1 * self.height):
+        for x in np.arange(-self.width * 0.4, self.width * 0.51, 0.2 * self.width):
+            for y in np.arange(-self.height * 0.4, self.height * 0.51, 0.2 * self.height):
                 landmark = Landmark(landmark_id=entity_id,
                                     initial_position=(x, y),
-                                    size=np.array([0.1 * self.width, 0.1 * self.height]),
+                                    size=np.array([0.2 * self.width, 0.2 * self.height]),
                                     color='gray')
                 self.add_entity(landmark)
                 entity_id += 1
+        # landmark = Landmark(landmark_id=entity_id,
+        #                     initial_position=(0,0),
+        #                     size=np.array([0.1 * self.width, 0.1 * self.height]),
+        #                     color='gray')
+        # self.add_entity(landmark)
+        # entity_id += 1
 
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
 
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[0.1, 0.1],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[0.65, 0.65],
+                                    robot_size=robot_size, robot_shape=shape, min_distance=0.05,
                                     entities=self.entities)
             robot = Robot(robot_id=entity_id,
                           initial_position=position,
@@ -49,13 +55,14 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
                     if isinstance(landmark, Landmark):
                         if self.is_robot_within_landmark(entity, landmark):
                             landmark.color = 'blue'
+                            landmark.state = 'visited'
 
         return obs, reward, termination, truncation, infos
 
     def is_robot_within_landmark(self, robot: Robot, landmark: Landmark):
-        distance = np.linalg.norm(robot.position - landmark.position)
-        landmark_radius = np.linalg.norm(landmark.size) / 2  # Assuming size is the diameter
-        return distance <= landmark_radius
+        if np.all(np.linalg.norm(robot.position - landmark.position) < (robot.size + 0.5 * landmark.size)):
+            return True
+        return False
 
 
 if __name__ == "__main__":
@@ -65,7 +72,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumExplorationEnvironment("../../../config/env_config.json")
+    env = GymnasiumExplorationEnvironment("../../../config/env/exploration_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

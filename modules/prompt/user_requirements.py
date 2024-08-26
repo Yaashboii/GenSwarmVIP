@@ -58,10 +58,7 @@ Then, the robots should be evenly distributed around this circle which `radius= 
 Assign points on the circumference based on the principle of minimizing the distance each robot needs to move to reach its target position.
 """,
 
-    "exploration": "Robots need to collaborate to explore the entire map area. Divide the map into several regions equal to the number of robots."
-                   "Each region will be assigned to a specific robot, which will explore within this region."
-                   "Each robot needs to plan an appropriate path. This path must ensure that every 0.5*0.5 sub-grid within its assigned region is explored."
-                   "The robots move along this path to fully explore their assigned region.",
+    "exploration": "The robots need to collaborate to explore the entire map area, which is divided into 25 sub-regions, each with a side length of 0.5.",
 
 
     'formation_move': """

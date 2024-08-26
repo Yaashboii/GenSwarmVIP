@@ -18,7 +18,7 @@ def run_multiple_times(command, num_times, max_workers=1):
 if __name__ == "__main__":
     command_to_run = "python run_single.py"
     # 2024-06-11_4-49
-    num_runs = 50
+    num_runs = 5
     max_workers = 1
 
     run_multiple_times(command_to_run, num_runs, max_workers)

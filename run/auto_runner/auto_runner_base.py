@@ -1,26 +1,19 @@
-import math
+import json
 import os
 import queue
-import shutil
-import threading
 import subprocess
-import time
-
-import imageio
-import rospy
-import json
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-
-from tqdm import tqdm
-
-from experiment.ablation.utils import extra_exp
-from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
-from modules.deployment.utils.manager import Manager
+import threading
 from abc import ABC, abstractmethod
 
+import cv2
+import imageio
+import matplotlib.pyplot as plt
+import numpy as np
+import rospy
+from tqdm import tqdm
+
+from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
+from modules.deployment.utils.manager import Manager
 from run.utils import setup_metagpt, setup_cap
 
 
@@ -119,9 +112,15 @@ class AutoRunnerBase(ABC):
         def init_result(infos):
             result = {}
             for entity_id in infos:
-                result[entity_id] = {"size": 0, "target": None, "trajectory": []}
+                result[entity_id] = {"size": 0,
+                                     "target": None,
+                                     "trajectory": [],
+                                     'type': '',
+                                     'states': [],
+                                     'dt': self.env.dt}
                 result[entity_id]["size"] = infos[entity_id]["size"]
                 result[entity_id]["target"] = infos[entity_id]["target_position"]
+                result[entity_id]['type'] = infos[entity_id]['type']
                 result[entity_id]["trajectory"].append(infos[entity_id]["position"])
             return result
 
@@ -143,7 +142,10 @@ class AutoRunnerBase(ABC):
             self.manager.clear_velocity()
             obs, reward, termination, truncation, infos = self.env.step(action=action)
             for entity_id in infos:
-                result[entity_id]["trajectory"].append(infos[entity_id]["position"])
+                if infos[entity_id]["moveable"]:
+                    result[entity_id]["trajectory"].append(infos[entity_id]["position"])
+                if infos[entity_id]['state'] is not None:
+                    result[entity_id]['states'].append(infos[entity_id]['state'])
             self.frames.append(self.env.render())
             self.manager.publish_observations(infos)
             rate.sleep()
@@ -272,6 +274,3 @@ class AutoRunnerBase(ABC):
         """
         Analyze all the results of the experiments and show the metrics.
         """
-
-
-
