@@ -126,3 +126,165 @@ def evaluate_landmark_visits(data) -> tuple:
     average_visit_step = np.mean(visit_steps) if visit_steps else 0
 
     return all_landmarks_visited, landmark_visit_ratio, average_visit_step
+
+
+def calculate_line_similarity(data, target_line: tuple) -> dict:
+    """
+    Calculate the similarity between the line formed by the robots' final positions and a given target line.
+
+    :param data: dictionary containing information about entities, including their trajectories.
+    :param target_line: a tuple containing two points (x1, y1) and (x2, y2) defining the target line.
+    :return: A dictionary containing:
+        - length_similarity (float): The ratio of the lengths between the fitted line and the target line.
+        - slope_similarity (float): The cosine similarity between the slopes of the fitted line and the target line.
+        - point_similarity (float): The average Euclidean distance between the points on the fitted line and the target line.
+    """
+    robot_positions = []
+    for entity_id, info in data.items():
+        if info["type"] == "Robot":
+            robot_positions.append(info["trajectory"][-1])  # Get final positions of robots
+
+    if len(robot_positions) < 2:
+        raise ValueError("Not enough robots to form a line.")
+
+    # Fit a line to the robots' final positions
+    robot_positions = np.array(robot_positions)
+    A = np.vstack([robot_positions[:, 0], np.ones(len(robot_positions))]).T
+    slope, intercept = np.linalg.lstsq(A, robot_positions[:, 1], rcond=None)[0]
+
+    # Fitted line: y = slope * x + intercept
+    fitted_line = ((0, intercept), (1, slope + intercept))
+
+    # Calculate length similarity
+    target_length = np.linalg.norm(np.array(target_line[1]) - np.array(target_line[0]))
+    fitted_length = np.linalg.norm(np.array(fitted_line[1]) - np.array(fitted_line[0]))
+    length_similarity = min(fitted_length / target_length, target_length / fitted_length) if target_length > 0 else 0
+
+    # Calculate slope similarity (using cosine similarity)
+    target_slope = (target_line[1][1] - target_line[0][1]) / (target_line[1][0] - target_line[0][0]) if target_line[1][
+                                                                                                            0] != \
+                                                                                                        target_line[0][
+                                                                                                            0] else np.inf
+    slope_similarity = np.dot([1, slope], [1, target_slope]) / (
+            np.linalg.norm([1, slope]) * np.linalg.norm([1, target_slope]))
+
+    # Calculate point similarity (average distance between points on the fitted line and target line)
+    point_distances = []
+    for point in robot_positions:
+        target_y = target_slope * point[0] + (target_line[0][1] - target_slope * target_line[0][0])
+        fitted_y = slope * point[0] + intercept
+        point_distances.append(np.abs(target_y - fitted_y))
+    point_similarity = np.mean(point_distances)
+
+    return {
+        "length_similarity": length_similarity,
+        "slope_similarity": slope_similarity,
+        "point_similarity": point_similarity
+    }
+
+
+def evaluate_robot_final_positions(data) -> dict:
+    """
+    Evaluate various metrics related to the final positions of robots.
+
+    :param data: dictionary containing information about entities, including their trajectories.
+    :return: A dictionary containing:
+        - mean_nearest_neighbor_distance (float): The mean distance between each robot and its nearest neighbor.
+        - variance_nearest_neighbor_distance (float): The variance of the distances between each robot and its nearest neighbor.
+        - mean_displacement (float): The mean displacement of robots from their initial positions to their final positions.
+        - area_ratio (float): The ratio of the area occupied by the robots' final positions to 25.
+    """
+    robot_positions_initial = []
+    robot_positions_final = []
+
+    for entity_id, info in data.items():
+        if info["type"] == "Robot":
+            robot_positions_initial.append(info["trajectory"][0])
+            robot_positions_final.append(info["trajectory"][-1])
+
+    robot_positions_initial = np.array(robot_positions_initial)
+    robot_positions_final = np.array(robot_positions_final)
+
+    # Calculate nearest neighbor distances for final positions
+    nearest_neighbor_distances = []
+    for i, pos1 in enumerate(robot_positions_final):
+        distances = np.linalg.norm(robot_positions_final - pos1, axis=1)
+        distances[i] = np.inf  # Exclude the distance to itself
+        nearest_neighbor_distances.append(np.min(distances))
+
+    mean_nearest_neighbor_distance = np.mean(nearest_neighbor_distances)
+    variance_nearest_neighbor_distance = np.var(nearest_neighbor_distances)
+
+    # Calculate mean displacement from initial to final positions
+    displacements = np.linalg.norm(robot_positions_final - robot_positions_initial, axis=1)
+    mean_displacement = np.mean(displacements)
+
+    # Calculate the area of the bounding box formed by the robots' final positions
+    x_min, y_min = np.min(robot_positions_final, axis=0)
+    x_max, y_max = np.max(robot_positions_final, axis=0)
+    area = (x_max - x_min) * (y_max - y_min)
+    area_ratio = area / 25
+
+    return {
+        "mean_nearest_neighbor_distance": mean_nearest_neighbor_distance,
+        "variance_nearest_neighbor_distance": variance_nearest_neighbor_distance,
+        "mean_displacement": mean_displacement,
+        "area_ratio": area_ratio
+    }
+
+
+def evaluate_robot_circle_similarity(data, circle_center: tuple, circle_radius: float) -> dict:
+    """
+    Evaluate the similarity between the robots' final positions and a specified circle.
+
+    :param data: dictionary containing information about entities, including their trajectories.
+    :param circle_center: a tuple representing the (x, y) coordinates of the circle's center.
+    :param circle_radius: the radius of the circle.
+    :return: A dictionary containing:
+        - mean_distance_to_circle (float): The mean distance of each robot's final position to the circle's circumference.
+        - variance_distance_to_circle (float): The variance of the distances to the circle's circumference.
+        - mean_nearest_neighbor_distance (float): The mean distance between each robot and its nearest neighbor.
+        - dispersion_ratio (float): The ratio of the circle's circumference to the number of robots, normalized by the mean nearest neighbor distance.
+    """
+    robot_positions_final = []
+
+    for entity_id, info in data.items():
+        if info["type"] == "Robot":
+            robot_positions_final.append(info["trajectory"][-1])
+
+    robot_positions_final = np.array(robot_positions_final)
+    num_robots = len(robot_positions_final)
+
+    if num_robots == 0:
+        raise ValueError("No robots found in the data.")
+
+    # Calculate distance of each robot to the circle's circumference
+    distances_to_circle = []
+    for position in robot_positions_final:
+        distance_to_center = np.linalg.norm(position - np.array(circle_center))
+        distance_to_circle = np.abs(distance_to_center - circle_radius)
+        distances_to_circle.append(distance_to_circle)
+
+    mean_distance_to_circle = np.mean(distances_to_circle)
+    variance_distance_to_circle = np.var(distances_to_circle)
+
+    # Calculate nearest neighbor distances for final positions
+    nearest_neighbor_distances = []
+    for i, pos1 in enumerate(robot_positions_final):
+        distances = np.linalg.norm(robot_positions_final - pos1, axis=1)
+        distances[i] = np.inf  # Exclude the distance to itself
+        nearest_neighbor_distances.append(np.min(distances))
+
+    mean_nearest_neighbor_distance = np.mean(nearest_neighbor_distances)
+
+    # Calculate the dispersion ratio (circumference / num_robots) normalized by mean nearest neighbor distance
+    circumference = 2 * np.pi * circle_radius
+    dispersion_ratio = (
+                               circumference / num_robots) / mean_nearest_neighbor_distance if mean_nearest_neighbor_distance > 0 else np.inf
+
+    return {
+        "mean_distance_to_circle": mean_distance_to_circle,
+        "variance_distance_to_circle": variance_distance_to_circle,
+        "mean_nearest_neighbor_distance": mean_nearest_neighbor_distance,
+        "dispersion_ratio": dispersion_ratio
+    }

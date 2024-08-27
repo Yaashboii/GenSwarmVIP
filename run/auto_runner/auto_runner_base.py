@@ -274,3 +274,4 @@ class AutoRunnerBase(ABC):
         """
         Analyze all the results of the experiments and show the metrics.
         """
+        raise NotImplementedError("analyze_all_results method must be implemented in the subclass")

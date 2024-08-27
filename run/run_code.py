@@ -27,7 +27,7 @@ if __name__ == "__main__":
                           # workspace_path='metagpt',
                           # workspace_path='cap/cross',
                           experiment_duration=30,
-                          run_mode='rerun',
+                          run_mode='continue',
                           # target_pkl='video_critic.pkl',
                           target_pkl='None',
                           # script_name='run_meta.py',
@@ -36,8 +36,8 @@ if __name__ == "__main__":
                           tolerance=0.15)
 
     # 人工复核，哪些任务需要重新跑，写在下面
-    exp_list = ['2024-08-26_15-10-00', ]
-    # exp_list = None
+    # exp_list = ['2024-08-26_20-25-24', ]
+    exp_list = None
     # exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))
 
     runner.run(exp_list=exp_list)
