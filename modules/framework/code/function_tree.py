@@ -230,20 +230,24 @@ class FunctionTree:
 
         return list(seen)
 
-    def save_functions_to_file(self, functions: list[FunctionNode] = None):
+    def save_functions_to_file(self, functions: list[FunctionNode] = None, save=True):
         import_str = "\n".join(sorted(self.import_list))
         if not functions:
             content = "\n\n\n".join([f.content for f in self._function_nodes.values()])
         else:
             content = "\n\n\n".join([f.content for f in functions])
-        self._file.message = f"{import_str}\n\n{content}\n"
+        if save:
+            self._file.message = f"{import_str}\n\n{content}\n"
+            return None
+        else:
+            return f"{import_str}\n\n{content}\n"
 
-    def save_by_function(self, function: FunctionNode | str):
+    def save_by_function(self, function: FunctionNode | str, save=True):
         if isinstance(function, str):
             function = self._function_nodes[function]
         relative_function = self._find_all_relative_functions(function)
         logger.log(f"relative_function: {relative_function}", level="warning")
-        self.save_functions_to_file(relative_function)
+        return self.save_functions_to_file(relative_function, save=save)
 
     def _update_imports(self, imports: set):
         self.import_list |= imports

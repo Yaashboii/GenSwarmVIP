@@ -1,7 +1,9 @@
 from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
+from modules.framework.actions import DebugError
 from modules.framework.code import State, FunctionNode
 from modules.framework.code_error import Bug, Bugs
+from modules.framework.handler import BugLevelHandler
 from modules.framework.parser import GrammarParser
 from modules.utils import root_manager
 
@@ -32,15 +34,18 @@ class GrammarCheck(ActionNode):
             return self._process_response(str(errors))
 
     def _process_response(self, response: str) -> str | Bugs | Bug:
+
         if eval(response):
+            error_code = self.context._function_pool.save_by_function(function=self.function_name, save=False)
+
             bug_list = [
-                Bug(error_msg=e["error_message"], error_function=e["function_name"])
+                Bug(error_msg=e["error_message"], error_function=e["function_name"], error_code=error_code)
                 for e in eval(response)
             ]
             logger.log(
                 f"Grammar check failed for function: {self.function_name}", "error"
             )
-            return Bugs(bug_list)
+            return Bugs(bug_list, error_code=error_code)
         else:
             logger.log(
                 f"Grammar check passed for function: {self.function_name}", "warning"
@@ -92,3 +97,22 @@ class GrammarCheckAsync(AsyncNode):
         else:
             logger.log("Unknown generate_mode", "error")
             raise SystemExit
+
+
+if __name__ == '__main__':
+    import asyncio
+
+    grammar_check = GrammarCheckAsync()
+    bug_handler = BugLevelHandler()
+
+    debug_error = DebugError("debug error")
+    bug_handler.next_action = debug_error
+    debug_error._next = grammar_check
+    grammar_check.error_handler = bug_handler
+
+    path = "../../../workspace/exploration/2024-08-26_16-07-43"
+    root_manager.update_root(path)
+
+    grammar_check.context.load_from_file(f"{path}/CodeReview.pkl")
+    asyncio.run(grammar_check.run())
+    grammar_check.context.save_to_file(f"{path}/debug.pkl")
