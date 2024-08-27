@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from modules.deployment.gymnasium_env import GymnasiumFlockingEnvironment
 from run.auto_runner import AutoRunnerBase
+from run.utils import evaluate_trajectory_similarity, evaluate_trajectory_pattern, check_collisions
 
 
 class AutoRunnerFlocking(AutoRunnerBase):
@@ -27,8 +28,12 @@ class AutoRunnerFlocking(AutoRunnerBase):
                          tolerance=tolerance,
                          env=env)
 
-    def analyze_result(self, run_result):
-        pass
+    def analyze_result(self, run_result) -> dict[str, float]:
+        terminal_distance = evaluate_trajectory_pattern(run_result)
+        similarity = evaluate_trajectory_similarity(run_result)
+        collision = check_collisions(run_result)
+        merged_dict = terminal_distance | similarity | collision
+        return merged_dict
 
     def analyze_all_results(self, experiment_dirs=None):
         pass

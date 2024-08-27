@@ -4,14 +4,16 @@ from itertools import combinations
 from run.utils import calculate_overlap_ratio
 
 
-def check_collisions(data, tolerance: float = 0.1) -> tuple:
+def check_collisions(data, tolerance: float = 0.1) -> dict:
     """
     Check if there are any collisions between robots and obstacles at any time step.
     :param data: dictionary containing information about entities
     :param tolerance: allowed tolerance for collision
     :return:
-    - int: number of collisions
-    - float: sum of severity of all collisions
+        a dictionary containing:
+        - collision (bool): Whether any collisions occurred.
+        - collision_count (int): The total number of collisions across all time steps.
+        - collision_severity_sum (float): The sum of overlap ratios for all collisions.
     """
     robots = {id: info for id, info in data.items() if info["type"] == "Robot"}
     obstacles = {id: info for id, info in data.items() if info["type"] == "Obstacle"}
@@ -42,7 +44,9 @@ def check_collisions(data, tolerance: float = 0.1) -> tuple:
                 collision_count += 1
                 collision_severity_sum += overlap_ratio
     collision = collision_count > 0
-    return collision, collision_count, collision_severity_sum
+    return {"collision": collision,
+            "collision_count": collision_count,
+            "collision_severity_sum": collision_severity_sum}
 
 
 def evaluate_target_achievement(data, tolerance=0.1) -> tuple:
@@ -287,4 +291,83 @@ def evaluate_robot_circle_similarity(data, circle_center: tuple, circle_radius: 
         "variance_distance_to_circle": variance_distance_to_circle,
         "mean_nearest_neighbor_distance": mean_nearest_neighbor_distance,
         "dispersion_ratio": dispersion_ratio
+    }
+
+
+def evaluate_trajectory_pattern(data) -> dict:
+    """
+    Evaluate the trajectory pattern by analyzing the spatial distribution and overall shape of robot final positions.
+
+    :param data: dictionary containing information about entities, including their trajectories.
+    :return: A dictionary containing:
+        - spatial_variance (float): Variance of the robot positions indicating the spread.
+        - bounding_box_area (float): Area of the bounding box enclosing all final positions of the robots.
+    """
+    robot_positions_final = []
+
+    for entity_id, info in data.items():
+        if info["type"] == "Robot":
+            robot_positions_final.append(info["trajectory"][-1])  # Use the final position of each robot
+
+    robot_positions_final = np.array(robot_positions_final)
+    num_robots = len(robot_positions_final)
+
+    if num_robots == 0:
+        raise ValueError("No robots found in the data.")
+
+    # Calculate the spatial variance of robot positions
+    spatial_variance = np.var(robot_positions_final, axis=0).sum()
+
+    # Calculate the area of the bounding box formed by the robots' final positions
+    x_min, y_min = np.min(robot_positions_final, axis=0)
+    x_max, y_max = np.max(robot_positions_final, axis=0)
+    bounding_box_area = (x_max - x_min) * (y_max - y_min)
+
+    return {
+        "spatial_variance": spatial_variance,
+        "bounding_box_area": bounding_box_area
+    }
+
+
+def evaluate_trajectory_similarity(data) -> dict:
+    """
+    Evaluate the similarity between the trajectories of all robots using Dynamic Time Warping (DTW).
+
+    :param data: dictionary containing information about entities, including their trajectories.
+    :return: A dictionary containing:
+        - mean_dtw_distance (float): The mean DTW distance between all pairs of robot trajectories.
+        - variance_dtw_distance (float): The variance of DTW distances between all pairs of robot trajectories.
+        - max_dtw_distance (float): The maximum DTW distance between any pair of robot trajectories.
+        - min_dtw_distance (float): The minimum DTW distance between any pair of robot trajectories.
+    """
+    from fastdtw import fastdtw
+    from scipy.spatial.distance import euclidean
+    trajectories = []
+
+    for entity_id, info in data.items():
+        if info["type"] == "Robot":
+            trajectories.append(np.array(info["trajectory"]))
+
+    num_robots = len(trajectories)
+
+    if num_robots < 2:
+        raise ValueError("Not enough robots to calculate trajectory similarity.")
+
+    dtw_distances = []
+
+    for i in range(num_robots):
+        for j in range(i + 1, num_robots):
+            distance, _ = fastdtw(trajectories[i], trajectories[j], dist=euclidean)
+            dtw_distances.append(distance)
+
+    mean_dtw_distance = np.mean(dtw_distances)
+    variance_dtw_distance = np.var(dtw_distances)
+    max_dtw_distance = np.max(dtw_distances)
+    min_dtw_distance = np.min(dtw_distances)
+
+    return {
+        "mean_dtw_distance": mean_dtw_distance,
+        "variance_dtw_distance": variance_dtw_distance,
+        "max_dtw_distance": max_dtw_distance,
+        "min_dtw_distance": min_dtw_distance
     }
