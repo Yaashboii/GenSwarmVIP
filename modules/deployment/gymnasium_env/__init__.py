@@ -10,6 +10,8 @@ from .gymnasium_encircling_env import GymnasiumEncirclingEnvironment
 from .gymnasium_herding_env import GymnasiumHerdingEnvironment
 from .gymnasium_transportation_env import GymnasiumTransportationEnvironment
 from .gymnasium_shaping_env import GymnasiumShapingEnvironment
+from .gymnasium_formation_env import GymnasiumFormationEnvironment
+
 __all__ = [
     'GymnasiumEnvironmentBase',
     'GymnasiumBridgingEnvironment',
@@ -22,5 +24,6 @@ __all__ = [
     'GymnasiumEncirclingEnvironment',
     'GymnasiumHerdingEnvironment',
     'GymnasiumTransportationEnvironment',
-    'GymnasiumShapingEnvironment'
+    'GymnasiumShapingEnvironment',
+    'GymnasiumFormationEnvironment',
 ]
