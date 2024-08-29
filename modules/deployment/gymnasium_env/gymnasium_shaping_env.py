@@ -1,5 +1,6 @@
 from typing import Optional, TypeVar
 
+from modules.deployment.engine import QuadTreeEngine
 from modules.deployment.entity import Robot
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
@@ -11,14 +12,11 @@ ActType = TypeVar("ActType")
 class GymnasiumShapingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
-
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
-        self.entities = []
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
+        self.engine = QuadTreeEngine(world_size=(self.width, self.height),
+                                     alpha=0.3,
+                                     damping=0.55,
+                                     collision_check=True,
+                                     joint_constraint=False)
 
     def init_entities(self):
         entity_id = 0
@@ -28,8 +26,9 @@ class GymnasiumShapingEnvironment(GymnasiumEnvironmentBase):
 
         for i in range(self.num_robots):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
+                                    robot_size=robot_size, robot_shape=shape, min_distance=0.15,
                                     entities=self.entities)
+            print(f"Robot_{entity_id} position: {position}")
             robot = Robot(robot_id=entity_id,
                           initial_position=position,
                           target_position=None,
@@ -46,7 +45,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumShapingEnvironment("../../../config/env_config.json")
+    env = GymnasiumShapingEnvironment("../../../config/env/shaping_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

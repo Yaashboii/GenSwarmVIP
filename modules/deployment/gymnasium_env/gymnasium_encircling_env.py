@@ -1,6 +1,6 @@
 from typing import Optional, TypeVar
 
-from modules.deployment.entity import Robot, Obstacle,Prey
+from modules.deployment.entity import Robot, Obstacle, Prey
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 
@@ -13,14 +13,6 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
 
     def __init__(self, data_file: str):
         super().__init__(data_file)
-
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
-        self.entities = []
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
 
     def init_entities(self):
 
@@ -56,24 +48,30 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
             entity_id += 1
 
         prey_size = 0.1
-        position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                robot_size=prey_size, robot_shape=shape, min_distance=prey_size,
-                                entities=self.entities)
         prey = Prey(prey_id=entity_id,
-                    initial_position=position,
+                    initial_position=[0, 0],
                     size=prey_size,
-                    mass=1,
-                    density=0.5)
+                    max_speed=0.2,
+                    danger_zone=1,
+                    damping=0.9,
+                    random_factor=0.1,
+                    alpha=0.1,
+                    density=0.1,
+                    mass=1.0)
         self.add_entity(prey)
 
-    def step(self, action: ActType):
-
+    def step(self, action=ActType):
         obs, reward, termination, truncation, infos = super().step(action)
 
         for entity in self.entities:
-            if entity.__class__.__name__ == "Prey":
-                entity.avoid_robots_and_walls(self.get_entities_by_type('Robot'))
-                self.set_entity_velocity(entity.id, entity.velocity)
+            if isinstance(entity, Prey):
+                # 获取邻居羊群和机器人列表
+                prey = [e for e in self.entities if isinstance(e, Prey) and e != entity]
+                robots = [e for e in self.entities if isinstance(e, Robot)]
+                speed = entity.calculate_velocity(prey, robots,
+                                                  environment_bounds=[-0.5 * self.width, 0.5 * self.width,
+                                                                      -0.5 * self.height, 0.5 * self.height])
+                self.set_entity_velocity(entity.id, speed)
 
         return obs, reward, termination, truncation, infos
 

@@ -6,6 +6,9 @@ from .auto_runner_shaping import AutoRunnerShaping
 from .auto_runner_bridging import AutoRunnerBridging
 from .auto_runner_circling import AutoRunnerCircling
 from .auto_runner_encircling import AutoRunnerEncircling
+from .auto_runner_formation import AutoRunnerFormation
+from .auto_runner_herding import AutoRunnerHerding
+from .auto_runner_covering import AutoRunnerCovering
 
 __all__ = ['AutoRunnerCross',
            'AutoRunnerExplore',
@@ -14,4 +17,7 @@ __all__ = ['AutoRunnerCross',
            'AutoRunnerShaping',
            'AutoRunnerBridging',
            'AutoRunnerCircling',
-           'AutoRunnerEncircling']
+           'AutoRunnerEncircling',
+           'AutoRunnerFormation',
+           'AutoRunnerHerding',
+           'AutoRunnerCovering']

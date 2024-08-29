@@ -3,6 +3,7 @@ import os
 import queue
 import subprocess
 import threading
+import traceback
 from abc import ABC, abstractmethod
 
 import cv2
@@ -15,7 +16,6 @@ from tqdm import tqdm
 from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
 from modules.deployment.utils.manager import Manager
 from run.utils import setup_metagpt, setup_cap
-
 
 class AutoRunnerBase(ABC):
     def __init__(self, env_config_path,
@@ -218,6 +218,7 @@ class AutoRunnerBase(ABC):
         except KeyboardInterrupt:
             print("Keyboard interrupt received. Stopping all experiments.")
         except Exception as e:
+            traceback.print_exc()
             print(f"An error occurred: {e}")
         finally:
             self.stop_event.set()

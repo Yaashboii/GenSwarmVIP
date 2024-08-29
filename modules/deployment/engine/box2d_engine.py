@@ -38,7 +38,7 @@ class Box2DEngine(Engine, ABC):
         self.world = b2World(gravity=gravity)
         self.bodies: dict[int, b2Body] = {}
         self.joints: dict[tuple[int, int], b2Joint] = {}
-        self.velocity_controller = PIDController(3000, 0, 0)
+        self.velocity_controller = PIDController(30, 0, 0)
 
     def add_entity(self, entity: Entity):
         super().add_entity(entity)

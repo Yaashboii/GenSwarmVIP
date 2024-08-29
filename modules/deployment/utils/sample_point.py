@@ -9,7 +9,7 @@ def sample_point(zone_center=(0, 0), zone_shape='circle', zone_size=None, robot_
     if zone_shape == 'circle':
         if zone_size is None or len(zone_size) != 1:
             raise ValueError("For circle, size should be a list or tuple with one element: [radius].")
-        zone_radius = zone_size - 2 * robot_size
+        zone_radius = zone_size[0] - 2 * robot_size
     elif zone_shape == 'rectangle':
         if zone_size is None or len(zone_size) != 2:
             raise ValueError("For rectangle, size should be a list or tuple with two elements: [width, height].")
@@ -24,11 +24,11 @@ def sample_point(zone_center=(0, 0), zone_shape='circle', zone_size=None, robot_
         if zone_shape == 'circle':
             # Generate random points within the bounding rectangle and then filter to within the circle
             new_random_point = np.random.uniform(-zone_radius, zone_radius, size=(2,)) + center
-            valid_mask = np.linalg.norm(new_random_point - center, axis=1) <= zone_radius
+            valid_mask = np.linalg.norm(new_random_point - center) <= zone_radius
             new_random_point = new_random_point[valid_mask]
         elif zone_shape == 'rectangle':
             # Generate random points within the bounding rectangle
-            new_random_point = np.random.uniform(-1, 1, size=(2,)) * np.array([zone_width, zone_height]) + center
+            new_random_point = np.random.uniform(-0.5, 0.5, size=(2,)) * np.array([zone_width, zone_height]) + center
         else:
             raise ValueError(f"Unsupported shape: {zone_shape}")
 

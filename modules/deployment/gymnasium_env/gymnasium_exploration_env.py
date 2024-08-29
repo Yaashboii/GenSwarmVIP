@@ -33,11 +33,9 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
-
+        self.num_robots = 3
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[0.65, 0.65],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=0.05,
-                                    entities=self.entities)
+            position = np.array((-0.25, -0.25)) + 0.25 * i
             robot = Robot(robot_id=entity_id,
                           initial_position=position,
                           target_position=None,

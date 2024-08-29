@@ -46,6 +46,18 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
                 self.add_entity(robot)
                 entity_id += 1
 
+        if "count" in self.data["entities"]["obstacle"]:
+            size = self.data["entities"]["obstacle"]["size"]
+            num = self.data["entities"]["obstacle"]["count"]
+
+            for i in range(num):
+                position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+                                        robot_size=size, robot_shape='circle', min_distance=size,
+                                        entities=self.entities)
+                robot = Obstacle(entity_id, position, size)
+                self.add_entity(robot)
+                entity_id += 1
+
     def step(
             self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:

@@ -14,15 +14,8 @@ class Sheep(Prey):
                  alpha=0.1,
                  density=0.1,
                  mass=1.0):
-        super().__init__(prey_id, initial_position, size, mass=mass, density=density)
-
-        self.max_speed = max_speed
-        self.danger_zone = danger_zone  # 当离开狗这个圆半径后，就不会被狗影响速度
-        self.damping = damping
-        self.random_factor = random_factor
-        self.alpha = alpha
-        self.velocity = np.zeros(2)
-        self.filtered_velocity = np.zeros(2)
+        super().__init__(prey_id, initial_position, size, mass=mass, density=density, max_speed=max_speed,
+                         danger_zone=danger_zone, damping=damping, random_factor=random_factor, alpha=alpha)
 
     def calculate_velocity(self, flock, robots, environment_bounds):
         random_movement = np.random.randn(2) * self.random_factor  # 随机游走

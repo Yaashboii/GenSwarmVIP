@@ -1,3 +1,6 @@
+import traceback
+from traceback import TracebackException
+
 import geometry_msgs
 
 import numpy as np
@@ -101,13 +104,16 @@ class Manager:
 
     def get_char_points_callback(self, request):
         char = request.character
-        sampled_points = validate_contour_points(char)
+        try:
+            sampled_points = validate_contour_points(char)
+        except Exception as e:
+            print(f"Error occurred: {e}")
+            traceback.print_exc()
 
         response = GetCharPointsResponse()
         for point in sampled_points:
-            pt = Point(x=int(point[0]), y=int(point[1]), z=0)
+            pt = Point(x=point[1], y=point[0], z=0)
             response.points.append(pt)
-
         return response
 
     def connect_to_others_callback(self, request: ConnectEntitiesRequest):

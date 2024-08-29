@@ -57,7 +57,8 @@ def sample_contour_points(contours, num_points):
 
 
 def validate_contour_points(char, num_points=150):
-    font_path = "HanYiCuYuanJian-1.ttf"
+    from modules.utils.root import get_project_root
+    font_path = f"{get_project_root()}/assets/fonts/HanYiCuYuanJian-1.ttf"
     char_image = create_char_image(char, font_path)
     contours = draw_contours(char_image)
     sampled_points = sample_contour_points(contours, num_points)
@@ -71,12 +72,12 @@ def validate_contour_points(char, num_points=150):
     # cv2.destroyAllWindows()
     sampled_points = np.array(sampled_points)
     # remap to pygame coordinates
-    sampled_points = sampled_points / 300 * 1000
+    sampled_points = sampled_points / 300 * 5 - 2.5
     return sampled_points
 
-#
-# # Example usage:
+
+# Example usage:
 # font_path = "HanYiCuYuanJian-1.ttf"
-# character = '￥'
+# character = 'R'
 # num_points = 150  # Adjust the number of points as needed
 # validate_contour_points(character, num_points)

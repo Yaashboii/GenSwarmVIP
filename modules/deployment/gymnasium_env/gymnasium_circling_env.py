@@ -1,6 +1,6 @@
 from typing import Any, Optional, SupportsFloat, TypeVar
 
-from modules.deployment.entity import Robot
+from modules.deployment.entity import Robot, Obstacle
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
 
@@ -12,14 +12,6 @@ RenderFrame = TypeVar("RenderFrame")
 class GymnasiumCirclingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
-
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
-        self.entities = []
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
 
     def init_entities(self):
         entity_id = 0
@@ -38,11 +30,20 @@ class GymnasiumCirclingEnvironment(GymnasiumEnvironmentBase):
                           color=color)
             self.add_entity(robot)
             entity_id += 1
+        obstacle_size = self.data["entities"]["obstacle"]["size"]
+        shape = self.data["entities"]["obstacle"]["shape"]
+        color = self.data["entities"]["obstacle"]["color"]
 
-    def step(
-            self, action: ActType
-    ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
-        return super().step(action)
+        for i in range(self.num_obstacles):
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle',
+                                    zone_size=[0.6 * self.width, 0.6 * self.height],
+                                    robot_size=obstacle_size, robot_shape=shape, min_distance=obstacle_size,
+                                    entities=self.entities)
+            obstacle = Obstacle(obstacle_id=entity_id,
+                                initial_position=position,
+                                size=obstacle_size)
+            self.add_entity(obstacle)
+            entity_id += 1
 
 
 if __name__ == "__main__":

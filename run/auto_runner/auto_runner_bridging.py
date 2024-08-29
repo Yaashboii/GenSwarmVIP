@@ -1,5 +1,6 @@
 from modules.deployment.gymnasium_env import GymnasiumBridgingEnvironment
 from run.auto_runner import AutoRunnerBase
+from run.utils import calculate_line_similarity
 
 
 class AutoRunnerBridging(AutoRunnerBase):
@@ -22,8 +23,9 @@ class AutoRunnerBridging(AutoRunnerBase):
                          tolerance=tolerance,
                          env=env)
 
-    def analyze_result(self, run_result):
-        pass
+    def analyze_result(self, run_result) -> dict[str, float]:
+        line_similarity = calculate_line_similarity(run_result, target_line=((0, -2), (0, 2)))
+        return line_similarity
 
     def analyze_all_results(self, experiment_dirs=None):
         pass

@@ -13,14 +13,6 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
-        self.entities = []
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
-
     def init_entities(self):
         entity_id = 0
         target_zone = Landmark(landmark_id=entity_id,
@@ -29,7 +21,6 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
                                color='gray', )
         self.add_entity(target_zone)
         entity_id += 1
-
 
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
@@ -57,10 +48,10 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
             # position = [0,0]
             sheep = Sheep(prey_id=entity_id,
                           initial_position=position,
-                          size=sheep_size)
+                          size=sheep_size,
+                          max_speed=0.4)
             self.add_entity(sheep)
             entity_id += 1
-
 
     def step(self, action=ActType):
         obs, reward, termination, truncation, infos = super().step(action)

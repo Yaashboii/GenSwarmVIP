@@ -1,6 +1,8 @@
 import numpy as np
 from itertools import combinations
 
+from scipy.spatial import Delaunay, procrustes
+
 from run.utils import calculate_overlap_ratio
 
 
@@ -27,7 +29,7 @@ def check_collisions(data, tolerance: float = 0.1) -> dict:
             robot_position = robot_info["trajectory"][t]
             for _, obstacle_info in obstacles.items():
                 overlap_ratio = calculate_overlap_ratio(
-                    robot_position, obstacle_info["position"], robot_info["size"], obstacle_info["size"], tolerance
+                    robot_position, obstacle_info["trajectory"][0], robot_info["size"], obstacle_info["size"], tolerance
                 )
                 if overlap_ratio is not None:
                     collision_count += 1
@@ -49,13 +51,13 @@ def check_collisions(data, tolerance: float = 0.1) -> dict:
             "collision_severity_sum": collision_severity_sum}
 
 
-def evaluate_target_achievement(data, tolerance=0.1) -> tuple:
+def evaluate_target_achievement(data, tolerance=0.1) -> dict:
     """
     Evaluate the performance of entities in achieving their targets.
 
     :param data: dictionary containing information about entities, including their trajectories and targets.
     :param tolerance: the distance threshold within which a target is considered achieved.
-    :return: A tuple containing:
+    :return: A dict containing:
         - all_targets_achieved (bool): Whether all targets were achieved by all entities.
         - target_achievement_ratio (float): The ratio of entities that achieved their targets.
         - average_distance_ratio (float): The average ratio of final distance to initial distance for all entities.
@@ -99,7 +101,12 @@ def evaluate_target_achievement(data, tolerance=0.1) -> tuple:
     average_distance_ratio = total_distance_ratio / num_targets if num_targets > 0 else 0
     average_steps_ratio = total_steps_ratio / achieved_targets if achieved_targets > 0 else 'inf'
 
-    return all_targets_achieved, target_achievement_ratio, average_distance_ratio, average_steps_ratio
+    return {
+        "all_targets_achieved": all_targets_achieved,
+        "target_achievement_ratio": target_achievement_ratio,
+        "average_distance_ratio": average_distance_ratio,
+        "average_steps_ratio": average_steps_ratio
+    }
 
 
 def evaluate_landmark_visits(data) -> tuple:
@@ -370,4 +377,132 @@ def evaluate_trajectory_similarity(data) -> dict:
         "variance_dtw_distance": variance_dtw_distance,
         "max_dtw_distance": max_dtw_distance,
         "min_dtw_distance": min_dtw_distance
+    }
+
+
+def evaluate_shape_similarity(data, target_shape: list) -> dict:
+    """
+    Evaluate the similarity between the robots' final positions and a specified shape using both
+    traditional metrics and Procrustes analysis.
+
+    :param data: dictionary containing information about entities, including their trajectories.
+    :param target_shape: a list of tuples representing the vertices of the target shape in order.
+    :return: A dictionary containing:
+        - mean_distance_to_shape (float): The mean distance of each robot's final position to the nearest point on the target shape.
+        - variance_distance_to_shape (float): The variance of the distances to the nearest point on the target shape.
+        - shape_coverage_ratio (float): The ratio of the number of robots' final positions that fall within the shape's boundaries to the total number of robots.
+        - procrustes_distance (float): A measure of dissimilarity between the robot positions and the target shape using Procrustes analysis.
+    """
+    robot_positions_final = []
+
+    for entity_id, info in data.items():
+        if info["type"] == "Robot":
+            robot_positions_final.append(info["trajectory"][-1])
+
+    robot_positions_final = np.array(robot_positions_final)
+
+    if len(robot_positions_final) == 0:
+        raise ValueError("No robots found in the data.")
+
+    # Traditional Metrics Calculation
+    target_shape = np.array(target_shape)
+    shape_delaunay = Delaunay(target_shape)
+
+    distances_to_shape = []
+    within_shape_count = 0
+
+    for position in robot_positions_final:
+        # Calculate the distance to the nearest point on the target shape
+        min_distance = np.min([np.linalg.norm(position - vertex) for vertex in target_shape])
+        distances_to_shape.append(min_distance)
+
+        # Check if the position is inside the shape's convex hull using Delaunay
+        if shape_delaunay.find_simplex(position) >= 0:
+            within_shape_count += 1
+
+    mean_distance_to_shape = np.mean(distances_to_shape)
+    variance_distance_to_shape = np.var(distances_to_shape)
+    shape_coverage_ratio = within_shape_count / len(robot_positions_final) if len(robot_positions_final) > 0 else 0
+
+    # Procrustes Analysis
+    if len(robot_positions_final) != len(target_shape):
+        raise ValueError(
+            "The number of robot positions and the target shape points must be equal for Procrustes analysis.")
+
+    mtx1, mtx2, disparity = procrustes(target_shape, robot_positions_final)
+
+    return {
+        "mean_distance_to_shape": mean_distance_to_shape,
+        "variance_distance_to_shape": variance_distance_to_shape,
+        "shape_coverage_ratio": shape_coverage_ratio,
+        "procrustes_distance": disparity
+    }
+
+
+def evaluate_encircling(data, target_radius: float = 0.5, tolerance: float = 0.1) -> dict:
+    """
+    Evaluate the task completion by calculating the mean and variance of the robots' final distances to the prey,
+    and the number of steps taken to get within a specified range of the target distance.
+
+    :param data: dictionary containing information about entities, including their trajectories.
+    :param target_radius: the target distance from the prey's position (default is 0.5).
+    :param tolerance: the distance tolerance within which the target is considered achieved.
+    :return: A dictionary containing:
+        - mean_distance_error (float): The mean absolute error of the robots' final distance to the target radius.
+        - variance_distance_error (float): The variance of the distance errors.
+        - initial_distance_error (float): The initial mean distance to the target radius.
+        - steps_to_target_range (int): The number of steps taken until the mean distance first falls within the target range.
+    """
+    robot_positions_initial = []
+    robot_positions_final = []
+    initial_distances = []
+    final_distances = []
+    steps_to_target_range = float('inf')
+    within_tolerance_found = False
+
+    prey_trajectory = None
+
+    # First pass: find the prey trajectory
+    for entity_id, info in data.items():
+        if info["type"] == "Prey":
+            prey_trajectory = np.array(info["trajectory"])
+            break
+
+    if prey_trajectory is None:
+        raise ValueError("Prey trajectory not found in data.")
+
+    # Second pass: process robot data
+    for entity_id, info in data.items():
+        if info["type"] == "Robot":
+            trajectory = np.array(info["trajectory"])
+            initial_distances.append(np.linalg.norm(trajectory[0] - prey_trajectory[0]))
+            robot_positions_initial.append(trajectory[0])
+            robot_positions_final.append(trajectory[-1])
+
+    if prey_trajectory is None:
+        raise ValueError("Prey trajectory not found in data.")
+
+    final_distances = []
+    mean_distances = []
+
+    for t in range(len(prey_trajectory)):
+        distances = [np.linalg.norm(robot_pos - prey_trajectory[t]) for robot_pos in robot_positions_final]
+        final_distances.append(distances)
+        mean_distances.append(np.mean(distances))
+
+        if not within_tolerance_found:
+            if abs(mean_distances[-1] - target_radius) <= tolerance:
+                steps_to_target_range = t + 1
+                within_tolerance_found = True
+
+    mean_distance_error = np.mean([abs(distance - target_radius) for distance in mean_distances])
+    variance_distance_error = np.var([abs(distance - target_radius) for distance in mean_distances])
+
+    initial_mean_distance = np.mean(initial_distances)
+
+    return {
+        "mean_distance_error": mean_distance_error,
+        "variance_distance_error": variance_distance_error,
+        "initial_distance_error": abs(initial_mean_distance - target_radius),
+        "steps_to_target_range": steps_to_target_range if within_tolerance_found else 'inf'
     }

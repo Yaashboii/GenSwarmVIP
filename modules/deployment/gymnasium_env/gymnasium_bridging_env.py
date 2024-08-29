@@ -14,13 +14,6 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
-        self.entities = []
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
 
     def init_entities(self):
         range_a = Landmark(landmark_id=0,
@@ -40,7 +33,7 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, 0.6*self.height],
                                     robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
                                     entities=self.entities)
             robot = Robot(entity_id, position, robot_size, color=color)
@@ -55,7 +48,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumBridgingEnvironment("../../../config/env_config.json")
+    env = GymnasiumBridgingEnvironment("../../../config/env/bridging_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

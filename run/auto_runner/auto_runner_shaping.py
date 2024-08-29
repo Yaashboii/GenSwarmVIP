@@ -1,5 +1,6 @@
 from modules.deployment.gymnasium_env import GymnasiumShapingEnvironment
 from run.auto_runner import AutoRunnerBase
+from run.utils import evaluate_shape_similarity, check_collisions
 
 
 class AutoRunnerShaping(AutoRunnerBase):
@@ -22,8 +23,13 @@ class AutoRunnerShaping(AutoRunnerBase):
                          tolerance=tolerance,
                          env=env)
 
-    def analyze_result(self, run_result):
-        pass
+    def analyze_result(self, run_result) -> dict[str, float]:
+        from modules.deployment.utils.char_points_generate import validate_contour_points
+        target_shape = validate_contour_points(char='R')
+        target_achievement = evaluate_shape_similarity(run_result, target_shape)
+        collision = check_collisions(run_result)
+        merged_dict = target_achievement | collision
+        return merged_dict
 
     def analyze_all_results(self, experiment_dirs=None):
         pass

@@ -3,7 +3,6 @@ import threading
 import rospy
 from code_llm.srv import GetTargetPositions, GetCharPoints, GetCharPointsRequest
 
-
 def get_target_positions():
     rospy.wait_for_service('/get_target_positions')
     try:

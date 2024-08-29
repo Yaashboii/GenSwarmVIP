@@ -8,17 +8,11 @@ ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
 
 
-class GymnasiumMoveFormationEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumFormationEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
-        self.entities = []
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
+
 
     def init_entities(self):
         entity_id = 0
@@ -61,7 +55,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumMoveFormationEnvironment("../../../config/env_config.json")
+    env = GymnasiumFormationEnvironment("../../../config/env_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

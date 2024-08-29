@@ -172,6 +172,7 @@ class RobotApi:
             "flocking": ['get_surrounding_obstacles_info'],
             "herding": ['get_sheep_positions', 'get_surrounding_obstacles_info'],
             "shaping": ['get_target_formation_points'],
+            "formation": ['get_surrounding_obstacles_info'],
             "transportation": ['pick_up_object',
                                'put_down_object',
                                'get_object_to_transport_info'
