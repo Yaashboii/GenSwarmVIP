@@ -33,10 +33,12 @@ tasks = {
 
     'encircling': """The robots need to surround the target prey by evenly distributing themselves along a circle with a radius of 0.5, centered on the prey. They will adjust their positions in real-time based on the movement of the prey to achieve coordinated encirclement. During this process, the robots must avoid collisions with each other and with obstacles, maintaining a distance of at least 0.3 meters whenever possible.""",
 
-    "exploration": "In a square area within the range of -2.5 < x, y < 2.5, a team of robots needs to collaborate on exploration. The area is divided into 25 sub-areas, each with a side length of 0.5 meters. Each robot is assigned a unique specific area (comprising multiple consecutive sub-areas) and utilizes a partition coverage strategy for exploration. The robots use serpentine or spiral paths to efficiently cover their assigned areas, ensuring no omissions or repetitions. The center point of each sub-area is calculated based on its number, arranged from left to right and bottom to top. When a robot moves within 0.1 meters of the center point, the sub-area is considered to have been explored.",
+    "exploration": "The robots need to divide the tasks and explore all the unexplored areas. Each robot is assigned specific target areas to ensure that all areas are explored as quickly as possible.",
 
-    'formation': """
-The robots need to move in formation along a circular trajectory with a radius of 1, centered at (0,0), at a speed of 0.2 meters per second. During the formation movement, the robots form a circular formation with a radius of 0.5 centered on the target trajectory point. While maintaining this formation, the robots continue their movement. If obstacles are encountered, the robots must maintain a distance of at least 0.1 meters from the obstacles, avoiding them before resuming their formation.
+    'formation_move': """
+    Firstly,you should evenly distribute with other robots in space around a circle with a center at (50, 500) and a radius of 30. 
+    After all robots are evenly distributed(within 10m of the target position), the robots should move towards the target position (900, 500),during the movement,robots should maintain circular formation with a radius of 30m.
+    maintain a distance of 50 meters from obstacles.
     """
 
 }

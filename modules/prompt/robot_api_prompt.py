@@ -142,6 +142,14 @@ def connect_to_another_robot(target_id):
     - bool: True if the connection is successful, False means the connection is not possible.
     '''
     
+def get_unexplored_area():
+    '''
+    Description: Get the unexplored area in the environment.
+    Returns:
+    - list: A list of dictionaries, each containing the id and position of an unexplored area.
+        - id (int): The unique ID of the unexplored area.
+        - position (numpy.ndarray): The position of the unexplored area.
+    '''
 
 """.strip()
 
@@ -168,7 +176,7 @@ class RobotApi:
             "covering": [],
             "crossing": ['get_surrounding_obstacles_info'],
             "encircling": ["get_prey_position", 'get_surrounding_obstacles_info'],
-            "exploration": [],
+            "exploration": ['get_unexplored_area'],
             "flocking": ['get_surrounding_obstacles_info'],
             "herding": ['get_sheep_positions', 'get_surrounding_obstacles_info'],
             "shaping": ['get_target_formation_points'],

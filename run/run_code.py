@@ -41,8 +41,8 @@ if __name__ == "__main__":
                           tolerance=0.15)
 
     # 人工复核，哪些任务需要重新跑，写在下面
-    # exp_list = ['2024-08-28_09-31-30', ]
-    exp_list = None
+    exp_list = ['2024-08-30_10-38-12', ]
+    # exp_list = None
     # exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))
 
     runner.run(exp_list=exp_list)

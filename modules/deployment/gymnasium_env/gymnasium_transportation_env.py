@@ -12,13 +12,7 @@ class GymnasiumTransportationEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        super().reset(seed=seed, options=options)
-        self.entities = []
-        self.init_entities()
-        obs = self.get_observation("array")
-        infos = self.get_observation("dict")
-        return obs, infos
+
 
     def init_entities(self):
         object = PushableObject(object_id=0,
@@ -60,7 +54,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumTransportationEnvironment("../../../config/env_config.json")
+    env = GymnasiumTransportationEnvironment("../../../config/env/transportation_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

@@ -71,7 +71,10 @@ class RobotNode:
             elif obj.type == "Landmark":
                 self.target_position = np.array([obj.position.x, obj.position.y])
                 if obj.color == "gray":
-                    self.unexplored_area.append(np.array([obj.position.x, obj.position.y]))
+                    self.unexplored_area.append({
+                        "id": len(self.unexplored_area),
+                        "position": np.array([obj.position.x, obj.position.y])
+                    })
 
             elif obj.type == "PushableObject":
                 self.moveable_objects.append({"position": np.array([obj.position.x, obj.position.y]),
@@ -135,6 +138,9 @@ class RobotNode:
         except rospy.ServiceException as e:
             print(f"Service call failed: {e}")
             return False
+
+    def get_all_target_areas(self):
+        return self.unexplored_area
 
     def get_self_position(self):
         return self.robot_info["position"]
@@ -263,3 +269,7 @@ def put_down_object(object_id):
 
 def connect_to_another_robot(target_id):
     return get_current_robot_node().connect_to_robot(target_id)
+
+
+def get_unexplored_area():
+    return get_current_robot_node().get_all_target_areas()
