@@ -95,15 +95,12 @@ class QuadTreeEngine(Engine):
 
         for entity in self._entities.values():
             if entity.moveable:
+                # Update position based on velocity and delta_time
                 entity.position += entity.velocity * delta_time
                 # leave 0.05 margin to avoid entities getting stuck at the edge
                 entity.position = np.clip(entity.position, -0.45 * self.world_size, 0.45 * self.world_size)
                 self.set_position(entity.id, entity.position)
-
-        # Iteratively resolve overlaps
-        # for _ in range(10):  # Maximum 10 iterations
-        #     if not self._resolve_overlaps():
-        #         break
+        # Resolve overlaps
 
     def _resolve_overlaps(self):
         """
@@ -189,9 +186,19 @@ class QuadTreeEngine(Engine):
         if velocity_along_normal > 0:
             return np.zeros_like(entity1.velocity), np.zeros_like(entity2.velocity)
 
-        impulse = (2 * velocity_along_normal) / (entity1.mass + entity2.mass)
-        dv1 = -impulse * entity2.mass * collision_normal
-        dv2 = impulse * entity1.mass * collision_normal
+        if entity1.moveable and entity2.moveable:
+            impulse = (2 * velocity_along_normal) / (entity1.mass + entity2.mass)
+            dv1 = -impulse * entity2.mass * collision_normal
+            dv2 = impulse * entity1.mass * collision_normal
+        elif entity1.moveable and not entity2.moveable:
+            dv1 = -2 * velocity_along_normal * collision_normal
+            dv2 = np.zeros_like(entity2.velocity)
+        elif not entity1.moveable and entity2.moveable:
+            dv1 = np.zeros_like(entity1.velocity)
+            dv2 = 2 * velocity_along_normal * collision_normal
+        else:
+            dv1 = np.zeros_like(entity1.velocity)
+            dv2 = np.zeros_like(entity2.velocity)
 
         return dv1, dv2
 

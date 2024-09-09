@@ -17,6 +17,7 @@ from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
 from modules.deployment.utils.manager import Manager
 from run.utils import setup_metagpt, setup_cap
 
+
 class AutoRunnerBase(ABC):
     def __init__(self, env_config_path,
                  workspace_path,
@@ -44,6 +45,8 @@ class AutoRunnerBase(ABC):
     def get_experiment_directories(self):
         directories = []
         for item in os.listdir(f"../workspace/{self.experiment_path}"):
+            if item == 'pic':
+                continue
             item_path = os.path.join(f"../workspace/{self.experiment_path}", item)
             if os.path.isdir(item_path):
                 if self.run_mode == 'continue':
@@ -270,9 +273,65 @@ class AutoRunnerBase(ABC):
         """
         raise NotImplementedError("analyze_result method must be implemented in the subclass")
 
-    @abstractmethod
     def analyze_all_results(self, experiment_dirs=None):
+        if not experiment_dirs:
+            experiment_dirs = sorted(self.get_experiment_directories())
+
+        exp_data = {experiment: {} for experiment in experiment_dirs}
+        all_metric_names = []
+
+        for experiment in experiment_dirs:
+            result_path = os.path.join(f"../workspace/{self.experiment_path}", experiment, 'result.json')
+            if os.path.exists(result_path):
+                with open(result_path, 'r') as f:
+                    result_data = json.load(f)
+                    analysis = result_data.get('analysis', {})
+                    exp_data[experiment] = analysis
+
+                    # Collect all possible metric keys from analysis
+                    all_metric_names = list(analysis.keys())
+
+        # Calculate and plot average metrics
+        mean_metric_value = {metric: np.mean([exp_data[exp].get(metric, 0) for exp in exp_data.keys()]) for metric in
+                             all_metric_names}
+        for metric in all_metric_names:
+            self.plot_and_print_results(
+                data=[exp_data[exp].get(metric, 0) for exp in exp_data.keys()],
+                labels=exp_data.keys(),
+                ylabel=metric,
+                title=f"Experiment Outcomes in {metric}",
+                colors=[self.get_color(i, len(exp_data)) for i in range(len(exp_data))],
+                save_filename=f'{metric}_metric.png',
+                rotation=True
+            )
+
+        # Plot summary of metrics
+        self.plot_summary(mean_metric_value)
+
+    def plot_summary(self, exp_data):
         """
-        Analyze all the results of the experiments and show the metrics.
+        This method plots all the metrics on a single graph, rotating x-axis labels by 90 degrees,
+        and uses plot_and_print_results to handle the plotting.
         """
-        raise NotImplementedError("analyze_all_results method must be implemented in the subclass")
+        # Prepare data and labels from exp_data
+        labels = list(exp_data.keys())  # Names of the metrics
+        data = list(exp_data.values())  # Average values of the metrics
+
+        # Since there's only one set of data (the averages), we don't need multiple colors
+        colors = ['blue']  # You can choose a single color for all bars
+
+        # Call plot_and_print_results to plot all averages in one graph
+        self.plot_and_print_results(
+            data=data,
+            labels=labels,
+            ylabel='Average Value',
+            title='Summary of All Metric Averages',
+            colors=colors,  # Single color for all metrics
+            save_filename='summary_metrics.png',
+            rotation=False  # Rotate the x-axis labels 90 degrees for readability
+        )
+
+    @staticmethod
+    def get_color(index, total):
+        cmap = plt.get_cmap('viridis')
+        return cmap(index / total)

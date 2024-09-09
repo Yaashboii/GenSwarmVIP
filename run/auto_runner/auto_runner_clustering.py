@@ -8,7 +8,7 @@ from run.auto_runner import AutoRunnerBase
 from run.utils import evaluate_trajectory_similarity, evaluate_trajectory_pattern, check_collisions
 
 
-class AutoRunnerFlocking(AutoRunnerBase):
+class AutoRunnerClustering(AutoRunnerBase):
     def __init__(self, env_config_path,
                  workspace_path,
                  experiment_duration,
@@ -34,3 +34,6 @@ class AutoRunnerFlocking(AutoRunnerBase):
         collision = check_collisions(run_result)
         merged_dict = terminal_distance | similarity | collision
         return merged_dict
+
+    def analyze_all_results(self, experiment_dirs=None):
+        pass

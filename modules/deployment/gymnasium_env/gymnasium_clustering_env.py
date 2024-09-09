@@ -1,6 +1,7 @@
 from typing import Any, SupportsFloat, TypeVar, Optional
 
-from modules.deployment.engine import QuadTreeEngine, PyBullet2DEngine
+import numpy as np
+
 from modules.deployment.entity import Landmark, Leader, Obstacle, PushableObject, Robot
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
@@ -9,14 +10,9 @@ ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
 
 
-class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumClusteringEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str = None):
         super().__init__(data_file)
-        self.engine = QuadTreeEngine(world_size=(self.width, self.height),
-                                     alpha=0.5,
-                                     damping=0.75,
-                                     collision_check=True,
-                                     joint_constraint=False)
 
     def init_entities(self):
 
@@ -30,7 +26,14 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
                 entity_id += 1
 
         entity_id = 0
-
+        for i in range(4):
+            initial_position = np.array([-1.25, -1.25]) + np.array([i % 2, i // 2]) * 2.5
+            target_zone = Landmark(landmark_id=entity_id,
+                                   initial_position=initial_position,
+                                   size=np.array((1, 1)),
+                                   color='blue', )
+            self.add_entity(target_zone)
+            entity_id += 1
         add_specified_entities("leader", Leader, "red")
         add_specified_entities("obstacle", Obstacle)
         add_specified_entities("landmark", Landmark)
@@ -57,14 +60,12 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
             num = self.data["entities"]["obstacle"]["count"]
 
             for i in range(num):
-                position = sample_point(zone_center=[0, 0], zone_shape='rectangle',
-                                        zone_size=[0.8 * self.width, 0.8 * self.height],
+                position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
                                         robot_size=size, robot_shape='circle', min_distance=size,
                                         entities=self.entities)
                 robot = Obstacle(entity_id, position, size)
                 self.add_entity(robot)
                 entity_id += 1
-
 
     def step(
             self, action: ActType
@@ -80,7 +81,7 @@ if __name__ == '__main__':
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumFlockingEnvironment("../../../config/env/flocking_config.json")
+    env = GymnasiumClusteringEnvironment("../../../config/env/clustering_config.json")
     obs, infos = env.reset()
     print(env.movable_agents)
     manager = Manager(env)

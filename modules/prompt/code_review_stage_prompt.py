@@ -71,6 +71,10 @@ These are the basic descriptions of the environment.
 {function_content}
 ```
 
+## These are the constraints that the function should satisfy:
+{constraints}
+
+
 ## The output TEXT format is as follows:
 
 **Reasoning**: think step by step, whether the to be checked function has any bugs or incorrect calls.
@@ -84,9 +88,11 @@ def {function_name}(...):
 ## Notes:
 Your output should satisfy the following notes:
 - Carefully check if there are any bugs in this function, or if there are any logical inconsistencies.
+- Check if the constraints are met.
 - Check if the call to each sub-function is correct.
 - Check that all defined variables are used.
 - Strictly adhere to the specified format.
+- During the Reasoning section, '''python''' is not allowed. You can only use '''python''' in the Modified function section. You can directly write the code in the Reasoning section.
 - The modified function section should be filled in only when the function has bugs or incorrect calls. Otherwise, this section should not appear.
 - If the function needs to be rewritten, please ensure that the rewritten function name is {function_name}.
 - If you need to rewrite a function, please output the complete and correct function, and only modify the parts that are incorrect.

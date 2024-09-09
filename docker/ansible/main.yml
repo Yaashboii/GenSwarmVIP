@@ -5,7 +5,7 @@
   become_user: root
   vars:
     ansible_become_pass: 123
-    stage: 1
+    stage: 0
   tasks:
     - include_tasks: prepare.yml
       when: stage == 0

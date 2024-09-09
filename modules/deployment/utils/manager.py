@@ -117,9 +117,14 @@ class Manager:
         return response
 
     def connect_to_others_callback(self, request: ConnectEntitiesRequest):
-        response = ConnectEntitiesResponse()
-        result = self.env.connect_to(entity1_id=request.self_id, entity2_id=request.target_id)
-        response.success = result
+        print(f"Connecting {request.self_id} to {request.target_id}")
+        try:
+            response = ConnectEntitiesResponse()
+            result = self.env.connect_to(entity1_id=request.self_id, entity2_id=request.target_id)
+            response.success = result
+        except Exception as e:
+            traceback.print_exc()
+        print(f"Connection result: {result}")
         return response
 
     def disconnect_from_others_callback(self, request: ConnectEntitiesRequest):

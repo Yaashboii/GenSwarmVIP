@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumCoveringEnvironment("../../../config/env_config.json")
+    env = GymnasiumCoveringEnvironment("../../../config/env/clustering_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

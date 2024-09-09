@@ -178,6 +178,7 @@ class RobotApi:
             "encircling": ["get_prey_position", 'get_surrounding_obstacles_info'],
             "exploration": ['get_unexplored_area'],
             "flocking": ['get_surrounding_obstacles_info'],
+            "clustering": ['get_surrounding_obstacles_info'],
             "herding": ['get_sheep_positions', 'get_surrounding_obstacles_info'],
             "shaping": ['get_target_formation_points'],
             "formation": ['get_surrounding_obstacles_info'],

@@ -372,9 +372,11 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         entity1 = self.get_entity_by_id(entity1_id)
         entity2 = self.get_entity_by_id(entity2_id)
         distance = np.linalg.norm(entity1.position - entity2.position)
+        print(f"Distance between entities {entity1_id} and {entity2_id}: {distance}")
         if distance > 1.1 * (entity1.size + entity2.size):
             return False
         self.engine.add_joint(entity1_id, entity2_id, entity1.size + entity2.size)
+        print(f"Connected entities {entity1_id} and {entity2_id}")
         return True
 
     def disconnect_entities(self, entity1_id, entity2_id):

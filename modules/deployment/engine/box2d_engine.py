@@ -38,7 +38,7 @@ class Box2DEngine(Engine, ABC):
         self.world = b2World(gravity=gravity)
         self.bodies: dict[int, b2Body] = {}
         self.joints: dict[tuple[int, int], b2Joint] = {}
-        self.velocity_controller = PIDController(30, 0, 0)
+        self.velocity_controller = PIDController(0.005, 0, 0)
 
     def add_entity(self, entity: Entity):
         super().add_entity(entity)
@@ -58,7 +58,7 @@ class Box2DEngine(Engine, ABC):
             'shape': shape,
             'density': entity.density,
             'isSensor': not entity.collision,
-            'friction': 0.0,
+            'friction': 1.0,
             'restitution': 0.0,
         }
 
@@ -133,7 +133,10 @@ class Box2DEngine(Engine, ABC):
 
     def step(self, delta_time: float):
         self.world.Step(delta_time, 6, 2)
-        return self.get_entities_state()
+        for entity_id in self._entities.keys():
+            position, velocity = self.get_entity_state(entity_id)
+            self.set_position(entity_id, position)
+            self.set_velocity(entity_id, velocity)
 
     def apply_force(self, entity_id: int, force: np.ndarray):
         body = self.bodies.get(entity_id)

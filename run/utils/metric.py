@@ -344,8 +344,6 @@ def evaluate_trajectory_similarity(data) -> dict:
     :return: A dictionary containing:
         - mean_dtw_distance (float): The mean DTW distance between all pairs of robot trajectories.
         - variance_dtw_distance (float): The variance of DTW distances between all pairs of robot trajectories.
-        - max_dtw_distance (float): The maximum DTW distance between any pair of robot trajectories.
-        - min_dtw_distance (float): The minimum DTW distance between any pair of robot trajectories.
     """
     from fastdtw import fastdtw
     from scipy.spatial.distance import euclidean
@@ -369,14 +367,11 @@ def evaluate_trajectory_similarity(data) -> dict:
 
     mean_dtw_distance = np.mean(dtw_distances)
     variance_dtw_distance = np.var(dtw_distances)
-    max_dtw_distance = np.max(dtw_distances)
-    min_dtw_distance = np.min(dtw_distances)
+
 
     return {
         "mean_dtw_distance": mean_dtw_distance,
         "variance_dtw_distance": variance_dtw_distance,
-        "max_dtw_distance": max_dtw_distance,
-        "min_dtw_distance": min_dtw_distance
     }
 
 

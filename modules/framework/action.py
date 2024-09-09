@@ -54,6 +54,7 @@ class ActionNode(BaseNode):
         super().__init__()
         self.__llm = llm if llm else GPT()
         self.prompt = None
+        self.resp_template = None
         self._next_text = next_text  # label text rendered in mermaid graph
         self._node_name = node_name  # to distinguish objects of same class type
         self.error_handler = None  # this is a chain of handlers, see handler.py
@@ -109,6 +110,17 @@ class ActionNode(BaseNode):
 
     async def _process_response(self, content: str) -> str:
         return content
+
+    async def _format_response(self, content: str) -> str:
+        self.format_prompt = f"""
+Organize the following text into a specific format for output.
+Text to be organized:
+{content}
+Output format:
+{self.resp_template}
+"""
+        formatted_resp = await self.__llm.ask(self.format_prompt)
+        return formatted_resp
 
 
 class AsyncNode(ActionNode):

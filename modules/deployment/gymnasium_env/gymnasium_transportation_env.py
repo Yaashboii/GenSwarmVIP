@@ -1,5 +1,6 @@
 from typing import Optional, TypeVar
 
+from modules.deployment.engine import QuadTreeEngine, Box2DEngine,PyBullet2DEngine
 from modules.deployment.entity import Robot, PushableObject, Landmark
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
@@ -11,23 +12,27 @@ ActType = TypeVar("ActType")
 class GymnasiumTransportationEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
-
-
+        self.engine = QuadTreeEngine(world_size=(self.width, self.height),
+                                     alpha=0.5,
+                                     damping=0.75,
+                                     collision_check=True, joint_constraint=True)
 
     def init_entities(self):
-        object = PushableObject(object_id=0,
+        target_position = np.array((1, 2))
+        zone_size = 1
+        target_zone = Landmark(landmark_id=0,
+                               initial_position=target_position - zone_size * 0.5,
+                               size=np.array((zone_size, zone_size)),
+                               color='gray', )
+        self.add_entity(target_zone)
+
+        object = PushableObject(object_id=1,
                                 initial_position=(0, 0),
                                 size=0.3,
                                 color='red')
-        object.density = 0.5
-        object.target_position = (1, 2)
+        object.density = 0.1
+        object.target_position = target_position
         self.add_entity(object)
-
-        target_zone = Landmark(landmark_id=1,
-                               initial_position=object.target_position,
-                               size=np.array((1, 1)),
-                               color='gray', )
-        self.add_entity(target_zone)
 
         entity_id = 2
         robot_size = self.data["entities"]["robot"]["size"]
@@ -65,9 +70,9 @@ if __name__ == "__main__":
     frame_count = 0  # 初始化帧数计数器
 
     while True:
-        # action = manager.robotID_velocity
-        action = {}
-        # manager.clear_velocity()
+        action = manager.robotID_velocity
+        # action = {}
+        manager.clear_velocity()
         obs, reward, termination, truncation, infos = env.step(action=action)
         env.render()
         manager.publish_observations(infos)

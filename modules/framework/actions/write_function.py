@@ -6,8 +6,9 @@ from modules.prompt import (
     WRITE_FUNCTION_PROMPT_TEMPLATE,
     TASK_DES,
     ENV_DES,
-    robot_api,
+    robot_api, ROBOT_API,
 )
+from modules.prompt.robot_api_prompt import RobotApi
 
 
 class WriteFunction(ActionNode):
@@ -27,7 +28,7 @@ class WriteFunction(ActionNode):
         self.prompt = WRITE_FUNCTION_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             env_des=ENV_DES,
-            robot_api=robot_api.get_prompt(),
+            robot_api=ROBOT_API,
             function_content=self._function._definition,
             constraints=self._constraint_text,
             other_functions=self._other_functions_str,

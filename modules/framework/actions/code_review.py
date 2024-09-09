@@ -1,6 +1,7 @@
 from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.code import FunctionNode, FunctionTree, State
+from modules.framework.constraint import ConstraintPool
 from modules.framework.parser import SingleFunctionParser, parse_text
 from modules.prompt import (
     HIGH_LEVEL_FUNCTION_REVIEW,
@@ -17,15 +18,21 @@ class CodeReview(ActionNode):
         self._function_pool = FunctionTree()
 
     def _build_prompt(self):
+        constraint_pool: ConstraintPool = ConstraintPool()
+
         other_functions: list[FunctionNode] = self._function_pool.filtered_functions(
             self._function
         )
+
         other_functions_str = "\n\n".join([f.function_body for f in other_functions])
         self.prompt = HIGH_LEVEL_FUNCTION_REVIEW.format(
             task_des=TASK_DES,
             robot_api=ROBOT_API,
             env_des=ENV_DES,
             function_name=self._function._name,
+            constraints=constraint_pool.filtered_constraints(
+                related_constraints=self._function.connections
+            ),
             other_functions=other_functions_str,
             function_content=self._function.content,
         )
@@ -43,12 +50,6 @@ class CodeReview(ActionNode):
             parser.check_function_name(desired_function_name)
             self._function_pool.update_from_parser(parser.imports, parser.function_dict)
             self._function_pool.save_code([desired_function_name])
-            # # TODO,add bug fix mechanism for such cases,rather than just raising exception to trigger retry
-            # if errors:
-            #     logger.log(
-            #         f"High Level Function Review Failed: Function {desired_function_name} has syntax error: {errors}",
-            #         "error")
-            #     raise Exception
             return code
         except ValueError as e:
             logger.log(f"No function detected in the response: {e}", "warning")
