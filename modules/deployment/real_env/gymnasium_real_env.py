@@ -9,7 +9,6 @@ class GymnasiumRealEnvironment(GymnasiumEnvironmentBase):
         super().__init__(data_file=data_file)
         self.engine = OmniEngine()
 
-
     def init_entities(self):
         def add_specified_entities(entity_type, entity_class, color=None):
             for entity_data in self.data["entities"][entity_type]["specified"]:
@@ -23,5 +22,5 @@ class GymnasiumRealEnvironment(GymnasiumEnvironmentBase):
         add_specified_entities("leader", Leader, "red")
         add_specified_entities("obstacle", Obstacle)
         add_specified_entities("landmark", Landmark)
-        add_specified_entities("num_pushable_object", PushableObject)
+        add_specified_entities("pushable_object", PushableObject)
         add_specified_entities("robot", Robot, "green")

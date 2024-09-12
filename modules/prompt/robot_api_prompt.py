@@ -151,6 +151,13 @@ def get_unexplored_area():
         - position (numpy.ndarray): The position of the unexplored area.
     '''
 
+def get_quadrant_target_position():
+    '''
+    Description: Get the target position for the robot to reach in the quadrant.
+    Returns:
+    - dict: A dictionary where the keys are integers representing quadrant indices (1, 2, 3, 4) and the values are numpy arrays (np.array) containing two elements, which represent the target position in 2D coordinates (x, y) for the robot to reach within the corresponding quadrant.
+    '''
+
 """.strip()
 
 
@@ -178,7 +185,7 @@ class RobotApi:
             "encircling": ["get_prey_position", 'get_surrounding_obstacles_info'],
             "exploration": ['get_unexplored_area'],
             "flocking": ['get_surrounding_obstacles_info'],
-            "clustering": ['get_surrounding_obstacles_info'],
+            "clustering": ['get_surrounding_obstacles_info', 'get_quadrant_target_position'],
             "herding": ['get_sheep_positions', 'get_surrounding_obstacles_info'],
             "shaping": ['get_target_formation_points'],
             "formation": ['get_surrounding_obstacles_info'],
@@ -186,6 +193,8 @@ class RobotApi:
                                'put_down_object',
                                'get_object_to_transport_info'
                                ],
+            "pursuing": ['get_prey_position', 'get_surrounding_obstacles_info'],
+
         }
 
     def get_prompt(self, task_name: str = None) -> str:

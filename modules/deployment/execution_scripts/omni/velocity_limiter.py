@@ -11,11 +11,11 @@ class VelocityLimiterNode:
         # Parameters from roslaunch or default values
         self.max_linear_speed = rospy.get_param('~max_linear_speed', 0.2)  # Default max linear speed
         self.publish_rate = rospy.get_param('~publish_rate', 10.0)  # Publish rate in Hz
-        self.time = rospy.get_param('~time', 15.0)
+        self.time = rospy.get_param('~time', 200.0)
         self.vel_cmd_pub = rospy.Publisher('/robot/velcmd', Twist, queue_size=10)
         self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
 
-        self.timer = rospy.Timer(rospy.Duration(15.0), self.timer_callback)
+        self.timer = rospy.Timer(rospy.Duration(200.0), self.timer_callback)
         self.rate = rospy.Rate(self.publish_rate)
 
         rospy.spin()

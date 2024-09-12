@@ -7,13 +7,12 @@ from modules.deployment.entity import Leader, Obstacle, Robot
 from .gymnasium_real_env import GymnasiumRealEnvironment
 
 
-
 class RealCrossEnvironment(GymnasiumRealEnvironment):
     def __init__(self,
                  data_file: str = None,
                  engine_type='OmniEngine',
                  output_file: str = "output.json"):
-        super().__init__(data_file=data_file, engine_type=engine_type)
+        super().__init__(data_file=data_file)
         self.output_file = output_file
         self.init_entities()
 

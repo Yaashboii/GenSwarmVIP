@@ -26,6 +26,7 @@ class Entity:
         self.__acceleration: np.ndarray = np.array([0.0, 0.0], dtype=float)
         self.__velocity: np.ndarray = np.array([0.0, 0.0], dtype=float)
         self.__position: np.ndarray = np.array(initial_position, dtype=float)
+        self.__yaw: float = 0.0
         self.__max_speed: float = max_speed
         self.__angular: float = 0.0
         self.__angular_velocity: float = 0.0
@@ -43,6 +44,16 @@ class Entity:
             self.__position = np.array(value, dtype=float)
         else:
             raise ValueError("Entity is not moveable.")
+
+    @property
+    def yaw(self) -> float:
+        """Get the current yaw of the entity."""
+        return self.__yaw
+    
+    @yaw.setter
+    def yaw(self, value: float):
+        """Set a new yaw for the entity."""
+        self.__yaw = value
 
     @property
     def size(self) -> list[float] | tuple | np.ndarray | float:

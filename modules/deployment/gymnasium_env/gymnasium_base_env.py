@@ -11,6 +11,8 @@ from gymnasium.utils import seeding
 from modules.deployment.engine import Box2DEngine, QuadTreeEngine, OmniEngine
 from abc import ABC, abstractmethod
 
+from modules.deployment.entity import Landmark, Robot, Obstacle, Prey
+
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
@@ -73,18 +75,21 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                                          joint_constraint=False)
         elif engine_type == 'Box2DEngine':
             self.engine = Box2DEngine()
-        elif engine_type == 'Omni_Engine':
+        elif engine_type == 'OmniEngine':
             self.engine = OmniEngine()
         else:
             raise ValueError(f"Unsupported engine type: {engine_type}")
 
         self.movable_agents = {}
         self.num_robots = self.data.get("entities", {}).get("robot", {}).get("count", 0)
+        self.robot_id_list = self.data.get("entities", {}).get("robot", {}).get("id_list", [])
         self.num_leaders = self.data.get("entities", {}).get("leader", {}).get("count", 0)
         self.num_obstacles = self.data.get("entities", {}).get("obstacle", {}).get("count", 0)
-        self.num_sheep = self.data.get("entities", {}).get("sheep", {}).get("count", 0)
-        self.num_pushable_object = self.data.get("entities", {}).get("pushable_object", {}).get("count", 0)
-
+        self.obstacle_id_list = self.data.get("entities", {}).get("obstacle", {}).get("id_list", [])
+        self.num_landmarks = self.data.get("entities", {}).get("landmark", {}).get("count", 0)
+        self.landmark_id_list = self.data.get("entities", {}).get("landmark", {}).get("id_list", [])
+        self.prey_id_list = self.data.get("entities", {}).get("prey", {}).get("id_list", [])
+        self.num_preys = self.data.get("entities", {}).get("prey", {}).get("count", 0)
         self.get_spaces()
 
         # self.screen = pygame.Surface((self.width * self.scale_factor, self.height * self.scale_factor))
@@ -239,10 +244,11 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                 dict[str, Any]: Additional information about the environment, formatted as a dictionary
                                 with detailed information for each entity.
         """
-        for entity_id, velocity in action.items():
-            valid_velocity = np.array([i if not isnan(i) else 0 for i in velocity])
-            # valid_velocity = np.array([1, 1,], dtype=float)
-            self.set_entity_velocity(entity_id, valid_velocity)
+        if self.engine.__class__.__name__ != "OmniEngine":
+            for entity_id, velocity in action.items():
+                valid_velocity = np.array([i if not isnan(i) else 0 for i in velocity])
+                # valid_velocity = np.array([1, 1,], dtype=float)
+                self.set_entity_velocity(entity_id, valid_velocity)
 
         self.engine.step(self.dt)
         obs = self.get_observation("array")
@@ -306,7 +312,10 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         super().reset(seed=seed)
         self.entities = []
         self.engine.clear_entities()
-        self.init_entities()
+        if self.engine.__class__.__name__ == 'OmniEngine':
+            self.init_omni_entities()
+        else:
+            self.init_entities()
         obs = self.get_observation("array")
         infos = self.get_observation("dict")
         if self.render_mode == 'human':
@@ -319,6 +328,35 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
     @abstractmethod
     def init_entities(self):
         raise NotImplementedError(f"{str(self)}.init_entities method must be implemented.")
+
+    def init_omni_entities(self):
+        robot_id_list = self.robot_id_list
+        for i in robot_id_list:
+            robot = Robot(robot_id=i,
+                          initial_position=(0, 0),
+                          size=0.15,
+                          )
+            self.add_entity(robot)
+        obstacle_id_list = self.obstacle_id_list
+        for i in obstacle_id_list:
+            obstacle = Obstacle(obstacle_id=i,
+                                initial_position=(0, 0),
+                                size=0.15)
+            self.add_entity(obstacle)
+        landmark_id_list = self.landmark_id_list
+        for i in landmark_id_list:
+            landmark = Landmark(landmark_id=i,
+                                initial_position=(0, 0),
+                                size=0.15,
+                                color='gray')
+            self.add_entity(landmark)
+        prey_id_list = self.prey_id_list
+        for i in prey_id_list:
+            prey = Prey(prey_id=i,
+                        initial_position=(0, 0),
+                        size=0.15,
+                        max_speed=0.4)
+            self.add_entity(prey)
 
     def add_entity(self, entity):
         self.entities.append(entity)

@@ -23,6 +23,12 @@ class RobotNode:
             "radius": 0.0,
             "velocity": np.array([0.0, 0.0]),
         }
+        self.quadrant_target_position = {
+            3: np.array([-1.25, -1.25]),
+            2: np.array([-1.25, 1.25]),
+            1: np.array([1.25, 1.25]),
+            4: np.array([1.25, -1.25]),
+        }
         self.timer = None
         self.init_position = None
         self.target_position = None
@@ -184,6 +190,9 @@ class RobotNode:
     def get_unexplored_area(self):
         return self.unexplored_area
 
+    def get_quadrant_target_position(self):
+        return self.quadrant_target_position
+
 
 def set_current_robot_id(robot_id, **kwargs):
     thread_local.robot_id = robot_id
@@ -273,3 +282,7 @@ def connect_to_another_robot(target_id):
 
 def get_unexplored_area():
     return get_current_robot_node().get_all_target_areas()
+
+
+def get_quadrant_target_position():
+    return get_current_robot_node().get_quadrant_target_position()

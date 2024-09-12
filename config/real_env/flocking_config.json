@@ -12,21 +12,22 @@
   "#agent number note": "sum of robot + leader",
   "entities": {
     "robot": {
-      "count": 6,
+      "count": 10,
       "specified": [],
       "size": 0.15,
       "color": "green",
       "shape": "circle",
-      "perceptual_range": 1
+      "perceptual_range": 1,
+      "id_list": [5,6,7,8,9,10]
     },
     "leader": {
       "count": 0,
       "specified": []
     },
     "obstacle": {
-      "count": 10,
+      "count": 5,
       "specified": [],
-      "size": 0.15,
+      "size": 0.10,
       "shape": "circle",
       "color": "green"
     },
@@ -43,7 +44,7 @@
       "specified": []
     }
   },
-  "engine_type": "QuadTreeEngine",
+  "engine_type": "OmniEngine",
   "render_mode": "human",
   "output_file": "output.json",
   "dt": 0.1

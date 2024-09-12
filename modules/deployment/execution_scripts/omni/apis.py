@@ -18,7 +18,7 @@ obstacles_info = []
 other_robots_info = []
 prey_positions = []
 moveable_objects = []
-formation_points = []
+formation_points = [(1, -1), (1, 1), (0, 0), (1, 0), (2, 0), (2, 2)]
 
 
 def observation_callback(msg: Observations):
@@ -36,7 +36,7 @@ def observation_callback(msg: Observations):
                 robot_info["radius"] = obj.radius
                 if obj.target_position is not None:
                     target_position = np.array([obj.target_position.x, obj.target_position.y])
-                continue
+                # continue
             other_robots_info.append(
                 {
                     "id": obj.id,
@@ -56,11 +56,15 @@ def observation_callback(msg: Observations):
 
 
 def initialize_ros_node(robot_id):
-    global ros_initialized, velocity_publisher, target_position, formation_points
+    global ros_initialized, velocity_publisher, target_position, formation_points, robots_id_info
     robot_info["id"] = robot_id
     if not ros_initialized:
         ros_initialized = True
-
+        robots_id_info = {"start_id": 5,
+                          "end_id": 10,
+                          "robots_num": 6,
+                          "self_id": robot_id
+                          }
         rospy.Subscriber("/observation", Observations, observation_callback)
         velocity_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         print(f"Waiting for position message from /observation...")
@@ -76,6 +80,11 @@ def publish_velocities(event):
     velocity_msg.linear.y = robot_info["velocity"][1]
     velocity_publisher.publish(velocity_msg)
     print(f"Publishing velocity: {robot_info['velocity']}")
+
+
+def get_all_robots_info():
+    global other_robots_info
+    return robots_id_info
 
 
 def get_self_position():

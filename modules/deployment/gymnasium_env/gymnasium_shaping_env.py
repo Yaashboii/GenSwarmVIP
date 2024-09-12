@@ -12,11 +12,11 @@ ActType = TypeVar("ActType")
 class GymnasiumShapingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
-        self.engine = QuadTreeEngine(world_size=(self.width, self.height),
-                                     alpha=0.3,
-                                     damping=0.55,
-                                     collision_check=True,
-                                     joint_constraint=False)
+        # self.engine = QuadTreeEngine(world_size=(self.width, self.height),
+        #                              alpha=0.3,
+        #                              damping=0.55,
+        #                              collision_check=True,
+        #                              joint_constraint=False)
 
     def init_entities(self):
         entity_id = 0
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumShapingEnvironment("../../../config/env/shaping_config.json")
+    env = GymnasiumShapingEnvironment("../../../config/real_env/shaping_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

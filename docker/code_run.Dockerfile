@@ -11,7 +11,7 @@ RUN apt-get update && \
 #    git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install numpy paho-mqtt==1.6.1 rospy_message_converter
+RUN pip3 install numpy paho-mqtt==1.6.1 rospy_message_converter scipy==1.8.1
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
 

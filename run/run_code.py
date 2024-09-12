@@ -14,7 +14,8 @@ def task_mapping(task_name: str) -> type(AutoRunnerBase):
         'herding': AutoRunnerHerding,
         'covering': AutoRunnerCovering,
         'transportation': AutoRunnerTransportation,
-        'clustering': AutoRunnerFlocking,
+        'clustering': AutoRunnerClustering,
+        'pursuing': AutoRunnerPursuing,
 
     }
     return task_dict[task_name]
@@ -25,7 +26,6 @@ def config_mapping(task_name: str) -> str:
 
 
 if __name__ == "__main__":
-    print(1)
     task_name = 'flocking'
     runner_class = task_mapping(task_name)
     config_file = config_mapping(task_name)
@@ -43,7 +43,7 @@ if __name__ == "__main__":
                           tolerance=0.15)
 
     # 人工复核，哪些任务需要重新跑，写在下面
-    # exp_list = ['2024-09-06_10-07-37', ]
+    # exp_list = ['2024-09-11_19-29-20', ]
     exp_list = None
     # exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))
 

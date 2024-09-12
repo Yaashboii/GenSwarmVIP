@@ -1,8 +1,7 @@
 from typing import Optional, TypeVar
 
-from modules.deployment.entity import Landmark, Robot
+from modules.deployment.entity import Robot, Obstacle, Prey
 from modules.deployment.utils.sample_point import *
-
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 
 ObsType = TypeVar("ObsType")
@@ -10,35 +9,34 @@ ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
 
 
-class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumPursuingEnvironment(GymnasiumEnvironmentBase):
+
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
-
     def init_entities(self):
-        range_a = Landmark(landmark_id=0,
-                           initial_position=(0, 2),
-                           size=np.array((5, 1)),
-                           color='gray')
-        range_b = Landmark(landmark_id=1,
-                           initial_position=(0, -2),
-                           size=np.array((5, 1)),
-                           color='gray')
-
-        self.add_entity(range_a)
-        self.add_entity(range_b)
-
-        entity_id = 2
+        entity_id = 0
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
+
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, 0.6*self.height],
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
                                     robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
                                     entities=self.entities)
-            robot = Robot(entity_id, position, robot_size, color=color)
+            robot = Robot(robot_id=entity_id,
+                          initial_position=position,
+                          target_position=None,
+                          size=robot_size,
+                          color=color)
             self.add_entity(robot)
             entity_id += 1
+
+        prey = Prey(prey_id=entity_id,
+                    initial_position=[0, 0],
+                    size=0.10,
+                    max_speed=0.2)
+        self.add_entity(prey)
 
 
 if __name__ == "__main__":
@@ -48,7 +46,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumBridgingEnvironment("../../../config/real_env/bridging_config.json")
+    env = GymnasiumPursuitEnvironment("../../../config/env/pursuit_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

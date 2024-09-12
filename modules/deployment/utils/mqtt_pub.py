@@ -15,7 +15,6 @@ class MqttClientThread:
         self.keepalive = keepalive
         self.client_id = client_id
         self.client = self.connect_mqtt()
-        rospy.init_node("mqtt_pub")
         self.client.loop_start()
 
     def connect_mqtt(self):
@@ -95,4 +94,6 @@ def main():
 
 
 if __name__ == "__main__":
+    rospy.init_node("mqtt_pub")
+
     main()

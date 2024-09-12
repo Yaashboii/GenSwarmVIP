@@ -69,6 +69,17 @@ class Engine(ABC):
             raise ValueError("Entity does not exist in the environment.")
         self._entities[entity_id].position = position
 
+    def set_yaw(self, entity_id: int, yaw: float):
+        """
+        Set the yaw of an entity in the environment.
+        Args:
+            entity_id (int): The unique ID of the entity.
+            yaw (float): The new yaw of the entity.
+        """
+        if entity_id not in self._entities.keys():
+            raise ValueError("Entity does not exist in the environment.")
+        self._entities[entity_id].yaw = yaw
+
     def set_velocity(self, entity_id: int, velocity: np.ndarray):
         """
         Set the velocity of an entity in the environment.

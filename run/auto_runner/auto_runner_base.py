@@ -153,7 +153,6 @@ class AutoRunnerBase(ABC):
             self.manager.publish_observations(infos)
             rate.sleep()
         print(f"Experiment {experiment_id} completed successfully.")
-        self.save_frames_as_animations(experiment_id)
 
         result_queue.put({'source': 'run_single_experiment', 'result': result})
 
@@ -210,6 +209,7 @@ class AutoRunnerBase(ABC):
                             single_experiment_result = result['result']
                         elif result['source'] == 'run_code':
                             run_code_result = result
+                    self.save_frames_as_animations(experiment)
 
                     analysis = self.analyze_result(single_experiment_result)
                     print(f"Analysis for experiment {experiment}: {analysis}")

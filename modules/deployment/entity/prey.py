@@ -4,15 +4,11 @@ from .base_entity import Entity
 
 
 class Prey(Entity):
-    def __init__(self, prey_id, initial_position, size, mass, density, max_speed, danger_zone, damping, random_factor,
-                 alpha):
+    def __init__(self, prey_id, initial_position, size, max_speed):
         super().__init__(prey_id, initial_position, size, color='blue', collision=True, movable=True, max_speed=1.0,
-                         mass=mass, density=density)
+                         mass=1, density=1)
         self.max_speed = max_speed
-        self.danger_zone = danger_zone  # 当离开狗这个圆半径后，就不会被狗影响速度
-        self.damping = damping
-        self.random_factor = random_factor
-        self.alpha = alpha
+        self.random_factor = 0.1
         self.velocity = np.zeros(2)
         self.filtered_velocity = np.zeros(2)
 
@@ -70,3 +66,5 @@ class Prey(Entity):
         if np.any(avoidance_force) != 0:
             avoidance_force = avoidance_force / np.linalg.norm(avoidance_force)
         return avoidance_force
+
+

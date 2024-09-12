@@ -12,11 +12,12 @@ ActType = TypeVar("ActType")
 class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str = None):
         super().__init__(data_file)
-        self.engine = QuadTreeEngine(world_size=(self.width, self.height),
-                                     alpha=0.5,
-                                     damping=0.75,
-                                     collision_check=True,
-                                     joint_constraint=False)
+        if self.engine.__class__.__name__ == "QuadTreeEngine":
+            self.engine = QuadTreeEngine(world_size=(self.width, self.height),
+                                         alpha=0.5,
+                                         damping=0.75,
+                                         collision_check=True,
+                                         joint_constraint=False)
 
     def init_entities(self):
 
@@ -65,7 +66,6 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
                 self.add_entity(robot)
                 entity_id += 1
 
-
     def step(
             self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumFlockingEnvironment("../../../config/env/flocking_config.json")
+    env = GymnasiumFlockingEnvironment("../../../config/real_env/flocking_config.json")
     obs, infos = env.reset()
     print(env.movable_agents)
     manager = Manager(env)

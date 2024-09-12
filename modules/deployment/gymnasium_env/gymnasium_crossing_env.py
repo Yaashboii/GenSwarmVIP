@@ -79,7 +79,7 @@ class GymnasiumCrossingEnvironment(GymnasiumEnvironmentBase):
 
 
 if __name__ == '__main__':
-    env = GymnasiumCrossingEnvironment("../../../config/env_config.json")
+    env = GymnasiumCrossingEnvironment("../../../config/real_env/crossing_config.json")
     obs, infos = env.reset()
 
     from modules.deployment.utils.manager import Manager

@@ -32,15 +32,8 @@ tasks = {
     "exploration": "Robots need to collaboratively explore an unknown area, and based on the number of robots, each robot is assigned a set of unexplored sub-areas."
                    "The allocation algorithm must ensure the efficiency of all robots, avoiding repetition or omission."
                    "Each robot needs to explore its assigned area, and reaching within 0.2 meters of the target point is considered successful. Additionally, robots must avoid collisions with other robots during the exploration process.",
-    "clustering": """Collaborate with all robots within the map's range and form multiple subgroups based on their initial coordinates.
-    Each subgroup is formed within one quadrant of the map, ensuring that robots in the same quadrant belong to the same subgroup.
-    Within each subgroup, adhere to cohesion by staying connected with all robots in the subgroup.
-    Follow alignment by moving together with all the robots within the subgroup.
-    Maintain separation by keeping at least 0.5 meters between different subgroups, while ensuring appropriate spacing between robots within each subgroup.
-    Additionally, avoid collisions with obstacles and boundaries:
-    Keep a distance of 0.3 meters from obstacles.
-    Keep a distance of 0.3 meters from boundaries."""
-
+    "clustering": "The robots need to select an appropriate position to move to based on the quadrant of their initial position and gather with other robots while maintaining a distance of at least 0.5 meters from each other to avoid collisions.",
+    "pursuing": "The robots need to collaborate in pursuing the target."
 }
 
 
