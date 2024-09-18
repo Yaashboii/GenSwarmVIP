@@ -58,7 +58,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
 
         self.dt = self.data.get('dt', 0.01)
         self.FPS = 10
-        self.screen = None
+        self.screen: pygame.Surface
         self.simulation_data = {}
         self.scale_factor = self.data['display']['scale_factor']
         self.width = self.data['display']['width']
@@ -71,7 +71,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
             self.engine = QuadTreeEngine(world_size=(self.width, self.height),
                                          alpha=0.5,
                                          damping=0.75,
-                                         collision_check=False,
+                                         collision_check=True,
                                          joint_constraint=False)
         elif engine_type == 'Box2DEngine':
             self.engine = Box2DEngine()
@@ -92,11 +92,14 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         self.num_preys = self.data.get("entities", {}).get("prey", {}).get("count", 0)
         self.get_spaces()
 
+        self.redundancy_factor = self.data.get('redundancy_factor', 1.2)
         # self.screen = pygame.Surface((self.width * self.scale_factor, self.height * self.scale_factor))
 
         self.render_mode = self.data.get('render_mode', 'human')
-
+        self.render_width = self.width * self.redundancy_factor
+        self.render_height = self.height * self.redundancy_factor
         self.output_file = self.data.get('output_file', 'output.json')
+        self.time_step = 0
         self.clock = pygame.time.Clock()
 
     def _seed(self, seed=None):
@@ -245,14 +248,20 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                                 with detailed information for each entity.
         """
         if self.engine.__class__.__name__ != "OmniEngine":
+
             for entity_id, velocity in action.items():
                 valid_velocity = np.array([i if not isnan(i) else 0 for i in velocity])
                 # valid_velocity = np.array([1, 1,], dtype=float)
                 self.set_entity_velocity(entity_id, valid_velocity)
+        for entity in self.entities:
+            if entity.__class__.__name__ == 'Prey':
+                entity.move(self.time_step)
 
         self.engine.step(self.dt)
         obs = self.get_observation("array")
         reward = self.reward()
+        self.time_step += 1
+
         termination = False
         truncation = False
         infos = self.get_observation("dict")
@@ -284,7 +293,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
 
     def draw(self):
         def apply_offset(pos):
-            return pos[0] + self.width / 2, pos[1] + self.height / 2
+            return pos[0] + self.render_width / 2, pos[1] + self.render_height / 2
 
         self.screen.fill((255, 255, 255))
 
@@ -318,11 +327,13 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
             self.init_entities()
         obs = self.get_observation("array")
         infos = self.get_observation("dict")
+        self.time_step = 0
         if self.render_mode == 'human':
-            self.screen = pygame.display.set_mode((self.width * self.scale_factor, self.height * self.scale_factor))
+            self.screen = pygame.display.set_mode(
+                (self.render_width * self.scale_factor, self.render_height * self.scale_factor))
         else:
-            self.screen = pygame.Surface((self.width * self.scale_factor, self.height * self.scale_factor))
-
+            self.screen = pygame.Surface(
+                (self.render_width * self.scale_factor, self.render_height * self.scale_factor))
         return obs, infos
 
     @abstractmethod
@@ -360,7 +371,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
 
     def add_entity(self, entity):
         self.entities.append(entity)
-        if entity.collision:
+        if entity.collision or entity.moveable:
             self.engine.add_entity(entity)
         if entity.moveable:
             self.movable_agents[entity.id] = entity.__class__.__name__

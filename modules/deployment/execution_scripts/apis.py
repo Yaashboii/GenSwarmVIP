@@ -17,7 +17,7 @@ class RobotNode:
         self.robot_id = robot_id
         self.ros_initialized = False
         self.velocity_publisher = None
-        self.robots_id_info = {}
+        self.robots_id_list = []
         self.robot_info = {
             "position": np.array([0.0, 0.0]),
             "radius": 0.0,
@@ -82,14 +82,6 @@ class RobotNode:
                         "position": np.array([obj.position.x, obj.position.y])
                     })
 
-            elif obj.type == "PushableObject":
-                self.moveable_objects.append({"position": np.array([obj.position.x, obj.position.y]),
-                                              "id": obj.id,
-                                              "radius": obj.radius,
-                                              "target_position": np.array(
-                                                  [obj.target_position.x, obj.target_position.y]),
-                                              "color": obj.color})
-
     def initialize_ros_node(self):
         if not self.ros_initialized:
             self.ros_initialized = True
@@ -103,14 +95,8 @@ class RobotNode:
             msg = rospy.wait_for_message(f"/observation", Observations)
             self.observation_callback(msg)
             print(f"Observations data init successfully")
-            start_idx = rospy.get_param("robot_start_index")
-            end_idx = rospy.get_param("robot_end_index")
-            total_robots = end_idx - start_idx + 1
-            self.robots_id_info = {"start_id": start_idx,
-                                   "end_id": end_idx,
-                                   "robots_num": total_robots,
-                                   "self_id": self.robot_id
-                                   }
+            self.robots_id_list = [robot["id"] for robot in self.other_robots_info]
+            self.robots_id_list.append(self.robot_id)
             self.timer = rospy.Timer(rospy.Duration(0.1), self.publish_velocities)
 
     def publish_velocities(self, event):
@@ -118,32 +104,6 @@ class RobotNode:
         velocity_msg.linear.x = self.robot_info["velocity"][0]
         velocity_msg.linear.y = self.robot_info["velocity"][1]
         self.velocity_publisher.publish(velocity_msg)
-
-    def connect_to_robot(self, target_id):
-        rospy.wait_for_service('/connect_to_others')
-        try:
-            connect_service = rospy.ServiceProxy('/connect_to_others', ConnectEntities)
-            request = ConnectEntitiesRequest()
-            request.self_id = self.robot_id
-            request.target_id = target_id
-            response = connect_service(request)
-            return response.success
-        except rospy.ServiceException as e:
-            print(f"Service call failed: {e}")
-            return False
-
-    def disconnect_from_robot(self, target_id):
-        rospy.wait_for_service('/disconnect_from_others')
-        try:
-            disconnect_service = rospy.ServiceProxy('/disconnect_from_others', ConnectEntities)
-            request = ConnectEntitiesRequest()
-            request.self_id = self.robot_id
-            request.target_id = target_id
-            response = disconnect_service(request)
-            return response.success
-        except rospy.ServiceException as e:
-            print(f"Service call failed: {e}")
-            return False
 
     def get_all_target_areas(self):
         return self.unexplored_area
@@ -178,8 +138,8 @@ class RobotNode:
     def get_self_id(self):
         return self.robot_id
 
-    def get_all_robots_info(self):
-        return self.robots_id_info
+    def get_all_robots_id(self):
+        return self.robots_id_list
 
     def get_target_position(self):
         return self.target_position
@@ -256,32 +216,20 @@ def get_self_id():
     return get_current_robot_node().get_self_id()
 
 
-def get_all_robots_info():
-    return get_current_robot_node().get_all_robots_info()
+def get_all_robots_id():
+    return get_current_robot_node().get_all_robots_id()
 
 
 def get_target_position():
     return get_current_robot_node().get_target_position()
 
 
-def get_target_formation_points():
-    return get_current_robot_node().get_target_formation_points()
-
-
-def pick_up_object(object_id):
-    return get_current_robot_node().connect_to_robot(object_id)
-
-
-def put_down_object(object_id):
-    return get_current_robot_node().disconnect_from_robot(object_id)
-
-
-def connect_to_another_robot(target_id):
-    return get_current_robot_node().connect_to_robot(target_id)
-
-
 def get_unexplored_area():
     return get_current_robot_node().get_all_target_areas()
+
+
+def get_target_formation_points():
+    return get_current_robot_node().get_target_formation_points()
 
 
 def get_quadrant_target_position():

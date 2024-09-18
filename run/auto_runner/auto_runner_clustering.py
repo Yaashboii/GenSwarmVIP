@@ -1,11 +1,12 @@
 import math
+import operator
 import os
 import json
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from modules.deployment.gymnasium_env import GymnasiumFlockingEnvironment, GymnasiumClusteringEnvironment
 from run.auto_runner import AutoRunnerBase
-from run.utils import evaluate_trajectory_similarity, evaluate_trajectory_pattern, check_collisions
+from run.utils import evaluate_trajectory_similarity, evaluate_trajectory_pattern, evaluate_robot_quadrant_positions
 
 
 class AutoRunnerClustering(AutoRunnerBase):
@@ -29,8 +30,16 @@ class AutoRunnerClustering(AutoRunnerBase):
                          env=env)
 
     def analyze_result(self, run_result) -> dict[str, float]:
-        terminal_distance = evaluate_trajectory_pattern(run_result)
-        similarity = evaluate_trajectory_similarity(run_result)
-        collision = check_collisions(run_result)
-        merged_dict = terminal_distance | similarity | collision
-        return merged_dict
+        target_regions = {
+            1: (0.5, 2, 0.5, 2),
+            2: (-2, -0.5, 0.5, 2),
+            3: (-2, -0.5, -2, -0.5),
+            4: (0.5, 2, -2, -0.5)
+        }
+        similarity = evaluate_robot_quadrant_positions(run_result, target_regions=target_regions)
+        return similarity
+
+    def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
+        return [
+            ("achievement_ratio", operator.ge, 0.90),
+        ]

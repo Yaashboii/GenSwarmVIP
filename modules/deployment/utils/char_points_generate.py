@@ -18,6 +18,32 @@ def create_char_image(char, font_path, font_size=200, image_size=(300, 300)):
     return img
 
 
+def create_star_image(image_size=(300, 300), num_points=5, radius_inner=50, radius_outer=100):
+    center = (image_size[1] // 2, image_size[0] // 2)
+    angle_offset = np.pi / num_points  # 用于生成星形的角度偏移
+
+    points = []
+    for i in range(2 * num_points):
+        angle = i * np.pi / num_points
+        if i % 2 == 0:
+            radius = radius_outer
+        else:
+            radius = radius_inner
+        x = int(center[0] + radius * np.cos(angle + angle_offset))
+        y = int(center[1] + radius * np.sin(angle + angle_offset))
+        points.append((x, y))
+
+    # 创建一个空白图像
+    img = np.zeros((image_size[0], image_size[1], 3), dtype=np.uint8)
+
+    # 绘制海星形状
+    cv2.fillPoly(img, [np.array(points)], (255, 255, 255))
+    cv2.imshow('Star Shape', img)
+    cv2.waitKey(0)
+
+    return img
+
+
 def draw_contours(img):
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, binary_img = cv2.threshold(gray_img, 1, 255, cv2.THRESH_BINARY)
@@ -56,14 +82,18 @@ def sample_contour_points(contours, num_points):
     return sampled_points
 
 
-def validate_contour_points(char, num_points=150):
+def validate_contour_points(char, num_points=150, star=False):
     from modules.utils.root import get_project_root
     font_path = f"{get_project_root()}/assets/fonts/HanYiCuYuanJian-1.ttf"
-    char_image = create_char_image(char, font_path)
-    contours = draw_contours(char_image)
+    if not star:
+        image = create_char_image(char, font_path)
+    else:
+        image = create_star_image()
+
+    contours = draw_contours(image)
     sampled_points = sample_contour_points(contours, num_points)
     print(len(sampled_points))
-    # sampled_img = np.zeros_like(char_image)
+    # sampled_img = np.zeros_like(image)
     # for point in sampled_points:
     #     cv2.circle(sampled_img, (int(point[0]), int(point[1])), 1, (255, 255, 255), -1)
     #
@@ -75,9 +105,8 @@ def validate_contour_points(char, num_points=150):
     sampled_points = sampled_points / 300 * 5 - 2.5
     return sampled_points
 
-
-# Example usage:
+# # Example usage:
 # font_path = "HanYiCuYuanJian-1.ttf"
 # character = 'R'
-# num_points = 150  # Adjust the number of points as needed
+# num_points = 20  # Adjust the number of points as needed
 # validate_contour_points(character, num_points)

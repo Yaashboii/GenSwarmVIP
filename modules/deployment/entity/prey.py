@@ -1,16 +1,31 @@
 import numpy as np
 
 from .base_entity import Entity
+from ..utils.traectory_generator import generate_arc_trajectory
 
 
 class Prey(Entity):
-    def __init__(self, prey_id, initial_position, size, max_speed):
+    def __init__(self, prey_id, initial_position, size, num=200):
         super().__init__(prey_id, initial_position, size, color='blue', collision=True, movable=True, max_speed=1.0,
                          mass=1, density=1)
-        self.max_speed = max_speed
+        self.move_mode = 'track'
+        self.target_trajectory = generate_arc_trajectory(num, 0, 12.28, 1.5, (0, 0))
+        self.position = self.target_trajectory[0]
+        self.max_speed = 1.0
         self.random_factor = 0.1
         self.velocity = np.zeros(2)
         self.filtered_velocity = np.zeros(2)
+
+    def move_to_target(self, time_step):
+        # print(f"prey move to target: {self.target_trajectory[time_step]},step:{time_step}")
+        # self.velocity = self.target_trajectory[time_step] - self.position
+        # self.velocity = np.clip(self.velocity, -self.max_speed, self.max_speed)
+        if time_step < len(self.target_trajectory):
+            self.position = self.target_trajectory[time_step]
+
+    def move(self, time_step):
+        if self.move_mode == 'track':
+            self.move_to_target(time_step)
 
     def calculate_velocity(self, flock, robots, environment_bounds):
         random_movement = np.random.randn(2) * self.random_factor  # 随机游走
@@ -66,5 +81,3 @@ class Prey(Entity):
         if np.any(avoidance_force) != 0:
             avoidance_force = avoidance_force / np.linalg.norm(avoidance_force)
         return avoidance_force
-
-

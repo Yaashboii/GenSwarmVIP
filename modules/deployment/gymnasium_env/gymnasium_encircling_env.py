@@ -51,29 +51,10 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
         prey = Prey(prey_id=entity_id,
                     initial_position=[0, 0],
                     size=prey_size,
-                    max_speed=0.2,
-                    danger_zone=1,
-                    damping=0.9,
-                    random_factor=0.1,
-                    alpha=0.1,
-                    density=0.1,
-                    mass=1.0)
+                    num=400
+                    )
         self.add_entity(prey)
 
-    def step(self, action=ActType):
-        obs, reward, termination, truncation, infos = super().step(action)
-
-        for entity in self.entities:
-            if isinstance(entity, Prey):
-                # 获取邻居羊群和机器人列表
-                prey = [e for e in self.entities if isinstance(e, Prey) and e != entity]
-                robots = [e for e in self.entities if isinstance(e, Robot)]
-                speed = entity.calculate_velocity(prey, robots,
-                                                  environment_bounds=[-0.5 * self.width, 0.5 * self.width,
-                                                                      -0.5 * self.height, 0.5 * self.height])
-                self.set_entity_velocity(entity.id, speed)
-
-        return obs, reward, termination, truncation, infos
 
 
 if __name__ == "__main__":

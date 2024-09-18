@@ -63,7 +63,9 @@ class Manager:
     def leader_velocity_callback(self, data: Twist):
         leader = self.env.get_entities_by_type('Leader')
         if len(leader) == 0:
-            if len(self._robots) > 0:
+            if len(self.env.get_entities_by_type('Prey')) > 0:
+                leader = self.env.get_entities_by_type('Prey')[0]
+            elif len(self._robots) > 0:
                 leader = self._robots[0]
         else:
             leader = leader[0]

@@ -1,5 +1,6 @@
 from modules.file import File, logger
 from .constraint_node import ConstraintNode
+from ..parser import parse_text
 
 
 class ConstraintPool:

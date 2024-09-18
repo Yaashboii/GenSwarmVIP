@@ -37,7 +37,7 @@ class GymnasiumCirclingEnvironment(GymnasiumEnvironmentBase):
         for i in range(self.num_obstacles):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle',
                                     zone_size=[0.6 * self.width, 0.6 * self.height],
-                                    robot_size=obstacle_size, robot_shape=shape, min_distance=obstacle_size,
+                                    robot_size=obstacle_size, robot_shape=shape, min_distance=0.3,
                                     entities=self.entities)
             obstacle = Obstacle(obstacle_id=entity_id,
                                 initial_position=position,
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumCirclingEnvironment("../../../config/env_config.json")
+    env = GymnasiumCirclingEnvironment("../../../config/env/circling_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

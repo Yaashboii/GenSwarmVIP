@@ -31,7 +31,7 @@ class GenerateFunctions(ActionNode):
         debug_error = DebugError("debug error")
         bug_handler.next_action = debug_error
         debug_error._next = grammar_check
-        # grammar_check.error_handler = bug_handler
+        grammar_check.error_handler = bug_handler
 
         # link actions
         self._actions = ActionLinkedList('Generate Functions', design_functions)

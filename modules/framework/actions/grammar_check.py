@@ -110,9 +110,9 @@ if __name__ == '__main__':
     debug_error._next = grammar_check
     grammar_check.error_handler = bug_handler
 
-    path = "../../../workspace/exploration/2024-08-26_16-07-43"
+    path = "../../../workspace/exploration/2024-09-13_17-27-28"
     root_manager.update_root(path)
 
     grammar_check.context.load_from_file(f"{path}/CodeReview.pkl")
     asyncio.run(grammar_check.run())
-    grammar_check.context.save_to_file(f"{path}/debug.pkl")
+    grammar_check.context.save_to_file(f"{path}/CodeReview.pkl")

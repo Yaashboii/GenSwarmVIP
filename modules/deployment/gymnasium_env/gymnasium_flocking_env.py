@@ -37,7 +37,9 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
         add_specified_entities("landmark", Landmark)
         add_specified_entities("pushable_object", PushableObject)
         add_specified_entities("robot", Robot, "green")
-
+        obstacle = Obstacle(entity_id, initial_position=[0, 0], size=0.10)
+        self.add_entity(obstacle)
+        entity_id += 1
         # Add remaining robots
         if "count" in self.data["entities"]["robot"]:
             robot_size = self.data["entities"]["robot"]["size"]
@@ -47,24 +49,24 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
 
             for i in range(robot_num):
                 position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                        robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
+                                        robot_size=robot_size, robot_shape=shape, min_distance=0.5,
                                         entities=self.entities)
                 robot = Robot(entity_id, position, robot_size, color=color)
                 self.add_entity(robot)
                 entity_id += 1
 
-        if "count" in self.data["entities"]["obstacle"]:
-            size = self.data["entities"]["obstacle"]["size"]
-            num = self.data["entities"]["obstacle"]["count"]
-
-            for i in range(num):
-                position = sample_point(zone_center=[0, 0], zone_shape='rectangle',
-                                        zone_size=[0.8 * self.width, 0.8 * self.height],
-                                        robot_size=size, robot_shape='circle', min_distance=size,
-                                        entities=self.entities)
-                robot = Obstacle(entity_id, position, size)
-                self.add_entity(robot)
-                entity_id += 1
+        # if "count" in self.data["entities"]["obstacle"]:
+        #     size = self.data["entities"]["obstacle"]["size"]
+        #     num = self.data["entities"]["obstacle"]["count"]
+        #
+        #     for i in range(num):
+        #         position = sample_point(zone_center=[0, 0], zone_shape='rectangle',
+        #                                 zone_size=[0.8 * self.width, 0.8 * self.height],
+        #                                 robot_size=size, robot_shape='circle', min_distance=size,
+        #                                 entities=self.entities)
+        #         robot = Obstacle(entity_id, position, size)
+        #         self.add_entity(robot)
+        #         entity_id += 1
 
     def step(
             self, action: ActType
@@ -80,7 +82,8 @@ if __name__ == '__main__':
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumFlockingEnvironment("../../../config/real_env/flocking_config.json")
+    # env = GymnasiumFlockingEnvironment("../../../config/real_env/flocking_config.json")
+    env = GymnasiumFlockingEnvironment("../../../config/env/flocking_config.json")
     obs, infos = env.reset()
     print(env.movable_agents)
     manager = Manager(env)

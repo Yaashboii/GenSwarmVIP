@@ -3,22 +3,26 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 
-def run_command(command):
+def run_command(command, timeout):
     print(f"Starting run for command: {command}")
-    process = subprocess.Popen(command, shell=True)
-    process.wait()
+    try:
+        # 使用 subprocess.run 设置超时
+        subprocess.run(command, shell=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        print(f"Command '{command}' exceeded the timeout of {timeout} seconds and was terminated.")
 
 
-def run_multiple_times(command, num_times, max_workers=1):
+def run_multiple_times(command, num_times, max_workers=1, timeout=30):
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         for _ in range(num_times):
-            executor.submit(run_command, command)
+            time.sleep(2)
+            executor.submit(run_command, command, timeout)
 
 
 if __name__ == "__main__":
     command_to_run = "python run_single.py"
-    # 2024-06-11_4-49
-    num_runs = 25
-    max_workers = 1
+    num_runs = 10
+    max_workers = 10
+    max_timeout = 1800  # 设置最大执行时间为30秒
 
-    run_multiple_times(command_to_run, num_runs, max_workers)
+    run_multiple_times(command_to_run, num_runs, max_workers, max_timeout)

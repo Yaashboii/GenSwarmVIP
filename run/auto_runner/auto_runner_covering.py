@@ -1,3 +1,5 @@
+import operator
+
 from modules.deployment.gymnasium_env import GymnasiumTransportationEnvironment, GymnasiumHerdingEnvironment
 from modules.deployment.gymnasium_env.gymnasium_covering_env import GymnasiumCoveringEnvironment
 from run.auto_runner import AutoRunnerBase
@@ -28,5 +30,8 @@ class AutoRunnerCovering(AutoRunnerBase):
         even_metric = evaluate_robot_final_positions(run_result)
         return even_metric
 
-    def analyze_all_results(self, experiment_dirs=None):
-        pass
+    def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
+        return [
+            ("area_ratio", operator.ge, 0.80),
+            ("variance_nearest_neighbor_distance", operator.le, 0.1)
+        ]

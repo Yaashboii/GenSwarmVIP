@@ -16,9 +16,8 @@ The following are the constraints that the generated functions need to satisfy.
 ## User commands:
 {instruction}
 ## The output TEXT format is as follows:
-```json
 {output_template}
-```
+
 ## Notes:
 Your output should satisfy the following notes:
 - Analyze what essential functions are needed to implement the user commands.
@@ -91,9 +90,7 @@ These are the basic descriptions of the environment.
 {user_constraints}
 
 ## The output TEXT format is as follows:
-```json
 {output_template}
-```
 
 ## Notes:
 Your output should satisfy the following notes:
@@ -125,8 +122,9 @@ The output TEXT format is as follows:
 """.strip()
 
 CONSTRAIN_TEMPLATE: str = """
+##reasoning: (you should think step by step, and analyze the constraints that need to be satisfied in the task.place the analysis results at here.)
+```json
 {
-  "reasoning": '''you should think step by step, and analyze the constraints that need to be satisfied in the task.place the analysis results at here.''',
   "constraints": [
     {
       "name": "Constraint name",
@@ -134,11 +132,13 @@ CONSTRAIN_TEMPLATE: str = """
     },
   ]
 }
+```
 """.strip()
 
 MODIFY_CONSTRAIN_TEMPLATE: str = """
+## reasoning: "think step by step, and analyze which constraints need to be modified in the task,which constraints need to be added, and which constraints need to be deleted according to the user's feedback.",
+```json
 {
-  "reasoning": "think step by step, and analyze which constraints need to be modified in the task,which constraints need to be added, and which constraints need to be deleted according to the user's feedback.",
   "constraints": [
     {
       "name": "Constraint name",
@@ -146,11 +146,13 @@ MODIFY_CONSTRAIN_TEMPLATE: str = """
     },
   ]
 }
+```
 """.strip()
 
 FUNCTION_TEMPLATE: str = """
+##reasoning: (think step by step, and analyze the functions that need to be implemented in the task.)
+```json
 {
-  "reasoning": '''think step by step, and analyze the functions that need to be implemented in the task.''',
   "functions": [
     {
       "name": "Function name",
@@ -166,6 +168,7 @@ FUNCTION_TEMPLATE: str = """
     // More functions can be added as needed
   ]
 }
+```
 """.strip()
 
 PARAMETER_PROMPT_TEMPLATE: str = """

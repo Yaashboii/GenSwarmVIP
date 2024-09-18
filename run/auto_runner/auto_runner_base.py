@@ -1,8 +1,10 @@
 import json
+import operator
 import os
 import queue
 import subprocess
 import threading
+import time
 import traceback
 from abc import ABC, abstractmethod
 
@@ -15,7 +17,7 @@ from tqdm import tqdm
 
 from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
 from modules.deployment.utils.manager import Manager
-from run.utils import setup_metagpt, setup_cap
+from run.utils import setup_metagpt, setup_cap, check_robots_no_movement_in_first_third
 
 
 class AutoRunnerBase(ABC):
@@ -41,6 +43,7 @@ class AutoRunnerBase(ABC):
         self.run_mode = run_mode
         self.tolerance = tolerance
         self.frames = []
+        self.success_conditions = self.setup_success_conditions()
 
     def get_experiment_directories(self):
         directories = []
@@ -63,7 +66,7 @@ class AutoRunnerBase(ABC):
         result_file = os.path.join(path, 'result.json')
         return os.path.exists(result_file)
 
-    def save_experiment_result(self, path, result, analysis, run_code_result):
+    def save_experiment_result(self, path, result, analysis, run_code_result, retry_times):
         def convert_to_serializable(obj):
             if isinstance(obj, np.ndarray):
                 return obj.tolist()
@@ -77,6 +80,7 @@ class AutoRunnerBase(ABC):
         serializable_analysis = convert_to_serializable(analysis)
         combined_result = {
             'run_code_result': run_code_result,
+            'retry_times': retry_times,
             'analysis': serializable_analysis,
             'experiment_data': serializable_result,
         }
@@ -139,7 +143,7 @@ class AutoRunnerBase(ABC):
         frame_index = 0
         while not rospy.is_shutdown() and not self.stop_event.is_set():
             current_time = rospy.get_time()
-            if current_time - start_time > self.experiment_duration:
+            if current_time - start_time > self.experiment_duration - 3:
                 break
             action = self.manager.robotID_velocity
             self.manager.clear_velocity()
@@ -171,9 +175,17 @@ class AutoRunnerBase(ABC):
             result_queue.put({'source': 'run_code', 'error': False, 'reason': 'timeout'})
 
         except subprocess.CalledProcessError as e:
-            print(f"An error occurred while running {experiment}: {e}")
-            print(f"Errors: {e.stderr}")
-            result_queue.put({'source': 'run_code', 'error': True, 'reason': e.stderr})
+            # TODO: 找到原因，为什么会这个报错
+            print(f"error with code{e.returncode}")
+            if e.returncode == -9:
+                print(e.stdout, e.stderr)
+                result_queue.put({'source': 'run_code', 'error': False, 'reason': 'SIGKILL'})
+            else:
+                print(f"An error occurred while running {experiment}: {e}")
+                print(f"Errors: {e.stderr}")
+                result_queue.put({'source': 'run_code', 'error': True, 'reason': e.stderr + f"code:{e.returncode}"})
+        finally:
+            os.system("pgrep -f run.py | xargs kill -9")
 
     def run_multiple_experiments(self, experiment_list):
         if not experiment_list:
@@ -181,41 +193,81 @@ class AutoRunnerBase(ABC):
         try:
             with tqdm(total=len(experiment_list), desc="Running Experiments") as pbar:
                 for experiment in experiment_list:
-                    if self.script_name == 'run_meta.py':
-                        setup_metagpt(os.path.join(f"../workspace/{self.experiment_path}", experiment))
-                    if self.script_name == 'run_cap.py':
-                        setup_cap(os.path.join(f"../workspace/{self.experiment_path}", experiment))
-                    self.stop_event.clear()
-                    result_queue = queue.Queue()
+                    retries = 0
+                    max_retries = 2
+                    success = False
 
-                    t1 = threading.Thread(target=self.run_code, args=(experiment, self.script_name, result_queue))
-                    t2 = threading.Thread(target=self.run_single_experiment, args=(experiment, result_queue))
+                    while retries < max_retries and not success:
+                        if self.script_name == 'run_meta.py':
+                            setup_metagpt(os.path.join(f"../workspace/{self.experiment_path}", experiment))
+                        if self.script_name == 'run_cap.py':
+                            setup_cap(os.path.join(f"../workspace/{self.experiment_path}", experiment))
 
-                    t1.start()
-                    t2.start()
+                        self.stop_event.clear()
+                        result_queue = queue.Queue()
 
-                    t1.join(timeout=self.experiment_duration - 1)
-                    t2.join(timeout=self.experiment_duration - 1)
+                        # 启动线程1：运行实验
+                        t1 = threading.Thread(target=self.run_code, args=(experiment, self.script_name, result_queue))
+                        # 启动线程2：监控机器人运动情况
+                        t2 = threading.Thread(target=self.run_single_experiment, args=(experiment, result_queue))
 
-                    if t1.is_alive() or t2.is_alive():
-                        self.stop_event.set()
-                        t1.join()
-                        t2.join()
-                    single_experiment_result = None
-                    run_code_result = None
-                    while not result_queue.empty():
-                        result = result_queue.get()
-                        if result['source'] == 'run_single_experiment':
-                            single_experiment_result = result['result']
-                        elif result['source'] == 'run_code':
-                            run_code_result = result
+                        t1.start()
+                        t2.start()
+
+                        # 等待线程完成
+                        t1.join(timeout=self.experiment_duration - 1)
+                        t2.join(timeout=self.experiment_duration - 1)
+
+                        if t1.is_alive() or t2.is_alive():
+                            self.stop_event.set()
+                            t1.join()
+                            t2.join()
+
+                        # 检查实验结果
+                        single_experiment_result = None
+                        run_code_result = None
+                        while not result_queue.empty():
+                            result = result_queue.get()
+                            if result['source'] == 'run_single_experiment':
+                                single_experiment_result = result['result']
+                            elif result['source'] == 'run_code':
+                                run_code_result = result
+
+                        # 检查是否有未移动的机器人
+                        unmoved_robots = check_robots_no_movement_in_first_third(single_experiment_result)
+
+                        # 分析实验结果，检查是否满足成功条件
+                        analysis = self.analyze_result(single_experiment_result)
+                        print(f"Analysis for experiment {experiment}: {analysis}")
+                        experiment_success = self.calculate_success(analysis)
+                        success_dict = {"success": experiment_success}
+                        analysis.update(success_dict)
+
+                        print(f"Experiment {experiment} success: {experiment_success}")
+                        print(f"Unmoved robots: {unmoved_robots}")
+                        # 并列判断条件：未移动的机器人 或 实验未成功
+                        if not unmoved_robots and experiment_success:
+                            print(f"Experiment {experiment} completed successfully.")
+                            success = True  # 实验成功，跳出重试循环
+                        else:
+                            retries += 1
+                            if retries < max_retries:
+                                print(
+                                    f"Experiment {experiment} failed (Unmoved robots or unsuccessful), retrying... (Attempt {retries + 1})")
+                            time.sleep(3)  # 等待3秒后重新开始实验
+
+                    # 如果经过三次重试后依然失败，直接继续下一个实验
+                    self.results[experiment] = analysis
+                    self.save_experiment_result(
+                        os.path.join(f"../workspace/{self.experiment_path}", experiment),
+                        single_experiment_result, analysis, run_code_result, retries)
+                    if not success:
+                        print(
+                            f"Experiment {experiment} failed after {max_retries} attempts, moving to next experiment.")
+                    else:
+                        print(f"Experiment {experiment} completed successfully.")
                     self.save_frames_as_animations(experiment)
 
-                    analysis = self.analyze_result(single_experiment_result)
-                    print(f"Analysis for experiment {experiment}: {analysis}")
-                    self.results[experiment] = analysis
-                    self.save_experiment_result(os.path.join(f"../workspace/{self.experiment_path}", experiment),
-                                                single_experiment_result, analysis, run_code_result)
                     pbar.update(1)
 
         except KeyboardInterrupt:
@@ -224,13 +276,15 @@ class AutoRunnerBase(ABC):
             traceback.print_exc()
             print(f"An error occurred: {e}")
         finally:
+            os.system("pgrep -f run.py | xargs kill -9")
             self.stop_event.set()
             t1.join()
             t2.join()
 
         print("All experiments completed successfully.")
 
-    def plot_and_print_results(self, data, labels, ylabel, title, colors, save_filename, rotation=False):
+    def plot_and_print_results(self, data, labels, ylabel, title, colors, save_filename, rotation=False,
+                               success_conditions=None):
         if rotation:
             rotation = -90
         else:
@@ -241,12 +295,22 @@ class AutoRunnerBase(ABC):
         plt.xticks(rotation=rotation)
         plt.ylabel(ylabel)
         plt.title(title)
+
+        # 标记成功条件线
+        if success_conditions:
+            for condition in success_conditions:
+                metric, operator, threshold = condition
+                if metric == ylabel:  # 仅在当前绘制的 metric 与成功条件相关时绘制
+                    plt.axhline(y=threshold, color='r', linestyle='--', label=f"Success threshold ({threshold})")
+
         for i, v in enumerate(data):
             plt.text(i, v + 0.01, f"{v:.2f}", ha='center', rotation=rotation)
+
         if not os.path.exists(f"../workspace/{self.experiment_path}/pic"):
             os.makedirs(f"../workspace/{self.experiment_path}/pic")
         plt_path = os.path.join(f"../workspace/{self.experiment_path}/pic", save_filename)
         plt.tight_layout()
+        plt.legend()
         plt.savefig(plt_path)
         plt.show()
         print(f"{title}: {data}")
@@ -273,6 +337,29 @@ class AutoRunnerBase(ABC):
         """
         raise NotImplementedError("analyze_result method must be implemented in the subclass")
 
+    @abstractmethod
+    def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
+        """
+        This method should be implemented in the subclass to set up the success conditions for the experiments.
+        The success conditions should be a list of tuples, where each tuple contains the metric name, the comparison
+        operator, and the threshold value. For example, to set up success conditions for a metric "mean_dtw_distance"
+        with a threshold of 500, the method should return a list like this:
+        [("mean_dtw_distance", operator.lt, 500)]
+        """
+        raise NotImplementedError("setup_success_conditions method must be implemented in the subclass")
+
+    def calculate_success(self, analysis):
+        success = True
+        for condition in self.success_conditions:
+            metric, operator, threshold = condition
+            if metric not in analysis:
+                print(f"Metric {metric} not found in analysis.")
+                continue
+            if not operator(analysis[metric], threshold):
+                success = False
+                break
+        return success
+
     def analyze_all_results(self, experiment_dirs=None):
         if not experiment_dirs:
             experiment_dirs = sorted(self.get_experiment_directories())
@@ -286,10 +373,14 @@ class AutoRunnerBase(ABC):
                 with open(result_path, 'r') as f:
                     result_data = json.load(f)
                     analysis = result_data.get('analysis', {})
-                    exp_data[experiment] = analysis
+                    bug = result_data.get('run_code_result', {})['error']
+                    success = self.calculate_success(analysis)
+                    data = {**analysis, 'success': success, 'BUG': bug,
+                            'retry_times': result_data.get('retry_times', 0)}
+                    exp_data[experiment] = data
 
                     # Collect all possible metric keys from analysis
-                    all_metric_names = list(analysis.keys())
+                    all_metric_names = list(data.keys())
 
         # Calculate and plot average metrics
         mean_metric_value = {metric: np.mean([exp_data[exp].get(metric, 0) for exp in exp_data.keys()]) for metric in
@@ -302,7 +393,8 @@ class AutoRunnerBase(ABC):
                 title=f"Experiment Outcomes in {metric}",
                 colors=[self.get_color(i, len(exp_data)) for i in range(len(exp_data))],
                 save_filename=f'{metric}_metric.png',
-                rotation=True
+                rotation=True,
+                success_conditions=self.success_conditions  # 传递成功条件
             )
 
         # Plot summary of metrics

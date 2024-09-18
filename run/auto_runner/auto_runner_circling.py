@@ -1,3 +1,5 @@
+import operator
+
 from modules.deployment.gymnasium_env import GymnasiumCirclingEnvironment
 from run.auto_runner import AutoRunnerBase
 from run.utils import evaluate_robot_circle_similarity
@@ -24,8 +26,12 @@ class AutoRunnerCircling(AutoRunnerBase):
                          env=env)
 
     def analyze_result(self, run_result) -> dict[str, float]:
-        line_similarity = evaluate_robot_circle_similarity(run_result, circle_center=(0, 0), circle_radius=1)
+        line_similarity = evaluate_robot_circle_similarity(run_result, expected_circle_center=(0, 0),
+                                                           expected_circle_radius=1)
         return line_similarity
 
-    def analyze_all_results(self, experiment_dirs=None):
-        pass
+    def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
+        return [
+            ("center_distance", operator.lt, 0.1),
+            ("radius_difference", operator.lt, 0.1)
+        ]

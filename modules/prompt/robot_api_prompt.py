@@ -11,15 +11,11 @@ def get_self_id():
     - int: The unique ID of the robot itself.ID is a unique identifier for each robot in the environment.
     '''
     
-def get_all_robots_info():
+def get_all_robots_id():
     '''
-    Get real-time information of all the robots id information in the environment.
+    Description: Get the unique IDs of all robots in the environment.(Including the robot itself)
     Returns:
-    - dict: 
-        - self_id (int): The unique ID of the robot itself.
-        - start_id (int): The unique ID of the first robot in the environment.
-        - end_id (int): The unique ID of the last robot in the environment.
-        - robots_num (int): The number of robots in the environment.
+    - list: A list of integers, each representing the unique ID of a robot in the environment.
     '''
     
 def get_self_position():
@@ -43,6 +39,7 @@ def get_self_velocity():
     Returns:
     - numpy.ndarray: The current, real-time velocity of the robot.
     '''
+    
 def get_self_radius():
     '''
     Description: Get the radius of the robot itself.Radius is the distance from the center of the robot to the edge of the robot.
@@ -53,7 +50,7 @@ def get_self_radius():
     
 def get_surrounding_robots_info():
     '''
-    Get real-time information of the surrounding robots.
+    Get real-time information of the surrounding robots.(Not including the robot itself)
     Note: This API is provided by humans. There is no need to concern yourself with how it is implemented; you only need to call it.
     Returns:
     - list: A list of dictionaries, each containing the current position, velocity, and radius of a robot, reflecting real-time data.
@@ -94,54 +91,6 @@ def get_target_formation_points():
         - position (numpy.ndarray): The position of the target formation point.
     '''
 
-
-def get_sheep_positions():
-    '''
-    Description: Get the positions of all the sheep in the environment.
-    Returns:
-    - list: A list of numpy.ndarray, each representing the position of a sheep.
-        - position (numpy.ndarray): The position of a sheep.
-    '''
-
-def pick_up_object(object_id):
-    '''
-    Description: Pick up an object with the specified ID.
-    Input:
-    - object_id (int): The ID of the object to pick up.
-    Returns:
-    - bool: True if the object is successfully picked up, False means the object is too far away to be picked up.
-    '''
-
-def put_down_object(object_id):
-    '''
-    Description: Put down an object with the specified ID.
-    Input:
-    - object_id (int): The ID of the object to put down.
-    Returns:
-    - bool: True if the object is successfully put down, False means the object is not picked up.
-    '''
-
-def get_object_to_transport_info():
-    '''
-    Description: Get real-time information of the object that the robot needs to transport.
-    Note: This API is provided by humans. There is no need to concern yourself with how it is implemented; you only need to call it.
-    Returns:
-    -list: A list of dictionaries, each containing the current position and radius of the object that the robot is transporting, reflecting real-time data.
-        - id (int): The unique ID of the object.
-        - position (numpy.ndarray): The current position of the object.
-        - radius (float): The radius of the object.
-        - target_position (numpy.ndarray): The target position of the object.
-    '''
-
-def connect_to_another_robot(target_id):
-    '''
-    Description: Connect to another robot with the specified ID.
-    Input:
-    - target_id (int): The ID of the robot to connect to.
-    Returns:
-    - bool: True if the connection is successful, False means the connection is not possible.
-    '''
-    
 def get_unexplored_area():
     '''
     Description: Get the unexplored area in the environment.
@@ -169,7 +118,7 @@ class RobotApi:
         self.apis = code_obj.function_defs
 
         self.base_apis = ['get_self_id',
-                          'get_all_robots_info',
+                          'get_all_robots_id',
                           'get_self_position',
                           'set_self_velocity',
                           'get_self_velocity',
@@ -179,20 +128,14 @@ class RobotApi:
         self.base_prompt = [self.apis[api] for api in self.base_apis]
         self.task_apis = {
             "bridging": [],
-            "circling": [],
+            "circling": ['get_surrounding_obstacles_info'],
             "covering": [],
-            "crossing": ['get_surrounding_obstacles_info'],
+            "crossing": ['get_surrounding_obstacles_info', 'get_target_position'],
             "encircling": ["get_prey_position", 'get_surrounding_obstacles_info'],
             "exploration": ['get_unexplored_area'],
             "flocking": ['get_surrounding_obstacles_info'],
             "clustering": ['get_surrounding_obstacles_info', 'get_quadrant_target_position'],
-            "herding": ['get_sheep_positions', 'get_surrounding_obstacles_info'],
             "shaping": ['get_target_formation_points'],
-            "formation": ['get_surrounding_obstacles_info'],
-            "transportation": ['pick_up_object',
-                               'put_down_object',
-                               'get_object_to_transport_info'
-                               ],
             "pursuing": ['get_prey_position', 'get_surrounding_obstacles_info'],
 
         }

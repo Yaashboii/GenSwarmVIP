@@ -1,6 +1,10 @@
+import operator
+
+import numpy as np
+
 from modules.deployment.gymnasium_env import GymnasiumBridgingEnvironment
 from run.auto_runner import AutoRunnerBase
-from run.utils import calculate_line_similarity
+from run.utils import evaluate_shape_similarity
 
 
 class AutoRunnerBridging(AutoRunnerBase):
@@ -24,8 +28,14 @@ class AutoRunnerBridging(AutoRunnerBase):
                          env=env)
 
     def analyze_result(self, run_result) -> dict[str, float]:
-        line_similarity = calculate_line_similarity(run_result, target_line=((0, -2), (0, 2)))
+        robots_num = self.env.num_robots
+        target_y = np.linspace(-2, 2, robots_num)
+        target_x = np.zeros(robots_num)
+        target_line = np.array([target_x, target_y]).T
+        line_similarity = evaluate_shape_similarity(run_result, target_shape=target_line)
         return line_similarity
 
-    def analyze_all_results(self, experiment_dirs=None):
-        pass
+    def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
+        return [
+            ("procrustes_distance", operator.lt, 0.2),
+        ]

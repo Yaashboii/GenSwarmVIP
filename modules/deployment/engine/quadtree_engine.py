@@ -83,7 +83,8 @@ class QuadTreeEngine(Engine):
                         dv1, dv2 = self._resolve_collision(entity, other)
                         entity.velocity += dv1
                         other.velocity += dv2
-
+            velocity_adjustment = self._adjust_velocity_near_boundary(entity)
+            entity.velocity += velocity_adjustment
         if self._joint_constraint:
             joints_copy = self._joints.copy()
             for (entity_id1, entity_id2), desired_length in joints_copy.items():
@@ -98,9 +99,42 @@ class QuadTreeEngine(Engine):
                 # Update position based on velocity and delta_time
                 entity.position += entity.velocity * delta_time
                 # leave 0.05 margin to avoid entities getting stuck at the edge
-                entity.position = np.clip(entity.position, -0.45 * self.world_size, 0.45 * self.world_size)
+                # entity.position = np.clip(entity.position, -0.5 * self.world_size, 0.5 * self.world_size)
                 self.set_position(entity.id, entity.position)
         # Resolve overlaps
+
+    def _adjust_velocity_near_boundary(self, entity: Entity) -> np.ndarray:
+        """
+        Adjust the velocity of an entity when it is near the boundary.
+        Args:
+            entity (Entity): The entity to adjust velocity for.
+        Returns:
+            np.ndarray: The velocity adjustment to be applied.
+        """
+        velocity_adjustment = np.zeros(2)
+        margin = 0.1  # Velocity adjustment starts when entity is within 0.5 meters of the boundary
+        adjustment_coefficient = 10  # Strength of the velocity adjustment
+
+        # Calculate the distance to each boundary
+        distances = np.array([
+            entity.position[0] - (-0.5 * self.world_size[0]),  # Distance to left boundary
+            0.5 * self.world_size[0] - entity.position[0],  # Distance to right boundary
+            entity.position[1] - (-0.5 * self.world_size[1]),  # Distance to bottom boundary
+            0.5 * self.world_size[1] - entity.position[1]  # Distance to top boundary
+        ])
+
+        # Adjust velocity based on proximity to the boundaries
+        if distances[0] < margin:  # Near left boundary
+            velocity_adjustment[0] += adjustment_coefficient * (margin - distances[0])
+        elif distances[1] < margin:  # Near right boundary
+            velocity_adjustment[0] -= adjustment_coefficient * (margin - distances[1])
+
+        if distances[2] < margin:  # Near bottom boundary
+            velocity_adjustment[1] += adjustment_coefficient * (margin - distances[2])
+        elif distances[3] < margin:  # Near top boundary
+            velocity_adjustment[1] -= adjustment_coefficient * (margin - distances[3])
+
+        return velocity_adjustment
 
     def _resolve_overlaps(self):
         """

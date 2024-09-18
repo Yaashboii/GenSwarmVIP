@@ -1,6 +1,8 @@
+import operator
+
 from modules.deployment.gymnasium_env import GymnasiumEncirclingEnvironment
 from run.auto_runner import AutoRunnerBase
-from run.utils import evaluate_encircling
+from run.utils import evaluate_encircling_end
 
 
 class AutoRunnerEncircling(AutoRunnerBase):
@@ -24,8 +26,11 @@ class AutoRunnerEncircling(AutoRunnerBase):
                          env=env)
 
     def analyze_result(self, run_result) -> dict[str, float]:
-        encircling_metric = evaluate_encircling(run_result)
+        encircling_metric = evaluate_encircling_end(run_result)
         return encircling_metric
 
-    def analyze_all_results(self, experiment_dirs=None):
-        pass
+    def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
+        return [
+            ("mean_distance_error", operator.le, 0.1),
+        ]
+

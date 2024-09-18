@@ -1,4 +1,5 @@
-from typing import Optional, TypeVar
+from cmath import isnan
+from typing import Optional, TypeVar, SupportsFloat, Any
 
 from modules.deployment.entity import Robot, Obstacle, Prey
 from modules.deployment.utils.sample_point import *
@@ -39,6 +40,7 @@ class GymnasiumPursuingEnvironment(GymnasiumEnvironmentBase):
         self.add_entity(prey)
 
 
+
 if __name__ == "__main__":
 
     import time
@@ -46,7 +48,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumPursuitEnvironment("../../../config/env/pursuit_config.json")
+    env = GymnasiumPursuingEnvironment("../../../config/env/pursuit_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

@@ -30,7 +30,7 @@ class GymnasiumClusteringEnvironment(GymnasiumEnvironmentBase):
             initial_position = np.array([-1.25, -1.25]) + np.array([i % 2, i // 2]) * 2.5
             target_zone = Landmark(landmark_id=entity_id,
                                    initial_position=initial_position,
-                                   size=np.array((1, 1)),
+                                   size=np.array((1.5, 1.5)),
                                    color='blue', )
             self.add_entity(target_zone)
             entity_id += 1

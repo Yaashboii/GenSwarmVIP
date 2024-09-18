@@ -67,8 +67,8 @@ class RunCode(ActionNode):
             )
 
             if (
-                "WARNING: cannot load logging configuration file, logging is disabled\n"
-                in stderr_chunks
+                    "WARNING: cannot load logging configuration file, logging is disabled\n"
+                    in stderr_chunks
             ):
                 stderr_chunks.remove(
                     "WARNING: cannot load logging configuration file, logging is disabled\n"
@@ -118,7 +118,6 @@ class RunCodeAsync(ActionNode):
         start_idx = rospy.get_param("robot_start_index")
         end_idx = rospy.get_param("robot_end_index")
         total_robots = end_idx - start_idx + 1
-
         num_processes = min(3, total_robots)  # Number of processes
         robots_per_process = total_robots // num_processes
 
