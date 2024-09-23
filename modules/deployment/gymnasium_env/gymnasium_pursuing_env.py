@@ -35,10 +35,8 @@ class GymnasiumPursuingEnvironment(GymnasiumEnvironmentBase):
 
         prey = Prey(prey_id=entity_id,
                     initial_position=[0, 0],
-                    size=0.10,
-                    max_speed=0.2)
+                    size=0.10, )
         self.add_entity(prey)
-
 
 
 if __name__ == "__main__":

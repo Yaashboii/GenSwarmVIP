@@ -29,7 +29,8 @@ tasks = {
 
     'transportation': "You need to collaborate with other robots to transport the object to its target location.",
 
-    'encircling': "The robots need to surround the target prey by evenly distributing themselves along a circle with a radius of 0.5, centered on the prey. They will adjust their positions in real-time based on the movement of the prey to achieve coordinated encirclement."
+    'encircling': "The robots need to surround the target prey by evenly distributing themselves along a circle with a radius of 1, centered on the prey."
+                  "They will adjust their positions in real-time based on the movement of the prey to achieve coordinated encirclement."
                   "During this process, the robots must avoid collisions with each other and with obstacles, maintaining a distance of at least 0.3 meters whenever possible.",
     "exploration": "In the 'exploration' task, robots are required to collaboratively explore an unknown area."
                    "At the start of the task, each robot is assigned a series of sub-areas based on its initial position, aiming to minimize the total distance traveled by all robots."

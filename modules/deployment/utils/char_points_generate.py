@@ -15,6 +15,8 @@ def create_char_image(char, font_path, font_size=200, image_size=(300, 300)):
     text_y = (image_size[0] - (text_size[3] - text_size[1])) // 2
     draw.text((text_x, text_y), char, font=font, fill=(255, 255, 255))
     img = np.array(pil_img)
+    cv2.imshow('img', img)
+    cv2.waitKey(0)
     return img
 
 
@@ -92,7 +94,7 @@ def validate_contour_points(char, num_points=150, star=False):
 
     contours = draw_contours(image)
     sampled_points = sample_contour_points(contours, num_points)
-    print(len(sampled_points))
+    # print(len(sampled_points))
     # sampled_img = np.zeros_like(image)
     # for point in sampled_points:
     #     cv2.circle(sampled_img, (int(point[0]), int(point[1])), 1, (255, 255, 255), -1)
@@ -107,6 +109,6 @@ def validate_contour_points(char, num_points=150, star=False):
 
 # # Example usage:
 # font_path = "HanYiCuYuanJian-1.ttf"
-# character = 'R'
-# num_points = 20  # Adjust the number of points as needed
+# character = '国'
+# num_points = 150  # Adjust the number of points as needed
 # validate_contour_points(character, num_points)

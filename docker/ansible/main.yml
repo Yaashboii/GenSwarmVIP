@@ -1,5 +1,7 @@
 - name: Copy Source Code
   hosts: SWARM
+
+#  serial: 3
   become: yes
   become_method: sudo
   become_user: root

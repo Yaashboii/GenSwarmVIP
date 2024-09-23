@@ -22,25 +22,25 @@ def config_mapping(task_name: str) -> str:
 
 
 if __name__ == "__main__":
-    task_name = 'bridging'
+    task_name = 'crossing'
     runner_class = task_mapping(task_name)
     config_file = config_mapping(task_name)
-    runner = runner_class(env_config_path=f"../config/env/{config_file}",
+    runner = runner_class(env_config_path=f"../config/real_env/{config_file}",
                           workspace_path=task_name,
                           # workspace_path='metagpt',
                           # workspace_path='cap/cross',
-                          experiment_duration=20,
-                          run_mode='analyze',
+                          experiment_duration=80,
+                          run_mode='rerun',
                           # target_pkl='video_critic.pkl',
                           target_pkl='None',
                           # script_name='run_meta.py',
                           # script_name='run_cap.py',
-                          max_speed=1.5,
+                          max_speed=0.2,
                           tolerance=0.15)
 
     # 人工复核，哪些任务需要重新跑，写在下面
-    # exp_list = ['2024-09-18_03-14-14', '2024-09-18_03-14-16', '2024-09-18_03-14-20', '2024-09-18_03-14-30','2024-09-18_03-14-36','2024-09-18_03-14-40','2024-09-18_03-14-46']
-    exp_list = None
+    exp_list = ['real', ]
+    # exp_list = None
     # exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))
 
     runner.run(exp_list=exp_list)

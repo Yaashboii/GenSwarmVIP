@@ -3,6 +3,7 @@ from typing import Optional, TypeVar
 from modules.deployment.entity import Landmark, Robot
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
+from modules.deployment.utils.save import save_frames_as_animations
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
@@ -76,16 +77,16 @@ if __name__ == "__main__":
     manager = Manager(env)
     manager.publish_observations(infos)
     rate = rospy.Rate(env.FPS)
-
+    frames = []
     start_time = time.time()  # 记录起始时间
     frame_count = 0  # 初始化帧数计数器
 
-    while True:
+    while not rospy.is_shutdown():
         # action = manager.robotID_velocity
         action = {}
         # manager.clear_velocity()
         obs, reward, termination, truncation, infos = env.step(action=action)
-        env.render()
+        frames.append(env.render())
         manager.publish_observations(infos)
         rate.sleep()
 
@@ -100,3 +101,4 @@ if __name__ == "__main__":
             frame_count = 0  # 重置帧数计数器
             start_time = current_time  # 重置起始时间戳
     print("Simulation completed successfully.")
+    save_frames_as_animations(0, '../../../workspace/exploration/pic', frames)

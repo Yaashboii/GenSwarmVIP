@@ -12,6 +12,7 @@ from modules.deployment.engine import Box2DEngine, QuadTreeEngine, OmniEngine
 from abc import ABC, abstractmethod
 
 from modules.deployment.entity import Landmark, Robot, Obstacle, Prey
+from modules.deployment.execution_scripts.omni.apis_old import target_position
 
 ObsType = TypeVar("ObsType")
 ActType = TypeVar("ActType")
@@ -71,7 +72,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
             self.engine = QuadTreeEngine(world_size=(self.width, self.height),
                                          alpha=0.5,
                                          damping=0.75,
-                                         collision_check=True,
+                                         collision_check=False,
                                          joint_constraint=False)
         elif engine_type == 'Box2DEngine':
             self.engine = Box2DEngine()
@@ -253,9 +254,9 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                 valid_velocity = np.array([i if not isnan(i) else 0 for i in velocity])
                 # valid_velocity = np.array([1, 1,], dtype=float)
                 self.set_entity_velocity(entity_id, valid_velocity)
-        for entity in self.entities:
-            if entity.__class__.__name__ == 'Prey':
-                entity.move(self.time_step)
+            for entity in self.entities:
+                if entity.__class__.__name__ == 'Prey':
+                    entity.move(self.time_step)
 
         self.engine.step(self.dt)
         obs = self.get_observation("array")
@@ -341,18 +342,26 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         raise NotImplementedError(f"{str(self)}.init_entities method must be implemented.")
 
     def init_omni_entities(self):
+
         robot_id_list = self.robot_id_list
-        for i in robot_id_list:
+        target_positions = [(2.0, 0.0), (1.7320508075688774, 0.9999999999999999),
+                            (1.0000000000000002, 1.7320508075688772), (1.2246467991473532e-16, 2.0),
+                            (-0.9999999999999996, 1.7320508075688774), (-1.732050807568877, 1.0000000000000007)]
+
+        for count, i in enumerate(robot_id_list):
             robot = Robot(robot_id=i,
                           initial_position=(0, 0),
                           size=0.15,
+                          target_position=target_positions[count]
+
                           )
             self.add_entity(robot)
         obstacle_id_list = self.obstacle_id_list
         for i in obstacle_id_list:
             obstacle = Obstacle(obstacle_id=i,
                                 initial_position=(0, 0),
-                                size=0.15)
+                                size=0.15,
+                                movable=True)
             self.add_entity(obstacle)
         landmark_id_list = self.landmark_id_list
         for i in landmark_id_list:
@@ -361,12 +370,21 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                                 size=0.15,
                                 color='gray')
             self.add_entity(landmark)
+        # entity_id = 10
+        # for x in np.arange(-self.width * 0.4, self.width * 0.51, 0.2 * self.width):
+        #     for y in np.arange(-self.height * 0.4, self.height * 0.51, 0.2 * self.height):
+        #         landmark = Landmark(landmark_id=entity_id,
+        #                             initial_position=(x, y),
+        #                             size=np.array([0.2 * self.width, 0.2 * self.height]),
+        #                             color='gray')
+        #         self.add_entity(landmark)
+        #         entity_id += 1
         prey_id_list = self.prey_id_list
         for i in prey_id_list:
             prey = Prey(prey_id=i,
                         initial_position=(0, 0),
                         size=0.15,
-                        max_speed=0.4)
+                        )
             self.add_entity(prey)
 
     def add_entity(self, entity):

@@ -194,7 +194,7 @@ class AutoRunnerBase(ABC):
             with tqdm(total=len(experiment_list), desc="Running Experiments") as pbar:
                 for experiment in experiment_list:
                     retries = 0
-                    max_retries = 2
+                    max_retries = 1
                     success = False
 
                     while retries < max_retries and not success:
@@ -207,21 +207,22 @@ class AutoRunnerBase(ABC):
                         result_queue = queue.Queue()
 
                         # 启动线程1：运行实验
-                        t1 = threading.Thread(target=self.run_code, args=(experiment, self.script_name, result_queue))
+                        # t1 = threading.Thread(target=self.run_code, args=(experiment, self.script_name, result_queue))
                         # 启动线程2：监控机器人运动情况
                         t2 = threading.Thread(target=self.run_single_experiment, args=(experiment, result_queue))
 
-                        t1.start()
+                        # t1.start()
                         t2.start()
 
                         # 等待线程完成
-                        t1.join(timeout=self.experiment_duration - 1)
+                        # t1.join(timeout=self.experiment_duration - 1)
                         t2.join(timeout=self.experiment_duration - 1)
 
-                        if t1.is_alive() or t2.is_alive():
-                            self.stop_event.set()
-                            t1.join()
-                            t2.join()
+                        # if t1.is_alive() or t2.is_alive():
+                        #     self.stop_event.set()
+                        #     t1.join()
+                        #     t2.join()
+
 
                         # 检查实验结果
                         single_experiment_result = None
@@ -278,7 +279,7 @@ class AutoRunnerBase(ABC):
         finally:
             os.system("pgrep -f run.py | xargs kill -9")
             self.stop_event.set()
-            t1.join()
+            # t1.join()
             t2.join()
 
         print("All experiments completed successfully.")

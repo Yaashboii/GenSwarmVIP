@@ -19,7 +19,7 @@ class Manager:
     def __init__(self, env, max_speed=0.2):
         self.env = env
 
-        rospy.init_node('simulation_manager', anonymous=True)
+        # rospy.init_node('simulation_manager', anonymous=True)
         self._pub_list = []
         self._robots = env.get_entities_by_type('Robot') + env.get_entities_by_type('Leader')
         self._max_speed = max_speed

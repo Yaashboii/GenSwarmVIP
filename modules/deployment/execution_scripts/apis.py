@@ -1,10 +1,7 @@
-import math
-import os
 import numpy as np
 import rospy
 import threading
 
-from code_llm.srv import ConnectEntities, ConnectEntitiesResponse, ConnectEntitiesRequest
 from geometry_msgs.msg import Twist
 from code_llm.msg import Observations
 
@@ -88,8 +85,8 @@ class RobotNode:
             rospy.Subscriber(f"/observation", Observations, self.observation_callback)
             self.velocity_publisher = rospy.Publisher(f"/robot_{self.robot_id}/velocity", Twist, queue_size=10)
 
-            current_folder = os.path.dirname(os.path.abspath(__file__))
-            rospy.set_param("data_path", str(current_folder) + "/data")
+            # current_folder = os.path.dirname(os.path.abspath(__file__))
+            # rospy.set_param("data_path", str(current_folder) + "/data")
 
             print(f"Waiting for position message from /robot_{self.robot_id}/observation...")
             msg = rospy.wait_for_message(f"/observation", Observations)
@@ -125,9 +122,6 @@ class RobotNode:
 
     def get_surrounding_obstacles_info(self):
         return self.obstacles_info
-
-    def get_object_to_transport_info(self):
-        return self.moveable_objects
 
     def get_prey_position(self):
         return self.prey_positions[0]

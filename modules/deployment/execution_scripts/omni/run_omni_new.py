@@ -16,13 +16,8 @@ class RobotRunner:
         self.stop_event = threading.Event()
 
     def run(self):
-        target_positions = [(1.7320508075688774, 0.9999999999999999), (1.2246467991473532e-16, 2.0),
-                            (-1.732050807568877, 1.0000000000000007), (-1.7320508075688776, -0.9999999999999994),
-                            (-3.6739403974420594e-16, -2.0), (1.7320508075688767, -1.0000000000000009)]
-
-        map = {6: 3, 0: 4, 1: 5, 2: 0, 7: 1, 8: 2}
         print(f'run code success with id={self.robot_id}')
-        initialize_ros_node(robot_id=self.robot_id, target_position=target_positions[map[self.robot_id]])
+        initialize_ros_node(robot_id=self.robot_id)
         while not self.stop_event.is_set():
             run_loop()
 

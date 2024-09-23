@@ -41,5 +41,5 @@ class AutoRunnerClustering(AutoRunnerBase):
 
     def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
         return [
-            ("achievement_ratio", operator.ge, 0.90),
+            ("achievement_ratio", operator.ge, 0.99),
         ]
