@@ -58,7 +58,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
             raise json.JSONDecodeError(f"Error decoding JSON from the data file: {self.data_file}") from e
 
         self.dt = self.data.get('dt', 0.01)
-        self.FPS = 10
+        self.FPS = 100
         self.screen: pygame.Surface
         self.simulation_data = {}
         self.scale_factor = self.data['display']['scale_factor']
@@ -72,7 +72,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
             self.engine = QuadTreeEngine(world_size=(self.width, self.height),
                                          alpha=0.5,
                                          damping=0.75,
-                                         collision_check=False,
+                                         collision_check=True,
                                          joint_constraint=False)
         elif engine_type == 'Box2DEngine':
             self.engine = Box2DEngine()

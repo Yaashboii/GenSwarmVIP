@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumEncirclingEnvironment("../../../config/real_env/encircling_config.json")
+    env = GymnasiumEncirclingEnvironment("../../../config/env/encircling_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)
@@ -77,12 +77,12 @@ if __name__ == "__main__":
     frame_count = 0  # 初始化帧数计数器
     try:
         while not rospy.is_shutdown():
-            # action = manager.robotID_velocity
-            action = {}
+            action = manager.robotID_velocity
+            # action = {}
             # manager.clear_velocity()
             obs, reward, termination, truncation, infos = env.step(action=action)
             manager.publish_observations(infos)
-            # rate.sleep()
+            rate.sleep()
             frames.append(env.render())
             frame_count += 1  # 增加帧数计数器
             current_time = time.time()  # 获取当前时间

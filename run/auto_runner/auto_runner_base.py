@@ -143,7 +143,7 @@ class AutoRunnerBase(ABC):
         frame_index = 0
         while not rospy.is_shutdown() and not self.stop_event.is_set():
             current_time = rospy.get_time()
-            if current_time - start_time > self.experiment_duration - 3:
+            if current_time - start_time > self.experiment_duration - 2:
                 break
             action = self.manager.robotID_velocity
             self.manager.clear_velocity()
@@ -169,6 +169,7 @@ class AutoRunnerBase(ABC):
         try:
             result = subprocess.run(command, timeout=self.experiment_duration - 2, capture_output=True, text=True,
                                     check=True)
+
             result_queue.put({'source': 'run_code', 'error': False, 'reason': ''})
         except subprocess.TimeoutExpired:
             print(f"\nExperiment {experiment} timed out and was terminated.")
@@ -176,6 +177,8 @@ class AutoRunnerBase(ABC):
 
         except subprocess.CalledProcessError as e:
             # TODO: 找到原因，为什么会这个报错
+            print(e.stdout, e.stderr)
+
             print(f"error with code{e.returncode}")
             if e.returncode == -9:
                 print(e.stdout, e.stderr)
@@ -185,6 +188,7 @@ class AutoRunnerBase(ABC):
                 print(f"Errors: {e.stderr}")
                 result_queue.put({'source': 'run_code', 'error': True, 'reason': e.stderr + f"code:{e.returncode}"})
         finally:
+
             os.system("pgrep -f run.py | xargs kill -9")
 
     def run_multiple_experiments(self, experiment_list):
@@ -207,22 +211,21 @@ class AutoRunnerBase(ABC):
                         result_queue = queue.Queue()
 
                         # 启动线程1：运行实验
-                        # t1 = threading.Thread(target=self.run_code, args=(experiment, self.script_name, result_queue))
+                        t1 = threading.Thread(target=self.run_code, args=(experiment, self.script_name, result_queue))
                         # 启动线程2：监控机器人运动情况
                         t2 = threading.Thread(target=self.run_single_experiment, args=(experiment, result_queue))
+                        t1.start()
 
-                        # t1.start()
                         t2.start()
 
                         # 等待线程完成
-                        # t1.join(timeout=self.experiment_duration - 1)
+                        t1.join(timeout=self.experiment_duration - 1)
                         t2.join(timeout=self.experiment_duration - 1)
 
-                        # if t1.is_alive() or t2.is_alive():
-                        #     self.stop_event.set()
-                        #     t1.join()
-                        #     t2.join()
-
+                        if t1.is_alive() or t2.is_alive():
+                            self.stop_event.set()
+                            t1.join()
+                            t2.join()
 
                         # 检查实验结果
                         single_experiment_result = None
@@ -279,7 +282,7 @@ class AutoRunnerBase(ABC):
         finally:
             os.system("pgrep -f run.py | xargs kill -9")
             self.stop_event.set()
-            # t1.join()
+            t1.join()
             t2.join()
 
         print("All experiments completed successfully.")

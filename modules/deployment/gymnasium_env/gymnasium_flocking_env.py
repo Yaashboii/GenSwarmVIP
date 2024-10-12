@@ -95,7 +95,7 @@ if __name__ == '__main__':
     current_time = time.time()
     while current_time - start_time < 120:
         action = manager.robotID_velocity
-        manager.clear_velocity()
+        # manager.clear_velocity()
         # print(action)
         obs, reward, termination, truncation, infos = env.step(action=action)
         env.render()

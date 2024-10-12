@@ -1,14 +1,16 @@
 import re
 
 
-def parse_text(text: str, lang: str = "python") -> str:
+def parse_text(text: str, lang: str = "python", all_matches: bool = False) -> str | list[str]:
     pattern = rf"```{lang}.*?\s+(.*?)```"
-    match = re.search(pattern, text, re.DOTALL)
+    matches = re.findall(pattern, text, re.DOTALL)
 
-    if not match:
+    if not matches:
         # TODO: user-defined error
         error_message = f"Error: No '{lang}' code block found in the text."
         raise ValueError(error_message)
 
-    code = match.group(1)
-    return code
+    if all_matches:
+        return matches
+    else:
+        return matches[0]

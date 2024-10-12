@@ -6,15 +6,15 @@ from modules.llm import GPT
 from modules.prompt import (
     ANALYZE_CONSTRAINT_PROMPT_TEMPLATE,
     CONSTRAIN_TEMPLATE,
-    CONTINUE_ANALYZE_CONSTRAINT_PROMPT_TEMPLATE,
-    MODIFY_CONSTRAIN_TEMPLATE,
-    ROBOT_API,
+    GLOBAL_ROBOT_API,
+    LOCAL_ROBOT_API,
     ENV_DES,
     TASK_DES,
 )
 from modules.framework.constraint import ConstraintPool
 from modules.framework.parser import *
 from modules.prompt.user_requirements import get_user_commands
+from modules.utils import root_manager
 
 
 class AnalyzeConstraints(ActionNode):
@@ -32,10 +32,11 @@ class AnalyzeConstraints(ActionNode):
     def _build_prompt(self):
         # constraints predefined
         user_constraints = {"constraints": self._constraint_pool.constraint_list}
-        self.prompt = ANALYZE_CONSTRAINT_PROMPT_TEMPLATE.format(
+        self.prompt=self.prompt.format(
             task_des=TASK_DES,
             instruction=self.context.command,
-            robot_api=ROBOT_API,
+            global_api=GLOBAL_ROBOT_API,
+            local_api=LOCAL_ROBOT_API,
             env_des=ENV_DES,
             output_template=CONSTRAIN_TEMPLATE,
             user_constraints=json.dumps(user_constraints, indent=4),
@@ -44,26 +45,16 @@ class AnalyzeConstraints(ActionNode):
     async def _process_response(self, response: str) -> str:
         content = parse_text(response, "json")
         self._constraint_pool.init_constraints(content)
-        if self._interaction_mode:
-            satisfied = input("Are you satisfied with the constraints? (y/n)")
-            if satisfied != "y":
-                await self.interaction_with_user()
 
         logger.log(f"Analyze Constraints Success", "success")
-
-    async def interaction_with_user(self):
-        feedback = input("Please provide feedback:")
-        self.prompt = CONTINUE_ANALYZE_CONSTRAINT_PROMPT_TEMPLATE.format(
-            feedback=feedback,
-            output_template=MODIFY_CONSTRAIN_TEMPLATE,
-        )
-        await self._run()
 
 
 if __name__ == '__main__':
     import asyncio
     from modules.framework.context import WorkflowContext
     import argparse
+
+    root_manager.update_root('../../../workspace/test')
 
     parser = argparse.ArgumentParser(
         description="Run simulation with custom parameters."
@@ -72,11 +63,11 @@ if __name__ == '__main__':
     parser.add_argument(
         "--interaction_mode",
         type=bool,
-        default=True,
+        default=False,
         help="Whether to run in interaction mode in analyze constraints.",
     )
     context = WorkflowContext()
-    task = get_user_commands('cross')[0]
+    task = get_user_commands('bridging')[0]
 
     context.command = task
     args = parser.parse_args()

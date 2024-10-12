@@ -84,3 +84,9 @@ class ConstraintPool:
             for c in self._constraint_nodes.values()
             if c.has_no_connections()
         ]
+        logger.log("All constraints have satisfying functions", "success")
+
+
+    def get_constraint_names(self):
+        """Returns a list of all constraint names."""
+        return list(self._constraint_nodes.keys())

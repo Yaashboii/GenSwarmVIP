@@ -6,13 +6,16 @@ from .function_node import FunctionNode, State
 
 
 class FunctionTree:
-    _instance = None
-
-    def __new__(cls):
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-            cls._instance.reset()
-        return cls._instance
+    # TODO：梳理functionTree的逻辑，对其进行简化，减少不必要的逻辑 (@Jiwenkang 10-4)
+    def __init__(self, name: str, init_import_list: set[str] = None):
+        self._name = name
+        self._function_nodes: dict[str, FunctionNode] = {}
+        self._layers = []
+        self._function_to_layer = {}
+        self._keys_set = None
+        self.import_list: set[str] = init_import_list
+        self.output_template = ''
+        self._file = File(name=self._name + '.py')
 
     def __getitem__(self, key: str):
         return self._function_nodes[key]
@@ -21,18 +24,9 @@ class FunctionTree:
         if isinstance(key, str):
             self._function_nodes[key] = value
 
-    def reset(self):
-        self._function_nodes: dict[str, FunctionNode] = {}
-        self.import_list: set[str] = {"from apis import *"}
-        self._layers: list[FunctionLayer] = []
-        self._index = 0
-        self._keys_set = set()
-        self._file = File(name="functions.py")
-        # self._last_layer = FunctionLayer()
-        # self._run_loop = FunctionNode(name="run_loop",
-        #                               description="an interface function for users to call, based on existing functions written by other assistants. Users only need to call this function to complete the predetermined task.")
-        # self._last_layer.add_function(self._run_loop)
-        # self._function_nodes["run_loop"] = self._run_loop
+    @property
+    def name(self):
+        return self._name
 
     @property
     def nodes(self):
@@ -41,6 +35,10 @@ class FunctionTree:
     @property
     def file(self):
         return self._file
+
+    @property
+    def layers(self):
+        return self._layers
 
     @file.setter
     def file(self, value):
@@ -98,7 +96,8 @@ class FunctionTree:
 
         self._clear_changed_function_states(old_layers)
         logger.log(
-            f"layers: {[[f.name for f in layer] for layer in self._layers]}",
+            f"{self._name} layers init success,"
+            f":{[[f.name for f in layer] for layer in self._layers]}",
             level="warning",
         )
 
@@ -120,18 +119,21 @@ class FunctionTree:
                 function_node.reset()
                 logger.log(f"function {function_node.name} reset", level="warning")
 
-    def init_functions(self, content: str):
+    def init_functions(self, functions: list[dict]):
         constraint_pool = ConstraintPool()
         try:
-            functions = eval(content)["functions"]
             functions_name = [func["name"] for func in functions]
             for function in functions:
                 name = function["name"]
                 new_node = self._obtain_node(name, description=function["description"])
-                [
-                    new_node.connect_to(constraint_pool[constraint_name])
-                    for constraint_name in function["constraints"]
-                ]
+                for constraint_name in function["constraints"]:
+                    if constraint_name in constraint_pool.get_constraint_names():
+                        new_node.connect_to(constraint_pool[constraint_name])
+                    else:
+                        logger.log(
+                            f"Constraint '{constraint_name}' not found in the constraint pool for function '{name}', skipping.",
+                            level="warning")
+
                 from modules.prompt.robot_api_prompt import robot_api
 
                 [
@@ -139,10 +141,12 @@ class FunctionTree:
                     for call in function["calls"]
                     if (call not in robot_api.apis.keys()) and (call in functions_name)
                 ]
+
+            logger.log(f"{self._name} init success with {len(functions)} functions")
             self.update()
         except Exception as e:
             logger.log(f"Error in init_functions: {e}", level="error")
-            raise Exception
+            raise
 
     async def process_function_layer(
             self,

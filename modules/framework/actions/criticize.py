@@ -5,27 +5,36 @@ from modules.llm import GPT
 from modules.prompt import (
     FEEDBACK_PROMPT_TEMPLATE,
     CONTINUE_FEEDBACK_PROMPT_TEMPLATE,
-    ROBOT_API,
+    LOCAL_ROBOT_API,
+    GLOBAL_ROBOT_API,
     ENV_DES,
     TASK_DES,
 )
 
 
 class Criticize(ActionNode):
-    def __init__(self, next_text: str = "", node_name: str = ""):
+    def __init__(self, skill_tree, next_text: str = "", node_name: str = ""):
         super().__init__(next_text, node_name)
         self.__llm = GPT(memorize=True)
         self.feedback = None
-        self._function_pool = FunctionTree()
+        self._skill_tree = skill_tree
         self._call_times = 0
 
     def _build_prompt(self):
+        if self._skill_tree.name == "global_skill":
+            function_scoop_note = (
+                'This function is executed on a global central controller, considering the information of all robots and the task objectives.'
+                'It uses the optimal and efficient algorithm to coordinate tasks among multiple robots.')
+            robot_api_str = GLOBAL_ROBOT_API
+        else:
+            function_scoop_note = 'This function runs on the robot itself, using the provided perception API and motion API to execute its own tasks.'
+            robot_api_str = LOCAL_ROBOT_API
         if self._call_times == 0:
             self.prompt = FEEDBACK_PROMPT_TEMPLATE.format(
                 task_des=TASK_DES,
-                robot_api=ROBOT_API,
+                robot_api=robot_api_str,
                 env_des=ENV_DES,
-                functions="\n\n\n".join(self._function_pool.functions_body),
+                functions="\n\n\n".join(self._skill_tree.functions_body),
                 feedback=self.feedback,
             )
         else:
@@ -42,8 +51,8 @@ class Criticize(ActionNode):
         parser = CodeParser()
         parser.parse_code(code)
         function_list = parser.function_names
-        self._function_pool.update_from_parser(parser.imports, parser.function_dict)
-        self._function_pool.save_functions_to_file()
+        self._skill_tree.update_from_parser(parser.imports, parser.function_dict)
+        self._skill_tree.save_functions_to_file()
         return str(code)
 
 

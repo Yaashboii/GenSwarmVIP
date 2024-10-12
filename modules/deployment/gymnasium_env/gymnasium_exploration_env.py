@@ -86,7 +86,8 @@ if __name__ == "__main__":
         action = {}
         # manager.clear_velocity()
         obs, reward, termination, truncation, infos = env.step(action=action)
-        frames.append(env.render())
+        env.render()
+        # frames.append(env.render())
         manager.publish_observations(infos)
         rate.sleep()
 
@@ -101,4 +102,4 @@ if __name__ == "__main__":
             frame_count = 0  # 重置帧数计数器
             start_time = current_time  # 重置起始时间戳
     print("Simulation completed successfully.")
-    save_frames_as_animations(0, '../../../workspace/exploration/pic', frames)
+    # save_frames_as_animations(0, '../../../workspace/exploration/pic', frames)

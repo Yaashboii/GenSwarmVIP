@@ -10,11 +10,11 @@ thread_local = threading.local()
 
 
 class RobotNode:
-    def __init__(self, robot_id, target_position=None, formation_points=None):
+    def __init__(self, robot_id, target_position=None, formation_points=None, assigned_task=None):
         self.robot_id = robot_id
+        self.assigned_task = assigned_task
         self.ros_initialized = False
         self.velocity_publisher = None
-        self.robots_id_list = []
         self.robot_info = {
             "position": np.array([0.0, 0.0]),
             "radius": 0.0,
@@ -33,9 +33,38 @@ class RobotNode:
         self.other_robots_info = []
         self.formation_points = np.array(formation_points)
         self.target_position = np.array(target_position)
-        self.prey_positions = []
+        self.prey_position = None
         self.moveable_objects = []
         self.unexplored_area = []
+        self.initial_robot_positions = {}
+        self.initial_prey_positions = []
+        self.initial_unexplored_area = []
+        self.all_robots_id = []
+
+    def process_initial_observations(self, msg: Observations):
+        self.initial_robot_positions = {}
+        self.initial_prey_positions = []
+        self.initial_unexplored_area = []
+        self.all_robots_id = []
+
+        for obj in msg.observations:
+            if obj.type == "Robot":
+                position = np.array([obj.position.x, obj.position.y])
+                self.initial_robot_positions[obj.id] = position
+                self.all_robots_id.append(obj.id)
+                if obj.id == self.robot_id:
+                    self.robot_info["position"] = position
+                    if self.init_position is None:
+                        self.init_position = self.robot_info["position"]
+                    self.robot_info["radius"] = obj.radius
+            elif obj.type == "Prey":
+                position = np.array([obj.position.x, obj.position.y])
+                self.initial_prey_positions.append(position)
+            elif obj.type == "Landmark" and obj.color == "gray":
+                self.initial_unexplored_area.append({
+                    "id": len(self.initial_unexplored_area),
+                    "position": np.array([obj.position.x, obj.position.y])
+                })
 
     def observation_callback(self, msg: Observations):
         self.obstacles_info = []
@@ -44,6 +73,8 @@ class RobotNode:
         self.moveable_objects = []
         self.unexplored_area = []
         for obj in msg.observations:
+            # Robot's perception distance limit
+            DISTANCE_LIMIT = 1.0
             if obj.type == "Robot":
                 if obj.id == self.robot_id:
                     self.robot_info["position"] = np.array([obj.position.x, obj.position.y])
@@ -51,6 +82,12 @@ class RobotNode:
                         self.init_position = self.robot_info["position"]
                     self.robot_info["radius"] = obj.radius
                     continue
+
+                # Calculate distance to the current robot
+                distance = np.linalg.norm(self.robot_info["position"] - np.array([obj.position.x, obj.position.y]))
+                if distance > DISTANCE_LIMIT:
+                    continue
+
                 self.other_robots_info.append(
                     {
                         "id": obj.id,
@@ -60,6 +97,11 @@ class RobotNode:
                     }
                 )
             elif obj.type == "Obstacle":
+                # Calculate distance to the current robot
+                distance = np.linalg.norm(self.robot_info["position"] - np.array([obj.position.x, obj.position.y]))
+                if distance > DISTANCE_LIMIT:
+                    continue
+
                 self.obstacles_info.append(
                     {
                         "id": obj.id,
@@ -68,11 +110,8 @@ class RobotNode:
                     }
                 )
             elif obj.type == "Prey":
-                self.prey_positions.append(np.array([obj.position.x, obj.position.y]))
-            elif obj.type == "Sheep":
-                self.prey_positions.append(np.array([obj.position.x, obj.position.y]))
+                self.prey_position = np.array([obj.position.x, obj.position.y])
             elif obj.type == "Landmark":
-                self.target_position = np.array([obj.position.x, obj.position.y])
                 if obj.color == "gray":
                     self.unexplored_area.append({
                         "id": len(self.unexplored_area),
@@ -85,18 +124,14 @@ class RobotNode:
             rospy.Subscriber(f"/observation", Observations, self.observation_callback)
             self.velocity_publisher = rospy.Publisher(f"/robot_{self.robot_id}/velocity", Twist, queue_size=10)
 
-            # current_folder = os.path.dirname(os.path.abspath(__file__))
-            # rospy.set_param("data_path", str(current_folder) + "/data")
-
             print(f"Waiting for position message from /robot_{self.robot_id}/observation...")
             msg = rospy.wait_for_message(f"/observation", Observations)
+            self.process_initial_observations(msg)
+            print(f"Initial observations processed successfully")
             self.observation_callback(msg)
-            print(f"Observations data init successfully")
-            self.robots_id_list = [robot["id"] for robot in self.other_robots_info]
-            self.robots_id_list.append(self.robot_id)
-            self.timer = rospy.Timer(rospy.Duration(0.1), self.publish_velocities)
+            # self.timer = rospy.Timer(rospy.Duration(0.01), self.publish_velocities)
 
-    def publish_velocities(self, event):
+    def publish_velocities(self):
         velocity_msg = Twist()
         velocity_msg.linear.x = self.robot_info["velocity"][0]
         velocity_msg.linear.y = self.robot_info["velocity"][1]
@@ -116,6 +151,7 @@ class RobotNode:
 
     def set_self_velocity(self, velocity):
         self.robot_info["velocity"] = np.array(velocity)
+        self.publish_velocities()
 
     def get_surrounding_robots_info(self):
         return self.other_robots_info
@@ -124,7 +160,7 @@ class RobotNode:
         return self.obstacles_info
 
     def get_prey_position(self):
-        return self.prey_positions[0]
+        return self.prey_position
 
     def get_sheep_positions(self):
         return self.prey_positions
@@ -133,7 +169,7 @@ class RobotNode:
         return self.robot_id
 
     def get_all_robots_id(self):
-        return self.robots_id_list
+        return self.all_robots_id
 
     def get_target_position(self):
         return self.target_position
@@ -146,6 +182,18 @@ class RobotNode:
 
     def get_quadrant_target_position(self):
         return self.quadrant_target_position
+
+    def get_all_robots_initial_position(self):
+        return self.initial_robot_positions
+
+    def get_prey_initial_position(self):
+        return self.initial_prey_positions
+
+    def get_initial_unexplored_area(self):
+        return self.initial_unexplored_area
+
+    def get_assigned_task(self):
+        return self.assigned_task
 
 
 def set_current_robot_id(robot_id, **kwargs):
@@ -190,10 +238,6 @@ def get_surrounding_obstacles_info():
     return get_current_robot_node().get_surrounding_obstacles_info()
 
 
-def get_object_to_transport_info():
-    return get_current_robot_node().get_object_to_transport_info()
-
-
 def get_sheep_positions():
     return get_current_robot_node().get_sheep_positions()
 
@@ -206,12 +250,16 @@ def get_prey_position():
     return get_current_robot_node().get_prey_position()
 
 
+def get_environment_range():
+    return {'x_min': -2.5, 'x_max': 2.5, 'y_min': -2.5, 'y_max': 2.5}
+
+
+def stop_self():
+    get_current_robot_node().set_self_velocity([0, 0])
+
+
 def get_self_id():
     return get_current_robot_node().get_self_id()
-
-
-def get_all_robots_id():
-    return get_current_robot_node().get_all_robots_id()
 
 
 def get_target_position():
@@ -228,3 +276,7 @@ def get_target_formation_points():
 
 def get_quadrant_target_position():
     return get_current_robot_node().get_quadrant_target_position()
+
+
+def get_assigned_task():
+    return get_current_robot_node().get_assigned_task()

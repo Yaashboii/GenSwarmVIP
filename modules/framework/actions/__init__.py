@@ -1,5 +1,5 @@
 from .analyze_constraints import AnalyzeConstraints
-from .analyze_functions import AnalyzeFunctions
+from .analyze_skills import AnalyzeSkills
 from .code_review import CodeReviewAsync
 from .criticize import Criticize
 from .debug_error import DebugError
@@ -13,7 +13,7 @@ from .write_run import WriteRun
 
 __all__ = [
     'AnalyzeConstraints',
-    'AnalyzeFunctions',
+    'AnalyzeSkills',
     'CodeReviewAsync',
     'Criticize',
     'DebugError',

@@ -11,16 +11,15 @@ from modules.prompt import (
 )
 
 
-
 class VideoCriticize(ActionNode):
-    def __init__(self, next_text: str = "",
+    def __init__(self, skill_tree, next_text: str = "",
                  node_name: str = "",
-                  ):
+                 ):
 
         super().__init__(next_text, node_name)
 
         self.frames: list
-        self._function_pool = FunctionTree()
+        self._skill_tree = skill_tree
         self._constraint_pool = ConstraintPool()
 
     def _build_prompt(self):

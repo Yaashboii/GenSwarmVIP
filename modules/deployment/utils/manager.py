@@ -1,3 +1,4 @@
+import time
 import traceback
 from traceback import TracebackException
 
@@ -16,10 +17,11 @@ from modules.deployment.utils.char_points_generate import validate_contour_point
 
 class Manager:
 
-    def __init__(self, env, max_speed=0.2):
+    def __init__(self, env, max_speed=1.2):
+        self.last_time = 0
         self.env = env
 
-        # rospy.init_node('simulation_manager', anonymous=True)
+        rospy.init_node('simulation_manager', anonymous=True)
         self._pub_list = []
         self._robots = env.get_entities_by_type('Robot') + env.get_entities_by_type('Leader')
         self._max_speed = max_speed
@@ -30,7 +32,7 @@ class Manager:
 
         for i in range(robot_start_index, robot_end_index + 1):
             rospy.Subscriber(
-                f"/robot_{i}/velocity", Twist, self.velocity_callback, callback_args=i
+                f"/robot_{i}/velocity", Twist, self.velocity_callback, callback_args=i, queue_size=1
             )
         rospy.Subscriber("/leader/velocity", Twist, self.leader_velocity_callback)
 
@@ -41,11 +43,6 @@ class Manager:
             "/get_char_points", GetCharPoints, self.get_char_points_callback
         )
 
-        self._connect_to_service = rospy.Service("/connect_to_others", ConnectEntities,
-                                                 self.connect_to_others_callback)
-        self._disconnect_service = rospy.Service("/disconnect_from_others", ConnectEntities,
-                                                 self.disconnect_from_others_callback)
-
         self.observation_publisher = rospy.Publisher(f"observation", Observations, queue_size=1)
 
         self.robotID_velocity = {robot.id: np.array([0, 0], dtype=float) for robot in self._robots}
@@ -54,6 +51,15 @@ class Manager:
         """
         velocity_callback is a callback function for the velocity topic.
         """
+        # current_time = time.time()
+        # time_diff = current_time - self.last_time
+        #
+        # # 计算频率
+        # if time_diff > 0:
+        #     frequency = 1 / time_diff
+        #     print(f"Frequency: {frequency:.2f} Hz")
+        #
+        # self.last_time = current_time
         desired_velocity = np.array([data.linear.x, data.linear.y]) / (np.linalg.norm(
             [data.linear.x, data.linear.y]) + 0.001) * self._max_speed
         # print(f"Received velocity for robot {i}: {desired_velocity}")
@@ -116,23 +122,6 @@ class Manager:
         for point in sampled_points:
             pt = Point(x=point[1], y=point[0], z=0)
             response.points.append(pt)
-        return response
-
-    def connect_to_others_callback(self, request: ConnectEntitiesRequest):
-        print(f"Connecting {request.self_id} to {request.target_id}")
-        try:
-            response = ConnectEntitiesResponse()
-            result = self.env.connect_to(entity1_id=request.self_id, entity2_id=request.target_id)
-            response.success = result
-        except Exception as e:
-            traceback.print_exc()
-        print(f"Connection result: {result}")
-        return response
-
-    def disconnect_from_others_callback(self, request: ConnectEntitiesRequest):
-        response = ConnectEntitiesResponse()
-        result = self.env.disconnect_entities(entity1_id=request.self_id, entity2_id=request.target_id)
-        response.success = result
         return response
 
     def clear_velocity(self):

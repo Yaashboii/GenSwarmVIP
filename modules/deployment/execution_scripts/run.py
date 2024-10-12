@@ -1,5 +1,9 @@
+import os
+import pickle
 import sys
 import threading
+from xmlrpc.client import escape
+
 import rospy
 from code_llm.srv import GetTargetPositions, GetCharPoints, GetCharPointsRequest
 
@@ -28,9 +32,10 @@ def get_contour_points(character):
         return []
 
 
-def run_robot(robot_id, target_position, formation_points):
-    from functions import initialize_ros_node, run_loop
-    initialize_ros_node(robot_id=robot_id, target_position=target_position, formation_points=formation_points)
+def run_robot(robot_id, target_position, formation_points, task=None):
+    from local_skill import initialize_ros_node, run_loop
+    initialize_ros_node(robot_id=robot_id, target_position=target_position, formation_points=formation_points,
+                        assigned_task=task)
     run_loop()
 
 
@@ -40,8 +45,17 @@ def run_multiple_robot(start_idx, end_idx):
     # char_points = get_contour_points('R')
     char_points = [(1, -1), (1, 1), (0, 0), (1, 0), (2, 0)]
     threads = []
+    assigned = False
+    try:
+        with open(os.path.join('allocate_result.pkl'), 'rb') as f:
+            task = pickle.load(f)
+            assigned = True
+    except (FileNotFoundError, EOFError, pickle.UnpicklingError) as e:
+        print(f"Error loading file: {e}. Initializing a default task.")
+
     for i in range(start_idx, end_idx + 1):
-        thread = threading.Thread(target=run_robot, args=(i, target_positions[i], char_points))
+        assigned_task = task[i] if assigned else None
+        thread = threading.Thread(target=run_robot, args=(i, target_positions[i], char_points,assigned_task))
         threads.append(thread)
         thread.start()
 
@@ -55,4 +69,5 @@ if __name__ == "__main__":
     # end_id = 9
     start_id = int(sys.argv[1])
     end_id = int(sys.argv[2])
+
     run_multiple_robot(start_id, end_id)

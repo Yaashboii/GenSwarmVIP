@@ -39,22 +39,32 @@ class Workflow:
             name="apis.py",
         )
         util_file.copy(root=workspace_root)
-
+        global_util_file = File(
+            root=os.path.join(project_root, "modules/deployment/execution_scripts"),
+            name="global_apis.py",
+        )
+        global_util_file.copy(root=workspace_root)
         run_file = File(
             root=os.path.join(project_root, "modules/deployment/execution_scripts"),
             name="run.py",
         )
         run_file.copy(root=workspace_root)
 
+        allocate_run_file = File(
+            root=os.path.join(project_root, "modules/deployment/execution_scripts"),
+            name="allocate_run.py",
+        )
+
+        allocate_run_file.copy(root=workspace_root)
+
     def build_up(self):
         # initialize actions
         analyze_constraints = AnalyzeConstraints("constraint pool")
-        analyze_functions = AnalyzeFunctions("function pool")
+        analyze_functions = AnalyzeSkills("function pool")
         generate_mode = 'layer'
         if hasattr(self._context.args, "generate_mode"):
             generate_mode = self._context.args.generate_mode
-
-        generate_functions = GenerateFunctions("function", run_mode=generate_mode)
+        generate_functions = GenerateFunctions(run_mode=generate_mode)
         run_code = RunCodeAsync("pass")
         debug_code = DebugError("fixed code")
         human_feedback = Criticize("feedback")
@@ -78,6 +88,7 @@ class Workflow:
         analysis_stage.add(analyze_functions)
         # stage 2
         coding_stage = ActionLinkedList("Coding", generate_functions)
+        coding_stage.add(generate_functions)
         # stage 3
         test_stage = ActionLinkedList("Testing", run_code)
         test_stage.add(video_critic)
@@ -107,7 +118,6 @@ class Workflow:
             code_llm.add(test_stage)
         code_llm.add(ActionNode("PASS", "END"))
         self._pipeline = code_llm
-        # assign error handlers to actions
 
     async def run(self):
         text = display_all(self._pipeline, self._chain_of_handler)

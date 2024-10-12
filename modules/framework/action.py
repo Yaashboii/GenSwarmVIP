@@ -10,6 +10,7 @@ from modules.framework.context import WorkflowContext
 from modules.framework.constraint import ConstraintPool
 from modules.framework.node_renderer import *
 from modules.llm import GPT
+from modules.prompt import Prompt
 from modules.utils import setup_logger, LoggerLevel, root_manager
 
 
@@ -50,7 +51,7 @@ class BaseNode(ABC):
 
 
 class ActionNode(BaseNode):
-    def __init__(self, next_text: str, node_name: str = "", llm: GPT = None):
+    def __init__(self, next_text: str = '', node_name: str = "", llm: GPT = None):
         super().__init__()
         self.__llm = llm if llm else GPT()
         self.prompt = None
@@ -73,6 +74,7 @@ class ActionNode(BaseNode):
 
     async def run(self, auto_next: bool = True) -> str:
         # First create a prompt, then utilize it to query the language model.
+        self.prompt = Prompt().get_prompt(action=self.__class__.__name__, scope=self.context.scoop)
         self._build_prompt()
         logger.log(f"Action: {str(self)}", "info")
         res = await self._run()
@@ -95,7 +97,6 @@ class ActionNode(BaseNode):
             if self.prompt is None:
                 raise SystemExit("Prompt is required")
             code = await self.__llm.ask(self.prompt)
-            logger.log(f"Action: {str(self)}", "info")
             print_to_terminal = True
             if hasattr(self.context.args, "print_to_terminal"):
                 print_to_terminal = self.context.args.print_to_terminal
@@ -111,25 +112,14 @@ class ActionNode(BaseNode):
     async def _process_response(self, content: str) -> str:
         return content
 
-    async def _format_response(self, content: str) -> str:
-        self.format_prompt = f"""
-Organize the following text into a specific format for output.
-Text to be organized:
-{content}
-Output format:
-{self.resp_template}
-"""
-        formatted_resp = await self.__llm.ask(self.format_prompt)
-        return formatted_resp
-
 
 class AsyncNode(ActionNode):
-    def __init__(self, run_mode='layer', start_state=None, end_state=None):
+    def __init__(self, skill_tree: FunctionTree, run_mode='layer', start_state=None, end_state=None):
         super().__init__('')
         self._run_mode = run_mode
         self._start_state = start_state
         self._end_state = end_state
-        self.function_pool = FunctionTree()
+        self.skill_tree = skill_tree
         self.constraint_pool = ConstraintPool()
 
     def _build_prompt(self):
@@ -143,37 +133,37 @@ class AsyncNode(ActionNode):
             await self._run_layer_mode()
         elif self._run_mode == "sequential":
             await self._run_sequential_mode()
-            for function in self.function_pool.nodes:
+            for function in self.skill_tree.nodes:
                 function.state = self._end_state
         elif self._run_mode == "parallel":
             await self._run_parallel_mode()
-            for function in self.function_pool.nodes:
+            for function in self.skill_tree.nodes:
                 function.state = self._end_state
         else:
             logger.log("Unknown generate_mode", "error")
             raise SystemExit
 
     async def _run_layer_mode(self):
-        layer_index = self.function_pool.get_min_layer_index_by_state(self._start_state)
+        layer_index = self.skill_tree.get_min_layer_index_by_state(self._start_state)
         if layer_index == -1:
-            logger.log("No functions in NOT_STARTED state", "error")
+            logger.log(f"No functions in {self._start_state} state", "error")
             raise SystemExit
 
         if not all(function_node.state == self._start_state for function_node in
-                   self.function_pool._layers[layer_index].functions):
+                   self.skill_tree.layers[layer_index].functions):
             logger.log("All functions in the layer are not in NOT_STARTED state", "error")
             raise SystemExit
 
-        await self.function_pool.process_function_layer(self.operate, self._end_state, layer_index)
+        await self.skill_tree.process_function_layer(self.operate, self._end_state, layer_index)
 
     async def _run_sequential_mode(self):
-        for function in self.function_pool.nodes:
+        for function in self.skill_tree.nodes:
             if function.state == self._start_state:
                 await self.operate(function)
 
     async def _run_parallel_mode(self):
         tasks = []
-        for function in self.function_pool.nodes:
+        for function in self.skill_tree.nodes:
             if function.state == self._start_state:
                 tasks.append(self.operate(function))
         await asyncio.gather(*tasks)

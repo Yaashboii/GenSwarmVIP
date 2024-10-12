@@ -21,7 +21,7 @@ class FunctionNode(Node):
         self._definition: str = ""
         self._state: State = State.NOT_STARTED
         self._num_of_lines: int = 0
-
+        self.grammar_check_times = 0
 
     @property
     def callees(self):
@@ -34,6 +34,10 @@ class FunctionNode(Node):
     @property
     def callers(self):
         return self._callers
+
+    @property
+    def definition(self):
+        return self._definition
 
     @property
     def description(self):
