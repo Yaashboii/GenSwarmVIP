@@ -1,20 +1,23 @@
+import asyncio
 import traceback
-from abc import ABC, abstractmethod
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from modules.utils import setup_logger, LoggerLevel, root_manager
-from modules.llm.gpt import GPT
+from modules.file import logger
+from modules.framework.code import FunctionTree
 from modules.framework.code_error import CodeError
+from modules.framework.context import WorkflowContext
+from modules.framework.constraint import ConstraintPool
 from modules.framework.node_renderer import *
-from modules.file.log_file import logger
-from modules.framework.context.workflow_context import WorkflowContext
+from modules.llm import GPT
+from modules.prompt import Prompt
+from modules.utils import setup_logger, LoggerLevel, root_manager
 
 
 class BaseNode(ABC):
     def __init__(self):
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
-        self.__next = None  # next node
+        self.__next = None  # next constraints
         self._renderer = None
 
     def __str__(self):
@@ -32,8 +35,8 @@ class BaseNode(ABC):
         self.__next = value
 
     @abstractmethod
-    async def run(self) -> str:
-        # Abstract method for executing node logic
+    async def run(self, auto_next: bool = True) -> str:
+        # Abstract method for executing constraints logic
         pass
 
     def set_renderer(self, renderer):
@@ -48,10 +51,11 @@ class BaseNode(ABC):
 
 
 class ActionNode(BaseNode):
-    def __init__(self, next_text: str, node_name: str = ""):
+    def __init__(self, next_text: str = '', node_name: str = "", llm: GPT = None):
         super().__init__()
-        self.__llm = GPT()
+        self.__llm = llm if llm else GPT()
         self.prompt = None
+        self.resp_template = None
         self._next_text = next_text  # label text rendered in mermaid graph
         self._node_name = node_name  # to distinguish objects of same class type
         self.error_handler = None  # this is a chain of handlers, see handler.py
@@ -68,8 +72,9 @@ class ActionNode(BaseNode):
     def _build_prompt(self):
         pass
 
-    async def run(self) -> str:
+    async def run(self, auto_next: bool = True) -> str:
         # First create a prompt, then utilize it to query the language model.
+        self.prompt = Prompt().get_prompt(action=self.__class__.__name__, scope=self.context.scoop)
         self._build_prompt()
         logger.log(f"Action: {str(self)}", "info")
         res = await self._run()
@@ -81,7 +86,7 @@ class ActionNode(BaseNode):
                 return await next_action.run()
             else:
                 raise ValueError("No error handler available to handle request")
-        if self._next is not None:
+        if auto_next and self._next is not None:
             return await self._next.run()
 
     @retry(
@@ -92,18 +97,76 @@ class ActionNode(BaseNode):
             if self.prompt is None:
                 raise SystemExit("Prompt is required")
             code = await self.__llm.ask(self.prompt)
-            logger.log(f"Action: {str(self)}", "info")
-            logger.log(f"Prompt:\n {self.prompt}", "debug")
-            logger.log(f"Response:\n {code}", "info")
-            code = self._process_response(code)
+            print_to_terminal = True
+            if hasattr(self.context.args, "print_to_terminal"):
+                print_to_terminal = self.context.args.print_to_terminal
+            logger.log(f"Prompt:\n {self.prompt}", "debug", print_to_terminal=print_to_terminal)
+            logger.log(f"Response:\n {code}", "info", print_to_terminal=print_to_terminal)
+            code = await self._process_response(code)
             return code
         except Exception as e:
             tb = traceback.format_exc()
             logger.log(f"Error in {str(self)}: {e},\n {tb}", "error")
             raise Exception
 
-    def _process_response(self, content: str) -> str:
+    async def _process_response(self, content: str) -> str:
         return content
+
+
+class AsyncNode(ActionNode):
+    def __init__(self, skill_tree: FunctionTree, run_mode='layer', start_state=None, end_state=None):
+        super().__init__('')
+        self._run_mode = run_mode
+        self._start_state = start_state
+        self._end_state = end_state
+        self.skill_tree = skill_tree
+        self.constraint_pool = ConstraintPool()
+
+    def _build_prompt(self):
+        pass
+
+    async def operate(self, function):
+        raise NotImplementedError("Subclasses should implement this method")
+
+    async def _run(self):
+        if self._run_mode == "layer":
+            await self._run_layer_mode()
+        elif self._run_mode == "sequential":
+            await self._run_sequential_mode()
+            for function in self.skill_tree.nodes:
+                function.state = self._end_state
+        elif self._run_mode == "parallel":
+            await self._run_parallel_mode()
+            for function in self.skill_tree.nodes:
+                function.state = self._end_state
+        else:
+            logger.log("Unknown generate_mode", "error")
+            raise SystemExit
+
+    async def _run_layer_mode(self):
+        layer_index = self.skill_tree.get_min_layer_index_by_state(self._start_state)
+        if layer_index == -1:
+            logger.log(f"No functions in {self._start_state} state", "error")
+            raise SystemExit
+
+        if not all(function_node.state == self._start_state for function_node in
+                   self.skill_tree.layers[layer_index].functions):
+            logger.log("All functions in the layer are not in NOT_STARTED state", "error")
+            raise SystemExit
+
+        await self.skill_tree.process_function_layer(self.operate, self._end_state, layer_index)
+
+    async def _run_sequential_mode(self):
+        for function in self.skill_tree.nodes:
+            if function.state == self._start_state:
+                await self.operate(function)
+
+    async def _run_parallel_mode(self):
+        tasks = []
+        for function in self.skill_tree.nodes:
+            if function.state == self._start_state:
+                tasks.append(self.operate(function))
+        await asyncio.gather(*tasks)
 
 
 class ActionLinkedList(BaseNode):
@@ -146,6 +209,12 @@ class ActionLinkedList(BaseNode):
 
     async def run(self, **kwargs):
         return await self._head.run()
+
+    async def run_internal_actions(self, start_node=None):
+        current_node = self._head if start_node is None else start_node
+        while current_node:
+            await current_node.run(auto_next=False)
+            current_node = current_node._next
 
 
 if __name__ == "__main__":

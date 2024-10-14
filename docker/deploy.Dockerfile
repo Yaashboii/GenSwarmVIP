@@ -7,7 +7,9 @@ RUN apt-get update \
         iputils-ping \
         ansible \
         sshpass \
-    && pip install ansible
+    && pip install ansible \
+       numpy \
+       rospy_message_converter \
 
 WORKDIR /src
 

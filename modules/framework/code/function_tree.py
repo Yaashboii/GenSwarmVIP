@@ -1,21 +1,21 @@
-from modules.framework.code.function_layer import FunctionLayer
-from modules.framework.code.function_node import FunctionNode
-from modules.framework.context.contraint_info import ConstraintPool
-from modules.file.log_file import logger
-from modules.file.file import File
-from modules.framework.error import GrammarError
-from modules.framework.code.grammer_checker import GrammarChecker
+from modules.framework.constraint import ConstraintPool
+from modules.file import logger, File
+
+from .function_layer import FunctionLayer
+from .function_node import FunctionNode, State
 
 
 class FunctionTree:
-    _instance = None
-
-    def __new__(cls):
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-            cls._instance.reset()
-            cls._grammar_checker = GrammarChecker()
-        return cls._instance
+    # TODO：梳理functionTree的逻辑，对其进行简化，减少不必要的逻辑 (@Jiwenkang 10-4)
+    def __init__(self, name: str, init_import_list: set[str] = None):
+        self._name = name
+        self._function_nodes: dict[str, FunctionNode] = {}
+        self._layers = []
+        self._function_to_layer = {}
+        self._keys_set = None
+        self.import_list: set[str] = init_import_list
+        self.output_template = ''
+        self._file = File(name=self._name + '.py')
 
     def __getitem__(self, key: str):
         return self._function_nodes[key]
@@ -24,17 +24,25 @@ class FunctionTree:
         if isinstance(key, str):
             self._function_nodes[key] = value
 
-    def reset(self):
-        self._function_nodes: dict[str, FunctionNode] = {}
-        self.import_list: set[str] = {"from apis import *"}
-        self._layers: list[FunctionLayer] = []
-        self._index = 0
-        self._keys_set = set()
-        self._file = File(name="functions.py")
+    @property
+    def name(self):
+        return self._name
 
     @property
     def nodes(self):
         return self._function_nodes.values()
+
+    @property
+    def file(self):
+        return self._file
+
+    @property
+    def layers(self):
+        return self._layers
+
+    @file.setter
+    def file(self, value):
+        self._file = value
 
     @property
     def names(self):
@@ -76,54 +84,91 @@ class FunctionTree:
         return result
 
     def update(self):
+        old_layers = self._layers.copy()
+
         self._reset_layers()
         layer_head = self._get_bottom_layer()
         set_visited_nodes = set()
         self._build_up(layer_head, set_visited_nodes)
+
+        # self._layers.append(self._last_layer)
+        self._update_function_to_layer()
+
+        self._clear_changed_function_states(old_layers)
         logger.log(
-            f"layers: {[[f.name for f in layer] for layer in self._layers]}",
+            f"{self._name} layers init success,"
+            f":{[[f.name for f in layer] for layer in self._layers]}",
             level="warning",
         )
 
-    def init_functions(self, content: str):
+    def _update_function_to_layer(self):
+        self._function_to_layer = {}
+        for layer_index, layer in enumerate(self._layers):
+            for function_node in layer:
+                self._function_to_layer[function_node] = layer_index
+
+    def _clear_changed_function_states(self, old_layers):
+        old_function_to_layer = {
+            function_node: layer_index
+            for layer_index, layer in enumerate(old_layers)
+            for function_node in layer
+        }
+        for function_node, new_layer in self._function_to_layer.items():
+            old_layer = old_function_to_layer.get(function_node)
+            if old_layer is not None and old_layer < new_layer:
+                function_node.reset()
+                logger.log(f"function {function_node.name} reset", level="warning")
+
+    def init_functions(self, functions: list[dict]):
         constraint_pool = ConstraintPool()
         try:
-            for function in eval(content)["functions"]:
+            functions_name = [func["name"] for func in functions]
+            for function in functions:
                 name = function["name"]
                 new_node = self._obtain_node(name, description=function["description"])
-                [
-                    new_node.connect_to(constraint_pool[constraint_name])
-                    for constraint_name in function["constraints"]
-                ]
+                for constraint_name in function["constraints"]:
+                    if constraint_name in constraint_pool.get_constraint_names():
+                        new_node.connect_to(constraint_pool[constraint_name])
+                    else:
+                        logger.log(
+                            f"Constraint '{constraint_name}' not found in the constraint pool for function '{name}', skipping.",
+                            level="warning")
+
                 from modules.prompt.robot_api_prompt import robot_api
 
                 [
                     new_node.add_callee(self._obtain_node(name=call))
                     for call in function["calls"]
-                    if call not in robot_api.apis.keys()
+                    if (call not in robot_api.apis.keys()) and (call in functions_name)
                 ]
+
+            logger.log(f"{self._name} init success with {len(functions)} functions")
             self.update()
         except Exception as e:
             logger.log(f"Error in init_functions: {e}", level="error")
-            raise Exception
+            raise
 
-    async def process_function_layers(
-        self, operation, start_layer_index=0, check_grammar=True
+    async def process_function_layer(
+            self,
+            operation,
+            operation_type: State,
+            start_layer_index=0,
     ):
         import asyncio
 
-        for index, layer in enumerate(self._layers[start_layer_index:]):
+        for index, layer in enumerate(
+                self._layers[start_layer_index: start_layer_index + 1]
+        ):
             tasks = []
             logger.log(f"Layer: {start_layer_index + index}", "warning")
             for function_node in layer:
+                if function_node.state != operation_type:
+                    function_node.state = operation_type
+                else:
+                    continue
                 task = asyncio.create_task(operation(function_node))
                 tasks.append(task)
             await asyncio.gather(*tasks)
-            # layer_index = current_layer_index if current_layer_index < len(
-            # self._function_layer) else len(self._function_layer) - 1
-            # current_layer = self._function_layer[layer_index]
-        # if check_grammar:
-        # self._check_function_grammar_by_layer(layer)
 
     def _reset_layers(self):
         self._layers.clear()
@@ -134,11 +179,20 @@ class FunctionTree:
         else:
             return
         next_layer = FunctionLayer()
+        for caller in current_layer.set_callers:
+            if caller not in set_visited_nodes:
+                caller_node = self[caller.name]
+                if self._all_callees_in_previous_layers(caller_node):
+                    next_layer.add_function(caller_node)
+                    set_visited_nodes.add(caller)
 
-        for caller in current_layer.set_callers - set_visited_nodes:
-            set_visited_nodes.add(caller)
-            next_layer.add_function(self[caller.name])
         self._build_up(next_layer, set_visited_nodes)
+
+    def _all_callees_in_previous_layers(self, caller_node: FunctionNode) -> bool:
+        for callee in caller_node.callees:
+            if not any(callee in layer.functions for layer in self._layers):
+                return False
+        return True
 
     def _get_bottom_layer(self):
         bottom_layer = [
@@ -154,42 +208,19 @@ class FunctionTree:
     def update_from_parser(self, imports: set, function_dict: dict):
         self._update_imports(imports)
         self._update_function_dict(function_dict)
-        # logger.log(self.functions_body)
+        # self.update()
 
-        self.update()
+    def get_min_layer_index_by_state(self, state: State) -> int:
+        for layer_index, layer in enumerate(self._layers):
+            for function_node in layer.functions:
+                if function_node.state == state:
+                    return layer_index
+
+        return -1
 
     def save_code(self, function_names):
         for function_name in function_names:
-            self._save_by_function(self._function_nodes[function_name])
-
-    def check_grammar(self, function_names):
-        for function_name in function_names:
-            self._check_function_grammar(function_name)
-            self._check_caller_function_grammar(function_name)
-
-    def _check_function_grammar(self, function_name):
-        errors = self._grammar_checker.check_code_errors(self._file.file_path)
-        status = "passed" if errors else "failed"
-        raise GrammarError(
-            message=f"Grammar check {status} for {function_name}", grammar_error=errors
-        )
-
-    def _check_caller_function_grammar(self, function_name):
-        [
-            self._check_function_grammar(f.name)
-            for f in self._function_nodes[function_name].callers
-        ]
-
-    # def _check_function_grammar_by_layer(self, current_layer):
-    #     try:
-    #         errors = []
-    #         for function in current_layer:
-    #             error = self._check_function_grammar(function)
-    #             errors.append(error)
-    #     except Exception as e:
-    #         import traceback
-    #         logger.log(f"error occurred in grammar check:\n {traceback.format_exc()}", 'error')
-    #         raise SystemExit(f"error occurred in async write functions{e}")
+            self.save_by_function(self._function_nodes[function_name])
 
     def _find_all_relative_functions(self, function: FunctionNode, seen: set = None):
         if seen is None:
@@ -203,18 +234,24 @@ class FunctionTree:
 
         return list(seen)
 
-    def save_functions_to_file(self, functions: list[FunctionNode] = None):
+    def save_functions_to_file(self, functions: list[FunctionNode] = None, save=True):
         import_str = "\n".join(sorted(self.import_list))
         if not functions:
             content = "\n\n\n".join([f.content for f in self._function_nodes.values()])
         else:
             content = "\n\n\n".join([f.content for f in functions])
-        self._file.message = f"{import_str}\n\n{content}\n"
+        if save:
+            self._file.message = f"{import_str}\n\n{content}\n"
+            return None
+        else:
+            return f"{import_str}\n\n{content}\n"
 
-    def _save_by_function(self, function: FunctionNode):
+    def save_by_function(self, function: FunctionNode | str, save=True):
+        if isinstance(function, str):
+            function = self._function_nodes[function]
         relative_function = self._find_all_relative_functions(function)
-        logger.log(f"relative_ function: {relative_function}", level="warning")
-        self.save_functions_to_file(relative_function)
+        logger.log(f"relative_function: {relative_function}", level="warning")
+        return self.save_functions_to_file(relative_function, save=save)
 
     def _update_imports(self, imports: set):
         self.import_list |= imports

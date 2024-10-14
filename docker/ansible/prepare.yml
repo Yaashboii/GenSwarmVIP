@@ -1,0 +1,64 @@
+# mkdir 对应的目录
+# 提供权限 sudo chown -R nvidia:nvidia /home/nvidia/docker/code_llm_ws
+
+- name: Ensure directory exists
+  file:
+    path: /home/nvidia/docker/code_llm_ws
+    state: directory
+    mode: 0755
+    owner: nvidia
+    group: nvidia
+#
+#
+- name: copy source code
+  copy:
+    src: "{{ item }}"
+    dest: /home/nvidia/docker/code_llm_ws/src/code_llm/
+    force: yes
+  loop:
+    - "../../modules/deployment/execution_scripts/omni/apis.py"
+    - "../../modules/deployment/execution_scripts/omni/run_omni.py"
+    - "../../modules/deployment/execution_scripts/omni/mqtt_server.py"
+    - "../../modules/deployment/execution_scripts/omni/velocity_limiter.py"
+#    - "../../workspace/encircling/2024-09-19_10-44-34/functions.py"
+#    - "../../workspace/exploration/2024-09-18_08-52-18/functions.py"
+    - "../../workspace/crossing/2024-09-18_09-40-15/functions.py"
+    #        - "../../workspace/crossing/2024-09-08_21-31-32/functions.py"
+    #    - "../../workspace/bridging/2024-08-27_20-46-30/functions.py"
+    - "../../requirements.txt"
+    - "../../msg"
+    - "../../srv"
+    - "../../package.xml"
+    - "../../CMakeLists.txt"
+    - "../code_run.Dockerfile"
+- name: copy launch file
+  copy:
+    src: "{{ item }}"
+    dest: /home/nvidia/docker/code_llm_ws/src/code_llm/
+    force: yes
+  loop:
+    - "../../modules/deployment/execution_scripts/omni/launch"
+
+#  become: yes
+- name: make python files executable
+  shell: chmod +x run_omni.py && chmod +x mqtt_server.py && chmod +x velocity_limiter.py
+  args:
+    chdir: /home/nvidia/docker/code_llm_ws/src/code_llm/
+
+
+- name: pull image
+  shell: docker pull 10.0.2.66:6000/huabench/code-run && docker tag 10.0.2.66:6000/huabench/code-run llm_simulator
+  register: info
+- name: Show container logs
+  debug:
+    var: info.stdout_lines
+
+- name: compile
+  shell: docker run -it --rm -v /home/nvidia/docker/code_llm_ws:/catkin_ws llm_simulator bash -c "cd /catkin_ws && catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3"
+  become: true
+  become_user: nvidia  # 替换为你的 ROS 用户
+  register: llm_code_info
+
+- name: Show container logs
+  debug:
+    var: llm_code_info.stdout_lines

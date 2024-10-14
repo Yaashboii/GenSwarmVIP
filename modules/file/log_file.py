@@ -1,5 +1,5 @@
-from modules.file.base_file import BaseFile
-from modules.utils.logger import setup_logger, LoggerLevel
+from modules.utils import setup_logger, LoggerLevel
+from .base_file import BaseFile
 
 
 class _Logger:
@@ -18,7 +18,7 @@ class _Logger:
     def is_file_exists(self):
         return self._file is not None
 
-    def log(self, content: str, level: str = "info"):
+    def log(self, content: str, level: str = "info", print_to_terminal: bool = True):
         """
         Formats a message based on the provided style and logs the content.
 
@@ -52,8 +52,12 @@ class _Logger:
             "info": self._logger.info,
             "debug": self._logger.debug,
         }.get(level, self._logger.info)
+        if print_to_terminal:
+            log_action(content)
+        if not self._file:
+            from modules.file.file import File
 
-        log_action(content)
+            self._file = File("log.md")
 
         self._file.write(color_mapping[level].format(content), mode="a")
 

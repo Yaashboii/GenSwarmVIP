@@ -1,0 +1,18 @@
+"api_base": {
+  "GPT": "https://vip.DMXapi.com/v1",
+  #    "GPT": "https://xiaoai.plus/v1",
+  "QWEN": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+}
+"api_key": {
+  #    "GPT": "sk-5mU8poYeiI4bydH492B59125206344598312600438205f65",
+  "GPT": "sk-I3hNF1npWreT7AjPUP8Nj1E7184ymuLJpytT42OgTVyTFmCk",
+  "QWEN": "sk-99f55920b8834f6f8c1e78f8d3691c26",
+  "CLAUDE": "input your claude api here"
+}
+"model": {
+  #    "GPT": "gpt-4o",
+  "GPT": "o1-mini",
+  #  "GPT": "o1-preview",
+  "QWEN": "qwen-vl-plus",
+  "CLAUDE": "input the claude model here"
+}

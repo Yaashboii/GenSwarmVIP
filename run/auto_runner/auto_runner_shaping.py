@@ -1,0 +1,40 @@
+import operator
+
+from modules.deployment.gymnasium_env import GymnasiumShapingEnvironment
+from run.auto_runner import AutoRunnerBase
+from run.utils import evaluate_shape_similarity, check_collisions
+
+
+class AutoRunnerShaping(AutoRunnerBase):
+    def __init__(self, env_config_path,
+                 workspace_path,
+                 experiment_duration,
+                 run_mode='rerun',
+                 target_pkl='WriteRun.pkl',
+                 script_name='run.py',
+                 max_speed=1.0,
+                 tolerance=0.05):
+        env = GymnasiumShapingEnvironment(env_config_path)
+        super().__init__(env_config_path=env_config_path,
+                         workspace_path=workspace_path,
+                         experiment_duration=experiment_duration,
+                         run_mode=run_mode,
+                         target_pkl=target_pkl,
+                         script_name=script_name,
+                         max_speed=max_speed,
+                         tolerance=tolerance,
+                         env=env)
+
+    def analyze_result(self, run_result) -> dict[str, float]:
+        from modules.deployment.utils.char_points_generate import validate_contour_points
+        # target_shape=validate_contour_points('R')
+        target_shape = [(1, -1), (1, 1), (0, 0), (1, 0), (2, 0)]
+        target_achievement = evaluate_shape_similarity(run_result, target_shape)
+        collision = check_collisions(run_result)
+        merged_dict = target_achievement | collision
+        return merged_dict
+
+    def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
+        return [
+            ("procrustes_distance", operator.lt, 0.1),
+        ]

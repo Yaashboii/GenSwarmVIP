@@ -1,10 +1,14 @@
 ENV_DES = """
 Environment:
-    bounds:{'x_min': -5.0, 'x_max': 5.0, 'y_min': -5.0, 'y_max': 5.0}
-
+    Environment is composed of a 2D plane with obstacles and robots.
+    The robots and obstacles in the space are circular, and the avoidance algorithm is the same for both.
 Robot:
-    max_speed: 1m/s (constant)
-    Control Method: Omnidirectional speed control
+    max_speed: 0.2m/s (constant)
+    Control Method: Omnidirectional speed control(The output after velocity-weighted superposition of different objectives.)
+    Control frequency: 100Hz (the robot's velocity should be updated at least every 0.01s)
     Initial position: random position in the environment
     Initial speed: np.array([0, 0])
+    Perception range: 1.0m
+    Min distance to other robots and obstacles: > self.radius +other.radius + distance_threshold (Depending on the specific task, prioritize completing the task correctly before minimizing the collision probability.)
+    position_resolution: 0.05m (The threshold for considering the robot as having reached a designated position is greater than position_resolution.)
 """.strip()

@@ -1,8 +1,6 @@
 import unittest
-from unittest.mock import patch, ANY
-from modules.framework.code.function_node import FunctionNode
-from modules.framework.code.function_tree import FunctionTree
 from modules.file import logger, File
+from modules.framework.code import FunctionNode, FunctionTree
 
 
 class TestFunctionTree(unittest.TestCase):
@@ -140,6 +138,38 @@ class TestFunctionTree(unittest.TestCase):
         self.assertIn(function_node2, result)
         self.assertIn(function_node3, result)
 
+    def test_cross_layer_calling(self):
+        fn_a = FunctionNode(name="A", description="")
+        fn_b = FunctionNode(name="B", description="")
+        fn_c = FunctionNode(name="C", description="")
+        fn_d = FunctionNode(name="D", description="")
+
+        fn_b.add_callee(fn_a)  # B调用A
+        fn_c.add_callee(fn_a)  # C调用A
+        fn_d.add_callee(fn_b)  # D调用B
+        fn_d.add_callee(fn_c)  # D调用C
+        fn_d.add_callee(fn_a)  # D也调用A
+
+        # 添加函数节点到FunctionTree
+        self.function_tree["A"] = fn_a
+        self.function_tree["B"] = fn_b
+        self.function_tree["C"] = fn_c
+        self.function_tree["D"] = fn_d
+
+        # 更新函数层级
+        self.function_tree.update()
+
+        # 打印层级结果
+        for layer_index, layer in enumerate(self.function_tree._layers):
+            print(f"Layer {layer_index}: {[fn.name for fn in layer]}")
+
+        # 断言检查层级结果
+        self.assertEqual(len(self.function_tree._layers), 3)
+        self.assertIn(fn_a, self.function_tree._layers[0]._layer)
+        self.assertIn(fn_b, self.function_tree._layers[1]._layer)
+        self.assertIn(fn_c, self.function_tree._layers[1]._layer)
+        self.assertIn(fn_d, self.function_tree._layers[2]._layer)
+
     def test_obtain_node(self):
         self.function_tree._obtain_node(name="function1", content="a = b + c")
         self.assertEqual(self.function_tree["function1"].content, "a = b + c")
@@ -156,6 +186,61 @@ class TestFunctionTree(unittest.TestCase):
         self.function_tree.update_from_parser(set(), function_dict)
         self.assertEqual(self.function_tree["function1"].content, "a = b + c")
 
+    def test_get_min_layer_index_by_state(self):
+        function_node1 = FunctionNode("function1", "description1")
+        function_node2 = FunctionNode("function2", "description2")
+        function_node3 = FunctionNode("function3", "description3")
+        function_node4 = FunctionNode("function4", "description4")
+        function_node5 = FunctionNode("function5", "description5")
+
+        function_node1.state = FunctionNode.State.NOT_STARTED
+        function_node2.state = FunctionNode.State.WRITTEN
+        function_node3.state = FunctionNode.State.WRITTEN
+        function_node4.state = FunctionNode.State.DESIGNED
+        function_node5.state = FunctionNode.State.REVIEWED
+
+        function_node1.add_callee(function_node2)
+        function_node1.add_callee(function_node3)
+        function_node4.add_callee(function_node1)
+        function_node5.add_callee(function_node4)
+
+        self.function_tree["function1"] = function_node1
+        self.function_tree["function2"] = function_node2
+        self.function_tree["function3"] = function_node3
+        self.function_tree["function4"] = function_node4
+        self.function_tree["function5"] = function_node5
+
+        self.function_tree.update()
+
+        min_layer_index_written = self.function_tree.get_min_layer_index_by_state(
+            FunctionNode.State.WRITTEN
+        )
+        min_layer_index_designed = self.function_tree.get_min_layer_index_by_state(
+            FunctionNode.State.DESIGNED
+        )
+        min_layer_index_not_started = self.function_tree.get_min_layer_index_by_state(
+            FunctionNode.State.NOT_STARTED
+        )
+        min_layer_index_reviewed = self.function_tree.get_min_layer_index_by_state(
+            FunctionNode.State.REVIEWED
+        )
+        min_layer_index_nonexistent = self.function_tree.get_min_layer_index_by_state(5)
+
+        self.assertEqual(min_layer_index_written, 0)
+        self.assertEqual(min_layer_index_designed, 2)
+        self.assertEqual(min_layer_index_not_started, 1)
+        self.assertEqual(min_layer_index_reviewed, 3)
+        self.assertEqual(min_layer_index_nonexistent, -1)
+
+        function_node2.state = FunctionNode.State.DESIGNED
+        function_node3.state = FunctionNode.State.DESIGNED
+        self.function_tree.update()
+
+        min_layer_index_written_after_state_change = (
+            self.function_tree.get_min_layer_index_by_state(FunctionNode.State.WRITTEN)
+        )
+        self.assertEqual(min_layer_index_written_after_state_change, -1)
+
 
 class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):
     async def test_process_function_layers(self):
@@ -169,8 +254,8 @@ class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):
         async def mock_operation(node):
             output_names.append(node.name)
 
-        function_tree._layers = [[function_node1], [function_node2]]
-        await function_tree.process_function_layers(mock_operation)
+        function_tree._layers = [[function_node1, function_node2]]
+        await function_tree.process_function_layer(mock_operation)
         self.assertIn("function1", output_names)
         self.assertIn("function2", output_names)
 

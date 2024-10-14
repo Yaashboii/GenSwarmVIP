@@ -1,6 +1,6 @@
 import unittest
-from modules.framework.code.function_node import FunctionNode
-from modules.framework.context.node import ConstraintNode
+from modules.framework.code import FunctionNode, State
+from modules.framework.constraint import ConstraintNode
 
 
 class TestNodes(unittest.TestCase):
@@ -49,6 +49,22 @@ class TestNodes(unittest.TestCase):
         function_node = FunctionNode("function1", "descption1")
         function_node._definition = "def function1():"
         self.assertEqual(function_node.body, "def function1():")
+
+    def test_function_node_state(self):
+        self.assertEqual(self.function_node1.state, State.NOT_STARTED)
+
+        self.function_node1.state = State.DESIGNED
+        self.assertEqual(self.function_node1.state, State.DESIGNED)
+
+        self.function_node1.state = State.WRITTEN
+        self.assertEqual(self.function_node1.state, State.WRITTEN)
+
+        self.function_node1.state = 3
+        self.assertEqual(self.function_node1.state, State.REVIEWED)
+
+        # 测试设置无效状态
+        with self.assertRaises(ValueError):
+            self.function_node1.state = 4
 
 
 if __name__ == "__main__":

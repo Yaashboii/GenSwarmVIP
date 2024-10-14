@@ -1,8 +1,6 @@
-from abc import ABC, abstractmethod
-
+from modules.file import logger
 from modules.framework.code_error import *
 from modules.framework.action import BaseNode
-from modules.file.log_file import logger
 
 
 class Handler(ABC):
@@ -52,9 +50,9 @@ class Handler(ABC):
 
 class BugLevelHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
-        if isinstance(request, Bug):
+        if isinstance(request, Bug | Bugs):
             self._logger.log("Handled by BugLevelHandler")
-            self._next_action.error = request.error_msg
+            self._next_action.setup(request)
             return self._next_action
         elif self._successor:
             return self._successor.handle(request)
@@ -69,9 +67,9 @@ class CriticLevelHandler(Handler):
             return self._successor.handle(request)
 
 
-class HumanFeedbackHandler(Handler):
+class FeedbackHandler(Handler):
     def handle(self, request: CodeError) -> BaseNode:
-        if isinstance(request, HumanFeedback):
+        if isinstance(request, Feedback):
             self._logger.log("Handled by HumanFeedbackHandler")
             self._next_action.feedback = request.feedback
             return self._next_action
@@ -80,21 +78,22 @@ class HumanFeedbackHandler(Handler):
 
 
 if __name__ == "__main__":
-    h1 = BugLevelHandler()
-    h2 = CriticLevelHandler()
-    h3 = HumanFeedbackHandler()
-
-    h2.successor = h1
-    h1.successor = h3
-
-    handle_pipeline = h2
-
-    e1 = Bug()
-    e2 = CriticNotSatisfied()
-    e3 = HumanFeedback()
-
-    handle_pipeline.display()
-
-    errors = [e1, e2, e3]
-    for error in errors:
-        handle_pipeline.handle(error)
+    # h1 = BugLevelHandler()
+    # h2 = CriticLevelHandler()
+    # h3 = HumanFeedbackHandler()
+    #
+    # h2.successor = h1
+    # h1.successor = h3
+    #
+    # handle_pipeline = h2
+    #
+    # e1 = Bug()
+    # e2 = CriticNotSatisfied()
+    # e3 = Feedback()
+    #
+    # handle_pipeline.display()
+    #
+    # errors = [e1, e2, e3]
+    # for error in errors:
+    #     handle_pipeline.handle(error)
+    pass
