@@ -1,19 +1,19 @@
 import rospy
 from code_llm.msg import Observations
 import numpy as np
+from code_llm.srv import GetCharPoints, GetCharPointsRequest
 
 initial_robot_positions = {}
-initial_prey_positions = []
+initial_prey_position = []
 initial_unexplored_area = []
 all_robots_id = []
 init = False
 
 
 def process_initial_observations(msg: Observations):
-    global initial_robot_positions, initial_prey_positions, initial_unexplored_area, all_robots_id
+    global initial_robot_positions, initial_prey_position, initial_unexplored_area, all_robots_id
     print("Processing initial observations...")
     initial_robot_positions.clear()
-    initial_prey_positions.clear()
     initial_unexplored_area.clear()
     all_robots_id.clear()
 
@@ -24,7 +24,7 @@ def process_initial_observations(msg: Observations):
             all_robots_id.append(obj.id)
         elif obj.type == "Prey":
             position = np.array([obj.position.x, obj.position.y])
-            initial_prey_positions.append(position)
+            initial_prey_position=position
         elif obj.type == "Landmark" and obj.color == "gray":
             initial_unexplored_area.append({
                 "id": len(initial_unexplored_area),
@@ -51,12 +51,45 @@ def get_all_robots_initial_position():
 
 def get_prey_initial_position():
     init_node()
-    return initial_prey_positions
+    return initial_prey_position
 
 
 def get_initial_unexplored_area():
     init_node()
     return initial_unexplored_area
+
+
+def get_environment_range():
+    return {'x_min': -2.5, 'x_max': 2.5, 'y_min': -2.5, 'y_max': 2.5}
+
+
+def get_contour_points(character):
+    rospy.wait_for_service('/get_char_points')
+    try:
+        get_char_points = rospy.ServiceProxy('/get_char_points', GetCharPoints)
+        request = GetCharPointsRequest(character=character)
+        response = get_char_points(request)
+        points = [(point.x, point.y) for point in response.points]
+        return points
+    except rospy.ServiceException as e:
+        print(f"Service call failed: {e}")
+        return []
+
+
+def get_target_formation_points():
+    target_shape = [(1, -1), (1, 1), (0, 0), (1, 0), (2, 0)]
+    return target_shape
+
+
+def get_quadrant_target_position():
+    quadrant_target_position = {
+        3: np.array([-1.25, -1.25]),
+        2: np.array([-1.25, 1.25]),
+        1: np.array([1.25, 1.25]),
+        4: np.array([1.25, -1.25]),
+    }
+
+    return quadrant_target_position
 
 
 def get_all_robots_id():

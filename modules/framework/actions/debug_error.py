@@ -6,6 +6,7 @@ from modules.llm import GPT
 from modules.prompt import (
     DEBUG_PROMPT,
     CONTINUE_DEBUG_PROMPT,
+    ALLOCATOR_TEMPLATE,
     GLOBAL_ROBOT_API,
     LOCAL_ROBOT_API,
     ENV_DES,
@@ -26,18 +27,12 @@ class DebugError(ActionNode):
         self.error_func = error.error_code
 
     def _build_prompt(self):
-        if self._skill_tree.name == "global_skill":
-            function_scoop_note = (
-                'This function is executed on a global central controller, considering the information of all robots and the task objectives.'
-                'It uses the optimal and efficient algorithm to coordinate tasks among multiple robots.')
-            robot_api_str = GLOBAL_ROBOT_API
-        else:
-            function_scoop_note = 'This function runs on the robot itself, using the provided perception API and motion API to execute its own tasks.'
-            robot_api_str = LOCAL_ROBOT_API
+        robot_api = GLOBAL_ROBOT_API if self.context.scoop == "global" else (
+                LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(template=self.context.global_skill_tree.output_template))
         # if self._call_times == 0:
         self.prompt = DEBUG_PROMPT.format(
             task_des=TASK_DES,
-            robot_api=robot_api_str,
+            robot_api=robot_api,
             env_des=ENV_DES,
             mentioned_functions=self.error_func,
             error_message=self.error,

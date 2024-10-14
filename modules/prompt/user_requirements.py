@@ -1,23 +1,23 @@
 tasks = {
-    "bridging": """The robots need to evenly form a straight line bridge at the position where x=0 within the range of −2<y<2.""".strip(),
+    "bridging": "The robots need to evenly form a straight line bridge at the position where x=0 within the range of −2<y<2.",
 
     "flocking": "Integrate into a flock by collaborating with all robots within the map, ensuring cohesion by staying connected, alignment by moving together, and separation by keeping at least 0.5 meters apart.",
 
     "covering": "Evenly sample target positions across the entire map, then assign the corresponding position based on each robot's ID.",
 
-    "circling": "You need to evenly distribute yourself and other robots on a circle with a radius of 1 centered at (0,0).",
+    "circling": "The robots need to be evenly distributed on a circle with a radius of 1 centered at (0,0).",
 
-    "crossing": "The robot needs to maintain a distance of at least 0.15 meters from other robots and obstacles while moving to the target position to avoid collisions. ",
+    "crossing": "Each robot must maintain a distance of at least 0.15 meters from other robots and obstacles to avoid collisions while moving to the target point, which is the position of the robot that was farthest from it at the initial moment.",
 
     'shaping': "The robots need to form a specific shape, with each robot assigned a unique point on that shape to move to while avoiding collisions during the movement.",
 
-    'encircling': "The robots need to surround the target prey by evenly distributing themselves along a circle with a radius of 1, centered on the prey, and adjust their positions in real-time based on the prey's movement to achieve coordinated encirclement.",
+    'encircling': "The robots need to surround the target prey by evenly distributing themselves along a circle with a radius of 1, centered on the prey, with each robot assigned a specific angle, and adjust their positions in real-time based on the prey's movement to achieve coordinated encirclement.",
 
-    "exploration": "The robots need to collaboratively explore the entire unknown area. For an unknown region, reaching within 0.5 meters of its center point is considered as having explored it.",
+    "exploration": "The robots need to collaboratively explore an unknown area. You are required to assign an optimal sequence of exploration areas to each robot based on the number of robots and the unexplored areas.",
 
-    "clustering": "The robots need to select an appropriate position to move to based on the quadrant of their initial position and gather with other robots while maintaining a distance of at least 0.5 meters from each other to avoid collisions.",
-    "pursuing": "The robots need to collaborate in pursuing the target."
+    "clustering": "Robots with initial positions in the same quadrant need to cluster in the designated area of that corresponding quadrant.",
 
+    "pursuing": "The robots need to pursue the target prey by moving towards the prey's position while avoiding collisions with other robots and obstacles.",
 }
 
 

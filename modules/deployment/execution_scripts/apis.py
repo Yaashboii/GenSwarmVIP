@@ -113,6 +113,9 @@ class RobotNode:
                 self.prey_position = np.array([obj.position.x, obj.position.y])
             elif obj.type == "Landmark":
                 if obj.color == "gray":
+                    distance = np.linalg.norm(self.robot_info["position"] - np.array([obj.position.x, obj.position.y]))
+                    if distance > DISTANCE_LIMIT:
+                        continue
                     self.unexplored_area.append({
                         "id": len(self.unexplored_area),
                         "position": np.array([obj.position.x, obj.position.y])
@@ -242,7 +245,7 @@ def get_sheep_positions():
     return get_current_robot_node().get_sheep_positions()
 
 
-def get_unexplored_region():
+def get_surrounding_unexplored_area():
     return get_current_robot_node().get_unexplored_area()
 
 
@@ -266,8 +269,8 @@ def get_target_position():
     return get_current_robot_node().get_target_position()
 
 
-def get_unexplored_area():
-    return get_current_robot_node().get_all_target_areas()
+def get_surrounding_unexplored_area():
+    return get_current_robot_node().get_surrounding_unexplored_area()
 
 
 def get_target_formation_points():

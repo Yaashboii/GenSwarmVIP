@@ -27,6 +27,7 @@ class AutoRunnerShaping(AutoRunnerBase):
 
     def analyze_result(self, run_result) -> dict[str, float]:
         from modules.deployment.utils.char_points_generate import validate_contour_points
+        # target_shape=validate_contour_points('R')
         target_shape = [(1, -1), (1, 1), (0, 0), (1, 0), (2, 0)]
         target_achievement = evaluate_shape_similarity(run_result, target_shape)
         collision = check_collisions(run_result)

@@ -1,8 +1,5 @@
 import os
-from pickle import GLOBAL
-
 import yaml
-
 from modules.framework.parser import CodeParser
 
 robot_api_prompt = """
@@ -47,7 +44,7 @@ def get_self_radius():
     Returns:
     - float: The radius of the robot itself.
     '''
-    
+
 def stop_self():
     '''
     Description: Stop the robot itself.
@@ -99,9 +96,9 @@ def get_target_formation_points():
     - list: A list of numpy.ndarray, all representing target points for robots.
     '''
 
-def get_unexplored_area():
+def get_surrounding_unexplored_area():
     '''
-    Description: Get the unexplored area in the environment.
+    Description: Get the unexplored area in the Robot's perception range.
     Returns:
     - list: A list of dictionaries containing the id and position of an unexplored area.
         - id (int): The unique ID of the unexplored area.
@@ -113,8 +110,10 @@ def get_quadrant_target_position():
     Description: Get the target position for the robot in the quadrant.
     Returns:
     - dict: A dictionary where the keys are quadrant indices and values are target positions.
+        - key (int): The quadrant index.
+        - value (numpy.ndarray): The target position for the robot in the quadrant.
     '''
-    
+
 def get_all_robots_initial_position():
     '''
     Description: Get the initial position of all robots in the environment.
@@ -123,12 +122,13 @@ def get_all_robots_initial_position():
         - key: int, the robot id.
         - value: numpy.ndarray, the initial position of the robot.
     '''    
-    
+
 def get_prey_initial_position():
     '''
     Description: Get the initial position of the prey.Prey will move in the environment.
+    Note: The prey will move in the environment, and the position will be updated in real-time.So your policy should consider the dynamic position of the prey.
     Returns:
-    - list: A list of numpy.ndarray, each representing the initial position of the prey.
+    - list: A list of float, representing the initial position of the prey.
     '''
 
 def get_initial_unexplored_area():
@@ -155,46 +155,47 @@ class RobotApi:
             'get_self_position',
             'set_self_velocity',
             'stop_self',
-            'get_self_velocity',
             'get_self_radius',
             'get_surrounding_robots_info',
             'get_all_robots_initial_position',
-            'get_environment_range',
-            'get_surrounding_obstacles_info',
+
         ]
 
-        # 定义 API 的 scope 映射
+        # Updated API scope mapping to support multiple scopes per API
         self.api_scope = {
-            'get_self_position': 'local',
-            'set_self_velocity': 'local',
-            'get_self_velocity': 'local',
-            'stop_self': 'local',
-            'get_environment_range': 'local',
-            'get_self_radius': 'local',
-            'get_prey_position': 'local',
-            'get_target_position': 'local',
-            'get_surrounding_robots_info': 'local',
-            'get_surrounding_obstacles_info': 'local',
-            'get_all_robots_id': 'global',
-            'get_all_robots_initial_position': 'global',
-            'get_target_formation_points': 'global',
-            'get_initial_unexplored_area': 'global',
-            'get_prey_initial_position': 'global',
-            'get_quadrant_target_position': 'global'
+            'get_self_position': ['local'],
+            'set_self_velocity': ['local'],
+            'get_self_velocity': ['local'],
+            'stop_self': ['local'],
+            'get_environment_range': ['local', 'global'],
+            'get_self_radius': ['local'],
+            'get_prey_position': ['local'],
+            'get_target_position': ['local'],
+            'get_surrounding_robots_info': ['local'],
+            'get_surrounding_obstacles_info': ['local'],
+            'get_all_robots_id': ['global'],
+            'get_all_robots_initial_position': ['global'],
+            'get_target_formation_points': ['global'],
+            'get_initial_unexplored_area': ['global'],
+            'get_prey_initial_position': ['global'],
+            'get_surrounding_unexplored_area': ['local'],
+            'get_quadrant_target_position': ['global'],
+            # Example of APIs with multiple scopes
+            # 'example_api': ['local', 'global'],
         }
 
         self.base_prompt = [self.apis[api] for api in self.base_apis]
         self.task_apis = {
             "bridging": ['get_surrounding_obstacles_info'],
             "circling": ['get_surrounding_obstacles_info'],
-            "covering": [],
-            "crossing": ['get_surrounding_obstacles_info', 'get_target_position'],
-            "encircling": ["get_prey_position", 'get_surrounding_obstacles_info'],
-            "exploration": ['get_initial_unexplored_area', ],
-            "flocking": ['get_surrounding_obstacles_info'],
+            "covering": ['get_environment_range'],
+            "crossing": ['get_surrounding_obstacles_info', ],
+            "encircling": ["get_prey_position", 'get_prey_initial_position'],
+            "exploration": ['get_initial_unexplored_area', 'get_environment_range'],
+            "flocking": ['get_surrounding_obstacles_info', 'get_environment_range'],
             "clustering": ['get_surrounding_obstacles_info', 'get_quadrant_target_position'],
             "shaping": ['get_target_formation_points'],
-            "pursuing": ['get_prey_position', 'get_surrounding_obstacles_info'],
+            "pursuing": ['get_prey_position'],
         }
 
     def get_api_prompt(self, task_name: str = None, scope: str = None, only_names: bool = False) -> str | list:
@@ -207,12 +208,12 @@ class RobotApi:
             only_names: bool, optional, if True, only return the API names instead of full text.
                         Default is False, which returns the full text.
         Returns:
-            str: The prompt of the robot API.
+            str or list: The prompt of the robot API.
         """
         if task_name is None:
             all_apis = self.apis.keys()
             if scope:
-                filtered_apis = [api for api in all_apis if self.api_scope[api] == scope]
+                filtered_apis = [api for api in all_apis if scope in self.api_scope.get(api, [])]
             else:
                 filtered_apis = all_apis
 
@@ -222,19 +223,23 @@ class RobotApi:
 
         try:
             task_prompt = self.base_prompt.copy()
-            specific_apis = [self.apis[api] for api in self.task_apis[task_name]]
+            specific_apis = [self.apis[api] for api in self.task_apis.get(task_name, [])]
             task_prompt.extend(specific_apis)
 
             if scope:
-                task_prompt = [api for api in task_prompt if self.api_scope[self.get_api_name(api)] == scope]
+                task_prompt = [api for api in task_prompt if scope in self.api_scope.get(self.get_api_name(api), [])]
 
             if only_names:
                 return [self.get_api_name(api) for api in task_prompt]
             return "\n\n".join(task_prompt)
+        except KeyError:
+            raise SystemExit(
+                f"Error in get_api_prompt: Task name '{task_name}' not found. Current existing tasks: {list(self.task_apis.keys())}."
+            )
         except Exception as e:
             raise SystemExit(
                 f"Error in get_api_prompt: {e}, current existing apis: {self.apis.keys()},"
-                f"input task name: {task_name}, expected name: {self.task_apis[task_name]}"
+                f"input task name: {task_name}, expected name: {self.task_apis.get(task_name, [])}"
             )
 
     def get_api_name(self, api: str) -> str:
@@ -252,11 +257,15 @@ yaml_file_path = os.path.join(script_dir, '../../config/', 'experiment_config.ya
 with open(yaml_file_path, 'r', encoding='utf-8') as file:
     data = yaml.safe_load(file)
 task_name = data['arguments']['--run_experiment_name']['default'][0]
+
 GLOBAL_ROBOT_API = robot_api.get_api_prompt(task_name, scope='global')
 LOCAL_ROBOT_API = robot_api.get_api_prompt(task_name, scope='local')
+
 global_import_list = robot_api.get_api_prompt(task_name, scope='global', only_names=True)
 local_import_list = robot_api.get_api_prompt(task_name, scope='local', only_names=True)
-local_import_list.extend(['get_assigned_task'])
+local_import_list = local_import_list.split('\n\n') if isinstance(local_import_list, str) else local_import_list
+local_import_list.append('get_assigned_task')
+
 ALLOCATOR_TEMPLATE = """
 
 def get_assigned_task():
@@ -272,6 +281,9 @@ def get_assigned_task():
 if __name__ == '__main__':
     for task_name in robot_api.task_apis.keys():
         print(f"Task name: {task_name}")
+        print("Global APIs:")
         print(robot_api.get_api_prompt(task_name, scope='global', only_names=True))
+        print("Local APIs:")
+        print(robot_api.get_api_prompt(task_name, scope='local', only_names=True))
         print("=" * 50)
         print()

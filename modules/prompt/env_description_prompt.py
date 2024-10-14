@@ -1,11 +1,10 @@
 ENV_DES = """
 Environment:
     Environment is composed of a 2D plane with obstacles and robots.
-    The environment is bounded.
-    The environment is static.
+    The robots and obstacles in the space are circular, and the avoidance algorithm is the same for both.
 Robot:
     max_speed: 0.2m/s (constant)
-    Control Method: Omnidirectional speed control
+    Control Method: Omnidirectional speed control(The output after velocity-weighted superposition of different objectives.)
     Control frequency: 100Hz (the robot's velocity should be updated at least every 0.01s)
     Initial position: random position in the environment
     Initial speed: np.array([0, 0])

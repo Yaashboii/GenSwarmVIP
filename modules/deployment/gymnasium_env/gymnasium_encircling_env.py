@@ -53,7 +53,7 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
         prey = Prey(prey_id=entity_id,
                     initial_position=[0, 0],
                     size=prey_size,
-                    num=400
+                    num=4000
                     )
         self.add_entity(prey)
 

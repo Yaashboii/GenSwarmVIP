@@ -13,6 +13,99 @@ from modules.framework.code_error import Bug
 from modules.utils import root_manager, get_project_root
 
 
+class RunAllocateRun(ActionNode):
+    def __init__(self, next_text: str = "", node_name: str = ""):
+        super().__init__(next_text, node_name)
+
+    async def _run_script(self, working_directory, command=[], print_output=True) -> str:
+        working_directory = str(working_directory)
+        env = os.environ.copy()
+
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            cwd=working_directory,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env,
+        )
+
+        stdout_chunks, stderr_chunks = [], []
+
+        async def read_stream(stream, accumulate, is_stdout=True):
+            while True:
+                line_bytes = await stream.readline()
+                if not line_bytes:
+                    break
+                line = line_bytes.decode("utf-8")
+                accumulate.append(line)
+                if print_output:
+                    print(
+                        line,
+                        end="" if is_stdout else "",
+                        file=sys.stderr if not is_stdout else None,
+                    )
+
+        try:
+            if hasattr(self.context.args, "timeout"):
+                timeout = self.context.args.timeout
+            else:
+                timeout = 30
+            await asyncio.wait_for(
+                asyncio.gather(
+                    read_stream(process.stdout, stdout_chunks, is_stdout=True),
+                    read_stream(process.stderr, stderr_chunks, is_stdout=False),
+                ),
+                timeout=timeout,
+            )
+
+            if (
+                    "WARNING: cannot load logging configuration file, logging is disabled\n"
+                    in stderr_chunks
+            ):
+                stderr_chunks.remove(
+                    "WARNING: cannot load logging configuration file, logging is disabled\n"
+                )
+            if stderr_chunks:
+                return "\n".join(stderr_chunks)
+            else:
+                return "NONE"
+
+        except asyncio.TimeoutError:
+            logger.log(content="Timeout", level="error")
+            process.kill()
+            await process.wait()  # Ensure the process is terminated
+            return "Timeout"
+        except asyncio.CancelledError:
+            logger.log(content="Cancelled", level="error")
+            process.kill()
+            await process.wait()  # Ensure the process is terminated
+            raise
+        except Exception as e:
+            logger.log(content=f"error in run allocate: {e}", level="error")
+            process.kill()
+            await process.wait()  # Ensure the process is terminated
+            return f"error in run allocate: {e}"
+        finally:
+            if process.returncode is None:
+                process.kill()
+                await process.wait()
+
+    async def _run(self):
+        command = ["python", "allocate_run.py"]
+        result = await self._run_script(
+            working_directory=root_manager.workspace_root, command=command
+        )
+        return self._process_response(result)
+
+    def _process_response(self, result: str):
+        if result == "NONE":
+            logger.log(content="Run allocate success", level="success")
+            return result
+        else:
+            logger.log(content=f"Run allocate failed, result: {result}", level="error")
+            return Bug(error_msg=result, error_function="RunAllocateRun")
+
+
 class RunCode(ActionNode):
     def __init__(self, next_text: str = "", node_name: str = ""):
         super().__init__(next_text, node_name)
@@ -120,97 +213,14 @@ class RunCode(ActionNode):
 
 
 class RunCodeAsync(ActionNode):
-
-    async def _run_script(
-            self, working_directory, command=[], print_output=True
-    ) -> str:
-        working_directory = str(working_directory)
-        env = os.environ.copy()
-
-        process = await asyncio.create_subprocess_exec(
-            *command,
-            cwd=working_directory,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            env=env,
-        )
-
-        stdout_chunks, stderr_chunks = [], []
-
-        async def read_stream(stream, accumulate, is_stdout=True):
-            while True:
-                line_bytes = await stream.readline()
-                if not line_bytes:
-                    break
-                line = line_bytes.decode("utf-8")
-                accumulate.append(line)
-                if print_output:
-                    print(
-                        line,
-                        end="" if is_stdout else "",
-                        file=sys.stderr if not is_stdout else None,
-                    )
-
-        try:
-            # Apply timeout to the gather call using asyncio.wait_for
-            if hasattr(self.context.args, "timeout"):
-                timeout = self.context.args.timeout
-            else:
-                timeout = 30
-            await asyncio.wait_for(
-                asyncio.gather(
-                    read_stream(process.stdout, stdout_chunks, is_stdout=True),
-                    read_stream(process.stderr, stderr_chunks, is_stdout=False),
-                ),
-                timeout=timeout,
-            )
-
-            if (
-                    "WARNING: cannot load logging configuration file, logging is disabled\n"
-                    in stderr_chunks
-            ):
-                stderr_chunks.remove(
-                    "WARNING: cannot load logging configuration file, logging is disabled\n"
-                )
-            if stderr_chunks:
-                return "\n".join(stderr_chunks)
-            else:
-                return "NONE"
-
-        except asyncio.TimeoutError:
-            logger.log(content="Timeout", level="error")
-            process.kill()
-            await process.wait()  # Ensure the process is terminated
-            return "Timeout"
-        except asyncio.CancelledError:
-            logger.log(content="Cancelled", level="error")
-            process.kill()
-            await process.wait()  # Ensure the process is terminated
-            raise
-        except Exception as e:
-            logger.log(content=f"error in run code: {e}", level="error")
-            process.kill()
-            await process.wait()  # Ensure the process is terminated
-            return f"error in run code: {e}"
-        finally:
-            # Ensure the process is terminated in case of any other unexpected errors
-            if process.returncode is None:  # Check if process is still running
-                process.kill()
-                await process.wait()
+    def __init__(self, next_text: str = "", node_name: str = ""):
+        super().__init__(next_text, node_name)
 
     async def _run(self):
-        global_nodes = self.context.global_skill_tree.functions_body
-        print(f"Global nodes: {global_nodes}")
-        if len(global_nodes) > 0:
-            command = ["python", 'allocate_run.py']
-            await self._run_script(
-                working_directory=root_manager.workspace_root, command=command
-            )
-
         start_idx = rospy.get_param("robot_start_index")
         end_idx = rospy.get_param("robot_end_index")
         total_robots = end_idx - start_idx + 1
-        num_processes = min(3, total_robots)  # Number of processes
+        num_processes = min(3, total_robots)  # 并行进程数
         robots_per_process = total_robots // num_processes
 
         robot_ids = list(range(start_idx, end_idx + 1))
@@ -235,9 +245,9 @@ class RunCodeAsync(ActionNode):
         if ("NONE" in result or "Timeout" in result) and len(result) == 1:
             logger.log(content="Run code success", level="success")
             return "NONE"
-        logger.log(content=f"Run code failed,result{result}", level="error")
+        logger.log(content=f"Run code failed, result: {result}", level="error")
         result_content = "\n".join(result)
-        return Bug(error_msg=result_content, error_function='')
+        return Bug(error_msg=result_content, error_function='', error_code='')
 
 
 if __name__ == "__main__":
@@ -255,9 +265,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--feedback", type=str, default="None", help="Optional: human, VLM, None,Result feedback",
-        )
+    )
     parser.add_argument(
-        "--data", type=str, default='exploration/2024-10-11_15-50-39', help="Data path for the simulation"
+        "--data", type=str, default='encircling/2024-10-14_01-05-45', help="Data path for the simulation"
     )
     parser.add_argument(
         "--target_pkl", type=str, default="WriteRun.pkl", help="Data path for the simulation"
@@ -274,9 +284,10 @@ if __name__ == "__main__":
     root_manager.update_root(path)
     debug_code = DebugError("fixed code")
     human_feedback = Criticize("feedback")
+    run_allocate = RunAllocateRun("run allocate")
     run_code = RunCodeAsync("run code")
     video_critic = VideoCriticize("")
-
+    run_allocate._next = run_code
     # initialize error handlers
     bug_handler = BugLevelHandler()
     bug_handler.next_action = debug_code
@@ -290,11 +301,13 @@ if __name__ == "__main__":
     bug_handler.successor = hf_handler
 
     if args.feedback != 'None':
+        run_allocate.error_handler = chain_of_handler
         run_code.error_handler = chain_of_handler
+
         run_code._next = video_critic
         video_critic.error_handler = chain_of_handler
     if args.target_pkl != 'None':
         run_code.context.load_from_file(path + "/" + args.target_pkl)
     run_code.context.args = args
-    asyncio.run(run_code.run())
+    asyncio.run(run_allocate.run())
     run_code.context.save_to_file(f"{path}/run_code.pkl")

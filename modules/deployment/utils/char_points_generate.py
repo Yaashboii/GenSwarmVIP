@@ -15,8 +15,8 @@ def create_char_image(char, font_path, font_size=200, image_size=(300, 300)):
     text_y = (image_size[0] - (text_size[3] - text_size[1])) // 2
     draw.text((text_x, text_y), char, font=font, fill=(255, 255, 255))
     img = np.array(pil_img)
-    cv2.imshow('img', img)
-    cv2.waitKey(0)
+    # cv2.imshow('img', img)
+    # cv2.waitKey(0)
     return img
 
 
