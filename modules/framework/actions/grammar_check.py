@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.actions import DebugError
@@ -10,7 +23,9 @@ from modules.utils import root_manager
 
 
 class GrammarCheck(ActionNode):
-    def __init__(self, skill_tree: FunctionTree, next_text: str = "", node_name: str = ""):
+    def __init__(
+        self, skill_tree: FunctionTree, next_text: str = "", node_name: str = ""
+    ):
         super().__init__(next_text, node_name)
         self.function_name = None
         self.function = None
@@ -36,17 +51,22 @@ class GrammarCheck(ActionNode):
             return self._process_response(str(errors))
 
     def _process_response(self, response: str) -> str | Bugs | Bug:
-
         if eval(response):
             if self.function.grammar_check_times > 3:
                 logger.log("Grammar check failed more than 3 times", "error")
                 self.error_handler = None
-                return ''
+                return ""
 
-            error_code = self._skill_tree.save_by_function(function=self.function_name, save=False)
+            error_code = self._skill_tree.save_by_function(
+                function=self.function_name, save=False
+            )
 
             bug_list = [
-                Bug(error_msg=e["error_message"], error_function=e["function_name"], error_code=error_code)
+                Bug(
+                    error_msg=e["error_message"],
+                    error_function=e["function_name"],
+                    error_code=error_code,
+                )
                 for e in eval(response)
             ]
             logger.log(
@@ -62,7 +82,11 @@ class GrammarCheck(ActionNode):
 
 class GrammarCheckAsync(AsyncNode):
     def __init__(
-            self, skill_tree, run_mode='layer', start_state=State.REVIEWED, end_state=State.CHECKED
+        self,
+        skill_tree,
+        run_mode="layer",
+        start_state=State.REVIEWED,
+        end_state=State.CHECKED,
     ):
         super().__init__(skill_tree, run_mode, start_state, end_state)
 
@@ -103,7 +127,7 @@ class GrammarCheckAsync(AsyncNode):
             raise SystemExit
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import asyncio
 
     context = WorkflowContext()

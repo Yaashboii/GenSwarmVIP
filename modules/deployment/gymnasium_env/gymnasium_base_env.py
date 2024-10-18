@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import json
 from typing import Any, Optional, SupportsFloat, TypeVar
 from math import isnan
@@ -37,10 +50,7 @@ The coordinate system in ours system is:
 
 
 class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
-    metadata = {
-        'render.modes': ['human'],
-        'fps': 30
-    }
+    metadata = {"render.modes": ["human"], "fps": 30}
 
     def __init__(self, data_file: str):
         """
@@ -50,56 +60,74 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         """
         self.data_file = data_file
         try:
-            with open(self.data_file, 'r') as file:
+            with open(self.data_file, "r") as file:
                 self.data = json.load(file)
         except FileNotFoundError as e:
             raise FileNotFoundError(f"Data file not found: {self.data_file}") from e
         except json.JSONDecodeError as e:
-            raise json.JSONDecodeError(f"Error decoding JSON from the data file: {self.data_file}") from e
+            raise json.JSONDecodeError(
+                f"Error decoding JSON from the data file: {self.data_file}"
+            ) from e
 
-        self.dt = self.data.get('dt', 0.01)
+        self.dt = self.data.get("dt", 0.01)
         self.FPS = 100
         self.screen: pygame.Surface
         self.simulation_data = {}
-        self.scale_factor = self.data['display']['scale_factor']
-        self.width = self.data['display']['width']
-        self.height = self.data['display']['height']
+        self.scale_factor = self.data["display"]["scale_factor"]
+        self.width = self.data["display"]["width"]
+        self.height = self.data["display"]["height"]
 
         self.entities = []
 
-        engine_type = self.data.get('engine_type', 'QuadTreeEngine')
-        if engine_type == 'QuadTreeEngine':
-            self.engine = QuadTreeEngine(world_size=(self.width, self.height),
-                                         alpha=0.5,
-                                         damping=0.75,
-                                         collision_check=True,
-                                         joint_constraint=False)
-        elif engine_type == 'Box2DEngine':
+        engine_type = self.data.get("engine_type", "QuadTreeEngine")
+        if engine_type == "QuadTreeEngine":
+            self.engine = QuadTreeEngine(
+                world_size=(self.width, self.height),
+                alpha=0.5,
+                damping=0.75,
+                collision_check=True,
+                joint_constraint=False,
+            )
+        elif engine_type == "Box2DEngine":
             self.engine = Box2DEngine()
-        elif engine_type == 'OmniEngine':
+        elif engine_type == "OmniEngine":
             self.engine = OmniEngine()
         else:
             raise ValueError(f"Unsupported engine type: {engine_type}")
 
         self.movable_agents = {}
         self.num_robots = self.data.get("entities", {}).get("robot", {}).get("count", 0)
-        self.robot_id_list = self.data.get("entities", {}).get("robot", {}).get("id_list", [])
-        self.num_leaders = self.data.get("entities", {}).get("leader", {}).get("count", 0)
-        self.num_obstacles = self.data.get("entities", {}).get("obstacle", {}).get("count", 0)
-        self.obstacle_id_list = self.data.get("entities", {}).get("obstacle", {}).get("id_list", [])
-        self.num_landmarks = self.data.get("entities", {}).get("landmark", {}).get("count", 0)
-        self.landmark_id_list = self.data.get("entities", {}).get("landmark", {}).get("id_list", [])
-        self.prey_id_list = self.data.get("entities", {}).get("prey", {}).get("id_list", [])
+        self.robot_id_list = (
+            self.data.get("entities", {}).get("robot", {}).get("id_list", [])
+        )
+        self.num_leaders = (
+            self.data.get("entities", {}).get("leader", {}).get("count", 0)
+        )
+        self.num_obstacles = (
+            self.data.get("entities", {}).get("obstacle", {}).get("count", 0)
+        )
+        self.obstacle_id_list = (
+            self.data.get("entities", {}).get("obstacle", {}).get("id_list", [])
+        )
+        self.num_landmarks = (
+            self.data.get("entities", {}).get("landmark", {}).get("count", 0)
+        )
+        self.landmark_id_list = (
+            self.data.get("entities", {}).get("landmark", {}).get("id_list", [])
+        )
+        self.prey_id_list = (
+            self.data.get("entities", {}).get("prey", {}).get("id_list", [])
+        )
         self.num_preys = self.data.get("entities", {}).get("prey", {}).get("count", 0)
         self.get_spaces()
 
-        self.redundancy_factor = self.data.get('redundancy_factor', 1.2)
+        self.redundancy_factor = self.data.get("redundancy_factor", 1.2)
         # self.screen = pygame.Surface((self.width * self.scale_factor, self.height * self.scale_factor))
 
-        self.render_mode = self.data.get('render_mode', 'human')
+        self.render_mode = self.data.get("render_mode", "human")
         self.render_width = self.width * self.redundancy_factor
         self.render_height = self.height * self.redundancy_factor
-        self.output_file = self.data.get('output_file', 'output.json')
+        self.output_file = self.data.get("output_file", "output.json")
         self.time_step = 0
         self.clock = pygame.time.Clock()
 
@@ -141,7 +169,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
 
         Returns:
             None
-       """
+        """
         if self.screen is not None:
             if pygame.get_init():  # Check if Pygame is initialized
                 pygame.quit()
@@ -208,12 +236,14 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                 obs[entity.id] = {
                     "position": entity.position,
                     "velocity": entity.velocity,
-                    'moveable': entity.moveable,
+                    "moveable": entity.moveable,
                     "size": entity.size,
                     "type": entity.__class__.__name__,
-                    "target_position": entity.target_position if hasattr(entity, "target_position") else None,
+                    "target_position": entity.target_position
+                    if hasattr(entity, "target_position")
+                    else None,
                     "state": entity.state if hasattr(entity, "state") else None,
-                    "color": entity.color
+                    "color": entity.color,
                 }
 
         elif type == "array":
@@ -226,7 +256,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         return obs
 
     def step(
-            self, action: ActType
+        self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
         """
         Perform one step of the environment using the given actions.
@@ -249,13 +279,12 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                                 with detailed information for each entity.
         """
         if self.engine.__class__.__name__ != "OmniEngine":
-
             for entity_id, velocity in action.items():
                 valid_velocity = np.array([i if not isnan(i) else 0 for i in velocity])
                 # valid_velocity = np.array([1, 1,], dtype=float)
                 self.set_entity_velocity(entity_id, valid_velocity)
             for entity in self.entities:
-                if entity.__class__.__name__ == 'Prey':
+                if entity.__class__.__name__ == "Prey":
                     entity.move(self.time_step)
 
         self.engine.step(self.dt)
@@ -299,11 +328,17 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         self.screen.fill((255, 255, 255))
 
         for entity in self.entities:
-            pixel_pos = [int(i * self.scale_factor) for i in apply_offset(entity.position)]
+            pixel_pos = [
+                int(i * self.scale_factor) for i in apply_offset(entity.position)
+            ]
             color = pygame.Color(entity.color)
-            if entity.shape == 'circle':
-                pygame.draw.circle(self.screen, color, [pixel_pos[1], pixel_pos[0]],
-                                   int(entity.size * self.scale_factor))
+            if entity.shape == "circle":
+                pygame.draw.circle(
+                    self.screen,
+                    color,
+                    [pixel_pos[1], pixel_pos[0]],
+                    int(entity.size * self.scale_factor),
+                )
             else:
                 rect = pygame.Rect(
                     (pixel_pos[1] - entity.size[1] / 2 * self.scale_factor),
@@ -314,61 +349,73 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                 pygame.draw.rect(self.screen, color, rect)
 
     def reset(
-            self,
-            *,
-            seed: int | None = None,
-            options: dict[str, Any] | None = None,
+        self,
+        *,
+        seed: int | None = None,
+        options: dict[str, Any] | None = None,
     ) -> tuple[ObsType, dict[str, Any]]:
         super().reset(seed=seed)
         self.entities = []
         self.engine.clear_entities()
-        if self.engine.__class__.__name__ == 'OmniEngine':
+        if self.engine.__class__.__name__ == "OmniEngine":
             self.init_omni_entities()
         else:
             self.init_entities()
         obs = self.get_observation("array")
         infos = self.get_observation("dict")
         self.time_step = 0
-        if self.render_mode == 'human':
+        if self.render_mode == "human":
             self.screen = pygame.display.set_mode(
-                (self.render_width * self.scale_factor, self.render_height * self.scale_factor))
+                (
+                    self.render_width * self.scale_factor,
+                    self.render_height * self.scale_factor,
+                )
+            )
         else:
             self.screen = pygame.Surface(
-                (self.render_width * self.scale_factor, self.render_height * self.scale_factor))
+                (
+                    self.render_width * self.scale_factor,
+                    self.render_height * self.scale_factor,
+                )
+            )
         return obs, infos
 
     @abstractmethod
     def init_entities(self):
-        raise NotImplementedError(f"{str(self)}.init_entities method must be implemented.")
+        raise NotImplementedError(
+            f"{str(self)}.init_entities method must be implemented."
+        )
 
     def init_omni_entities(self):
-
         robot_id_list = self.robot_id_list
-        target_positions = [(2.0, 0.0), (1.7320508075688774, 0.9999999999999999),
-                            (1.0000000000000002, 1.7320508075688772), (1.2246467991473532e-16, 2.0),
-                            (-0.9999999999999996, 1.7320508075688774), (-1.732050807568877, 1.0000000000000007)]
+        target_positions = [
+            (2.0, 0.0),
+            (1.7320508075688774, 0.9999999999999999),
+            (1.0000000000000002, 1.7320508075688772),
+            (1.2246467991473532e-16, 2.0),
+            (-0.9999999999999996, 1.7320508075688774),
+            (-1.732050807568877, 1.0000000000000007),
+        ]
 
         for count, i in enumerate(robot_id_list):
-            robot = Robot(robot_id=i,
-                          initial_position=(0, 0),
-                          size=0.15,
-                          target_position=target_positions[count]
-
-                          )
+            robot = Robot(
+                robot_id=i,
+                initial_position=(0, 0),
+                size=0.15,
+                target_position=target_positions[count],
+            )
             self.add_entity(robot)
         obstacle_id_list = self.obstacle_id_list
         for i in obstacle_id_list:
-            obstacle = Obstacle(obstacle_id=i,
-                                initial_position=(0, 0),
-                                size=0.15,
-                                movable=True)
+            obstacle = Obstacle(
+                obstacle_id=i, initial_position=(0, 0), size=0.15, movable=True
+            )
             self.add_entity(obstacle)
         landmark_id_list = self.landmark_id_list
         for i in landmark_id_list:
-            landmark = Landmark(landmark_id=i,
-                                initial_position=(0, 0),
-                                size=0.15,
-                                color='gray')
+            landmark = Landmark(
+                landmark_id=i, initial_position=(0, 0), size=0.15, color="gray"
+            )
             self.add_entity(landmark)
         # entity_id = 10
         # for x in np.arange(-self.width * 0.4, self.width * 0.51, 0.2 * self.width):
@@ -381,10 +428,11 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         #         entity_id += 1
         prey_id_list = self.prey_id_list
         for i in prey_id_list:
-            prey = Prey(prey_id=i,
-                        initial_position=(0, 0),
-                        size=0.15,
-                        )
+            prey = Prey(
+                prey_id=i,
+                initial_position=(0, 0),
+                size=0.15,
+            )
             self.add_entity(prey)
 
     def add_entity(self, entity):
@@ -395,7 +443,6 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
             self.movable_agents[entity.id] = entity.__class__.__name__
 
     def remove_entity(self, entity_id):
-
         self.entities = [entity for entity in self.entities if entity.id != entity_id]
 
         if self.entities[entity_id].collision:
@@ -403,7 +450,11 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
 
     def get_entities_by_type(self, entity_type):
         """Get a list of entities of a specified type."""
-        return [entity for entity in self.entities if entity.__class__.__name__ == entity_type]
+        return [
+            entity
+            for entity in self.entities
+            if entity.__class__.__name__ == entity_type
+        ]
 
     def get_entity_position(self, entity_id):
         """Get the position of the entity with the specified ID."""
@@ -456,5 +507,5 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         return True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     env = GymnasiumEnvironmentBase("../../../config/env_config.json")

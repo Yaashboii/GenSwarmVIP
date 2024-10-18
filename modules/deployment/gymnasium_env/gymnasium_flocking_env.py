@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Any, SupportsFloat, TypeVar, Optional
 
 from modules.deployment.engine import QuadTreeEngine, PyBullet2DEngine
@@ -13,18 +26,21 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str = None):
         super().__init__(data_file)
         if self.engine.__class__.__name__ == "QuadTreeEngine":
-            self.engine = QuadTreeEngine(world_size=(self.width, self.height),
-                                         alpha=0.5,
-                                         damping=0.75,
-                                         collision_check=True,
-                                         joint_constraint=False)
+            self.engine = QuadTreeEngine(
+                world_size=(self.width, self.height),
+                alpha=0.5,
+                damping=0.75,
+                collision_check=True,
+                joint_constraint=False,
+            )
 
     def init_entities(self):
-
         def add_specified_entities(entity_type, entity_class, color=None):
             nonlocal entity_id
             for entity_data in self.data["entities"][entity_type]["specified"]:
-                entity = entity_class(entity_id, entity_data["position"], entity_data["size"])
+                entity = entity_class(
+                    entity_id, entity_data["position"], entity_data["size"]
+                )
                 if color:
                     entity.color = entity_data.get("color", color)
                 self.add_entity(entity)
@@ -43,14 +59,22 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
         # Add remaining robots
         if "count" in self.data["entities"]["robot"]:
             robot_size = self.data["entities"]["robot"]["size"]
-            robot_num = self.data["entities"]["robot"]["count"] - len(self.data["entities"]["robot"]["specified"])
+            robot_num = self.data["entities"]["robot"]["count"] - len(
+                self.data["entities"]["robot"]["specified"]
+            )
             shape = self.data["entities"]["robot"]["shape"]
             color = self.data["entities"]["robot"]["color"]
 
             for i in range(robot_num):
-                position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                        robot_size=robot_size, robot_shape=shape, min_distance=0.5,
-                                        entities=self.entities)
+                position = sample_point(
+                    zone_center=[0, 0],
+                    zone_shape="rectangle",
+                    zone_size=[self.width, self.height],
+                    robot_size=robot_size,
+                    robot_shape=shape,
+                    min_distance=0.5,
+                    entities=self.entities,
+                )
                 robot = Robot(entity_id, position, robot_size, color=color)
                 self.add_entity(robot)
                 entity_id += 1
@@ -69,14 +93,12 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
         #         entity_id += 1
 
     def step(
-            self, action: ActType
+        self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
-
         return super().step(action)
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     import time
     import rospy
 

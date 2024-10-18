@@ -1,6 +1,24 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import os
 from anthropic import AsyncAnthropic
-from tenacity import retry, stop_after_attempt, stop_after_delay, wait_random_exponential
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    stop_after_delay,
+    wait_random_exponential,
+)
 
 from modules.llm import BaseLLM, model_manager
 
@@ -47,7 +65,9 @@ class Claude(BaseLLM):
 
                 full_reply_content = "".join(
                     [
-                        m.content if hasattr(m, "content") and m.content is not None else ""
+                        m.content
+                        if hasattr(m, "content") and m.content is not None
+                        else ""
                         for m in collected_messages
                     ]
                 )
@@ -63,7 +83,7 @@ class Claude(BaseLLM):
             raise  # Re-raise exception
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import asyncio
 
     claude = Claude()

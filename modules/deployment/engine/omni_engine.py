@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import json
 
 from .base_engine import Engine
@@ -18,9 +31,9 @@ from sensor_msgs.msg import Joy  # 新增导入 Joy 消息类型
 class OmniEngine(Engine):
     def __init__(self):
         super().__init__()
-        rospy.init_node('omni_engine', anonymous=True)
+        rospy.init_node("omni_engine", anonymous=True)
 
-        self.type_mapping = {'robot': 'VSWARM', 'obstacle': 'OBSTACLE', 'prey': 'PREY'}
+        self.type_mapping = {"robot": "VSWARM", "obstacle": "OBSTACLE", "prey": "PREY"}
         self.subscribers = []
         self.mqtt_client = self.start_up_mqtt_thread()
         self.led_init = False
@@ -33,10 +46,10 @@ class OmniEngine(Engine):
         broker_ip = "10.0.2.66"
         port = 1883
         keepalive = 60  # 与代理通信之间允许的最长时间段（以秒为单位）
-        client_id = f'{self.__class__.__name__}'  # 客户端id不能重复
+        client_id = f"{self.__class__.__name__}"  # 客户端id不能重复
 
         try:
-            broker = os.environ['REMOTE_SERVER']
+            broker = os.environ["REMOTE_SERVER"]
         except KeyError:
             broker = broker_ip
 
@@ -46,7 +59,9 @@ class OmniEngine(Engine):
             time.sleep(2)
 
         # 启动MQTT客户端线程
-        mqtt_client_instance = MqttClientThread(broker=broker, port=port, keepalive=keepalive, client_id=client_id)
+        mqtt_client_instance = MqttClientThread(
+            broker=broker, port=port, keepalive=keepalive, client_id=client_id
+        )
         mqtt_thread = threading.Thread(target=mqtt_client_instance.run)
         mqtt_thread.start()
         return mqtt_client_instance
@@ -59,12 +74,17 @@ class OmniEngine(Engine):
 
         print(f"update position of {entity_type} {entity_id} to {position}")
         quaternion = np.array(
-            [msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z,
-             msg.pose.orientation.w])
+            [
+                msg.pose.orientation.x,
+                msg.pose.orientation.y,
+                msg.pose.orientation.z,
+                msg.pose.orientation.w,
+            ]
+        )
 
         rot_mat = R.from_quat(quaternion).as_matrix()
         # 解出欧拉角（RPY顺序）
-        euler = np.array(R.from_matrix(rot_mat).as_euler('xyz', degrees=False))
+        euler = np.array(R.from_matrix(rot_mat).as_euler("xyz", degrees=False))
         self.set_yaw(entity_id, euler[2])
 
     def twist_callback(self, msg, args):
@@ -85,15 +105,28 @@ class OmniEngine(Engine):
         twist_topic = f"/vrpn_client_node/{entity_type.upper()}{entity_id}/twist"
 
         self.subscribers.append(
-            rospy.Subscriber(pose_topic, PoseStamped, self.pose_callback, callback_args=(entity_id, entity_type)))
+            rospy.Subscriber(
+                pose_topic,
+                PoseStamped,
+                self.pose_callback,
+                callback_args=(entity_id, entity_type),
+            )
+        )
         self.subscribers.append(
-            rospy.Subscriber(twist_topic, TwistStamped, self.twist_callback, callback_args=(entity_id, entity_type)))
+            rospy.Subscriber(
+                twist_topic,
+                TwistStamped,
+                self.twist_callback,
+                callback_args=(entity_id, entity_type),
+            )
+        )
 
     def generate_all_subscribers(self):
         for entity_id, entity in self._entities.items():
             a = entity.__class__.__name__.lower()
-            self.generate_subscribers(entity_id=entity_id,
-                                      entity_type=self.type_mapping[a])
+            self.generate_subscribers(
+                entity_id=entity_id, entity_type=self.type_mapping[a]
+            )
 
     def step(self, delta_time: float):
         if len(self.subscribers) == 0:
@@ -116,10 +149,12 @@ class OmniEngine(Engine):
         json_msg = {
             "x": desired_velocity["x"],
             "y": desired_velocity["y"],
-            "theta": desired_velocity["theta"]
+            "theta": desired_velocity["theta"],
         }
         json_str = json.dumps(json_msg)
-        self.mqtt_client.publish(f'/VSWARM{entity_id}_robot/motion', json_str.encode('utf-8'))
+        self.mqtt_client.publish(
+            f"/VSWARM{entity_id}_robot/motion", json_str.encode("utf-8")
+        )
         print(f"Controlling velocity of entity {entity_id} to {json_msg} via MQTT")
 
     def apply_joy_control(self):
@@ -129,7 +164,7 @@ class OmniEngine(Engine):
         #     print(f"Joy input timeout, resetting input to: {self.joy_input}")
 
         for entity in self._entities.values():
-            if entity.__class__.__name__.lower() == 'prey':
+            if entity.__class__.__name__.lower() == "prey":
                 self.control_velocity(entity.id, self.joy_input)
 
     def control_yaw(self, entity_id, desired_yaw, dt=None):
@@ -141,31 +176,31 @@ class OmniEngine(Engine):
         if abs(yaw_error) < 0.1:
             return
         kp = 0.8
-        json_msg = {
-            "x": 0,
-            "y": 0,
-            "theta": yaw_error * kp
-        }
+        json_msg = {"x": 0, "y": 0, "theta": yaw_error * kp}
         print(f"yaw error is {yaw_error}")
         json_str = json.dumps(json_msg)
-        self.mqtt_client.publish(f'/VSWARM{entity_id}_robot/motion', json_str.encode('utf-8'))
+        self.mqtt_client.publish(
+            f"/VSWARM{entity_id}_robot/motion", json_str.encode("utf-8")
+        )
 
     def update_led_color(self):
         self.led_init = True
-        color_mapping = {'red': 0xFF0000,
-                         'green': 0x00FF00,
-                         'blue': 0x0000FF,
-                         'yellow': 0xFFFF00,
-                         'purple': 0xFF00FF,
-                         'cyan': 0x00FFFF,
-                         'white': 0xFFFFFF,
-                         'black': 0x000000,
-                         'gray': 0xFF0000}
+        color_mapping = {
+            "red": 0xFF0000,
+            "green": 0x00FF00,
+            "blue": 0x0000FF,
+            "yellow": 0xFFFF00,
+            "purple": 0xFF00FF,
+            "cyan": 0x00FFFF,
+            "white": 0xFFFFFF,
+            "black": 0x000000,
+            "gray": 0xFF0000,
+        }
         try:
             for entity_id in self._entities:
                 color = color_mapping[self._entities[entity_id].color]
 
-                color=color_mapping['black']
+                color = color_mapping["black"]
                 self.set_ledup(entity_id, color)
                 self.set_leddown(entity_id, color)
         except KeyError as e:
@@ -174,34 +209,36 @@ class OmniEngine(Engine):
 
     def set_ledup(self, entity_id, led_colors):
         json_msg = {
-            "cmd_type": 'ledup',
-            'args_length': 6,
-            'args': {
-                '0': led_colors,
-                '1': 14,
-                '2': led_colors,
-                '3': 14,
-                '4': led_colors,
-                '5': 14,
-            }
-
+            "cmd_type": "ledup",
+            "args_length": 6,
+            "args": {
+                "0": led_colors,
+                "1": 14,
+                "2": led_colors,
+                "3": 14,
+                "4": led_colors,
+                "5": 14,
+            },
         }
         json_str = json.dumps(json_msg)
-        self.mqtt_client.publish(f'/VSWARM{entity_id}_robot/cmd', json_str.encode('utf-8'))
+        self.mqtt_client.publish(
+            f"/VSWARM{entity_id}_robot/cmd", json_str.encode("utf-8")
+        )
 
     def set_leddown(self, entity_id, led_colors):
         json_msg = {
-            "cmd_type": 'leddown',
-            'args_length': 6,
-            'args': {
-                '0': led_colors,
-                '1': 30,
-                '2': led_colors,
-                '3': 30,
-                '4': led_colors,
-                '5': 30,
-            }
-
+            "cmd_type": "leddown",
+            "args_length": 6,
+            "args": {
+                "0": led_colors,
+                "1": 30,
+                "2": led_colors,
+                "3": 30,
+                "4": led_colors,
+                "5": 30,
+            },
         }
         json_str = json.dumps(json_msg)
-        self.mqtt_client.publish(f'/VSWARM{entity_id}_robot/cmd', json_str.encode('utf-8'))
+        self.mqtt_client.publish(
+            f"/VSWARM{entity_id}_robot/cmd", json_str.encode("utf-8")
+        )

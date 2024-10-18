@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from modules.framework.constraint import ConstraintPool
 from modules.file import logger, File
 
@@ -14,8 +27,8 @@ class FunctionTree:
         self._function_to_layer = {}
         self._keys_set = None
         self.import_list: set[str] = init_import_list
-        self.output_template = ''
-        self._file = File(name=self._name + '.py')
+        self.output_template = ""
+        self._file = File(name=self._name + ".py")
 
     def __getitem__(self, key: str):
         return self._function_nodes[key]
@@ -132,7 +145,8 @@ class FunctionTree:
                     else:
                         logger.log(
                             f"Constraint '{constraint_name}' not found in the constraint pool for function '{name}', skipping.",
-                            level="warning")
+                            level="warning",
+                        )
 
                 from modules.prompt.robot_api_prompt import robot_api
 
@@ -149,15 +163,15 @@ class FunctionTree:
             raise
 
     async def process_function_layer(
-            self,
-            operation,
-            operation_type: State,
-            start_layer_index=0,
+        self,
+        operation,
+        operation_type: State,
+        start_layer_index=0,
     ):
         import asyncio
 
         for index, layer in enumerate(
-                self._layers[start_layer_index: start_layer_index + 1]
+            self._layers[start_layer_index : start_layer_index + 1]
         ):
             tasks = []
             logger.log(f"Layer: {start_layer_index + index}", "warning")

@@ -1,7 +1,30 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from abc import ABC
 import numpy as np
-from Box2D import (b2World, b2CircleShape, b2PolygonShape, b2_dynamicBody, b2_staticBody, b2Vec2, b2DistanceJointDef,
-                   b2Body, b2Joint, b2RevoluteJointDef)
+from Box2D import (
+    b2World,
+    b2CircleShape,
+    b2PolygonShape,
+    b2_dynamicBody,
+    b2_staticBody,
+    b2Vec2,
+    b2DistanceJointDef,
+    b2Body,
+    b2Joint,
+    b2RevoluteJointDef,
+)
 from .base_engine import Engine
 from modules.deployment.entity.base_entity import Entity
 
@@ -42,24 +65,21 @@ class Box2DEngine(Engine, ABC):
 
     def add_entity(self, entity: Entity):
         super().add_entity(entity)
-        if entity.shape == 'circle':
+        if entity.shape == "circle":
             shape = b2CircleShape(radius=entity.size)
         else:
             shape = b2PolygonShape(box=(entity.size[0] / 2, entity.size[1] / 2))
 
         body_type = b2_dynamicBody if entity.moveable else b2_staticBody
 
-        body_def = {
-            'position': entity.position,
-            'type': body_type
-        }
+        body_def = {"position": entity.position, "type": body_type}
 
         fixture_def = {
-            'shape': shape,
-            'density': entity.density,
-            'isSensor': not entity.collision,
-            'friction': 1.0,
-            'restitution': 0.0,
+            "shape": shape,
+            "density": entity.density,
+            "isSensor": not entity.collision,
+            "friction": 1.0,
+            "restitution": 0.0,
         }
 
         try:
@@ -91,7 +111,7 @@ class Box2DEngine(Engine, ABC):
                 anchorB=body2.worldCenter,
                 length=distance,
                 frequencyHz=5,
-                dampingRatio=100
+                dampingRatio=100,
             )
 
             joint = self.world.CreateJoint(joint_def)
@@ -128,7 +148,8 @@ class Box2DEngine(Engine, ABC):
         body = self.bodies.get(entity_id)
         if body:
             return np.array([body.position.x, body.position.y]), np.array(
-                [body.linearVelocity.x, body.linearVelocity.y])
+                [body.linearVelocity.x, body.linearVelocity.y]
+            )
         return super().get_entity_state(entity_id)
 
     def step(self, delta_time: float):
@@ -150,5 +171,7 @@ class Box2DEngine(Engine, ABC):
         if body:
             current_velocity = self.get_entity_state(entity_id)[1]
             print(f"Current velocity: {current_velocity}")
-            force = self.velocity_controller.compute(desired_velocity, current_velocity, dt)
+            force = self.velocity_controller.compute(
+                desired_velocity, current_velocity, dt
+            )
             self.apply_force(entity_id, force)

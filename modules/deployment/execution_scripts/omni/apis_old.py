@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import numpy as np
 import rospy
 from geometry_msgs.msg import Twist
@@ -35,13 +48,17 @@ def observation_callback(msg: Observations):
                     init_position = robot_info["position"]
                 robot_info["radius"] = obj.radius
                 if obj.target_position is not None:
-                    target_position = np.array([obj.target_position.x, obj.target_position.y])
+                    target_position = np.array(
+                        [obj.target_position.x, obj.target_position.y]
+                    )
                 # continue
             other_robots_info.append(
                 {
                     "id": obj.id,
                     "position": np.array([obj.position.x, obj.position.y]),
-                    "velocity": np.array([obj.velocity.linear.x, obj.velocity.linear.y]),
+                    "velocity": np.array(
+                        [obj.velocity.linear.x, obj.velocity.linear.y]
+                    ),
                     "radius": obj.radius,
                 }
             )
@@ -60,11 +77,12 @@ def initialize_ros_node(robot_id):
     robot_info["id"] = robot_id
     if not ros_initialized:
         ros_initialized = True
-        robots_id_info = {"start_id": 5,
-                          "end_id": 10,
-                          "robots_num": 6,
-                          "self_id": robot_id
-                          }
+        robots_id_info = {
+            "start_id": 5,
+            "end_id": 10,
+            "robots_num": 6,
+            "self_id": robot_id,
+        }
         rospy.Subscriber("/observation", Observations, observation_callback)
         velocity_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         print(f"Waiting for position message from /observation...")

@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.code import FunctionNode, FunctionTree, State
@@ -36,8 +49,16 @@ class DesignFunction(ActionNode):
         other_functions_str = "\n".join(
             [f.brief if not f.body else f.body for f in other_functions]
         )
-        robot_api = GLOBAL_ROBOT_API if self.context.scoop == "global" else (
-                LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(template=self.context.global_skill_tree.output_template))
+        robot_api = (
+            GLOBAL_ROBOT_API
+            if self.context.scoop == "global"
+            else (
+                LOCAL_ROBOT_API
+                + ALLOCATOR_TEMPLATE.format(
+                    template=self.context.global_skill_tree.output_template
+                )
+            )
+        )
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
             robot_api=robot_api,
@@ -68,7 +89,11 @@ class DesignFunction(ActionNode):
 
 class DesignFunctionAsync(AsyncNode):
     def __init__(
-            self, skill_tree, run_mode="layer", start_state=State.NOT_STARTED, end_state=State.DESIGNED,
+        self,
+        skill_tree,
+        run_mode="layer",
+        start_state=State.NOT_STARTED,
+        end_state=State.DESIGNED,
     ):
         super().__init__(skill_tree, run_mode, start_state, end_state)
 
@@ -88,7 +113,7 @@ if __name__ == "__main__":
 
     context = WorkflowContext()
     path = "../../../workspace/test"
-    root_manager.update_root('../../../workspace/test')
+    root_manager.update_root("../../../workspace/test")
 
     context.load_from_file(f"{path}/analyze_functions.pkl")
     function_designer = DesignFunctionAsync(context.global_skill_tree)

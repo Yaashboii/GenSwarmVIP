@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Optional, TypeVar
 
 from modules.deployment.entity import Leader, PushableObject
@@ -10,10 +23,7 @@ RenderFrame = TypeVar("RenderFrame")
 
 
 class GymnasiumClassificationEnvironment(GymnasiumEnvironmentBase):
-    def __init__(self,
-                 data_file: str = None,
-                 radius: int = 1,
-                 center: tuple = (0, 0)):
+    def __init__(self, data_file: str = None, radius: int = 1, center: tuple = (0, 0)):
         super().__init__(data_file)
         self.radius = radius
         self.center = center
@@ -28,18 +38,29 @@ class GymnasiumClassificationEnvironment(GymnasiumEnvironmentBase):
 
     def init_entities(self):
         entity_id = 0
-        obstacle_size = 0.1 #self.data.get("entities").get("obstacle").get("size", 0.15)
-        obstacle_shape = self.data.get("entities").get("obstacle").get("shape", "circle")
+        obstacle_size = (
+            0.1  # self.data.get("entities").get("obstacle").get("size", 0.15)
+        )
+        obstacle_shape = (
+            self.data.get("entities").get("obstacle").get("shape", "circle")
+        )
 
         for i in range(self.num_obstacles):
-
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                    robot_size=obstacle_size, robot_shape=obstacle_shape, min_distance=obstacle_size,
-                    entities=self.entities)
-            object = PushableObject(object_id=entity_id,
-                                    initial_position=position,
-                                    size=obstacle_size,
-                                    color='blue')
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=obstacle_size,
+                robot_shape=obstacle_shape,
+                min_distance=obstacle_size,
+                entities=self.entities,
+            )
+            object = PushableObject(
+                object_id=entity_id,
+                initial_position=position,
+                size=obstacle_size,
+                color="blue",
+            )
             self.add_entity(object)
             entity_id += 1
 
@@ -48,7 +69,6 @@ class GymnasiumClassificationEnvironment(GymnasiumEnvironmentBase):
 
 
 if __name__ == "__main__":
-
     import time
     import rospy
 

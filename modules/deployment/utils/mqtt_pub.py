@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import socket
 import threading
 import time
@@ -18,10 +31,10 @@ class MqttClientThread:
         self.client.loop_start()
 
     def connect_mqtt(self):
-        '''连接MQTT代理服务器'''
+        """连接MQTT代理服务器"""
 
         def on_connect(client, userdata, flags, rc):
-            '''连接回调函数'''
+            """连接回调函数"""
             if rc == 0:
                 print("Connected to MQTT OK!")
             else:
@@ -33,7 +46,7 @@ class MqttClientThread:
         return client
 
     def publish(self, topic, msg):
-        '''发布消息到指定主题'''
+        """发布消息到指定主题"""
         result = self.client.publish(topic, msg)
         status = result[0]
         if status == 0:
@@ -42,7 +55,7 @@ class MqttClientThread:
             print(f"Failed to send message to topic {topic}")
 
     def run(self):
-        '''启动MQTT客户端'''
+        """启动MQTT客户端"""
         try:
             self.client.loop_forever()
         except Exception as e:
@@ -50,10 +63,10 @@ class MqttClientThread:
 
 
 def obs_callback(client, msg: Observations):
-    '''ROS订阅消息回调函数'''
+    """ROS订阅消息回调函数"""
     try:
         json_str = json_message_converter.convert_ros_message_to_json(msg)
-        client.publish('/observation', json_str.encode('utf-8'))
+        client.publish("/observation", json_str.encode("utf-8"))
     except Exception as e:
         print(f"Error in obs_callback: {e}")
 
@@ -62,10 +75,10 @@ def main():
     broker_ip = "10.0.2.66"
     port = 1883
     keepalive = 60  # 与代理通信之间允许的最长时间段（以秒为单位）
-    client_id = f'{socket.gethostname()}_robot_pub'  # 客户端id不能重复
+    client_id = f"{socket.gethostname()}_robot_pub"  # 客户端id不能重复
 
     try:
-        broker = os.environ['REMOTE_SERVER']
+        broker = os.environ["REMOTE_SERVER"]
     except KeyError:
         broker = broker_ip
 
@@ -75,12 +88,18 @@ def main():
         time.sleep(2)
 
     # 启动MQTT客户端线程
-    mqtt_client_instance = MqttClientThread(broker=broker, port=port, keepalive=keepalive, client_id=client_id)
+    mqtt_client_instance = MqttClientThread(
+        broker=broker, port=port, keepalive=keepalive, client_id=client_id
+    )
     mqtt_thread = threading.Thread(target=mqtt_client_instance.run)
     mqtt_thread.start()
 
     # 订阅ROS话题
-    rospy.Subscriber("/observation", Observations, lambda msg: obs_callback(mqtt_client_instance, msg))
+    rospy.Subscriber(
+        "/observation",
+        Observations,
+        lambda msg: obs_callback(mqtt_client_instance, msg),
+    )
 
     ros_hz = 10
     rate = rospy.Rate(ros_hz)

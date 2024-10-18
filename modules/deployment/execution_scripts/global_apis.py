@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import rospy
 from code_llm.msg import Observations
 import numpy as np
@@ -24,12 +37,14 @@ def process_initial_observations(msg: Observations):
             all_robots_id.append(obj.id)
         elif obj.type == "Prey":
             position = np.array([obj.position.x, obj.position.y])
-            initial_prey_position=position
+            initial_prey_position = position
         elif obj.type == "Landmark" and obj.color == "gray":
-            initial_unexplored_area.append({
-                "id": len(initial_unexplored_area),
-                "position": np.array([obj.position.x, obj.position.y])
-            })
+            initial_unexplored_area.append(
+                {
+                    "id": len(initial_unexplored_area),
+                    "position": np.array([obj.position.x, obj.position.y]),
+                }
+            )
 
 
 def init_node():
@@ -60,13 +75,13 @@ def get_initial_unexplored_area():
 
 
 def get_environment_range():
-    return {'x_min': -2.5, 'x_max': 2.5, 'y_min': -2.5, 'y_max': 2.5}
+    return {"x_min": -2.5, "x_max": 2.5, "y_min": -2.5, "y_max": 2.5}
 
 
 def get_contour_points(character):
-    rospy.wait_for_service('/get_char_points')
+    rospy.wait_for_service("/get_char_points")
     try:
-        get_char_points = rospy.ServiceProxy('/get_char_points', GetCharPoints)
+        get_char_points = rospy.ServiceProxy("/get_char_points", GetCharPoints)
         request = GetCharPointsRequest(character=character)
         response = get_char_points(request)
         points = [(point.x, point.y) for point in response.points]

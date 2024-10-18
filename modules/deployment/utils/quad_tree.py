@@ -1,9 +1,23 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
+
 class QuadTree:
     MAX_ENTITIES = 4
     MAX_LEVELS = 5
 
     def __init__(self, x, y, width, height, level=0):
-        self.bounds = {'x': x, 'y': y, 'width': width, 'height': height}
+        self.bounds = {"x": x, "y": y, "width": width, "height": height}
         self.level = level
         self.entities = []
         self.nodes = []
@@ -32,24 +46,37 @@ class QuadTree:
     def split(self):
         sub_width = self.bounds["width"] / 2
         sub_height = self.bounds["height"] / 2
-        x = self.bounds['x']
-        y = self.bounds['y']
+        x = self.bounds["x"]
+        y = self.bounds["y"]
 
         self.nodes.append(QuadTree(x, y, sub_width, sub_height, self.level + 1))
-        self.nodes.append(QuadTree(x + sub_width, y, sub_width, sub_height, self.level + 1))
-        self.nodes.append(QuadTree(x, y + sub_height, sub_width, sub_height, self.level + 1))
-        self.nodes.append(QuadTree(x + sub_width, y + sub_height, sub_width, sub_height, self.level + 1))
+        self.nodes.append(
+            QuadTree(x + sub_width, y, sub_width, sub_height, self.level + 1)
+        )
+        self.nodes.append(
+            QuadTree(x, y + sub_height, sub_width, sub_height, self.level + 1)
+        )
+        self.nodes.append(
+            QuadTree(
+                x + sub_width, y + sub_height, sub_width, sub_height, self.level + 1
+            )
+        )
 
     def get_index(self, entity):
         index = -1
-        vertical_midpoint = self.bounds['x'] + (self.bounds["width"] / 2)
-        horizontal_midpoint = self.bounds['y'] + (self.bounds["height"] / 2)
+        vertical_midpoint = self.bounds["x"] + (self.bounds["width"] / 2)
+        horizontal_midpoint = self.bounds["y"] + (self.bounds["height"] / 2)
 
-        top_quadrant = entity.position[1] < horizontal_midpoint and entity.position[
-            1] + entity.size / 2 < horizontal_midpoint
+        top_quadrant = (
+            entity.position[1] < horizontal_midpoint
+            and entity.position[1] + entity.size / 2 < horizontal_midpoint
+        )
         bottom_quadrant = entity.position[1] > horizontal_midpoint
 
-        if entity.position[0] < vertical_midpoint and entity.position[0] + entity.size / 2 < vertical_midpoint:
+        if (
+            entity.position[0] < vertical_midpoint
+            and entity.position[0] + entity.size / 2 < vertical_midpoint
+        ):
             if top_quadrant:
                 index = 0
             elif bottom_quadrant:

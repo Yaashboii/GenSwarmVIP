@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import asyncio
 import json
 import os
@@ -17,7 +30,9 @@ class RunAllocateRun(ActionNode):
     def __init__(self, next_text: str = "", node_name: str = ""):
         super().__init__(next_text, node_name)
 
-    async def _run_script(self, working_directory, command=[], print_output=True) -> str:
+    async def _run_script(
+        self, working_directory, command=[], print_output=True
+    ) -> str:
         working_directory = str(working_directory)
         env = os.environ.copy()
 
@@ -59,8 +74,8 @@ class RunAllocateRun(ActionNode):
             )
 
             if (
-                    "WARNING: cannot load logging configuration file, logging is disabled\n"
-                    in stderr_chunks
+                "WARNING: cannot load logging configuration file, logging is disabled\n"
+                in stderr_chunks
             ):
                 stderr_chunks.remove(
                     "WARNING: cannot load logging configuration file, logging is disabled\n"
@@ -121,7 +136,7 @@ class RunCode(ActionNode):
         self.end_id = end
 
     async def _run_script(
-            self, working_directory, command=[], print_output=True
+        self, working_directory, command=[], print_output=True
     ) -> str:
         working_directory = str(working_directory)
         env = os.environ.copy()
@@ -165,8 +180,8 @@ class RunCode(ActionNode):
             )
 
             if (
-                    "WARNING: cannot load logging configuration file, logging is disabled\n"
-                    in stderr_chunks
+                "WARNING: cannot load logging configuration file, logging is disabled\n"
+                in stderr_chunks
             ):
                 stderr_chunks.remove(
                     "WARNING: cannot load logging configuration file, logging is disabled\n"
@@ -224,7 +239,10 @@ class RunCodeAsync(ActionNode):
         robots_per_process = total_robots // num_processes
 
         robot_ids = list(range(start_idx, end_idx + 1))
-        robot_id_chunks = [robot_ids[i:i + robots_per_process] for i in range(0, total_robots, robots_per_process)]
+        robot_id_chunks = [
+            robot_ids[i : i + robots_per_process]
+            for i in range(0, total_robots, robots_per_process)
+        ]
         tasks = []
         result_list = []
         try:
@@ -247,7 +265,7 @@ class RunCodeAsync(ActionNode):
             return "NONE"
         logger.log(content=f"Run code failed, result: {result}", level="error")
         result_content = "\n".join(result)
-        return Bug(error_msg=result_content, error_function='', error_code='')
+        return Bug(error_msg=result_content, error_function="", error_code="")
 
 
 if __name__ == "__main__":
@@ -264,21 +282,28 @@ if __name__ == "__main__":
         "--timeout", type=int, default=60, help="Total time for the simulation"
     )
     parser.add_argument(
-        "--feedback", type=str, default="None", help="Optional: human, VLM, None,Result feedback",
+        "--feedback",
+        type=str,
+        default="None",
+        help="Optional: human, VLM, None,Result feedback",
     )
     parser.add_argument(
-        "--data", type=str, default='encircling/2024-10-14_01-05-45', help="Data path for the simulation"
+        "--data",
+        type=str,
+        default="encircling/2024-10-14_01-05-45",
+        help="Data path for the simulation",
     )
     parser.add_argument(
-        "--target_pkl", type=str, default="WriteRun.pkl", help="Data path for the simulation"
+        "--target_pkl",
+        type=str,
+        default="WriteRun.pkl",
+        help="Data path for the simulation",
     )
-    parser.add_argument(
-        "--script", type=str, default="run.py", help="Script to run"
-    )
+    parser.add_argument("--script", type=str, default="run.py", help="Script to run")
     args = parser.parse_args()
 
     data = args.data
-    path = f'{get_project_root()}/workspace/{data}'
+    path = f"{get_project_root()}/workspace/{data}"
 
     rospy.set_param("path", data)
     root_manager.update_root(path)
@@ -300,13 +325,13 @@ if __name__ == "__main__":
     chain_of_handler = bug_handler
     bug_handler.successor = hf_handler
 
-    if args.feedback != 'None':
+    if args.feedback != "None":
         run_allocate.error_handler = chain_of_handler
         run_code.error_handler = chain_of_handler
 
         run_code._next = video_critic
         video_critic.error_handler = chain_of_handler
-    if args.target_pkl != 'None':
+    if args.target_pkl != "None":
         run_code.context.load_from_file(path + "/" + args.target_pkl)
     run_code.context.args = args
     asyncio.run(run_allocate.run())

@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import numpy as np
 from itertools import combinations
 
@@ -31,7 +44,11 @@ def check_collisions(data, tolerance: float = 0.1) -> dict:
             robot_position = robot_info["trajectory"][t]
             for _, obstacle_info in obstacles.items():
                 overlap_ratio = calculate_overlap_ratio(
-                    robot_position, obstacle_info["trajectory"][0], robot_info["size"], obstacle_info["size"], tolerance
+                    robot_position,
+                    obstacle_info["trajectory"][0],
+                    robot_info["size"],
+                    obstacle_info["size"],
+                    tolerance,
                 )
                 if overlap_ratio is not None:
                     collision_count += 1
@@ -42,15 +59,21 @@ def check_collisions(data, tolerance: float = 0.1) -> dict:
             robot1_position = robot1_info["trajectory"][t]
             robot2_position = robot2_info["trajectory"][t]
             overlap_ratio = calculate_overlap_ratio(
-                robot1_position, robot2_position, robot1_info["size"], robot2_info["size"], tolerance
+                robot1_position,
+                robot2_position,
+                robot1_info["size"],
+                robot2_info["size"],
+                tolerance,
             )
             if overlap_ratio is not None:
                 collision_count += 1
                 collision_severity_sum += overlap_ratio
     collision = collision_count > 0
-    return {"collision": collision,
-            "collision_count": collision_count,
-            "collision_severity_sum": collision_severity_sum}
+    return {
+        "collision": collision,
+        "collision_count": collision_count,
+        "collision_severity_sum": collision_severity_sum,
+    }
 
 
 def evaluate_target_achievement(data, tolerance=0.1) -> dict:
@@ -92,15 +115,21 @@ def evaluate_target_achievement(data, tolerance=0.1) -> dict:
             achieved_targets += 1
             total_steps_ratio += steps_to_target / len(info["trajectory"])
 
-        distance_ratio = final_distance / initial_distance if initial_distance > 0 else 1
+        distance_ratio = (
+            final_distance / initial_distance if initial_distance > 0 else 1
+        )
         total_distance_ratio += distance_ratio
 
-        print(f"Entity {entity_id}: Initial Distance: {initial_distance}, Final Distance: {final_distance}, "
-              f"Ratio: {distance_ratio}, Steps to Target: {steps_to_target}")
+        print(
+            f"Entity {entity_id}: Initial Distance: {initial_distance}, Final Distance: {final_distance}, "
+            f"Ratio: {distance_ratio}, Steps to Target: {steps_to_target}"
+        )
 
     all_targets_achieved = achieved_targets == num_targets
     target_achievement_ratio = achieved_targets / num_targets if num_targets > 0 else 0
-    average_distance_ratio = total_distance_ratio / num_targets if num_targets > 0 else 0
+    average_distance_ratio = (
+        total_distance_ratio / num_targets if num_targets > 0 else 0
+    )
 
     return {
         "all_targets_achieved": all_targets_achieved,
@@ -126,9 +155,9 @@ def evaluate_landmark_visits(data) -> dict:
     for entity_id, info in data.items():
         if info.get("type") == "Landmark":
             num_landmarks += 1
-            if 'visited' in info.get('states', []):
+            if "visited" in info.get("states", []):
                 visited_landmarks += 1
-                visit_step = info['states'].index('visited')
+                visit_step = info["states"].index("visited")
                 print(f"Landmark {entity_id} visited at time step {visit_step}")
                 visit_steps.append(visit_step)
 
@@ -137,9 +166,9 @@ def evaluate_landmark_visits(data) -> dict:
     average_visit_step = np.mean(visit_steps) if visit_steps else 0
 
     return {
-        'all_landmarks_visited': all_landmarks_visited,
-        'landmark_visit_ratio': landmark_visit_ratio,
-        'average_visit_step': average_visit_step
+        "all_landmarks_visited": all_landmarks_visited,
+        "landmark_visit_ratio": landmark_visit_ratio,
+        "average_visit_step": average_visit_step,
     }
 
 
@@ -157,7 +186,9 @@ def calculate_line_similarity(data, target_line: tuple) -> dict:
     robot_positions = []
     for entity_id, info in data.items():
         if info["type"] == "Robot":
-            robot_positions.append(info["trajectory"][-1])  # Get final positions of robots
+            robot_positions.append(
+                info["trajectory"][-1]
+            )  # Get final positions of robots
 
     if len(robot_positions) < 2:
         raise ValueError("Not enough robots to form a line.")
@@ -173,20 +204,29 @@ def calculate_line_similarity(data, target_line: tuple) -> dict:
     # Calculate length similarity
     target_length = np.linalg.norm(np.array(target_line[1]) - np.array(target_line[0]))
     fitted_length = np.linalg.norm(np.array(fitted_line[1]) - np.array(fitted_line[0]))
-    length_similarity = min(fitted_length / target_length, target_length / fitted_length) if target_length > 0 else 0
+    length_similarity = (
+        min(fitted_length / target_length, target_length / fitted_length)
+        if target_length > 0
+        else 0
+    )
 
     # Calculate slope similarity (using cosine similarity)
-    target_slope = (target_line[1][1] - target_line[0][1]) / (target_line[1][0] - target_line[0][0]) if target_line[1][
-                                                                                                            0] != \
-                                                                                                        target_line[0][
-                                                                                                            0] else np.inf
+    target_slope = (
+        (target_line[1][1] - target_line[0][1])
+        / (target_line[1][0] - target_line[0][0])
+        if target_line[1][0] != target_line[0][0]
+        else np.inf
+    )
     slope_similarity = np.dot([1, slope], [1, target_slope]) / (
-            np.linalg.norm([1, slope]) * np.linalg.norm([1, target_slope]))
+        np.linalg.norm([1, slope]) * np.linalg.norm([1, target_slope])
+    )
 
     # Calculate point similarity (average distance between points on the fitted line and target line)
     point_distances = []
     for point in robot_positions:
-        target_y = target_slope * point[0] + (target_line[0][1] - target_slope * target_line[0][0])
+        target_y = target_slope * point[0] + (
+            target_line[0][1] - target_slope * target_line[0][0]
+        )
         fitted_y = slope * point[0] + intercept
         point_distances.append(np.abs(target_y - fitted_y))
     point_similarity = np.mean(point_distances)
@@ -194,7 +234,7 @@ def calculate_line_similarity(data, target_line: tuple) -> dict:
     return {
         "length_similarity": length_similarity,
         "slope_similarity": slope_similarity,
-        "point_similarity": point_similarity
+        "point_similarity": point_similarity,
     }
 
 
@@ -231,21 +271,23 @@ def evaluate_robot_final_positions(data) -> dict:
     variance_nearest_neighbor_distance = np.var(nearest_neighbor_distances)
 
     # Calculate mean displacement from initial to final positions
-    displacements = np.linalg.norm(robot_positions_final - robot_positions_initial, axis=1)
+    displacements = np.linalg.norm(
+        robot_positions_final - robot_positions_initial, axis=1
+    )
     mean_displacement = np.mean(displacements)
 
     # Calculate the area of the bounding box formed by the robots' final positions
     x_min, y_min = np.min(robot_positions_final, axis=0)
     x_max, y_max = np.max(robot_positions_final, axis=0)
     area = (x_max - x_min) * (y_max - y_min)
-    print('(x_max - x_min), (y_max - y_min)', (x_max - x_min), (y_max - y_min))
+    print("(x_max - x_min), (y_max - y_min)", (x_max - x_min), (y_max - y_min))
     area_ratio = area / 16
 
     return {
         "mean_nearest_neighbor_distance": mean_nearest_neighbor_distance,
         "variance_nearest_neighbor_distance": variance_nearest_neighbor_distance,
         "mean_displacement": mean_displacement,
-        "area_ratio": area_ratio
+        "area_ratio": area_ratio,
     }
 
 
@@ -274,7 +316,9 @@ def fit_circle(positions):
     return center_final[0], center_final[1], radius_final
 
 
-def evaluate_robot_circle_similarity(data, expected_circle_center: tuple, expected_circle_radius: float) -> dict:
+def evaluate_robot_circle_similarity(
+    data, expected_circle_center: tuple, expected_circle_radius: float
+) -> dict:
     """
     Evaluate the similarity between the robots' final positions and a fitted circle,
     and compare the fitted circle with the specified expected circle.
@@ -303,11 +347,15 @@ def evaluate_robot_circle_similarity(data, expected_circle_center: tuple, expect
         raise ValueError("No robots found in the data.")
 
     # Step 1: Fit a circle to the robot positions
-    fitted_circle_center_x, fitted_circle_center_y, fitted_circle_radius = fit_circle(robot_positions_final)
+    fitted_circle_center_x, fitted_circle_center_y, fitted_circle_radius = fit_circle(
+        robot_positions_final
+    )
     fitted_circle_center = (fitted_circle_center_x, fitted_circle_center_y)
 
     # Step 2: Calculate the similarity to the expected circle
-    center_distance = np.linalg.norm(np.array(fitted_circle_center) - np.array(expected_circle_center))
+    center_distance = np.linalg.norm(
+        np.array(fitted_circle_center) - np.array(expected_circle_center)
+    )
     radius_difference = np.abs(fitted_circle_radius - expected_circle_radius)
 
     # Step 3: Calculate the angle of each robot with respect to the fitted circle center
@@ -335,7 +383,7 @@ def evaluate_robot_circle_similarity(data, expected_circle_center: tuple, expect
         "center_distance": center_distance,
         "radius_difference": radius_difference,
         "angle_standard_deviation": angle_standard_deviation,
-        "angle_max_min_difference": angle_max_min_difference
+        "angle_max_min_difference": angle_max_min_difference,
     }
 
 
@@ -352,7 +400,9 @@ def evaluate_trajectory_pattern(data) -> dict:
 
     for entity_id, info in data.items():
         if info["type"] == "Robot":
-            robot_positions_final.append(info["trajectory"][-1])  # Use the final position of each robot
+            robot_positions_final.append(
+                info["trajectory"][-1]
+            )  # Use the final position of each robot
 
     robot_positions_final = np.array(robot_positions_final)
     num_robots = len(robot_positions_final)
@@ -370,7 +420,7 @@ def evaluate_trajectory_pattern(data) -> dict:
 
     return {
         "spatial_variance": spatial_variance,
-        "bounding_box_area": bounding_box_area
+        "bounding_box_area": bounding_box_area,
     }
 
 
@@ -385,6 +435,7 @@ def evaluate_trajectory_similarity(data) -> dict:
     """
     from fastdtw import fastdtw
     from scipy.spatial.distance import euclidean
+
     trajectories = []
 
     for entity_id, info in data.items():
@@ -423,6 +474,7 @@ def evaluate_min_distances_to_others(data) -> dict:
         - max_min_distance (float): The maximum of the minimum distances between each robot's final position and the others.
     """
     from scipy.spatial.distance import euclidean
+
     final_positions = []
 
     for entity_id, info in data.items():
@@ -479,7 +531,8 @@ def evaluate_shape_similarity(data, target_shape: list) -> dict:
     # Step 2: Sort robot positions based on the closest points in the target shape
     if len(robot_positions_final) != len(target_shape):
         raise ValueError(
-            "The number of robot positions and the target shape points must be equal for Procrustes analysis.")
+            "The number of robot positions and the target shape points must be equal for Procrustes analysis."
+        )
 
     # Calculate the distance matrix between robot final positions and target shape points
     distances = distance_matrix(robot_positions_final, target_shape)
@@ -509,11 +562,12 @@ def evaluate_shape_similarity(data, target_shape: list) -> dict:
     # Step 4: Perform Procrustes analysis
     _, _, disparity = procrustes(sorted_target_shape, sorted_robot_positions)
 
-    return {
-        "procrustes_distance": disparity
-    }
+    return {"procrustes_distance": disparity}
 
-def evaluate_encircling_end(data, target_radius: float = 0.5, tolerance: float = 0.1) -> dict:
+
+def evaluate_encircling_end(
+    data, target_radius: float = 0.5, tolerance: float = 0.1
+) -> dict:
     """
     Evaluate the task completion by calculating the mean and variance of the robots' final distances to the prey,
     and how well they match the target radius at the final step.
@@ -549,14 +603,18 @@ def evaluate_encircling_end(data, target_radius: float = 0.5, tolerance: float =
     for entity_id, info in data.items():
         if info["type"] == "Robot":
             trajectory = np.array(info["trajectory"])
-            initial_distances.append(np.linalg.norm(trajectory[0] - prey_trajectory[0]))  # Distance at the start
+            initial_distances.append(
+                np.linalg.norm(trajectory[0] - prey_trajectory[0])
+            )  # Distance at the start
             robot_positions_initial.append(trajectory[0])
             robot_positions_final.append(trajectory[-1])  # Distance at the final step
 
     robot_positions_final = np.array(robot_positions_final)
 
     # Calculate final distances between robots and prey
-    final_distances = np.linalg.norm(robot_positions_final - prey_final_position, axis=1)
+    final_distances = np.linalg.norm(
+        robot_positions_final - prey_final_position, axis=1
+    )
 
     # Mean distance error at the final step
     mean_distance_error = np.mean(np.abs(final_distances - target_radius))
@@ -570,11 +628,13 @@ def evaluate_encircling_end(data, target_radius: float = 0.5, tolerance: float =
     return {
         "mean_distance_error": mean_distance_error,
         "variance_distance_error": variance_distance_error,
-        "initial_distance_error": abs(initial_mean_distance - target_radius)
+        "initial_distance_error": abs(initial_mean_distance - target_radius),
     }
 
 
-def evaluate_robot_quadrant_positions(data, target_regions: dict, tolerance: float = 0.1) -> dict:
+def evaluate_robot_quadrant_positions(
+    data, target_regions: dict, tolerance: float = 0.1
+) -> dict:
     """
     根据机器人最开始所在的象限进行分类，并检查每一类机器人是否最终位于指定的区域内。
 
@@ -586,12 +646,7 @@ def evaluate_robot_quadrant_positions(data, target_regions: dict, tolerance: flo
         - total_achieved (int): 符合要求的机器人总数。
         - achievement_ratio (float): 符合要求的机器人占总数的比例。
     """
-    quadrant_robots = {
-        1: [],  # 第一象限
-        2: [],  # 第二象限
-        3: [],  # 第三象限
-        4: []  # 第四象限
-    }
+    quadrant_robots = {1: [], 2: [], 3: [], 4: []}  # 第一象限  # 第二象限  # 第三象限  # 第四象限
 
     # 根据初始位置对机器人进行象限分类
     for entity_id, info in data.items():
@@ -619,8 +674,10 @@ def evaluate_robot_quadrant_positions(data, target_regions: dict, tolerance: flo
 
         for entity_id, info in robots:
             final_position = np.array(info["trajectory"][-1])
-            if x_min - tolerance <= final_position[0] <= x_max + tolerance and \
-                    y_min - tolerance <= final_position[1] <= y_max + tolerance:
+            if (
+                x_min - tolerance <= final_position[0] <= x_max + tolerance
+                and y_min - tolerance <= final_position[1] <= y_max + tolerance
+            ):
                 achieved_robots_by_quadrant[quadrant] += 1
 
     total_achieved = sum(achieved_robots_by_quadrant.values())
@@ -629,11 +686,13 @@ def evaluate_robot_quadrant_positions(data, target_regions: dict, tolerance: flo
     return {
         "achieved_robots_by_quadrant": achieved_robots_by_quadrant,
         "total_achieved": total_achieved,
-        "achievement_ratio": achievement_ratio
+        "achievement_ratio": achievement_ratio,
     }
 
 
-def evaluate_robot_prey_distance(data, distance_threshold: float = 1.0, proportion_threshold: float = 0.8) -> dict:
+def evaluate_robot_prey_distance(
+    data, distance_threshold: float = 1.0, proportion_threshold: float = 0.8
+) -> dict:
     """
     计算每个时刻机器人与猎物之间的距离，并统计至少80%机器人在猎物1m范围内的step数占总步数的比例。
 
@@ -672,7 +731,9 @@ def evaluate_robot_prey_distance(data, distance_threshold: float = 1.0, proporti
 
     # 遍历每个时间步
     for t in range(total_steps):
-        distances = np.linalg.norm(robot_positions[:, t, :] - prey_trajectory[t], axis=1)
+        distances = np.linalg.norm(
+            robot_positions[:, t, :] - prey_trajectory[t], axis=1
+        )
         # 统计距离猎物在指定范围内的机器人数量
         num_within_distance = np.sum(distances <= distance_threshold)
 
@@ -680,12 +741,14 @@ def evaluate_robot_prey_distance(data, distance_threshold: float = 1.0, proporti
         if num_within_distance / num_robots >= proportion_threshold:
             within_distance_steps += 1
 
-    within_distance_steps_ratio = within_distance_steps / total_steps if total_steps > 0 else 0
+    within_distance_steps_ratio = (
+        within_distance_steps / total_steps if total_steps > 0 else 0
+    )
 
     return {
         "within_distance_steps_ratio": within_distance_steps_ratio,
         "total_steps": total_steps,
-        "within_distance_steps": within_distance_steps
+        "within_distance_steps": within_distance_steps,
     }
 
 
@@ -717,6 +780,7 @@ def check_robots_no_movement_in_first_third(data) -> list:
                 no_movement_robots.append(entity_id)
 
     return no_movement_robots
+
 
 # if __name__ == '__main__':
 #     _, _, disparity = procrustes(target_shape, robot_positions_final)

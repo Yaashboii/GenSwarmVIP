@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree
 from modules.framework.parser import CodeParser, parse_text
@@ -23,11 +36,12 @@ class Criticize(ActionNode):
     def _build_prompt(self):
         if self._skill_tree.name == "global_skill":
             function_scoop_note = (
-                'This function is executed on a global central controller, considering the information of all robots and the task objectives.'
-                'It uses the optimal and efficient algorithm to coordinate tasks among multiple robots.')
+                "This function is executed on a global central controller, considering the information of all robots and the task objectives."
+                "It uses the optimal and efficient algorithm to coordinate tasks among multiple robots."
+            )
             robot_api_str = GLOBAL_ROBOT_API
         else:
-            function_scoop_note = 'This function runs on the robot itself, using the provided perception API and motion API to execute its own tasks.'
+            function_scoop_note = "This function runs on the robot itself, using the provided perception API and motion API to execute its own tasks."
             robot_api_str = LOCAL_ROBOT_API
         if self._call_times == 0:
             self.prompt = FEEDBACK_PROMPT_TEMPLATE.format(

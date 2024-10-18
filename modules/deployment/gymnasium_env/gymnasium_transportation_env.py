@@ -1,6 +1,19 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Optional, TypeVar
 
-from modules.deployment.engine import QuadTreeEngine, Box2DEngine,PyBullet2DEngine
+from modules.deployment.engine import QuadTreeEngine, Box2DEngine, PyBullet2DEngine
 from modules.deployment.entity import Robot, PushableObject, Landmark
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
@@ -12,24 +25,28 @@ ActType = TypeVar("ActType")
 class GymnasiumTransportationEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
-        self.engine = QuadTreeEngine(world_size=(self.width, self.height),
-                                     alpha=0.5,
-                                     damping=0.75,
-                                     collision_check=True, joint_constraint=True)
+        self.engine = QuadTreeEngine(
+            world_size=(self.width, self.height),
+            alpha=0.5,
+            damping=0.75,
+            collision_check=True,
+            joint_constraint=True,
+        )
 
     def init_entities(self):
         target_position = np.array((1, 2))
         zone_size = 1
-        target_zone = Landmark(landmark_id=0,
-                               initial_position=target_position - zone_size * 0.5,
-                               size=np.array((zone_size, zone_size)),
-                               color='gray', )
+        target_zone = Landmark(
+            landmark_id=0,
+            initial_position=target_position - zone_size * 0.5,
+            size=np.array((zone_size, zone_size)),
+            color="gray",
+        )
         self.add_entity(target_zone)
 
-        object = PushableObject(object_id=1,
-                                initial_position=(0, 0),
-                                size=0.3,
-                                color='red')
+        object = PushableObject(
+            object_id=1, initial_position=(0, 0), size=0.3, color="red"
+        )
         object.density = 0.1
         object.target_position = target_position
         self.add_entity(object)
@@ -40,26 +57,35 @@ class GymnasiumTransportationEnvironment(GymnasiumEnvironmentBase):
         color = self.data["entities"]["robot"]["color"]
 
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
-                                    entities=self.entities)
-            robot = Robot(robot_id=entity_id,
-                          initial_position=position,
-                          target_position=None,
-                          size=robot_size,
-                          color=color)
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=robot_size,
+                robot_shape=shape,
+                min_distance=robot_size,
+                entities=self.entities,
+            )
+            robot = Robot(
+                robot_id=entity_id,
+                initial_position=position,
+                target_position=None,
+                size=robot_size,
+                color=color,
+            )
             self.add_entity(robot)
             entity_id += 1
 
 
 if __name__ == "__main__":
-
     import time
     import rospy
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumTransportationEnvironment("../../../config/env/transportation_config.json")
+    env = GymnasiumTransportationEnvironment(
+        "../../../config/env/transportation_config.json"
+    )
 
     obs, infos = env.reset()
     manager = Manager(env)

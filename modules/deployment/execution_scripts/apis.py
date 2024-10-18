@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import numpy as np
 import rospy
 import threading
@@ -10,7 +23,9 @@ thread_local = threading.local()
 
 
 class RobotNode:
-    def __init__(self, robot_id, target_position=None, formation_points=None, assigned_task=None):
+    def __init__(
+        self, robot_id, target_position=None, formation_points=None, assigned_task=None
+    ):
         self.robot_id = robot_id
         self.assigned_task = assigned_task
         self.ros_initialized = False
@@ -61,10 +76,12 @@ class RobotNode:
                 position = np.array([obj.position.x, obj.position.y])
                 self.initial_prey_positions.append(position)
             elif obj.type == "Landmark" and obj.color == "gray":
-                self.initial_unexplored_area.append({
-                    "id": len(self.initial_unexplored_area),
-                    "position": np.array([obj.position.x, obj.position.y])
-                })
+                self.initial_unexplored_area.append(
+                    {
+                        "id": len(self.initial_unexplored_area),
+                        "position": np.array([obj.position.x, obj.position.y]),
+                    }
+                )
 
     def observation_callback(self, msg: Observations):
         self.obstacles_info = []
@@ -77,14 +94,19 @@ class RobotNode:
             DISTANCE_LIMIT = 1.0
             if obj.type == "Robot":
                 if obj.id == self.robot_id:
-                    self.robot_info["position"] = np.array([obj.position.x, obj.position.y])
+                    self.robot_info["position"] = np.array(
+                        [obj.position.x, obj.position.y]
+                    )
                     if self.init_position is None:
                         self.init_position = self.robot_info["position"]
                     self.robot_info["radius"] = obj.radius
                     continue
 
                 # Calculate distance to the current robot
-                distance = np.linalg.norm(self.robot_info["position"] - np.array([obj.position.x, obj.position.y]))
+                distance = np.linalg.norm(
+                    self.robot_info["position"]
+                    - np.array([obj.position.x, obj.position.y])
+                )
                 if distance > DISTANCE_LIMIT:
                     continue
 
@@ -92,13 +114,18 @@ class RobotNode:
                     {
                         "id": obj.id,
                         "position": np.array([obj.position.x, obj.position.y]),
-                        "velocity": np.array([obj.velocity.linear.x, obj.velocity.linear.y]),
+                        "velocity": np.array(
+                            [obj.velocity.linear.x, obj.velocity.linear.y]
+                        ),
                         "radius": obj.radius,
                     }
                 )
             elif obj.type == "Obstacle":
                 # Calculate distance to the current robot
-                distance = np.linalg.norm(self.robot_info["position"] - np.array([obj.position.x, obj.position.y]))
+                distance = np.linalg.norm(
+                    self.robot_info["position"]
+                    - np.array([obj.position.x, obj.position.y])
+                )
                 if distance > DISTANCE_LIMIT:
                     continue
 
@@ -113,21 +140,30 @@ class RobotNode:
                 self.prey_position = np.array([obj.position.x, obj.position.y])
             elif obj.type == "Landmark":
                 if obj.color == "gray":
-                    distance = np.linalg.norm(self.robot_info["position"] - np.array([obj.position.x, obj.position.y]))
+                    distance = np.linalg.norm(
+                        self.robot_info["position"]
+                        - np.array([obj.position.x, obj.position.y])
+                    )
                     if distance > DISTANCE_LIMIT:
                         continue
-                    self.unexplored_area.append({
-                        "id": len(self.unexplored_area),
-                        "position": np.array([obj.position.x, obj.position.y])
-                    })
+                    self.unexplored_area.append(
+                        {
+                            "id": len(self.unexplored_area),
+                            "position": np.array([obj.position.x, obj.position.y]),
+                        }
+                    )
 
     def initialize_ros_node(self):
         if not self.ros_initialized:
             self.ros_initialized = True
             rospy.Subscriber(f"/observation", Observations, self.observation_callback)
-            self.velocity_publisher = rospy.Publisher(f"/robot_{self.robot_id}/velocity", Twist, queue_size=10)
+            self.velocity_publisher = rospy.Publisher(
+                f"/robot_{self.robot_id}/velocity", Twist, queue_size=10
+            )
 
-            print(f"Waiting for position message from /robot_{self.robot_id}/observation...")
+            print(
+                f"Waiting for position message from /robot_{self.robot_id}/observation..."
+            )
             msg = rospy.wait_for_message(f"/observation", Observations)
             self.process_initial_observations(msg)
             print(f"Initial observations processed successfully")
@@ -207,7 +243,7 @@ def set_current_robot_id(robot_id, **kwargs):
 
 
 def get_current_robot_node():
-    robot_id = getattr(thread_local, 'robot_id', None)
+    robot_id = getattr(thread_local, "robot_id", None)
     if robot_id is None:
         raise ValueError("No robot_id is set for the current thread")
     return robot_nodes[robot_id]
@@ -254,7 +290,7 @@ def get_prey_position():
 
 
 def get_environment_range():
-    return {'x_min': -2.5, 'x_max': 2.5, 'y_min': -2.5, 'y_max': 2.5}
+    return {"x_min": -2.5, "x_max": 2.5, "y_min": -2.5, "y_max": 2.5}
 
 
 def stop_self():
