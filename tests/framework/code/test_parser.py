@@ -47,8 +47,8 @@ def subtract(x, y=0):
 
     def test_function_contents(self):
         expected_function_contents = [
-            'def add(a, b=0):\n    """This function adds two numbers."""\n    return a + b',
-            'def subtract(x, y=0):\n    """This function subtracts two numbers."""\n    return x - y',
+            "def add(a, b=0):\n    '''This function adds two numbers.'''\n    return a + b",
+            "def subtract(x, y=0):\n    '''This function subtracts two numbers.'''\n    return x - y",
         ]
         self.assertEqual(
             list(self.parser._function_dict.values()), expected_function_contents

@@ -77,7 +77,7 @@ class TestNodes(unittest.TestCase):
 
         # 测试设置无效状态
         with self.assertRaises(ValueError):
-            self.function_node1.state = 4
+            self.function_node1.state = 9
 
 
 if __name__ == "__main__":

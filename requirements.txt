@@ -23,3 +23,5 @@ gymnasium~=0.29.1
 pillow~=10.2.0
 box2d-py
 fastdtw==0.3.4
+paho-mqtt==1.6.1
+rospy_message_converter

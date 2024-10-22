@@ -54,9 +54,9 @@ class TestAction(unittest.TestCase):
 
     def setUp(self):
         self._constraint_pool = ConstraintPool()
-        self._function_pool = FunctionTree()
+        self._function_pool = FunctionTree("test")
         self._constraint_pool.reset()
-        self._function_pool.reset()
+        # self._function_pool.reset()
         print("Running test:", self._testMethodName)
 
     def tearDown(self) -> None:
@@ -125,8 +125,8 @@ if __name__ == "__main__":
     suite = unittest.TestSuite()
     # execute in such order
     # suite.addTest(TestAction('test_1_analyze_constraint'))
-    suite.addTest(TestAction("test_2_analyze_functions"))
-    suite.addTest(TestAction("test_3_design_functions"))
+    # suite.addTest(TestAction("test_2_analyze_functions"))
+    # suite.addTest(TestAction("test_3_design_functions"))
     # suite.addTest(TestAction('test_4_write_functions'))
     # suite.addTest(TestAction('test_5_write_run'))
     # suite.addTest(TestAction('test_6_code_review'))

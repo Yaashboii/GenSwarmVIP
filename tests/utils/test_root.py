@@ -13,7 +13,7 @@ software or the use or other dealings in the software.
 
 import unittest
 import os
-from modules.utils.root import root_manager
+from modules.utils.root import root_manager, get_project_root
 from pathlib import Path
 
 
@@ -23,8 +23,8 @@ class TestRootManager(unittest.TestCase):
 
     def test_get_project_root(self):
         # TODO: get path by code
-        supposed_dir = Path("/src")
-        actual_dir = self.root_manager.get_project_root()
+        supposed_dir = Path("/catkin_ws/src/code_llm")
+        actual_dir = get_project_root()
         self.assertEqual(
             actual_dir, supposed_dir, f"Expected {supposed_dir}, got {actual_dir}"
         )

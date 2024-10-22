@@ -51,7 +51,6 @@ class TestGrammarChecker(unittest.TestCase):
     @patch("modules.file.file.logger.log")
     def test_run_pylint_check(self, mock_logger):
         errors = self.grammar_checker._run_pylint_check(self.file_path)
-        print(errors)
         self.assertEqual(errors, self.errors)
 
     def test_find_function_name_from_error(self):
