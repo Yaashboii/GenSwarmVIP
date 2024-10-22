@@ -11,7 +11,7 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
-from sympy.codegen.ast import continue_
+# from sympy.codegen.ast import continue_
 
 from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode

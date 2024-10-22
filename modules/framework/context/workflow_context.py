@@ -14,7 +14,7 @@ software or the use or other dealings in the software.
 import argparse
 import pickle
 
-from transformers import SEWDModel
+# from transformers import SEWDModel
 
 from modules.file import File
 from modules.framework.code import FunctionTree

@@ -11,7 +11,7 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
-from sympy.printing.dot import template
+# from sympy.printing.dot import template
 
 from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree, State
