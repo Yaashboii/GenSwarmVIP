@@ -32,7 +32,7 @@ class AnalyzeConstraints(ActionNode):
     def _build_prompt(self):
         # constraints predefined
         user_constraints = {"constraints": self._constraint_pool.constraint_list}
-        self.prompt=self.prompt.format(
+        self.prompt = self.prompt.format(
             task_des=TASK_DES,
             instruction=self.context.command,
             global_api=GLOBAL_ROBOT_API,
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         help="Whether to run in interaction mode in analyze constraints.",
     )
     context = WorkflowContext()
-    task = get_user_commands('bridging')[0]
+    task = get_user_commands('flocking')[0]
 
     context.command = task
     args = parser.parse_args()

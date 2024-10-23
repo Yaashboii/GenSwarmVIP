@@ -1,6 +1,6 @@
 from typing import Optional, TypeVar
 
-from modules.deployment.entity import Landmark, Robot
+from modules.deployment.entity import Landmark, Robot, Obstacle
 from modules.deployment.utils.sample_point import *
 
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
@@ -14,16 +14,15 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
-
     def init_entities(self):
         range_a = Landmark(landmark_id=0,
                            initial_position=(0, 2),
                            size=np.array((5, 1)),
-                           color='gray')
+                           color='blue')
         range_b = Landmark(landmark_id=1,
                            initial_position=(0, -2),
                            size=np.array((5, 1)),
-                           color='gray')
+                           color='blue')
 
         self.add_entity(range_a)
         self.add_entity(range_b)
@@ -32,8 +31,15 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
+        obstacle_position = [(1.3, 0.95), (1.9, -0.9), (-1.2, 1.1), (-0.6, 0.1)]
+        for pos in obstacle_position:
+            obstacle = Obstacle(entity_id, pos, 0.15)
+            self.add_entity(obstacle)
+            entity_id += 1
+
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, 0.6*self.height],
+            position = sample_point(zone_center=[0, 0], zone_shape='rectangle',
+                                    zone_size=[self.width, 0.6 * self.height],
                                     robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
                                     entities=self.entities)
             robot = Robot(entity_id, position, robot_size, color=color)
@@ -46,7 +52,7 @@ if __name__ == "__main__":
     import time
     import rospy
 
-    from modules.deployment.utils.manager import Manager 
+    from modules.deployment.utils.manager import Manager
 
     env = GymnasiumBridgingEnvironment("../../../config/env/bridging_config.json")
 

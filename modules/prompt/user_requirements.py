@@ -1,9 +1,9 @@
 tasks = {
     "bridging": "The robots need to evenly form a straight line bridge at the position where x=0 within the range of −2<y<2.",
 
-    "flocking": "Integrate into a flock by collaborating with all robots within the map, ensuring cohesion by staying connected, alignment by moving together, and separation by keeping at least 0.5 meters apart.",
+    "flocking": "Integrate into a flock by collaborating with all robots within the map, ensuring cohesion by staying connected, alignment by moving together, separation by keeping at least 0.5 meters apart, and avoiding collisions with obstacles.",
 
-    "covering": "Evenly sample target positions across the entire map, then assign the corresponding position based on each robot's ID.",
+    "covering": "Evenly sample target positions across the entire map, then assign the corresponding position based on each robot's ID, ensuring the robots evenly cover the entire environment.",
 
     "circling": "The robots need to be evenly distributed on a circle with a radius of 1 centered at (0,0).",
 
@@ -13,7 +13,7 @@ tasks = {
 
     'encircling': "The robots need to surround the target prey by evenly distributing themselves along a circle with a radius of 1, centered on the prey, with each robot assigned a specific angle, and adjust their positions in real-time based on the prey's movement to achieve coordinated encirclement.",
 
-    "exploration": "The robots need to collaboratively explore an unknown area. You are required to assign an optimal sequence of exploration areas to each robot based on the number of robots and the unexplored areas.",
+    "exploration": "The robots need to explore all the unknown areas. You are required to assign an optimal sequence of exploration areas to each robot based on the number of robots and the unexplored regions, and then the robots will gradually explore these areas.",
 
     "clustering": "Robots with initial positions in the same quadrant need to cluster in the designated area of that corresponding quadrant.",
 

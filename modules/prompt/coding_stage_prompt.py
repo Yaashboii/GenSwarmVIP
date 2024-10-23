@@ -33,19 +33,21 @@ import ...(if necessary)
 ## Notes:
 - The global API and existing functions can be called directly without the need for imports.
 - Generate bug-free, directly invocable function code according to Google's coding standards.
-- The use of “raise error” and "assert" is strictly prohibited; when an issue arises, it must be resolved within the function without raising an error or using assertions.
 - Adjustable parameters should be taken as input parameters with default values set for each parameter.
 - You can only write functions according to the task's specified format, and cannot generate other helper functions. If necessary, define sub-functions within the specified function.
 - Take a holistic approach and reuse **existing functions as much as possible**; this function is just a part of the entire control system.
 - Avoid using global variables, and do not use variable names that conflict with global variables within the function.
 - Preserve the function's docstring but modify its content if necessary, ensuring the function name remains unchanged.
-- Do not use while loops or raise exceptions in the function body.
+- Do not use while loops in the function body.
+- Do not raising errors or using assertions in the function body.
+- Do not assume any part of the code,because the code will be executed directly without any modification and human intervention.
 - If the function definition or docstring needs modification, ensure the function name stays the same.
 - Import required modules before the function name, not within the function body.
 - The robot allocation method should be optimal, avoiding conflicts between robots.
 - Task allocation will only occur once at the start of the task. The tasks assigned to each robot should take environmental changes into account and avoid relying on any single changing object.
+- The allocation method for robots should ensure that the total movement distance for each robot is minimized while completing all tasks, and that no task conflicts occur (i.e., each robot is assigned a distinct task, with no overlap between tasks).
 - The task allocation can include various types such as positions, lists of positions, or specific angles, based on the requirements of the task.
-
+- Strictly follow the specified format.
 """.strip()
 
 WRITE_LOCAL_FUNCTION_PROMPT_TEMPLATE = """
@@ -83,17 +85,16 @@ import ...(if necessary)
 ## Notes:
 - The Robot API and existing functions can be called directly without the need for imports.
 - Generate bug-free, directly invocable function code according to Google's coding standards.
-- The use of “raise error” and "assert" is strictly prohibited; any issues must be resolved within the function without raising errors or using assertions.
 - Adjustable parameters should be set as input parameters, with default values for each parameter.
 - You can only complete the functions specified in the task according to the specified format; no other helper functions may be generated. If necessary, sub-functions can be defined within the main function.
 - Take a holistic approach and reuse **existing functions as much as possible**; the function is just one part of the entire control system.
 - Avoid using global variables and do not use the same variable names as global variables within the function.
--
 - Preserve the function's docstring but modify its content if necessary. Ensure the function name remains unchanged.
-- Avoid using while loops or raising exceptions in the function body.
 - If the function definition or docstring needs to be modified, ensure the function name stays the same.
 - Import required modules before the function name, not within the function body.
 - If the function outputs velocity, the velocity must be normalized.
+- Do not raising errors or using assertions in the function body.
+- Do not assume any part of the code,because the code will be executed directly without any modification and human intervention.
 - The current task does not necessarily require a global allocator. If needed, use the appropriate API to obtain the assigned task. If no such API exists, the task does not require a global allocator.
 - Ensure that the generated function meets all constraints.
 """.strip()
@@ -149,8 +150,10 @@ def allocate_run():
 - You can only call these existing functions and global Api, and you cannot define complex logic on your own,just call the existing functions.
 - Import the required modules before the function name, and do not import them in the function body.
 - Use the existing high-level functions. 
-- Do not use while loops or raise exceptions in the function body.
-- The allocation method for robots should be optimal, ensuring no conflicts occur between them.
+- Do not use while loops 
+- Do not raising errors or using assertions in the function body.
+- Do not assume any part of the code,because the code will be executed directly without any modification and human intervention.
+- The allocation method for robots should ensure that the total movement distance for each robot is minimized while completing all tasks, and that no task conflicts occur (i.e., each robot is assigned a distinct task, with no overlap between tasks).
 - Task allocation will only occur once at the beginning of the task, so the tasks assigned to each robot should take environmental changes into account and avoid relying on any single changing object.
 - The task allocation can include various types such as positions, lists of positions, or specific angles, based on the requirements of the task.
 - You should populate the output format based on the code you've written, as this output format will impact the code development for the Robots.
@@ -220,6 +223,8 @@ def run_loop():
 - Use a while loop to wait for the task to complete.
 - You need to ensure that the entire system can update observation data in real-time and issue control speeds in real-time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop.
 - Use existing high-level functions.
+- Do not raising errors or using assertions in the function body.
+- Do not assume any part of the code,because the code will be executed directly without any modification and human intervention.
 - Strictly follow the specified format.
 - Use time.sleep to limit the loop frequency, and robot control should be executed at a frequency of 100Hz.
 """.strip()

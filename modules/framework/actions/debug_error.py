@@ -15,20 +15,25 @@ from modules.prompt import (
 
 
 class DebugError(ActionNode):
-    def __init__(self, skill_tree: FunctionTree, next_text="", node_name=""):
+    def __init__(self, next_text="", node_name=""):
         super().__init__(next_text, node_name)
         self.__llm = GPT(memorize=True)
         self.error = None
         self.error_func = None
-        self._skill_tree = skill_tree
+        self._skill_tree = None
 
     def setup(self, error: CodeError | Bugs | Bug):
         self.error = error.error_msg
         self.error_func = error.error_code
+        self._skill_tree = self.context.local_skill_tree if self.context.scoop == "local" else self.context.global_skill_tree
 
     def _build_prompt(self):
-        robot_api = GLOBAL_ROBOT_API if self.context.scoop == "global" else (
-                LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(template=self.context.global_skill_tree.output_template))
+        if len(self.context.global_skill_tree.layers) == 0:
+            local_api_prompt = LOCAL_ROBOT_API
+        else:
+            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+                template=self.context.global_skill_tree.output_template)
+        robot_api = GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
         # if self._call_times == 0:
         self.prompt = DEBUG_PROMPT.format(
             task_des=TASK_DES,

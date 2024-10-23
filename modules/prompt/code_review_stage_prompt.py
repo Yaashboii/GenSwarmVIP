@@ -57,7 +57,7 @@ Your output should satisfy the following notes:
 - When using the API to obtain the task assigned to the robot, it only needs to be called once. Repeated calls are unnecessary, as the allocation is based on the robot's initial state and occurs only once at the beginning.
 - Preserve the function's docstring, with the option to modify its content.
 - The current task does not necessarily require a global allocator. If needed, use the corresponding API to obtain the assigned task. If there is no such API, the task does not require a global allocator.
-
+- Strictly adhere to the specified format.
 """.strip()
 
 GLOBAL_CODE_REVIEW_PROMPT_TEMPLATE: str = """
@@ -117,7 +117,7 @@ def {function_name}(...):
 - The current task does not necessarily require a global allocator. If needed, please use the corresponding API to obtain the assigned task. If there is no corresponding API, then the current task does not require a global allocator.
 - When using the API to obtain the task assigned to the current robot, it only needs to be called once. Repeated calls will not be useful, as the allocation is done only once at the beginning based on the robot's initial state.
 - Preserve the function's docstring, with the option to modify its content.
-- The allocation method for robots should be optimal, ensuring no conflicts occur between them.
 - The task allocation can include various types such as positions, lists of positions, or specific angles, based on the requirements of the task.
-
+- The allocation method for robots should ensure that the total movement distance for each robot is minimized while completing all tasks, and that no task conflicts occur (i.e., each robot is assigned a distinct task, with no overlap between tasks).
+- Strictly adhere to the specified format.
 """.strip()

@@ -273,6 +273,35 @@ def get_surrounding_unexplored_area():
     return get_current_robot_node().get_surrounding_unexplored_area()
 
 
+def get_surrounding_environment_info():
+    node = get_current_robot_node()
+    surrounding_robots = node.get_surrounding_robots_info()
+    surrounding_obstacles = node.get_surrounding_obstacles_info()
+
+    # Create a list to store the information of the surrounding environment
+    environment_info = []
+
+    # Add robots' information to the list
+    for robot in surrounding_robots:
+        environment_info.append({
+            "Type": "robot",
+            "position": robot["position"],
+            "velocity": robot["velocity"],
+            "radius": robot["radius"]
+        })
+
+    # Add obstacles' information to the list
+    for obstacle in surrounding_obstacles:
+        environment_info.append({
+            "Type": "obstacle",
+            "position": obstacle["position"],
+            "velocity": np.array([0, 0]),  # Obstacles don't move
+            "radius": obstacle["radius"]
+        })
+
+    return environment_info
+
+
 def get_target_formation_points():
     return get_current_robot_node().get_target_formation_points()
 

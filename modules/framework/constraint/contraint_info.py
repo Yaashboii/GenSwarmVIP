@@ -73,9 +73,12 @@ class ConstraintPool:
         sync_to_file()
 
     def check_constraints_satisfaction(self):
-        # TODO,添加BUG handler 来处理这个错误
         def report_error(constraint: ConstraintNode):
-            raise SystemExit(
+            logger.log(
+                f"Constraint {constraint._name} has no satisfying function",
+                "error",
+            )
+            raise Exception(
                 f"Constraint {constraint._name} has no satisfying function"
             )
 
@@ -85,7 +88,6 @@ class ConstraintPool:
             if c.has_no_connections()
         ]
         logger.log("All constraints have satisfying functions", "success")
-
 
     def get_constraint_names(self):
         """Returns a list of all constraint names."""

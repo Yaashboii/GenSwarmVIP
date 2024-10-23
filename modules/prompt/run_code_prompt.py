@@ -83,13 +83,31 @@ FEEDBACK_PROMPT_TEMPLATE = """
 {env_des}
 
 ## These are the basic Robot APIs:
+There are two types of APIs: local and global.
+where local APIs can only be called by the robot itself, and global APIs can be called by an centralized allocator.
+
+### local APIs:
 ```python
-{robot_api}
+{local_api}
+```
+
+### global APIs:
+```python
+{global_api}
 ```
 
 ## These are the functions that can be modified:
+There are two types of functions: local and global.
+where local functions can only be called by the robot itself, and global functions can be called by an centralized allocator.
+
+### local functions:
 ```python
-{functions}
+{local_functions}
+```
+
+### global functions:
+```python
+{global_functions}
 ```
 
 ## These are the user's feedback:
@@ -99,18 +117,25 @@ FEEDBACK_PROMPT_TEMPLATE = """
 ### Reasoning: you should analyze in the step:
     - What is the problem?
     - Which part of the code is problematic?
+    - Any global functions that need modification?
+    - Any local functions that need modification?
     - What is the solution?
 ### Code:
 ```python
-import ...(if necessary)
-
 function_name(...):
+    import ...(if necessary)
     ...
-
+# possible other functions
+...
+```
 ## Notes:
 - Do not modify the function name.
 - The input and output of the function could be modified.But you should make sure other functions that call this function can still work.
+- Global functions can't call local functions,and local functions can't call global functions.
+- If any third-party libraries are needed, you can import them in the function.Don't import them outside the function.
+- Apis and written functions can be called directly.
 - Output the complete code of the entire function, not just a part of it that's been omitted.
+- Don't create new functions.
 - Only output the functions that need modification, with as few changes as possible.
 - Rewrite all functions that need modifications.
 - Keep the original code in the function as unchanged as possible, only modifying the parts that are incorrect.

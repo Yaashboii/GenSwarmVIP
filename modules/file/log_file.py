@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from modules.utils import setup_logger, LoggerLevel
 from .base_file import BaseFile
 
@@ -38,6 +40,9 @@ class _Logger:
             "debug": '#### <span style="color: black;">debug: </span>\n{}\n',
         }
 
+        # Get current time as a timestamp
+        timestamp = datetime.now().strftime("[%Y-%m-%d %H:%M:%S:%f]")
+
         # Verify level is supported
         if level not in color_mapping:
             self._logger.error(f"Level {level} is not supported")
@@ -52,14 +57,18 @@ class _Logger:
             "info": self._logger.info,
             "debug": self._logger.debug,
         }.get(level, self._logger.info)
+
+        # Format content with timestamp
+        content_with_timestamp = f"{timestamp}:{content}"
+
         if print_to_terminal:
-            log_action(content)
+            log_action(content_with_timestamp)
         if not self._file:
             from modules.file.file import File
-
             self._file = File("log.md")
 
-        self._file.write(color_mapping[level].format(content), mode="a")
+        # Write log to file with formatted content
+        self._file.write(color_mapping[level].format(content_with_timestamp), mode="a")
 
 
 logger = _Logger()

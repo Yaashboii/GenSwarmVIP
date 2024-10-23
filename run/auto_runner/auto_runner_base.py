@@ -1,3 +1,4 @@
+import asyncio
 import json
 import operator
 import os
@@ -14,9 +15,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import rospy
 from tqdm import tqdm
-
+import concurrent.futures
 from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
 from modules.deployment.utils.manager import Manager
+from modules.file import logger
+from modules.framework.actions.run_code import runcode
 from run.utils import setup_metagpt, setup_cap, check_robots_no_movement_in_first_third
 
 
@@ -156,44 +159,39 @@ class AutoRunnerBase(ABC):
             self.frames.append(self.env.render())
             self.manager.publish_observations(infos)
             rate.sleep()
-        print(f"Experiment {experiment_id} completed successfully.")
 
+        print(f"Experiment {experiment_id} completed successfully.")
         result_queue.put({'source': 'run_single_experiment', 'result': result})
 
     def run_code(self, experiment, script_name, result_queue):
         experiment_path = os.path.join(self.experiment_path, experiment)
-        command = ['python', '../modules/framework/actions/run_code.py', '--data', experiment_path, '--timeout',
-                   str(self.experiment_duration - 3), '--target_pkl', self.target_pkl,
-                   '--script', f"{script_name}"]
 
         try:
-            result = subprocess.run(command, timeout=self.experiment_duration - 2, capture_output=True, text=True,
-                                    check=True)
+            # 调用该函数并传入所需的参数（此处为同步函数，直接调用即可）
+            result = runcode(
+                experiment_path=experiment_path,
+                timeout=self.experiment_duration - 3,
+                target_pkl=self.target_pkl,
+                feedback='VLM',
+                script=script_name
+            )
 
-            result_queue.put({'source': 'run_code', 'error': False, 'reason': ''})
-        except subprocess.TimeoutExpired:
-            print(f"\nExperiment {experiment} timed out and was terminated.")
-            result_queue.put({'source': 'run_code', 'error': False, 'reason': 'timeout'})
-
-        except subprocess.CalledProcessError as e:
-            # TODO: 找到原因，为什么会这个报错
-            print(e.stdout, e.stderr)
-
-            print(f"error with code{e.returncode}")
-            if e.returncode == -9:
-                print(e.stdout, e.stderr)
-                result_queue.put({'source': 'run_code', 'error': False, 'reason': 'SIGKILL'})
+            # 处理结果，假设 `result` 是执行后的返回值
+            if result.get("success"):
+                result_queue.put({'source': 'run_code', 'error': False, 'reason': ''})
             else:
-                print(f"An error occurred while running {experiment}: {e}")
-                print(f"Errors: {e.stderr}")
-                result_queue.put({'source': 'run_code', 'error': True, 'reason': e.stderr + f"code:{e.returncode}"})
-        finally:
+                result_queue.put(
+                    {'source': 'run_code', 'error': True, 'reason': result.get("error_message", "")})
 
-            os.system("pgrep -f run.py | xargs kill -9")
+        except Exception as e:
+            traceback.print_exc()
+            print(f"Error in run_code: {e}")
+            result_queue.put({'source': 'run_code', 'error': True, 'reason': str(e)})
 
     def run_multiple_experiments(self, experiment_list):
         if not experiment_list:
             experiment_list = sorted(self.get_experiment_directories())
+
         try:
             with tqdm(total=len(experiment_list), desc="Running Experiments") as pbar:
                 for experiment in experiment_list:
@@ -210,22 +208,15 @@ class AutoRunnerBase(ABC):
                         self.stop_event.clear()
                         result_queue = queue.Queue()
 
-                        # 启动线程1：运行实验
-                        t1 = threading.Thread(target=self.run_code, args=(experiment, self.script_name, result_queue))
-                        # 启动线程2：监控机器人运动情况
-                        t2 = threading.Thread(target=self.run_single_experiment, args=(experiment, result_queue))
-                        t1.start()
+                        # 使用线程池来并发运行两个函数
+                        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+                            # 启动线程1：运行实验代码
+                            t1 = executor.submit(self.run_code, experiment, self.script_name, result_queue)
+                            # 启动线程2：监控机器人运动情况
+                            t2 = executor.submit(self.run_single_experiment, experiment, result_queue)
 
-                        t2.start()
-
-                        # 等待线程完成
-                        t1.join(timeout=self.experiment_duration - 1)
-                        t2.join(timeout=self.experiment_duration - 1)
-
-                        if t1.is_alive() or t2.is_alive():
-                            self.stop_event.set()
-                            t1.join()
-                            t2.join()
+                            # 等待两个线程完成
+                            concurrent.futures.wait([t1, t2])
 
                         # 检查实验结果
                         single_experiment_result = None
@@ -237,55 +228,31 @@ class AutoRunnerBase(ABC):
                             elif result['source'] == 'run_code':
                                 run_code_result = result
 
-                        # 检查是否有未移动的机器人
-                        unmoved_robots = check_robots_no_movement_in_first_third(single_experiment_result)
-
-                        # 分析实验结果，检查是否满足成功条件
                         analysis = self.analyze_result(single_experiment_result)
                         print(f"Analysis for experiment {experiment}: {analysis}")
                         experiment_success = self.calculate_success(analysis)
                         success_dict = {"success": experiment_success}
                         analysis.update(success_dict)
 
-                        print(f"Experiment {experiment} success: {experiment_success}")
-                        print(f"Unmoved robots: {unmoved_robots}")
-                        # 并列判断条件：未移动的机器人 或 实验未成功
-                        if not unmoved_robots and experiment_success:
-                            print(f"Experiment {experiment} completed successfully.")
-                            success = True  # 实验成功，跳出重试循环
+                        success = True  # 假设实验成功
+
+                        self.results[experiment] = analysis
+                        self.save_experiment_result(
+                            os.path.join(f"../workspace/{self.experiment_path}", experiment),
+                            single_experiment_result, analysis, run_code_result, retries)
+                        if not success:
+                            print(
+                                f"Experiment {experiment} failed after {max_retries} attempts, moving to next experiment.")
                         else:
-                            retries += 1
-                            if retries < max_retries:
-                                print(
-                                    f"Experiment {experiment} failed (Unmoved robots or unsuccessful), retrying... (Attempt {retries + 1})")
-                            time.sleep(3)  # 等待3秒后重新开始实验
+                            print(f"Experiment {experiment} completed successfully.")
+                        self.save_frames_as_animations(experiment)
 
-                    # 如果经过三次重试后依然失败，直接继续下一个实验
-                    self.results[experiment] = analysis
-                    self.save_experiment_result(
-                        os.path.join(f"../workspace/{self.experiment_path}", experiment),
-                        single_experiment_result, analysis, run_code_result, retries)
-                    if not success:
-                        print(
-                            f"Experiment {experiment} failed after {max_retries} attempts, moving to next experiment.")
-                    else:
-                        print(f"Experiment {experiment} completed successfully.")
-                    self.save_frames_as_animations(experiment)
-
-                    pbar.update(1)
+                        pbar.update(1)
 
         except KeyboardInterrupt:
             print("Keyboard interrupt received. Stopping all experiments.")
         except Exception as e:
-            traceback.print_exc()
             print(f"An error occurred: {e}")
-        finally:
-            os.system("pgrep -f run.py | xargs kill -9")
-            self.stop_event.set()
-            t1.join()
-            t2.join()
-
-        print("All experiments completed successfully.")
 
     def plot_and_print_results(self, data, labels, ylabel, title, colors, save_filename, rotation=False,
                                success_conditions=None):

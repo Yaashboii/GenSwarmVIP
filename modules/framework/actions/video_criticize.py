@@ -1,9 +1,12 @@
+from os import listdir
+
 from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree
 from modules.framework.code_error import Feedback
 from modules.framework.constraint import ConstraintPool
 from modules.framework.parser import parse_text
+from modules.llm import GPT
 from modules.prompt import (
     VIDEO_PROMPT_TEMPLATE,
     OUTPUT_TEMPLATE,
@@ -15,14 +18,16 @@ class VideoCriticize(ActionNode):
     def __init__(self, skill_tree, next_text: str = "",
                  node_name: str = "",
                  ):
+        self.__llm = GPT(memorize=True, model='VLM')
 
-        super().__init__(next_text, node_name)
+        super().__init__(next_text, node_name, self.__llm)
 
-        self.frames: list
+        self._frames: list
         self._skill_tree = skill_tree
         self._constraint_pool = ConstraintPool()
 
     def _build_prompt(self):
+        self.setup()
 
         self.prompt = [VIDEO_PROMPT_TEMPLATE.format(task_des=TASK_DES,
                                                     command=self.context.command,
@@ -31,30 +36,63 @@ class VideoCriticize(ActionNode):
                                                     out_put=OUTPUT_TEMPLATE),
                        *map(lambda x: {"type": "image_url",
                                        "image_url": {"url": f'data:image/jpg;base64,{x}', "detail": "low"}},
-                            self.frames),
+                            self._frames),
                        ]
         pass
 
-    def setup(self, frames):
-        self.frames = frames
+    def setup(self):
+        from modules.utils import root_manager, process_video, create_video_from_frames
+
+        video_path = f"{root_manager.workspace_root}/animation.mp4"
+        self._frames = process_video(video_path, start_time=3, end_time=10, seconds_per_frame=0.5)
+        create_video_from_frames(self._frames, output_path=f"{root_manager.data_root}/extra.mp4")
 
     async def _process_response(self, response: str) -> str | Feedback:
         response = parse_text(text=response, lang="json")
         result = eval(response)
+
+        # Process success cas
         if result["result"].strip().lower() == "success":
-            return result["feedback"]
+            if self.context.args.human_feedback:
+                if_feedback = input("If task is done? Press y/n: ")
+                if if_feedback.lower() == "y":
+                    logger.log("run code: success", "warning")
+                    return "NONE"
+                else:
+                    if self.context.args.feedback == 'None':
+                        logger.log("run code: fail", "warning")
+                        return 'NONE'
+                    feedback = input("Please provide feedback: ")
+                    self.context.feedbacks.append(feedback)
+                    return Feedback(feedback)
+            else:
+                return result["feedback"]
+
+        # Process fail case
         elif result["result"].strip().lower() == "fail":
             return Feedback(result["feedback"])
+
+        # Invalid result case
         else:
             logger.log(f"Invalid result: {result}", "error")
             raise Exception("Invalid result")
 
+    # async def _run(self) -> str:
+    #     sim = """```json
+    #     {
+    #     "result": "SUCCESS",
+    #     "feedback": "..."
+    #     }```
+    #     """
+    #     res = await self._process_response(response=sim)
+    #     return res
+
 
 if __name__ == '__main__':
     import asyncio
-    from modules.utils import root_manager
+    from modules.utils import root_manager, process_video, create_video_from_frames
 
-    path = "../../../workspace/2024-05-26_17-19-56"
+    path = "../../../workspace/encircling/2024-10-14_07-06-58"
     root_manager.update_root(path)
     function_analyser = VideoCriticize("analyze constraints")
 

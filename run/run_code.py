@@ -39,7 +39,7 @@ if __name__ == "__main__":
                           tolerance=0.15)
 
     # 人工复核，哪些任务需要重新跑，写在下面
-    # exp_list = ['2024-10-11_14-59-04', ]
+    # exp_list = ['2024-10-19_16-48-03', ]
     exp_list = None
 
     # exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))

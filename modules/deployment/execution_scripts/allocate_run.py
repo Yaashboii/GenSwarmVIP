@@ -12,6 +12,7 @@ def main():
     # 将返回值（字典）保存为 JSON 文件
     with open('allocate_result.pkl', 'wb') as f:
         pickle.dump(result, f)
+    print(result)
 
 
 if __name__ == "__main__":
