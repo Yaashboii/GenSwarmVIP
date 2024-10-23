@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import numpy as np
 
 from .base_engine import Engine
@@ -6,12 +19,14 @@ from modules.deployment.utils.quad_tree import QuadTree
 
 
 class QuadTreeEngine(Engine):
-    def __init__(self, world_size: tuple | list | np.ndarray,
-                 damping=0.95,
-                 alpha=0.7,
-                 collision_check=True,
-                 joint_constraint=True,
-                 ):
+    def __init__(
+        self,
+        world_size: tuple | list | np.ndarray,
+        damping=0.95,
+        alpha=0.7,
+        collision_check=True,
+        joint_constraint=True,
+    ):
         """
         Physics engine that uses a quad tree for collision detection.
         Args:
@@ -24,7 +39,10 @@ class QuadTreeEngine(Engine):
         super().__init__()
         self.world_size = np.array(world_size)
         self.quad_tree = QuadTree(
-            -world_size[0] * 0.5, -world_size[1] * 0.5, world_size[0] * 0.5, world_size[1] * 0.5
+            -world_size[0] * 0.5,
+            -world_size[1] * 0.5,
+            world_size[0] * 0.5,
+            world_size[1] * 0.5,
         )
         self._damping = damping
         self._alpha = alpha
@@ -52,7 +70,7 @@ class QuadTreeEngine(Engine):
 
         joints_copy = self._joints.copy()
 
-        for (entity_id1, entity_id2) in joints_copy.keys():
+        for entity_id1, entity_id2 in joints_copy.keys():
             if entity_id == entity_id1 or entity_id == entity_id2:
                 print(f"Removing joint between {entity_id1} and {entity_id2}")
                 self.remove_joint(entity_id1, entity_id2)
@@ -116,12 +134,18 @@ class QuadTreeEngine(Engine):
         adjustment_coefficient = 10  # Strength of the velocity adjustment
 
         # Calculate the distance to each boundary
-        distances = np.array([
-            entity.position[0] - (-0.5 * self.world_size[0]),  # Distance to left boundary
-            0.5 * self.world_size[0] - entity.position[0],  # Distance to right boundary
-            entity.position[1] - (-0.5 * self.world_size[1]),  # Distance to bottom boundary
-            0.5 * self.world_size[1] - entity.position[1]  # Distance to top boundary
-        ])
+        distances = np.array(
+            [
+                entity.position[0]
+                - (-0.5 * self.world_size[0]),  # Distance to left boundary
+                0.5 * self.world_size[0]
+                - entity.position[0],  # Distance to right boundary
+                entity.position[1]
+                - (-0.5 * self.world_size[1]),  # Distance to bottom boundary
+                0.5 * self.world_size[1]
+                - entity.position[1],  # Distance to top boundary
+            ]
+        )
 
         # Adjust velocity based on proximity to the boundaries
         if distances[0] < margin:  # Near left boundary
@@ -162,7 +186,11 @@ class QuadTreeEngine(Engine):
         overlap_distance = np.linalg.norm(overlap_vector)
         if overlap_distance == 0:
             overlap_vector = np.array([0.00001, 0])
-        correction_vector = overlap_vector * (entity1.size + entity2.size - overlap_distance) / overlap_distance
+        correction_vector = (
+            overlap_vector
+            * (entity1.size + entity2.size - overlap_distance)
+            / overlap_distance
+        )
         entity1.position += correction_vector / 2
         entity2.position -= correction_vector / 2
         self.set_position(entity1.id, entity1.position)
@@ -189,7 +217,9 @@ class QuadTreeEngine(Engine):
         current_velocity = entity.velocity
 
         # Apply low-pass filter to update the velocity
-        new_velocity = self._alpha * desired_velocity + (1 - self._alpha) * current_velocity
+        new_velocity = (
+            self._alpha * desired_velocity + (1 - self._alpha) * current_velocity
+        )
 
         # Update the entity's velocity
         self.set_velocity(entity_id, new_velocity)
@@ -247,8 +277,12 @@ class QuadTreeEngine(Engine):
         joint_vector = entity1.position - entity2.position
         joint_length = np.linalg.norm(joint_vector)
 
-        correction_vector = joint_vector * (desired_length - joint_length) / joint_length
-        correction_velocity = correction_vector / 2  # Apply half the correction to each entity
+        correction_vector = (
+            joint_vector * (desired_length - joint_length) / joint_length
+        )
+        correction_velocity = (
+            correction_vector / 2
+        )  # Apply half the correction to each entity
 
         dv1 = correction_velocity
         dv2 = -correction_velocity

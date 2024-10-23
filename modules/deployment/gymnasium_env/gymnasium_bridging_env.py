@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Optional, TypeVar
 
 from modules.deployment.entity import Landmark, Robot
@@ -14,16 +27,13 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
-
     def init_entities(self):
-        range_a = Landmark(landmark_id=0,
-                           initial_position=(0, 2),
-                           size=np.array((5, 1)),
-                           color='gray')
-        range_b = Landmark(landmark_id=1,
-                           initial_position=(0, -2),
-                           size=np.array((5, 1)),
-                           color='gray')
+        range_a = Landmark(
+            landmark_id=0, initial_position=(0, 2), size=np.array((5, 1)), color="gray"
+        )
+        range_b = Landmark(
+            landmark_id=1, initial_position=(0, -2), size=np.array((5, 1)), color="gray"
+        )
 
         self.add_entity(range_a)
         self.add_entity(range_b)
@@ -33,20 +43,25 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, 0.6*self.height],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
-                                    entities=self.entities)
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, 0.6 * self.height],
+                robot_size=robot_size,
+                robot_shape=shape,
+                min_distance=robot_size,
+                entities=self.entities,
+            )
             robot = Robot(entity_id, position, robot_size, color=color)
             self.add_entity(robot)
             entity_id += 1
 
 
 if __name__ == "__main__":
-
     import time
     import rospy
 
-    from modules.deployment.utils.manager import Manager 
+    from modules.deployment.utils.manager import Manager
 
     env = GymnasiumBridgingEnvironment("../../../config/env/bridging_config.json")
 

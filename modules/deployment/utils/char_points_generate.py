@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 # -*- coding: utf-8 -*-
 
 import cv2
@@ -20,7 +33,9 @@ def create_char_image(char, font_path, font_size=200, image_size=(300, 300)):
     return img
 
 
-def create_star_image(image_size=(300, 300), num_points=5, radius_inner=50, radius_outer=100):
+def create_star_image(
+    image_size=(300, 300), num_points=5, radius_inner=50, radius_outer=100
+):
     center = (image_size[1] // 2, image_size[0] // 2)
     angle_offset = np.pi / num_points  # 用于生成星形的角度偏移
 
@@ -40,7 +55,7 @@ def create_star_image(image_size=(300, 300), num_points=5, radius_inner=50, radi
 
     # 绘制海星形状
     cv2.fillPoly(img, [np.array(points)], (255, 255, 255))
-    cv2.imshow('Star Shape', img)
+    cv2.imshow("Star Shape", img)
     cv2.waitKey(0)
 
     return img
@@ -86,6 +101,7 @@ def sample_contour_points(contours, num_points):
 
 def validate_contour_points(char, num_points=150, star=False):
     from modules.utils.root import get_project_root
+
     font_path = f"{get_project_root()}/assets/fonts/HanYiCuYuanJian-1.ttf"
     if not star:
         image = create_char_image(char, font_path)
@@ -106,6 +122,7 @@ def validate_contour_points(char, num_points=150, star=False):
     # remap to pygame coordinates
     sampled_points = sampled_points / 300 * 5 - 2.5
     return sampled_points
+
 
 # # Example usage:
 # font_path = "HanYiCuYuanJian-1.ttf"

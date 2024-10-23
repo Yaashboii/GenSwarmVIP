@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Optional, TypeVar
 
 from modules.deployment.engine import QuadTreeEngine
@@ -25,21 +38,28 @@ class GymnasiumShapingEnvironment(GymnasiumEnvironmentBase):
         color = self.data["entities"]["robot"]["color"]
 
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=0.15,
-                                    entities=self.entities)
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=robot_size,
+                robot_shape=shape,
+                min_distance=0.15,
+                entities=self.entities,
+            )
             print(f"Robot_{entity_id} position: {position}")
-            robot = Robot(robot_id=entity_id,
-                          initial_position=position,
-                          target_position=None,
-                          size=robot_size,
-                          color=color)
+            robot = Robot(
+                robot_id=entity_id,
+                initial_position=position,
+                target_position=None,
+                size=robot_size,
+                color=color,
+            )
             entity_id += 1
             self.add_entity(robot)
 
 
 if __name__ == "__main__":
-
     import time
     import rospy
 

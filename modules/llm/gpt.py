@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import asyncio
 
 from openai import AsyncOpenAI
@@ -112,7 +125,9 @@ class GPT(BaseLLM):
         from modules.file.log_file import logger
 
         while True:
-            logger.log("Sleeping for 5 minutes before retrying request...", level="info")
+            logger.log(
+                "Sleeping for 5 minutes before retrying request...", level="info"
+            )
             await asyncio.sleep(5 * 60)  # Sleep for 5 minutes
 
             try:
@@ -147,7 +162,7 @@ class GPT(BaseLLM):
             return await self._retry_request_with_sleep(temperature)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     gpt = GPT()
     response = asyncio.run(gpt.ask("Hello, who are you?"))
     print(response)

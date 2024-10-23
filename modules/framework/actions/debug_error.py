@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree
 from modules.framework.code_error import CodeError, Bug, Bugs
@@ -27,8 +40,16 @@ class DebugError(ActionNode):
         self.error_func = error.error_code
 
     def _build_prompt(self):
-        robot_api = GLOBAL_ROBOT_API if self.context.scoop == "global" else (
-                LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(template=self.context.global_skill_tree.output_template))
+        robot_api = (
+            GLOBAL_ROBOT_API
+            if self.context.scoop == "global"
+            else (
+                LOCAL_ROBOT_API
+                + ALLOCATOR_TEMPLATE.format(
+                    template=self.context.global_skill_tree.output_template
+                )
+            )
+        )
         # if self._call_times == 0:
         self.prompt = DEBUG_PROMPT.format(
             task_des=TASK_DES,

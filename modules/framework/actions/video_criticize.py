@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree
@@ -12,10 +25,12 @@ from modules.prompt import (
 
 
 class VideoCriticize(ActionNode):
-    def __init__(self, skill_tree, next_text: str = "",
-                 node_name: str = "",
-                 ):
-
+    def __init__(
+        self,
+        skill_tree,
+        next_text: str = "",
+        node_name: str = "",
+    ):
         super().__init__(next_text, node_name)
 
         self.frames: list
@@ -23,16 +38,22 @@ class VideoCriticize(ActionNode):
         self._constraint_pool = ConstraintPool()
 
     def _build_prompt(self):
-
-        self.prompt = [VIDEO_PROMPT_TEMPLATE.format(task_des=TASK_DES,
-                                                    command=self.context.command,
-                                                    feedback="/n".join(self.context.feedbacks),
-                                                    constraint=str(self._constraint_pool),
-                                                    out_put=OUTPUT_TEMPLATE),
-                       *map(lambda x: {"type": "image_url",
-                                       "image_url": {"url": f'data:image/jpg;base64,{x}', "detail": "low"}},
-                            self.frames),
-                       ]
+        self.prompt = [
+            VIDEO_PROMPT_TEMPLATE.format(
+                task_des=TASK_DES,
+                command=self.context.command,
+                feedback="/n".join(self.context.feedbacks),
+                constraint=str(self._constraint_pool),
+                out_put=OUTPUT_TEMPLATE,
+            ),
+            *map(
+                lambda x: {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpg;base64,{x}", "detail": "low"},
+                },
+                self.frames,
+            ),
+        ]
         pass
 
     def setup(self, frames):
@@ -50,7 +71,7 @@ class VideoCriticize(ActionNode):
             raise Exception("Invalid result")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import asyncio
     from modules.utils import root_manager
 

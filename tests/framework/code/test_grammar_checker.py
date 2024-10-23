@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import os
 import unittest
 from unittest.mock import patch
@@ -38,7 +51,6 @@ class TestGrammarChecker(unittest.TestCase):
     @patch("modules.file.file.logger.log")
     def test_run_pylint_check(self, mock_logger):
         errors = self.grammar_checker._run_pylint_check(self.file_path)
-        print(errors)
         self.assertEqual(errors, self.errors)
 
     def test_find_function_name_from_error(self):

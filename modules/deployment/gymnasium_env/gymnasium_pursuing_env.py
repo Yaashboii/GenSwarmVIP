@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from cmath import isnan
 from typing import Optional, TypeVar, SupportsFloat, Any
 
@@ -11,7 +24,6 @@ RenderFrame = TypeVar("RenderFrame")
 
 
 class GymnasiumPursuingEnvironment(GymnasiumEnvironmentBase):
-
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
@@ -22,25 +34,34 @@ class GymnasiumPursuingEnvironment(GymnasiumEnvironmentBase):
         color = self.data["entities"]["robot"]["color"]
 
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
-                                    entities=self.entities)
-            robot = Robot(robot_id=entity_id,
-                          initial_position=position,
-                          target_position=None,
-                          size=robot_size,
-                          color=color)
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=robot_size,
+                robot_shape=shape,
+                min_distance=robot_size,
+                entities=self.entities,
+            )
+            robot = Robot(
+                robot_id=entity_id,
+                initial_position=position,
+                target_position=None,
+                size=robot_size,
+                color=color,
+            )
             self.add_entity(robot)
             entity_id += 1
 
-        prey = Prey(prey_id=entity_id,
-                    initial_position=[0, 0],
-                    size=0.10, )
+        prey = Prey(
+            prey_id=entity_id,
+            initial_position=[0, 0],
+            size=0.10,
+        )
         self.add_entity(prey)
 
 
 if __name__ == "__main__":
-
     import time
     import rospy
 

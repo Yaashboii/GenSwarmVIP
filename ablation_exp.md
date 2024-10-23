@@ -17,7 +17,7 @@
    - [ ] 多个函数的layer、parallel生成方式 write functions
 
    - [ ] 自代码检查 functions review
-   - [ ] 错误反馈 bug 
+   - [ ] 错误反馈 bug
 
    - [ ] 视觉反馈 video critic
 
@@ -107,5 +107,3 @@
    > - [ ] 视觉反馈 video critic (和Human feedback一起做)
 
 2. 统计失败的类型，然后每种找5个例子，用一个固定的反馈意见对这5个进行human feedback，然后评估反馈后的效果**（cmy）**
-
-   

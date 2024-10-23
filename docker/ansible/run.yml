@@ -1,5 +1,4 @@
-
-
+# Start the LLM code inside a Docker container
 - name: Start LLM code
   command: >
     nvidia-docker run -it --rm -d

@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import json
 import operator
 import os
@@ -21,15 +34,18 @@ from run.utils import setup_metagpt, setup_cap, check_robots_no_movement_in_firs
 
 
 class AutoRunnerBase(ABC):
-    def __init__(self, env_config_path,
-                 workspace_path,
-                 experiment_duration,
-                 run_mode='rerun',
-                 target_pkl='WriteRun.pkl',
-                 script_name='run.py',
-                 max_speed=1.0,
-                 tolerance=0.05,
-                 env: GymnasiumEnvironmentBase = None):
+    def __init__(
+        self,
+        env_config_path,
+        workspace_path,
+        experiment_duration,
+        run_mode="rerun",
+        target_pkl="WriteRun.pkl",
+        script_name="run.py",
+        max_speed=1.0,
+        tolerance=0.05,
+        env: GymnasiumEnvironmentBase = None,
+    ):
         self.env_config_path = env_config_path
         self.experiment_path = workspace_path
         self.experiment_duration = experiment_duration
@@ -48,25 +64,27 @@ class AutoRunnerBase(ABC):
     def get_experiment_directories(self):
         directories = []
         for item in os.listdir(f"../workspace/{self.experiment_path}"):
-            if item == 'pic':
+            if item == "pic":
                 continue
             item_path = os.path.join(f"../workspace/{self.experiment_path}", item)
             if os.path.isdir(item_path):
-                if self.run_mode == 'continue':
+                if self.run_mode == "continue":
                     if not self.experiment_completed(item_path):
                         directories.append(item)
-                elif self.run_mode == 'rerun':
+                elif self.run_mode == "rerun":
                     directories.append(item)
-                elif self.run_mode == 'analyze':
+                elif self.run_mode == "analyze":
                     if self.experiment_completed(item_path):
                         directories.append(item)
         return directories
 
     def experiment_completed(self, path):
-        result_file = os.path.join(path, 'result.json')
+        result_file = os.path.join(path, "result.json")
         return os.path.exists(result_file)
 
-    def save_experiment_result(self, path, result, analysis, run_code_result, retry_times):
+    def save_experiment_result(
+        self, path, result, analysis, run_code_result, retry_times
+    ):
         def convert_to_serializable(obj):
             if isinstance(obj, np.ndarray):
                 return obj.tolist()
@@ -79,31 +97,37 @@ class AutoRunnerBase(ABC):
         serializable_result = convert_to_serializable(result)
         serializable_analysis = convert_to_serializable(analysis)
         combined_result = {
-            'run_code_result': run_code_result,
-            'retry_times': retry_times,
-            'analysis': serializable_analysis,
-            'experiment_data': serializable_result,
+            "run_code_result": run_code_result,
+            "retry_times": retry_times,
+            "analysis": serializable_analysis,
+            "experiment_data": serializable_result,
         }
-        result_file = os.path.join(path, 'result.json')
+        result_file = os.path.join(path, "result.json")
         os.makedirs(path, exist_ok=True)
-        with open(result_file, 'w') as f:
+        with open(result_file, "w") as f:
             json.dump(combined_result, f, indent=4)
 
     def save_frame_to_disk(self, frame, frame_index):
-        frame_path = os.path.join(self.frame_dir, f'frame_{frame_index:06d}.png')
+        frame_path = os.path.join(self.frame_dir, f"frame_{frame_index:06d}.png")
         imageio.imwrite(frame_path, frame)
 
     def save_frames_as_animations(self, experiment_id):
         # Save as GIF
-        gif_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id, 'animation.gif')
+        gif_path = os.path.join(
+            f"../workspace/{self.experiment_path}", experiment_id, "animation.gif"
+        )
         imageio.mimsave(gif_path, self.frames, fps=10)
         print(f"Saved animation for experiment {experiment_id} as GIF at {gif_path}")
 
         # Save as MP4
-        mp4_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id, 'animation.mp4')
+        mp4_path = os.path.join(
+            f"../workspace/{self.experiment_path}", experiment_id, "animation.mp4"
+        )
         height, width, layers = self.frames[0].shape
         size = (width, height)
-        out = cv2.VideoWriter(mp4_path, cv2.VideoWriter_fourcc(*'mp4v'), self.env.FPS, size)
+        out = cv2.VideoWriter(
+            mp4_path, cv2.VideoWriter_fourcc(*"mp4v"), self.env.FPS, size
+        )
 
         for frame in self.frames:
             out.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
@@ -119,15 +143,17 @@ class AutoRunnerBase(ABC):
         def init_result(infos):
             result = {}
             for entity_id in infos:
-                result[entity_id] = {"size": 0,
-                                     "target": None,
-                                     "trajectory": [],
-                                     'type': '',
-                                     'states': [],
-                                     'dt': self.env.dt}
+                result[entity_id] = {
+                    "size": 0,
+                    "target": None,
+                    "trajectory": [],
+                    "type": "",
+                    "states": [],
+                    "dt": self.env.dt,
+                }
                 result[entity_id]["size"] = infos[entity_id]["size"]
                 result[entity_id]["target"] = infos[entity_id]["target_position"]
-                result[entity_id]['type'] = infos[entity_id]['type']
+                result[entity_id]["type"] = infos[entity_id]["type"]
                 result[entity_id]["trajectory"].append(infos[entity_id]["position"])
             return result
 
@@ -135,9 +161,11 @@ class AutoRunnerBase(ABC):
         self.manager.publish_observations(infos)
         rate = rospy.Rate(self.env.FPS)
         start_time = rospy.get_time()
-        experiment_path = os.path.join(f"../workspace/{self.experiment_path}", experiment_id)
+        experiment_path = os.path.join(
+            f"../workspace/{self.experiment_path}", experiment_id
+        )
 
-        self.frame_dir = os.path.join(experiment_path, 'frames')
+        self.frame_dir = os.path.join(experiment_path, "frames")
         os.makedirs(self.frame_dir, exist_ok=True)
 
         frame_index = 0
@@ -151,29 +179,45 @@ class AutoRunnerBase(ABC):
             for entity_id in infos:
                 if infos[entity_id]["moveable"]:
                     result[entity_id]["trajectory"].append(infos[entity_id]["position"])
-                if infos[entity_id]['state'] is not None:
-                    result[entity_id]['states'].append(infos[entity_id]['state'])
+                if infos[entity_id]["state"] is not None:
+                    result[entity_id]["states"].append(infos[entity_id]["state"])
             self.frames.append(self.env.render())
             self.manager.publish_observations(infos)
             rate.sleep()
         print(f"Experiment {experiment_id} completed successfully.")
 
-        result_queue.put({'source': 'run_single_experiment', 'result': result})
+        result_queue.put({"source": "run_single_experiment", "result": result})
 
     def run_code(self, experiment, script_name, result_queue):
         experiment_path = os.path.join(self.experiment_path, experiment)
-        command = ['python', '../modules/framework/actions/run_code.py', '--data', experiment_path, '--timeout',
-                   str(self.experiment_duration - 3), '--target_pkl', self.target_pkl,
-                   '--script', f"{script_name}"]
+        command = [
+            "python",
+            "../modules/framework/actions/run_code.py",
+            "--data",
+            experiment_path,
+            "--timeout",
+            str(self.experiment_duration - 3),
+            "--target_pkl",
+            self.target_pkl,
+            "--script",
+            f"{script_name}",
+        ]
 
         try:
-            result = subprocess.run(command, timeout=self.experiment_duration - 2, capture_output=True, text=True,
-                                    check=True)
+            result = subprocess.run(
+                command,
+                timeout=self.experiment_duration - 2,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
 
-            result_queue.put({'source': 'run_code', 'error': False, 'reason': ''})
+            result_queue.put({"source": "run_code", "error": False, "reason": ""})
         except subprocess.TimeoutExpired:
             print(f"\nExperiment {experiment} timed out and was terminated.")
-            result_queue.put({'source': 'run_code', 'error': False, 'reason': 'timeout'})
+            result_queue.put(
+                {"source": "run_code", "error": False, "reason": "timeout"}
+            )
 
         except subprocess.CalledProcessError as e:
             # TODO: 找到原因，为什么会这个报错
@@ -182,13 +226,20 @@ class AutoRunnerBase(ABC):
             print(f"error with code{e.returncode}")
             if e.returncode == -9:
                 print(e.stdout, e.stderr)
-                result_queue.put({'source': 'run_code', 'error': False, 'reason': 'SIGKILL'})
+                result_queue.put(
+                    {"source": "run_code", "error": False, "reason": "SIGKILL"}
+                )
             else:
                 print(f"An error occurred while running {experiment}: {e}")
                 print(f"Errors: {e.stderr}")
-                result_queue.put({'source': 'run_code', 'error': True, 'reason': e.stderr + f"code:{e.returncode}"})
+                result_queue.put(
+                    {
+                        "source": "run_code",
+                        "error": True,
+                        "reason": e.stderr + f"code:{e.returncode}",
+                    }
+                )
         finally:
-
             os.system("pgrep -f run.py | xargs kill -9")
 
     def run_multiple_experiments(self, experiment_list):
@@ -202,18 +253,32 @@ class AutoRunnerBase(ABC):
                     success = False
 
                     while retries < max_retries and not success:
-                        if self.script_name == 'run_meta.py':
-                            setup_metagpt(os.path.join(f"../workspace/{self.experiment_path}", experiment))
-                        if self.script_name == 'run_cap.py':
-                            setup_cap(os.path.join(f"../workspace/{self.experiment_path}", experiment))
+                        if self.script_name == "run_meta.py":
+                            setup_metagpt(
+                                os.path.join(
+                                    f"../workspace/{self.experiment_path}", experiment
+                                )
+                            )
+                        if self.script_name == "run_cap.py":
+                            setup_cap(
+                                os.path.join(
+                                    f"../workspace/{self.experiment_path}", experiment
+                                )
+                            )
 
                         self.stop_event.clear()
                         result_queue = queue.Queue()
 
                         # 启动线程1：运行实验
-                        t1 = threading.Thread(target=self.run_code, args=(experiment, self.script_name, result_queue))
+                        t1 = threading.Thread(
+                            target=self.run_code,
+                            args=(experiment, self.script_name, result_queue),
+                        )
                         # 启动线程2：监控机器人运动情况
-                        t2 = threading.Thread(target=self.run_single_experiment, args=(experiment, result_queue))
+                        t2 = threading.Thread(
+                            target=self.run_single_experiment,
+                            args=(experiment, result_queue),
+                        )
                         t1.start()
 
                         t2.start()
@@ -232,13 +297,15 @@ class AutoRunnerBase(ABC):
                         run_code_result = None
                         while not result_queue.empty():
                             result = result_queue.get()
-                            if result['source'] == 'run_single_experiment':
-                                single_experiment_result = result['result']
-                            elif result['source'] == 'run_code':
+                            if result["source"] == "run_single_experiment":
+                                single_experiment_result = result["result"]
+                            elif result["source"] == "run_code":
                                 run_code_result = result
 
                         # 检查是否有未移动的机器人
-                        unmoved_robots = check_robots_no_movement_in_first_third(single_experiment_result)
+                        unmoved_robots = check_robots_no_movement_in_first_third(
+                            single_experiment_result
+                        )
 
                         # 分析实验结果，检查是否满足成功条件
                         analysis = self.analyze_result(single_experiment_result)
@@ -257,17 +324,25 @@ class AutoRunnerBase(ABC):
                             retries += 1
                             if retries < max_retries:
                                 print(
-                                    f"Experiment {experiment} failed (Unmoved robots or unsuccessful), retrying... (Attempt {retries + 1})")
+                                    f"Experiment {experiment} failed (Unmoved robots or unsuccessful), retrying... (Attempt {retries + 1})"
+                                )
                             time.sleep(3)  # 等待3秒后重新开始实验
 
                     # 如果经过三次重试后依然失败，直接继续下一个实验
                     self.results[experiment] = analysis
                     self.save_experiment_result(
-                        os.path.join(f"../workspace/{self.experiment_path}", experiment),
-                        single_experiment_result, analysis, run_code_result, retries)
+                        os.path.join(
+                            f"../workspace/{self.experiment_path}", experiment
+                        ),
+                        single_experiment_result,
+                        analysis,
+                        run_code_result,
+                        retries,
+                    )
                     if not success:
                         print(
-                            f"Experiment {experiment} failed after {max_retries} attempts, moving to next experiment.")
+                            f"Experiment {experiment} failed after {max_retries} attempts, moving to next experiment."
+                        )
                     else:
                         print(f"Experiment {experiment} completed successfully.")
                     self.save_frames_as_animations(experiment)
@@ -287,8 +362,17 @@ class AutoRunnerBase(ABC):
 
         print("All experiments completed successfully.")
 
-    def plot_and_print_results(self, data, labels, ylabel, title, colors, save_filename, rotation=False,
-                               success_conditions=None):
+    def plot_and_print_results(
+        self,
+        data,
+        labels,
+        ylabel,
+        title,
+        colors,
+        save_filename,
+        rotation=False,
+        success_conditions=None,
+    ):
         if rotation:
             rotation = -90
         else:
@@ -305,14 +389,21 @@ class AutoRunnerBase(ABC):
             for condition in success_conditions:
                 metric, operator, threshold = condition
                 if metric == ylabel:  # 仅在当前绘制的 metric 与成功条件相关时绘制
-                    plt.axhline(y=threshold, color='r', linestyle='--', label=f"Success threshold ({threshold})")
+                    plt.axhline(
+                        y=threshold,
+                        color="r",
+                        linestyle="--",
+                        label=f"Success threshold ({threshold})",
+                    )
 
         for i, v in enumerate(data):
-            plt.text(i, v + 0.01, f"{v:.2f}", ha='center', rotation=rotation)
+            plt.text(i, v + 0.01, f"{v:.2f}", ha="center", rotation=rotation)
 
         if not os.path.exists(f"../workspace/{self.experiment_path}/pic"):
             os.makedirs(f"../workspace/{self.experiment_path}/pic")
-        plt_path = os.path.join(f"../workspace/{self.experiment_path}/pic", save_filename)
+        plt_path = os.path.join(
+            f"../workspace/{self.experiment_path}/pic", save_filename
+        )
         plt.tight_layout()
         plt.legend()
         plt.savefig(plt_path)
@@ -321,17 +412,18 @@ class AutoRunnerBase(ABC):
 
     def analyze_code(self, functions_path):
         from modules.utils import CodeAnalyzer
-        with open(functions_path, 'r') as f:
+
+        with open(functions_path, "r") as f:
             analyzer = CodeAnalyzer(f.read())
             analysis_result = analyzer.analyze()
         # TODO:add more metrics
         return analysis_result["code_lines"]
 
     def run(self, exp_list=None):
-        if self.run_mode in ['rerun', 'continue']:
+        if self.run_mode in ["rerun", "continue"]:
             self.run_multiple_experiments(exp_list)
 
-        if self.run_mode == 'analyze':
+        if self.run_mode == "analyze":
             self.analyze_all_results(exp_list)
 
     @abstractmethod
@@ -339,7 +431,9 @@ class AutoRunnerBase(ABC):
         """
         Analyze the result of a single experiment and return a dictionary of metrics.
         """
-        raise NotImplementedError("analyze_result method must be implemented in the subclass")
+        raise NotImplementedError(
+            "analyze_result method must be implemented in the subclass"
+        )
 
     @abstractmethod
     def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
@@ -350,7 +444,9 @@ class AutoRunnerBase(ABC):
         with a threshold of 500, the method should return a list like this:
         [("mean_dtw_distance", operator.lt, 500)]
         """
-        raise NotImplementedError("setup_success_conditions method must be implemented in the subclass")
+        raise NotImplementedError(
+            "setup_success_conditions method must be implemented in the subclass"
+        )
 
     def calculate_success(self, analysis):
         success = True
@@ -372,23 +468,31 @@ class AutoRunnerBase(ABC):
         all_metric_names = []
 
         for experiment in experiment_dirs:
-            result_path = os.path.join(f"../workspace/{self.experiment_path}", experiment, 'result.json')
+            result_path = os.path.join(
+                f"../workspace/{self.experiment_path}", experiment, "result.json"
+            )
             if os.path.exists(result_path):
-                with open(result_path, 'r') as f:
+                with open(result_path, "r") as f:
                     result_data = json.load(f)
-                    analysis = result_data.get('analysis', {})
-                    bug = result_data.get('run_code_result', {})['error']
+                    analysis = result_data.get("analysis", {})
+                    bug = result_data.get("run_code_result", {})["error"]
                     success = self.calculate_success(analysis)
-                    data = {**analysis, 'success': success, 'BUG': bug,
-                            'retry_times': result_data.get('retry_times', 0)}
+                    data = {
+                        **analysis,
+                        "success": success,
+                        "BUG": bug,
+                        "retry_times": result_data.get("retry_times", 0),
+                    }
                     exp_data[experiment] = data
 
                     # Collect all possible metric keys from analysis
                     all_metric_names = list(data.keys())
 
         # Calculate and plot average metrics
-        mean_metric_value = {metric: np.mean([exp_data[exp].get(metric, 0) for exp in exp_data.keys()]) for metric in
-                             all_metric_names}
+        mean_metric_value = {
+            metric: np.mean([exp_data[exp].get(metric, 0) for exp in exp_data.keys()])
+            for metric in all_metric_names
+        }
         for metric in all_metric_names:
             self.plot_and_print_results(
                 data=[exp_data[exp].get(metric, 0) for exp in exp_data.keys()],
@@ -396,9 +500,9 @@ class AutoRunnerBase(ABC):
                 ylabel=metric,
                 title=f"Experiment Outcomes in {metric}",
                 colors=[self.get_color(i, len(exp_data)) for i in range(len(exp_data))],
-                save_filename=f'{metric}_metric.png',
+                save_filename=f"{metric}_metric.png",
                 rotation=True,
-                success_conditions=self.success_conditions  # 传递成功条件
+                success_conditions=self.success_conditions,  # 传递成功条件
             )
 
         # Plot summary of metrics
@@ -414,20 +518,20 @@ class AutoRunnerBase(ABC):
         data = list(exp_data.values())  # Average values of the metrics
 
         # Since there's only one set of data (the averages), we don't need multiple colors
-        colors = ['blue']  # You can choose a single color for all bars
+        colors = ["blue"]  # You can choose a single color for all bars
 
         # Call plot_and_print_results to plot all averages in one graph
         self.plot_and_print_results(
             data=data,
             labels=labels,
-            ylabel='Average Value',
-            title='Summary of All Metric Averages',
+            ylabel="Average Value",
+            title="Summary of All Metric Averages",
             colors=colors,  # Single color for all metrics
-            save_filename='summary_metrics.png',
-            rotation=False  # Rotate the x-axis labels 90 degrees for readability
+            save_filename="summary_metrics.png",
+            rotation=False,  # Rotate the x-axis labels 90 degrees for readability
         )
 
     @staticmethod
     def get_color(index, total):
-        cmap = plt.get_cmap('viridis')
+        cmap = plt.get_cmap("viridis")
         return cmap(index / total)

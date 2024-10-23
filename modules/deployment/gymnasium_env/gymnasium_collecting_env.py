@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Optional, TypeVar
 
 from modules.deployment.entity import Landmark, PushableObject, Robot
@@ -25,15 +38,19 @@ class GymnasiumCollectingEnvironment(GymnasiumEnvironmentBase):
     def init_entities(self):
         entity_id = 0
 
-        range_a = Landmark(landmark_id=entity_id,
-                           initial_position=(-0.5, -1),
-                           size=np.array((1, 2)),
-                           color='gray')
+        range_a = Landmark(
+            landmark_id=entity_id,
+            initial_position=(-0.5, -1),
+            size=np.array((1, 2)),
+            color="gray",
+        )
 
-        range_b = Landmark(landmark_id=entity_id + 1,
-                           initial_position=(1.5, 1),
-                           size=np.array((2, 1)),
-                           color='red')
+        range_b = Landmark(
+            landmark_id=entity_id + 1,
+            initial_position=(1.5, 1),
+            size=np.array((2, 1)),
+            color="red",
+        )
 
         self.add_entity(range_a)
         self.add_entity(range_b)
@@ -41,47 +58,67 @@ class GymnasiumCollectingEnvironment(GymnasiumEnvironmentBase):
         entity_id = 2
 
         robot_size = self.data["entities"]["robot"]["size"]
-        robot_num = self.data["entities"]["robot"]["count"] - len(self.data["entities"]["robot"]["specified"])
+        robot_num = self.data["entities"]["robot"]["count"] - len(
+            self.data["entities"]["robot"]["specified"]
+        )
         robot_shape = self.data["entities"]["robot"]["shape"]
         robot_color = self.data["entities"]["robot"]["color"]
 
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=robot_size, robot_shape=robot_shape, min_distance=robot_size,
-                                    entities=self.entities)
-            robot = Robot(robot_id=entity_id,
-                          initial_position=position,
-                          size=robot_size, color=robot_color)
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=robot_size,
+                robot_shape=robot_shape,
+                min_distance=robot_size,
+                entities=self.entities,
+            )
+            robot = Robot(
+                robot_id=entity_id,
+                initial_position=position,
+                size=robot_size,
+                color=robot_color,
+            )
             self.add_entity(robot)
             entity_id += 1
 
         for i in range(self.entity_1_num):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=robot_size, robot_shape=robot_shape, min_distance=robot_size,
-                                    entities=self.entities)
-            object = PushableObject(object_id=entity_id,
-                                    initial_position=position,
-                                    size=0.1,
-                                    color='red')
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=robot_size,
+                robot_shape=robot_shape,
+                min_distance=robot_size,
+                entities=self.entities,
+            )
+            object = PushableObject(
+                object_id=entity_id, initial_position=position, size=0.1, color="red"
+            )
             object.density = 0.01
 
             self.add_entity(object)
             entity_id += 1
 
         for i in range(self.entity_2_num):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=robot_size, robot_shape=robot_shape, min_distance=robot_size,
-                                    entities=self.entities)
-            object = PushableObject(object_id=entity_id,
-                                    initial_position=position,
-                                    size=0.1,
-                                    color='yellow')
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=robot_size,
+                robot_shape=robot_shape,
+                min_distance=robot_size,
+                entities=self.entities,
+            )
+            object = PushableObject(
+                object_id=entity_id, initial_position=position, size=0.1, color="yellow"
+            )
             object.density = 0.01
             self.add_entity(object)
             entity_id += 1
 
     def step(self, action: ActType):
-
         obs, reward, termination, truncation, infos = super().step(action)
         for entity in self.entities:
             if isinstance(entity, PushableObject):
@@ -94,7 +131,6 @@ class GymnasiumCollectingEnvironment(GymnasiumEnvironmentBase):
 
 
 if __name__ == "__main__":
-
     import time
     import rospy
 

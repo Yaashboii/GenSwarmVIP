@@ -1,126 +1,125 @@
-# 仿真环境使用手册
+# Simulation Environment User Manual
 
-## 环境基础信息：
+## 1. Environment Setup
 
-- Ubuntu 20.04
-- python == 3.10
+### 1.1 Create Workspace
 
-## 1. 环境准备
+- Create the workspace and package.
+- The package must be named ***code_llm***.
 
-### 1.1 建立工作空间
-
-- 创建工作空间`ws`
-
-```
-mkdir -p ws/src
-cd ws
+```bash
+mkdir -p custom_workspace_name/src
+cd custom_workspace_name
 catkin_make
-```
 
-- 创建包，包的名字必须为 ***code_llm***
-
-```
 cd src
 catkin_create_pkg code_llm rospy std_msgs geometry_msgs message_generation
-```
 
-- 克隆Github的仓库
-
-```
 cd code_llm
-git clone https://github.com/WestlakeIUSL/CodeLLM.git
 ```
 
-### 1.2 编译工作空间
+### 1.2 Add Package Files
 
-- 进入工作空间, 编译, 安装
-
-```
-cd ws
-catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3   # 根据实际的系统python解释器位置更改路径,ubuntu 20为/usr/bin/python3, ubuntu18为/usr/bin/python. 此外python不能是anaconda的, 因其无法访问pip install的packages
-catkin_make install 
-```
-
-### 1.3 配置系统路径
-
-- 编辑环境变量, 注意根据实际情况调整***工作空间***和***ros***的绝对路径
+- Copy all the files from CodeLLM into the code_llm package. If `-b branch_name` is not used, the default master branch will be cloned.
 
 ```
-gedit ~/.bashrc
+git clone -b branch_name https://github.com/WestlakeIUSL/CodeLLM.git
 ```
 
-- 加入以下内容:
+- The final directory structure is shown below:
 
+<img src="../assets/files.png" alt="codellm" width="600" height="300">
+
+### 1.3 Build Workspace
+
+- Go to the custom workspace directory, install `python3-empy`, and compile. When compiling, it's recommended to specify the Python interpreter. Adjust the path according to the local Python version. For Ubuntu 18, it's `/usr/bin/python`, and for Ubuntu 20, it's `/usr/bin/python3`. Avoid using Anaconda Python, as it may not access pip-installed packages.
+
+```bash
+cd workspace_directory
+sudo apt install python3-empy
+catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3
 ```
-export PYTHONPATH={工作空间所在的绝对路径}/devel/lib/python3/dist-packages:$PYTHONPATH  # 需要根据实际python版本调整
-export PYTHONPATH=/opt/ros/noetic/lib/python3/dist-packages:$PYTHONPATH  # 根据实际的ROS和python版本进行调整
+
+### 1.4 Create Virtual Environment
+
+- Create and activate a virtual environment. Navigate to the code_llm directory and install the required packages.
+
+```bash
+conda create -n env_name python=3.10
+conda activate env_name
+
+pip install -r ./requirements.py
 ```
 
-### 1.4 配置程序中的路径
+### 1.5 Configure Path
 
-- 方式1 在vscode中, 可以将下面这段代码配置进settings.json中。
+- Option 1: In VSCode, you can add the following configuration to your `settings.json`.
 
 ```json
 {
   "python.autoComplete.extraPaths": [
     "/opt/ros/noetic/lib/python3/dist-packages",
-    "/{工作空间所在的绝对路径}/ws/devel/lib/python3/dist-packages"
+    "/xxx/yyy_workspace/devel/lib/python3/dist-packages"
   ]
 }
 ```
 
-- 方式2 在pycharm中, 手动给python interpreter添加***code_llm***和***ros***包的路径, 如图中倒数两行(added by user)所示：
+- Option 2: In PyCharm, manually add the ***code_llm*** and ***ros*** package paths to the Python interpreter, as shown in the last two lines (added by the user) in the image below:
 
-```
-/opt/ros/noetic/lib/python3/dist-packages
-/{工作空间所在的绝对路径}/ws/devel/lib/python3/dist-packages
-```
+<img src="../assets/path.png" alt="path" width="600" height="400" />
 
-<img src="../assets/pycharm pythonpath.png" style="zoom:40%;" />
+## 2. Running the Environment
 
-## 2. 运行
+### 2.1 Normal Test Run
 
-### 2.1 正常测试运行
+- Run `environment.py`. Execute the following command in the terminal:
 
-- 运行 `environment.py` , 在Terminal中运行以下命令:
-
-```
-cd 工作空间/src/code_llm/modules/env
-conda activate conda环境名 # 激活conda环境 版本py 3.10
+```bash
+cd workspace_directory/src/code_llm/modules/env
+conda activate env_name
 python environment.py
 ```
-> note: 注意在运行前，先运行 environment.py
 
-- 运行 `code_llm/run.py` , 直接idea内部运行即可
+> Note: Ensure `environment.py` is run before proceeding.
 
-### 2.2 对某一个已经生成的工作空间进行测试
+- Run `code_llm/run.py` directly from the IDE.
 
-- 运行 `environment.py` , 在Terminal中运行以下命令:
-- 修改 `code_llm/modules/stages/running_stage.py`中的
-`set_workspace_root('/home/ubuntu/Desktop/CodeLLM/workspace/2024-03-05_20-03-52')`为想要测试的工作空间路径
-- 运行 `code_llm/modules/stages/running_stage.py` , 直接idea内部运行即可
+### 2.2 Test an Existing Workspace
 
+- Run `environment.py` in the terminal, and modify `code_llm/modules/stages/running_stage.py`. Change
+  `set_workspace_root('/home/ubuntu/Desktop/CodeLLM/workspace/2024-03-05_20-03-52')` to the path of the workspace to test.
+- Run `code_llm/modules/stages/running_stage.py` directly from the IDE.
 
-## 日志
+## Logs
 
 ---
 
 Version: 1.0
 
-Data: 2024/3/5
+Date: 2024/3/5
 
 Editors: MiangChen
 
-使用手册初稿，说明了如何建立工作空间，加入包文件，编译工作空间，运行仿真环境，配置pycharm中的路径。
+The initial draft of the user manual, explaining how to set up a workspace, add package files, build the workspace, run the simulation environment, and configure paths in PyCharm.
 
 ---
 
 Version: 1.1
 
-Data: 2024/3/6
+Date: 2024/3/6
 
 Editors: WenkangJi
 
-增加了使用方法 以及对初稿内容进行补充说明
+Added usage instructions and further clarifications to the initial draft.
+
+---
+
+Version: 1.2
+
+Date: 2024/10/12
+
+Editors: Guobin Zhu
+
+Added detailed usage instructions.
 
 ---

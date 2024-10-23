@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import os
 from os import listdir, makedirs
 
@@ -25,8 +38,12 @@ def main():
     # env = MoveEnvironment(1000, 1000, robot_num=6, obstacle_num=100)
     # env=MoveFormationEnvironment(1000, 1000, robot_num=5, obstacle_num=30)
     # env = RealEnvironment(data_file='../config/vicon_data.json')
-    env = RealCrossEnvironment(data_file='../config/vicon_data.json', engine_type='QuadTreeEngine')
-    screen = pygame.display.set_mode((env.width * env.scale_factor, env.height * env.scale_factor))
+    env = RealCrossEnvironment(
+        data_file="../config/vicon_data.json", engine_type="QuadTreeEngine"
+    )
+    screen = pygame.display.set_mode(
+        (env.width * env.scale_factor, env.height * env.scale_factor)
+    )
     clock = pygame.time.Clock()
 
     manager = Manager(env)

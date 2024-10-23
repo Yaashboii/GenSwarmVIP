@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 #!/usr/bin/python3
 
 import socket
@@ -24,17 +37,19 @@ class MqttClientThread:
         self.stop_event = threading.Event()
         self.client = self.connect_mqtt()
         self.client.on_message = self.mqtt_callback
-        self.client.subscribe('/observation')
-        self.client.subscribe('/' + self.hostname + '_robot/motion')
+        self.client.subscribe("/observation")
+        self.client.subscribe("/" + self.hostname + "_robot/motion")
         rospy.init_node("mqtt_server")
-        self.observation_pub = rospy.Publisher("/observation", Observations, queue_size=1)
-        self.vel_pub = rospy.Publisher('robot/velcmd', Twist, queue_size=10)
+        self.observation_pub = rospy.Publisher(
+            "/observation", Observations, queue_size=1
+        )
+        self.vel_pub = rospy.Publisher("robot/velcmd", Twist, queue_size=10)
 
     def connect_mqtt(self):
-        '''连接MQTT代理服务器'''
+        """连接MQTT代理服务器"""
 
         def on_connect(client, userdata, flags, rc):
-            '''连接回调函数'''
+            """连接回调函数"""
             if rc == 0:
                 print("Connected to MQTT OK!")
             else:
@@ -46,16 +61,20 @@ class MqttClientThread:
         return client
 
     def mqtt_callback(self, client, userdata, msg):
-        '''订阅消息回调函数'''
-        print('call back ')
-        if msg.topic == '/observation':
+        """订阅消息回调函数"""
+        print("call back ")
+        if msg.topic == "/observation":
             obs_msg = msg.payload.decode()
-            message = json_message_converter.convert_json_to_ros_message('code_llm/Observations', obs_msg)
+            message = json_message_converter.convert_json_to_ros_message(
+                "code_llm/Observations", obs_msg
+            )
             print(f"Received message from topic {msg.topic}")
             self.observation_pub.publish(message)
-        elif msg.topic == ('/' + self.hostname + '_robot/motion'):
+        elif msg.topic == ("/" + self.hostname + "_robot/motion"):
             vel_msg = msg.payload.decode()
-            vel_msg = json_message_converter.convert_json_to_ros_message('geometry_msgs/Twist', vel_msg)
+            vel_msg = json_message_converter.convert_json_to_ros_message(
+                "geometry_msgs/Twist", vel_msg
+            )
             self.vel_pub.publish(vel_msg)
         else:
             print(f"Unknown topic {msg.topic}")
@@ -73,10 +92,10 @@ def main():
     port = 1883
     keepalive = 60  # 与代理通信之间允许的最长时间段（以秒为单位）
     hostname = socket.gethostname()
-    client_id = f'{hostname}_robot_sub'  # 客户端ID不能重复
+    client_id = f"{hostname}_robot_sub"  # 客户端ID不能重复
 
     try:
-        broker = os.environ['REMOTE_SERVER']
+        broker = os.environ["REMOTE_SERVER"]
     except KeyError:
         broker = broker_ip
 
@@ -84,8 +103,13 @@ def main():
         time.sleep(2)
 
     # 启动MQTT客户端线程
-    mqtt_client_instance = MqttClientThread(broker=broker, port=port, keepalive=keepalive, client_id=client_id,
-                                            hostname=hostname)
+    mqtt_client_instance = MqttClientThread(
+        broker=broker,
+        port=port,
+        keepalive=keepalive,
+        client_id=client_id,
+        hostname=hostname,
+    )
     mqtt_thread = threading.Thread(target=mqtt_client_instance.run)
     mqtt_thread.start()
 

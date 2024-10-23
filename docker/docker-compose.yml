@@ -3,7 +3,7 @@ version: '3.8'
 services:
   base:
     build:
-      context: ..
+      context: .
       dockerfile: base.Dockerfile
     image: huabench/code-llm:base
 
@@ -15,7 +15,7 @@ services:
       dockerfile: ./docker/runtime.Dockerfile
     image: huabench/code-llm:runtime
     volumes:
-      - ..:/src
+      - ..:/catkin_ws/src/code_llm
     network_mode: host
     stdin_open: true
     tty: true
@@ -27,8 +27,9 @@ services:
       - /bin/bash
       - -c
       - |
+        source /opt/ros/noetic/setup.bash && catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3 && source ./devel/setup.bash && cd ./src/code_llm &&
         conda run --no-capture-output -n py310 \
-        python -m unittest discover
+        python -m unittest discover tests
 
   deploy:
     extends:

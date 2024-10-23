@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -9,7 +22,9 @@ def run_command(command, timeout):
         # 使用 subprocess.run 设置超时
         subprocess.run(command, shell=True, timeout=timeout)
     except subprocess.TimeoutExpired:
-        print(f"Command '{command}' exceeded the timeout of {timeout} seconds and was terminated.")
+        print(
+            f"Command '{command}' exceeded the timeout of {timeout} seconds and was terminated."
+        )
 
 
 def run_multiple_times(command, num_times, max_workers=1, timeout=30):

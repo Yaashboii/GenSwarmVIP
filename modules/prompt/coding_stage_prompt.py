@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 WRITE_GLOBAL_FUNCTION_PROMPT_TEMPLATE = """
 ## Background:
 {task_des}
@@ -148,7 +161,7 @@ def allocate_run():
 - You can only complete the functions specified in Task according to the specified format; you cannot generate other Helper functions. If necessary, you can define functions within this function.
 - You can only call these existing functions and global Api, and you cannot define complex logic on your own,just call the existing functions.
 - Import the required modules before the function name, and do not import them in the function body.
-- Use the existing high-level functions. 
+- Use the existing high-level functions.
 - Do not use while loops or raise exceptions in the function body.
 - The allocation method for robots should be optimal, ensuring no conflicts occur between them.
 - Task allocation will only occur once at the beginning of the task, so the tasks assigned to each robot should take environmental changes into account and avoid relying on any single changing object.

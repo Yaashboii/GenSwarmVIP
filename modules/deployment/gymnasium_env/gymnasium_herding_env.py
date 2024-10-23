@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Optional, TypeVar
 
 from modules.deployment.entity import Robot, Sheep, Wall, Landmark
@@ -9,16 +22,17 @@ ActType = TypeVar("ActType")
 
 
 class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
-
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
     def init_entities(self):
         entity_id = 0
-        target_zone = Landmark(landmark_id=entity_id,
-                               initial_position=(0, 0),
-                               size=np.array((1, 1)),
-                               color='gray', )
+        target_zone = Landmark(
+            landmark_id=entity_id,
+            initial_position=(0, 0),
+            size=np.array((1, 1)),
+            color="gray",
+        )
         self.add_entity(target_zone)
         entity_id += 1
 
@@ -27,13 +41,21 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
         color = self.data["entities"]["robot"]["color"]
 
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=0.5,
-                                    entities=self.entities)
-            dog = Robot(robot_id=entity_id,
-                        initial_position=position,
-                        size=robot_size,
-                        color=color)
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=robot_size,
+                robot_shape=shape,
+                min_distance=0.5,
+                entities=self.entities,
+            )
+            dog = Robot(
+                robot_id=entity_id,
+                initial_position=position,
+                size=robot_size,
+                color=color,
+            )
             self.add_entity(dog)
             entity_id += 1
 
@@ -42,14 +64,22 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
         color = self.data.get("entities").get("sheep", {}).get("color", "blue")
 
         for i in range(self.num_sheep):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=sheep_size, robot_shape=shape, min_distance=sheep_size,
-                                    entities=self.entities)
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=sheep_size,
+                robot_shape=shape,
+                min_distance=sheep_size,
+                entities=self.entities,
+            )
             # position = [0,0]
-            sheep = Sheep(prey_id=entity_id,
-                          initial_position=position,
-                          size=sheep_size,
-                          max_speed=0.4)
+            sheep = Sheep(
+                prey_id=entity_id,
+                initial_position=position,
+                size=sheep_size,
+                max_speed=0.4,
+            )
             self.add_entity(sheep)
             entity_id += 1
 
@@ -59,18 +89,26 @@ class GymnasiumHerdingEnvironment(GymnasiumEnvironmentBase):
         for entity in self.entities:
             if isinstance(entity, Sheep):
                 # 获取邻居羊群和机器人列表
-                sheep = [e for e in self.entities if isinstance(e, Sheep) and e != entity]
+                sheep = [
+                    e for e in self.entities if isinstance(e, Sheep) and e != entity
+                ]
                 robots = [e for e in self.entities if isinstance(e, Robot)]
-                speed = entity.calculate_velocity(sheep, robots,
-                                                  environment_bounds=[-0.5 * self.width, 0.5 * self.width,
-                                                                      -0.5 * self.height, 0.5 * self.height])
+                speed = entity.calculate_velocity(
+                    sheep,
+                    robots,
+                    environment_bounds=[
+                        -0.5 * self.width,
+                        0.5 * self.width,
+                        -0.5 * self.height,
+                        0.5 * self.height,
+                    ],
+                )
                 self.set_entity_velocity(entity.id, speed)
 
         return obs, reward, termination, truncation, infos
 
 
 if __name__ == "__main__":
-
     import time
     import rospy
 

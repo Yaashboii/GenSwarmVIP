@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import numpy as np
 import rospy
 
@@ -37,8 +50,10 @@ class MultiRobotController:
         :param max_speed: 机器人的最大速度。
         :param buffer_distance: 机器人与其他机器人的最小安全距离。
         """
-        self.robots = [Robot(robot_id=i, max_speed=max_speed, buffer_distance=buffer_distance) for i in
-                       range(num_robots)]
+        self.robots = [
+            Robot(robot_id=i, max_speed=max_speed, buffer_distance=buffer_distance)
+            for i in range(num_robots)
+        ]
         self.num_robots = num_robots
         self.max_speed = max_speed
         self.radius = 0.15
@@ -74,7 +89,9 @@ class MultiRobotController:
 
         return avoid_velocity
 
-    def compute_velocity_towards_target(self, robot_position, target_position, max_speed):
+    def compute_velocity_towards_target(
+        self, robot_position, target_position, max_speed
+    ):
         """
         计算朝向目标的速度。
         :param robot_position: 当前机器人的位置。
@@ -91,7 +108,9 @@ class MultiRobotController:
         :param target_positions: 每个机器人的目标位置。
         """
         for i, robot in enumerate(self.robots):
-            target_velocity = self.compute_velocity_towards_target(robot.position, target_positions[i], robot.max_speed)
+            target_velocity = self.compute_velocity_towards_target(
+                robot.position, target_positions[i], robot.max_speed
+            )
             other_robots = [r for r in self.robots if r.robot_id != robot.robot_id]
             collision_avoidance_velocity = self.avoid_collisions(robot, other_robots)
 
@@ -119,12 +138,14 @@ class MultiRobotController:
         """
         from itertools import permutations
 
-        min_total_distance = float('inf')
+        min_total_distance = float("inf")
         best_permutation = None
 
         for perm in permutations(range(self.num_robots)):
             total_distance = sum(
-                np.linalg.norm(start_positions[i] - target_positions[perm[i]]) for i in range(self.num_robots))
+                np.linalg.norm(start_positions[i] - target_positions[perm[i]])
+                for i in range(self.num_robots)
+            )
             if total_distance < min_total_distance:
                 min_total_distance = total_distance
                 best_permutation = perm

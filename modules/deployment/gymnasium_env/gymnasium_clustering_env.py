@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Any, SupportsFloat, TypeVar, Optional
 
 import numpy as np
@@ -15,11 +28,12 @@ class GymnasiumClusteringEnvironment(GymnasiumEnvironmentBase):
         super().__init__(data_file)
 
     def init_entities(self):
-
         def add_specified_entities(entity_type, entity_class, color=None):
             nonlocal entity_id
             for entity_data in self.data["entities"][entity_type]["specified"]:
-                entity = entity_class(entity_id, entity_data["position"], entity_data["size"])
+                entity = entity_class(
+                    entity_id, entity_data["position"], entity_data["size"]
+                )
                 if color:
                     entity.color = entity_data.get("color", color)
                 self.add_entity(entity)
@@ -27,11 +41,15 @@ class GymnasiumClusteringEnvironment(GymnasiumEnvironmentBase):
 
         entity_id = 0
         for i in range(4):
-            initial_position = np.array([-1.25, -1.25]) + np.array([i % 2, i // 2]) * 2.5
-            target_zone = Landmark(landmark_id=entity_id,
-                                   initial_position=initial_position,
-                                   size=np.array((1.5, 1.5)),
-                                   color='blue', )
+            initial_position = (
+                np.array([-1.25, -1.25]) + np.array([i % 2, i // 2]) * 2.5
+            )
+            target_zone = Landmark(
+                landmark_id=entity_id,
+                initial_position=initial_position,
+                size=np.array((1.5, 1.5)),
+                color="blue",
+            )
             self.add_entity(target_zone)
             entity_id += 1
         add_specified_entities("leader", Leader, "red")
@@ -43,14 +61,22 @@ class GymnasiumClusteringEnvironment(GymnasiumEnvironmentBase):
         # Add remaining robots
         if "count" in self.data["entities"]["robot"]:
             robot_size = self.data["entities"]["robot"]["size"]
-            robot_num = self.data["entities"]["robot"]["count"] - len(self.data["entities"]["robot"]["specified"])
+            robot_num = self.data["entities"]["robot"]["count"] - len(
+                self.data["entities"]["robot"]["specified"]
+            )
             shape = self.data["entities"]["robot"]["shape"]
             color = self.data["entities"]["robot"]["color"]
 
             for i in range(robot_num):
-                position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                        robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
-                                        entities=self.entities)
+                position = sample_point(
+                    zone_center=[0, 0],
+                    zone_shape="rectangle",
+                    zone_size=[self.width, self.height],
+                    robot_size=robot_size,
+                    robot_shape=shape,
+                    min_distance=robot_size,
+                    entities=self.entities,
+                )
                 robot = Robot(entity_id, position, robot_size, color=color)
                 self.add_entity(robot)
                 entity_id += 1
@@ -60,22 +86,26 @@ class GymnasiumClusteringEnvironment(GymnasiumEnvironmentBase):
             num = self.data["entities"]["obstacle"]["count"]
 
             for i in range(num):
-                position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                        robot_size=size, robot_shape='circle', min_distance=size,
-                                        entities=self.entities)
+                position = sample_point(
+                    zone_center=[0, 0],
+                    zone_shape="rectangle",
+                    zone_size=[self.width, self.height],
+                    robot_size=size,
+                    robot_shape="circle",
+                    min_distance=size,
+                    entities=self.entities,
+                )
                 robot = Obstacle(entity_id, position, size)
                 self.add_entity(robot)
                 entity_id += 1
 
     def step(
-            self, action: ActType
+        self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
-
         return super().step(action)
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     import time
     import rospy
 
