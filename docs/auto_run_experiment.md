@@ -18,5 +18,3 @@
      - top或者htop查看是否有CPU占用异常
      - 查看进程指令：ps aux | grep run.py
      - kill 指令：pgrep -f run.py | xargs kill -9
-
-
