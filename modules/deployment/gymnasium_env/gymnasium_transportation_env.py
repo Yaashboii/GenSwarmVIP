@@ -13,7 +13,7 @@ software or the use or other dealings in the software.
 
 from typing import Optional, TypeVar
 
-from modules.deployment.engine import QuadTreeEngine, Box2DEngine, PyBullet2DEngine
+from modules.deployment.engine import QuadTreeEngine, Box2DEngine
 from modules.deployment.entity import Robot, PushableObject, Landmark
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
