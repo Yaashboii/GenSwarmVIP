@@ -143,7 +143,6 @@ class Engine(ABC):
         self._entities.clear()
         self._joints.clear()
 
-    @abstractmethod
     def step(self, delta_time: float):
         """
         Perform a physics step in the environment.
@@ -152,7 +151,6 @@ class Engine(ABC):
             "The step method must be implemented by the subclass."
         )
 
-    @abstractmethod
     def apply_force(self, entity_id: int, force):
         """
         Apply a force to an entity in the environment.
@@ -161,7 +159,6 @@ class Engine(ABC):
             "The apply_force method must be implemented by the subclass."
         )
 
-    @abstractmethod
     def control_velocity(self, entity_id, desired_velocity, dt=None):
         """
         Control the velocity of an entity in the environment
