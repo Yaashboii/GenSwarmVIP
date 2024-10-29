@@ -1,10 +1,11 @@
 import unittest
 import numpy as np
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from Box2D import b2Vec2
 from modules.deployment.entity.base_entity import Entity
 from modules.deployment.engine.box2d_engine import (
     Box2DEngine,
+    PIDController,
 )  # Replace 'your_module' with the module containing Box2DEngine
 
 
@@ -100,6 +101,76 @@ class TestBox2DEngine(unittest.TestCase):
         self.engine.add_joint(self.entity.id, entity2.id, distance=5.0)
         self.engine.remove_joint(self.entity.id, entity2.id)
         self.assertNotIn((self.entity.id, entity2.id), self.engine.joints)
+
+    # Test PIDController compute method
+    def test_pid_controller_compute(self):
+        pid_controller = PIDController(1.0, 0.1, 0.05)
+        setpoint = 10.0
+        measurement = 8.0
+        dt = 0.1
+
+        # Call the compute method
+        output = pid_controller.compute(setpoint, measurement, dt)
+
+        # Check if the output is as expected
+        expected_output = 3  # Calculated value based on given parameters
+        self.assertAlmostEqual(output, expected_output, places=1)
+
+    # Test PIDController set_parameters method
+    def test_pid_controller_set_parameters(self):
+        pid_controller = PIDController(1.0, 0.1, 0.05)
+
+        # Set new parameters
+        pid_controller.set_parameters(2.0, 0.2, 0.1)
+
+        # Verify the parameters were updated
+        self.assertEqual(pid_controller.kp, 2.0)
+        self.assertEqual(pid_controller.ki, 0.2)
+        self.assertEqual(pid_controller.kd, 0.1)
+
+    def test_get_entities_state(self):
+        # Add a second entity for testing
+        entity2 = MockEntity(
+            2, initial_position=[1, 1], size=1.0, color="red", movable=True
+        )
+        self.engine.add_entity(entity2)
+
+        # Get states of all entities
+        positions, velocities = self.engine.get_entities_state()
+
+        # Verify that we have the correct number of entities
+        self.assertEqual(positions.shape[0], 2)
+        self.assertEqual(velocities.shape[0], 2)
+
+    @patch.object(Box2DEngine, "get_entity_state")
+    def test_apply_force(self, mock_get_entity_state):
+        # Mock the entity state to return a specific value
+        mock_get_entity_state.return_value = (
+            np.array([0.0, 0.0]),
+            np.array([0.0, 0.0]),
+        )
+        force = np.array([10.0, 0.0])
+
+        # Call apply_force
+        self.engine.apply_force(self.entity.id, force)
+
+        # Verify that the ApplyForceToCenter method was called
+        body = self.engine.bodies[self.entity.id]
+        body.ApplyForceToCenter = MagicMock()  # Mock the method to verify calls
+        self.engine.apply_force(self.entity.id, force)
+
+        body.ApplyForceToCenter.assert_called_once_with(b2Vec2(tuple(force)), True)
+
+    @patch.object(Box2DEngine, "apply_force")
+    def test_control_velocity(self, mock_apply_force):
+        desired_velocity = np.array([5.0, 0.0])
+        dt = 0.1
+
+        # Call control_velocity
+        self.engine.control_velocity(self.entity.id, desired_velocity, dt)
+
+        # Assert that apply_force is called with the expected parameters
+        mock_apply_force.assert_called_once()
 
 
 if __name__ == "__main__":

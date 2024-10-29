@@ -79,6 +79,15 @@ class TestNodes(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.function_node1.state = 9
 
+    def test_function_node_reset(self):
+        function_node = FunctionNode("function1", "descption1")
+        function_node.reset()
+
+        self.assertEqual(len(function_node._import_list), 0)
+        self.assertEqual(function_node.content, "")
+        self.assertEqual(function_node._definition, "")
+        self.assertEqual(function_node.state, State.NOT_STARTED)
+
 
 if __name__ == "__main__":
     unittest.main()

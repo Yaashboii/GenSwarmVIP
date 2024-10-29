@@ -13,10 +13,12 @@ software or the use or other dealings in the software.
 
 import unittest
 import os
+from unittest.mock import MagicMock, patch
 
 from modules.framework.code import FunctionTree
 from modules.framework.context import WorkflowContext
 from modules.framework.constraint import ConstraintPool
+from modules.file import File
 
 
 class TestWorkflowContext(unittest.TestCase):
@@ -60,6 +62,48 @@ class TestWorkflowContext(unittest.TestCase):
 
     #     function_pool_imports = FunctionTree("test").import_list
     #     self.assertCountEqual(function_pool_imports, import_data)
+
+    def test_set_root_for_files(self):
+        # Mock File and FunctionTree's file attribute to avoid dependency on actual File class implementation
+        mock_file_1 = MagicMock(spec=File)
+        mock_file_2 = MagicMock(spec=File)
+        mock_function_tree_1 = MagicMock(spec=FunctionTree)
+        mock_function_tree_1.file = mock_file_2
+
+        # Replace instance attributes with mocked instances
+        with patch.object(self.context, "user_command", mock_file_1), patch.object(
+            self.context, "_global_skill_tree", mock_function_tree_1
+        ):
+            # Run method
+            root_path = "/test/root"
+            self.context.set_root_for_files(root_path)
+
+            # Assert that root attribute is set on each File and FunctionTree's file attribute
+            self.assertEqual(mock_file_1.root, root_path)
+            self.assertEqual(mock_file_2.root, root_path)
+
+    def test_command_property(self):
+        # Mock the user_command's message attribute
+        self.context.user_command.message = "initial command"
+
+        # Test the getter
+        self.assertEqual(self.context.command, "initial command")
+
+        # Test the setter
+        self.context.command = "new command"
+        self.assertEqual(self.context.user_command.message, "new command")
+
+    def test_global_skill_tree_property(self):
+        # Check that the global_skill_tree property retrieves the singleton instance's _global_skill_tree
+        self.assertIsInstance(self.context.global_skill_tree, FunctionTree)
+
+    def test_local_skill_tree_property(self):
+        # Check that the local_skill_tree property retrieves the singleton instance's _local_skill_tree
+        self.assertIsInstance(self.context.local_skill_tree, FunctionTree)
+
+    def test_constraint_pool_property(self):
+        # Check that the constraint_pool property retrieves the singleton instance's _constraint_pool
+        self.assertIsInstance(self.context.constraint_pool, ConstraintPool)
 
 
 if __name__ == "__main__":

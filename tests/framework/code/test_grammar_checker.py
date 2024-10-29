@@ -64,12 +64,42 @@ class TestGrammarChecker(unittest.TestCase):
         self.assertEqual(function_name, "my_function")
         self.assertEqual(error_code_line, "return d")
 
-    # @patch("modules.file.file.logger.log")
-    # def test_check_code_errors(self, mock_logger):
-    #     errors = self.grammar_checker.check_code_errors(
-    #         os.path.join(root_manager.project_root, self.file_path)
-    #     )
-    #     self.assertEqual(errors, self.errors)
+    @patch.object(GrammarParser, "_run_pylint_check")
+    @patch.object(GrammarParser, "_find_function_name_from_error")
+    @patch("modules.file.file.logger.log")
+    def test_check_code_errors(
+        self, mock_logger, mock_find_function_name, mock_run_pylint_check
+    ):
+        # Simulate pylint output with errors
+        mock_run_pylint_check.return_value = [
+            {
+                "file_path": "example.py",
+                "line": 10,
+                "column": 5,
+                "error_code": "E0602",
+                "error_message": "Undefined variable 'x'",
+            }
+        ]
+
+        # Simulate finding the function name in which the error occurred
+        mock_find_function_name.return_value = (
+            "test_function",
+            "x = undefined_variable",
+        )
+
+        # Run check_code_errors
+        errors = self.grammar_checker.check_code_errors("example.py")
+
+        # Assertions
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0]["function_name"], "test_function")
+        self.assertEqual(errors[0]["error_message"], "Undefined variable 'x'")
+
+        # Verify that _run_pylint_check and _find_function_name_from_error were called with correct arguments
+        mock_run_pylint_check.assert_called_once_with("example.py")
+        mock_find_function_name.assert_called_once_with(
+            file_path="example.py", error_line=10
+        )
 
 
 if __name__ == "__main__":
