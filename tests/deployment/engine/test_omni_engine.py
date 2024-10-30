@@ -17,8 +17,11 @@ from code_llm.msg import (
 class TestOmniEngine(unittest.TestCase):
     @patch.object(OmniEngine, "start_up_mqtt_thread")
     @patch("rospy.Subscriber")
-    def setUp(self, mock_subscriber, mock_start_mqtt):
+    @patch("rospy.init_node")
+    @patch("rospy.Time.now")
+    def setUp(self, mock_subscriber, mock_start_mqtt, mock_init_node, mock_time_now):
         self.engine = OmniEngine()
+
         self.engine.mqtt_client = MagicMock()  # Mock the MQTT client
         self.engine._entities = {  # Mock entities with attributes like yaw and color
             1: MagicMock(yaw=0.0, color="red"),
