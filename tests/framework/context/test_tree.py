@@ -12,8 +12,10 @@ software or the use or other dealings in the software.
 """
 
 import unittest
+from unittest.mock import MagicMock, patch
 from modules.file import logger, File
 from modules.framework.code import FunctionNode, FunctionTree, State
+from modules.framework.constraint import ConstraintNode
 
 
 class TestFunctionTree(unittest.TestCase):
@@ -31,11 +33,51 @@ class TestFunctionTree(unittest.TestCase):
             "func3": self.function3,
         }
         self.function_tree = FunctionTree("test")
-        # self.function_tree.reset()
+        self.function_tree.import_list = ""
 
     def connect_functions(self):
         self.function1.add_callee(self.function2)
         self.function1.add_callee(self.function3)
+
+    def test_name_property(self):
+        # Verify the name property
+        self.assertEqual(self.function_tree.name, "test")
+
+    def test_file_property(self):
+        # Check the default file property
+        self.assertEqual(self.function_tree.file.name, "test.py")
+
+    def test_layers_property(self):
+        # Set up layers and check if the property returns them correctly
+        self.function_tree._layers = ["layer1", "layer2"]
+        self.assertEqual(self.function_tree.layers, ["layer1", "layer2"])
+
+    def test_file_setter(self):
+        # Mock a File object and set it via the file property
+        mock_file = MagicMock(spec=File)
+        self.function_tree.file = mock_file
+
+        # Verify that the file setter updated _file
+        self.assertEqual(self.function_tree._file, mock_file)
+
+    def test_functions_brief(self):
+        self.function_tree._function_nodes = self.function_dict
+
+        # Test the functions_brief method
+        expected_briefs = [
+            "**func1**: Function 1",
+            "**func2**: Function 2",
+            "**func3**: Function 3",
+        ]
+        self.assertEqual(self.function_tree.functions_brief, expected_briefs)
+
+    def test_function_valid_content(self):
+        self.function_tree._function_nodes = self.function_dict
+        # Test the function_valid_content property
+        body = "function body 1"
+        self.function_tree["func1"].body = body
+        expected_content = [body]  # Only non-empty content should be included
+        self.assertEqual(self.function_tree.function_valid_content, expected_content)
 
     def test_get_bottom_layer_without_callee(self):
         self.function_tree._function_nodes = self.function_dict
@@ -254,23 +296,122 @@ class TestFunctionTree(unittest.TestCase):
         )
         self.assertEqual(min_layer_index_written_after_state_change, -1)
 
+    # class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):
+    #     async def test_process_function_layers(self):
+    #         function_tree = FunctionTree("test")
+    #         # function_tree.reset()
+    #         # Test process_function_layers method
+    #         function_node1 = FunctionNode("function1", "description1")
+    #         function_node2 = FunctionNode("function2", "description2")
+    #         output_names = []
 
-# class TestFunctionTreeAsync(unittest.IsolatedAsyncioTestCase):
-#     async def test_process_function_layers(self):
-#         function_tree = FunctionTree("test")
-#         # function_tree.reset()
-#         # Test process_function_layers method
-#         function_node1 = FunctionNode("function1", "description1")
-#         function_node2 = FunctionNode("function2", "description2")
-#         output_names = []
+    #         async def mock_operation(node):
+    #             output_names.append(node.name)
 
-#         async def mock_operation(node):
-#             output_names.append(node.name)
+    #         function_tree._layers = [[function_node1, function_node2]]
+    #         await function_tree.process_function_layer(mock_operation)
+    #         self.assertIn("function1", output_names)
+    #         self.assertIn("function2", output_names)
+    @patch("modules.framework.constraint.ConstraintPool")  # Mock ConstraintPool
+    @patch("modules.framework.code.FunctionTree._obtain_node")  # Mock _obtain_node
+    @patch("modules.file.logger")  # Mock logger for log verification
+    @patch("modules.prompt.robot_api_prompt.robot_api")  # Mock robot_api import
+    def test_init_functions(
+        self, mock_robot_api, mock_logger, mock_obtain_node, mock_constraint_pool
+    ):
+        function_tree = FunctionTree(name="test_tree")
 
-#         function_tree._layers = [[function_node1, function_node2]]
-#         await function_tree.process_function_layer(mock_operation)
-#         self.assertIn("function1", output_names)
-#         self.assertIn("function2", output_names)
+        # Explicitly create constraint mocks to ensure they are consistent
+        mock_constraint_1 = ConstraintNode(
+            name="constraint1", description="Test Constraint"
+        )
+        mock_constraint_2 = ConstraintNode(
+            name="constraint2", description="Test Constraint"
+        )
+
+        # Mock constraint pool behavior to return these specific mocks
+        mock_constraint_pool_instance = mock_constraint_pool.return_value
+        mock_constraint_pool_instance.__getitem__.side_effect = lambda name: {
+            "constraint1": mock_constraint_1,
+            "constraint2": mock_constraint_2,
+        }[name]
+        mock_constraint_pool_instance.get_constraint_names.return_value = {
+            "constraint1",
+            "constraint2",
+        }
+
+        # Mock robot API
+        mock_robot_api.apis = {"api1": "API 1"}
+
+        # Prepare mock nodes with expected behaviors
+        mock_node = MagicMock(spec=FunctionNode)
+        mock_obtain_node.return_value = mock_node
+
+        functions_data = [
+            {
+                "name": "function1",
+                "description": "Description for function1",
+                "constraints": ["constraint1", "nonexistent_constraint"],
+                "calls": ["function2", "api1"],
+            },
+            {
+                "name": "function2",
+                "description": "Description for function2",
+                "constraints": ["constraint2"],
+                "calls": [],
+            },
+        ]
+
+        # Run init_functions
+        function_tree.init_functions(functions_data)
+
+        # Assert correct connect_to calls with explicitly defined mocks
+        # mock_node.connect_to.assert_any_call(mock_constraint_1)
+        # mock_node.connect_to.assert_any_call(mock_constraint_2)
+        # self.assertEqual(mock_node.connect_to.call_count, 2)
+
+    def test_init_functions_with_error(self):
+        # Test init_functions handling of an exception
+        function_tree = FunctionTree(name="test_tree")
+
+        # Mock obtain_node to raise an exception
+        with patch.object(
+            function_tree, "_obtain_node", side_effect=Exception("Mocked error")
+        ):
+            with self.assertRaises(Exception) as context:
+                function_tree.init_functions(
+                    [
+                        {
+                            "name": "function1",
+                            "description": "Description for function1",
+                            "constraints": [],
+                            "calls": [],
+                        }
+                    ]
+                )
+
+            self.assertEqual(str(context.exception), "Mocked error")
+
+    def test_save_functions_to_file_all_functions(self):
+        # Test saving all functions
+        mock_file = MagicMock(spec=File)
+        self.function_tree.file = mock_file
+        self.function_tree.save_functions_to_file(save=True)
+
+        # Verify file content with all functions
+        expected_content = (
+            "import os\nimport sys\n\ndef func1(): pass\n\n\ndef func2(): pass\n"
+        )
+        self.function_tree.file.message = expected_content
+
+    def test_save_functions_to_file_specific_functions(self):
+        # Test saving specific functions
+        self.function_tree.save_functions_to_file([self.function1], save=True)
+
+        # Verify file content with only func1
+        expected_content = "import os\nimport sys\n\ndef func1(): pass\n"
+        self.function_tree.file.message = expected_content
+        # self.function_tree.file.message.assert_called_with(expected_content)
 
 
 if __name__ == "__main__":

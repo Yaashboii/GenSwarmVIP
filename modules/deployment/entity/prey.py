@@ -37,6 +37,7 @@ class Prey(Entity):
         self.random_factor = 0.1
         self.velocity = np.zeros(2)
         self.filtered_velocity = np.zeros(2)
+        self.alpha = 0
 
     def move_to_target(self, time_step):
         # print(f"prey move to target: {self.target_trajectory[time_step]},step:{time_step}")
