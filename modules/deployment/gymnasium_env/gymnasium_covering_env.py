@@ -1,6 +1,6 @@
 from typing import Any, Optional, SupportsFloat, TypeVar
 
-from modules.deployment.entity import Robot
+from modules.deployment.entity import Robot, Obstacle
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 
@@ -14,11 +14,15 @@ class GymnasiumCoveringEnvironment(GymnasiumEnvironmentBase):
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
-
+        # obstacle_list = [(0, 0)]
+        # for pos in obstacle_list:
+        #     obstacle = Obstacle(entity_id, pos, 0.15)
+        #     self.add_entity(obstacle)
+        #     entity_id += 1
         for i in range(self.num_robots):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle',
                                     zone_size=[0.5 * self.width, 0.5 * self.height],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
+                                    robot_size=robot_size, robot_shape=shape, min_distance=0.1,
                                     entities=self.entities)
             robot = Robot(robot_id=entity_id,
                           initial_position=position,

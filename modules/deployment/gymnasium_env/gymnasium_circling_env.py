@@ -18,7 +18,7 @@ class GymnasiumCirclingEnvironment(GymnasiumEnvironmentBase):
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
-        obstacle_list = [(0, 0.4), (0, -1.8), (1.8, 0), (-0.6, 0)]
+        obstacle_list = [(0, 1.8), (0, -1.8), (1.8, 0), (-1.8, 0)]
         for pos in obstacle_list:
             obstacle = Obstacle(entity_id, pos, 0.15)
             self.add_entity(obstacle)

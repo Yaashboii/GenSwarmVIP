@@ -30,6 +30,7 @@ class CodeImprove(ActionNode):
             task_des=TASK_DES,
             global_api=GLOBAL_ROBOT_API,
             local_api=local_api_prompt,
+            instruction=self.context.command,
             env_des=ENV_DES,
             global_functions="\n\n\n".join(self.context.global_skill_tree.functions_body),
             local_functions="\n\n\n".join(self.context.local_skill_tree.functions_body),

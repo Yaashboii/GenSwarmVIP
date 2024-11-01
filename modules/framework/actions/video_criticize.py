@@ -1,5 +1,7 @@
 from os import listdir
 
+from click import prompt
+
 from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree
@@ -30,6 +32,7 @@ class VideoCriticize(ActionNode):
         self.setup()
 
         self.prompt = [VIDEO_PROMPT_TEMPLATE.format(task_des=TASK_DES,
+                                                    instruction=self.context.command,
                                                     command=self.context.command,
                                                     feedback="/n".join(self.context.feedbacks),
                                                     constraint=str(self._constraint_pool),
@@ -38,12 +41,13 @@ class VideoCriticize(ActionNode):
                                        "image_url": {"url": f'data:image/jpg;base64,{x}', "detail": "low"}},
                             self._frames),
                        ]
+        print(prompt)
         pass
 
     def setup(self):
         from modules.utils import root_manager, process_video, create_video_from_frames
-
-        video_path = f"{root_manager.workspace_root}/animation.mp4"
+        self.context.vlm = True
+        video_path = f"{root_manager.workspace_root}/wo_vlm.mp4"
         self._frames = process_video(video_path, start_time=3, end_time=10, seconds_per_frame=0.5)
         create_video_from_frames(self._frames, output_path=f"{root_manager.data_root}/extra.mp4")
 
@@ -53,7 +57,7 @@ class VideoCriticize(ActionNode):
 
         # Process success cas
         if result["result"].strip().lower() == "success":
-            if self.context.args.human_feedback:
+            if self.context.args.human_feedback == 'True':
                 if_feedback = input("If task is done? Press y/n: ")
                 if if_feedback.lower() == "y":
                     logger.log("run code: success", "warning")
@@ -92,7 +96,7 @@ if __name__ == '__main__':
     import asyncio
     from modules.utils import root_manager, process_video, create_video_from_frames
 
-    path = "../../../workspace/encircling/2024-10-14_07-06-58"
+    path = "../../../workspace/encircling/2024-10-21_03-18-15"
     root_manager.update_root(path)
     function_analyser = VideoCriticize("analyze constraints")
 

@@ -8,6 +8,7 @@ from modules.prompt import (
     CONSTRAIN_TEMPLATE,
     GLOBAL_ROBOT_API,
     LOCAL_ROBOT_API,
+    ALLOCATOR_TEMPLATE,
     ENV_DES,
     TASK_DES,
 )
@@ -36,7 +37,7 @@ class AnalyzeConstraints(ActionNode):
             task_des=TASK_DES,
             instruction=self.context.command,
             global_api=GLOBAL_ROBOT_API,
-            local_api=LOCAL_ROBOT_API,
+            local_api=LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(template='Temporarily unknown'),
             env_des=ENV_DES,
             output_template=CONSTRAIN_TEMPLATE,
             user_constraints=json.dumps(user_constraints, indent=4),
@@ -67,7 +68,7 @@ if __name__ == '__main__':
         help="Whether to run in interaction mode in analyze constraints.",
     )
     context = WorkflowContext()
-    task = get_user_commands('flocking')[0]
+    task = get_user_commands('covering')[0]
 
     context.command = task
     args = parser.parse_args()

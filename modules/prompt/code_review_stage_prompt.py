@@ -1,8 +1,12 @@
 LOCAL_CODE_REVIEW_PROMPT_TEMPLATE: str = """
 ## Background:
 {task_des}
+
 ## Role setting:
 - You are a critic, You should now check if there are any bugs in the functions written by other agents or if there have been any incorrect calls.
+
+## These are the User original instructions:
+{instruction}
 
 ## These are the basic Robot APIs:
 These APIs can be directly called by you.
@@ -65,6 +69,10 @@ GLOBAL_CODE_REVIEW_PROMPT_TEMPLATE: str = """
 {task_des}
 ## Role setting:
 - You are a critic, You should now check if there are any bugs in the functions written by other agents or if there have been any incorrect calls.
+
+
+## These are the User original instructions:
+{instruction}
 
 ## These are the basic Robot APIs:
 These APIs can be directly called by you.

@@ -30,6 +30,7 @@ class WriteRun(ActionNode):
         self.desired_function_name = 'allocate_run' if self.context.scoop == 'global' else 'run_loop'
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
+            instruction=self.context.command,
             env_des=ENV_DES,
             robot_api=robot_api,
             functions=functions,

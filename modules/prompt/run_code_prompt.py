@@ -5,8 +5,12 @@ DEBUG_PROMPT = """
 ## Role setting:
 -It's now the phase to run the code, your task is to find the erroneous part based on the compiler's traceback feedback, and modify it.
 
+## These are the User original instructions:
+{instruction}
+
 ## These are the environment description:
 {env_des}
+
 
 ## These are the basic Robot APIs:
 ```python
@@ -76,11 +80,15 @@ FEEDBACK_PROMPT_TEMPLATE = """
 ## Background:
 {task_des}
 
+## These are the User original instructions:
+{instruction}
+
 ## Role setting:
 - After running the code, there are some issues. You need to modify based on the feedback from users.
 
 ## These are the environment description:
 {env_des}
+
 
 ## These are the basic Robot APIs:
 There are two types of APIs: local and global.

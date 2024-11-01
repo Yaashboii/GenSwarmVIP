@@ -47,6 +47,7 @@ class DesignFunction(ActionNode):
             task_des=TASK_DES,
             robot_api=robot_api,
             env_des=ENV_DES,
+            instruction=self.context.command,
             function_name=self._function.name,
             function_des=self._function.description,
             constraints=constraint_pool.filtered_constraints(

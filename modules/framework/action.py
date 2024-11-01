@@ -30,8 +30,8 @@ class BaseNode(ABC):
 
     @_next.setter
     def _next(self, value):
-        if not isinstance(value, BaseNode):
-            raise ValueError("Value must be a BaseNode")
+        # if not isinstance(value, BaseNode):
+        #     raise ValueError("Value must be a BaseNode")
         self.__next = value
 
     @abstractmethod

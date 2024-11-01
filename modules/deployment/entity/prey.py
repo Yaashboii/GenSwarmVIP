@@ -5,7 +5,7 @@ from ..utils.traectory_generator import generate_arc_trajectory
 
 
 class Prey(Entity):
-    def __init__(self, prey_id, initial_position, size, num=200):
+    def __init__(self, prey_id, initial_position, size, num=2000):
         super().__init__(prey_id, initial_position, size, color='blue', collision=True, movable=True, max_speed=1.0,
                          mass=1, density=1)
         self.move_mode = 'track'

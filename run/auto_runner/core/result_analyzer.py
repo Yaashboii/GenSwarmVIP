@@ -2,25 +2,110 @@ import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+from streamlit import success
 
 
 class ExperimentAnalyzer:
-    def __init__(self, experiment_path, tolerance=0.05):
+    def __init__(self, experiment_path, success_conditions, tolerance=0.05):
         self.experiment_path = experiment_path
-        self.tolerance = tolerance
+        self.success_conditions = success_conditions
 
-    def analyze_result(self, run_result):
-        analysis = {}  # 这里可以添加自定义的分析逻辑
-        return analysis
+    def calculate_success(self, analysis):
+        success = True
+        for condition in self.success_conditions:
+            metric, operator, threshold = condition
+            if metric not in analysis:
+                print(f"Metric {metric} not found in analysis.")
+                return False
+            if not operator(analysis[metric], threshold):
+                success = False
+                break
+        return success
+
+    def analyze_all_results(self, experiment_dirs=None):
+
+        exp_data = {experiment: {} for experiment in experiment_dirs}
+        all_metric_names = []
+
+        for experiment in experiment_dirs:
+            result_path = os.path.join(f"{self.experiment_path}", experiment, 'wo_vlm.json')
+            if os.path.exists(result_path):
+                with open(result_path, 'r') as f:
+                    result_data = json.load(f)
+                    analysis = result_data.get('analysis', {})
+                    success = self.calculate_success(analysis)
+                    data = {**analysis, 'success': success}
+                    exp_data[experiment] = data
+
+                    all_metric_names = list(data.keys())
+        mean_metric_value = {}
+
+        for metric in all_metric_names:
+            metric_values = []
+            for exp in exp_data.keys():
+                value = exp_data[exp].get(metric, 0)
+                if isinstance(value, (int, float)):
+                    metric_values.append(value)
+            if metric_values:
+                mean_metric_value[metric] = np.mean(metric_values)
+            else:
+                mean_metric_value[metric] = 0
+        for metric in all_metric_names:
+            data = [
+                exp_data[exp].get(metric, 0) if isinstance(exp_data[exp].get(metric, 0), (int, float)) else 0
+                for exp in exp_data.keys()
+            ]
+
+            self.plot_and_print_results(
+                data=data,
+                labels=exp_data.keys(),
+                ylabel=metric,
+                title=f"Experiment Outcomes in {metric}",
+                colors=[self.get_color(i, len(exp_data)) for i in range(len(exp_data))],
+                save_filename=f'{metric}_metric.png',
+                rotation=True,
+                figsize=(32, 20),  # 设置图像大小
+                success_conditions=self.success_conditions
+            )
+
+        self.plot_summary(mean_metric_value)
+
+    def plot_summary(self, exp_data):
+        labels = list(exp_data.keys())
+        data = list(exp_data.values())
+        colors = ['blue']
+
+        self.plot_and_print_results(
+            data=data,
+            labels=labels,
+            ylabel='Average Value',
+            title='Summary of All Metric Averages',
+            colors=colors,
+            save_filename='summary_metrics.png',
+            rotation=False,
+            figsize=(32, 20)  # 传入图像大小参数
+        )
+
+    @staticmethod
+    def get_color(index, total):
+        cmap = plt.get_cmap('viridis')
+        return cmap(index / total)
+
+    def analyze_code(self, functions_path):
+        from modules.utils import CodeAnalyzer
+        with open(functions_path, 'r') as f:
+            analyzer = CodeAnalyzer(f.read())
+            analysis_result = analyzer.analyze()
+        return analysis_result["code_lines"]
 
     def plot_and_print_results(self, data, labels, ylabel, title, colors, save_filename, rotation=False,
-                               success_conditions=None):
+                               figsize=(10, 6), success_conditions=None):  # 添加figsize参数
         if rotation:
             rotation = -90
         else:
             rotation = 0
 
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=figsize)  # 使用传入的figsize设置图像大小
         plt.bar(labels, data, color=colors)
         plt.xticks(rotation=rotation)
         plt.ylabel(ylabel)
@@ -35,34 +120,11 @@ class ExperimentAnalyzer:
         for i, v in enumerate(data):
             plt.text(i, v + 0.01, f"{v:.2f}", ha='center', rotation=rotation)
 
-        if not os.path.exists(f"../workspace/{self.experiment_path}/pic"):
-            os.makedirs(f"../workspace/{self.experiment_path}/pic")
-        plt_path = os.path.join(f"../workspace/{self.experiment_path}/pic", save_filename)
+        if not os.path.exists(f"{self.experiment_path}/pic"):
+            os.makedirs(f"{self.experiment_path}/pic")
+        plt_path = os.path.join(f"{self.experiment_path}/pic", save_filename)
         plt.tight_layout()
         plt.legend()
         plt.savefig(plt_path)
         plt.show()
         print(f"{title}: {data}")
-
-    def save_experiment_result(self, path, result, analysis, run_code_result, retry_times):
-        def convert_to_serializable(obj):
-            if isinstance(obj, np.ndarray):
-                return obj.tolist()
-            if isinstance(obj, dict):
-                return {k: convert_to_serializable(v) for k, v in obj.items()}
-            if isinstance(obj, list):
-                return [convert_to_serializable(i) for i in obj]
-            return obj
-
-        serializable_result = convert_to_serializable(result)
-        serializable_analysis = convert_to_serializable(analysis)
-        combined_result = {
-            'run_code_result': run_code_result,
-            'retry_times': retry_times,
-            'analysis': serializable_analysis,
-            'experiment_data': serializable_result,
-        }
-        result_file = os.path.join(path, 'result.json')
-        os.makedirs(path, exist_ok=True)
-        with open(result_file, 'w') as f:
-            json.dump(combined_result, f, indent=4)

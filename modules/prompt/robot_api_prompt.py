@@ -81,6 +81,13 @@ def get_prey_position():
     - numpy.ndarray: The position of the prey.
     '''
 
+def get_lead_position():
+    '''
+    Description: Lead will keep moving in the environment.Get the real-time position of the prey in the environment.
+    Returns:
+    - numpy.ndarray: The position of the lead.
+    '''
+
 def get_target_position():
     '''
     Description: Get the target position for the robot to reach.
@@ -165,6 +172,7 @@ class RobotApi:
             'get_environment_range': ['local', 'global'],
             'get_self_radius': ['local'],
             'get_prey_position': ['local'],
+            'get_lead_position': ['local'],
             'get_target_position': ['local'],
             'get_surrounding_robots_info': ['local'],
             'get_surrounding_obstacles_info': ['local'],
@@ -188,10 +196,10 @@ class RobotApi:
             "crossing": ['stop_self'],
             "encircling": ["get_prey_position", "get_prey_initial_position"],
             "exploration": ['get_initial_unexplored_areas', 'get_environment_range', 'stop_self'],
-            "flocking": ['get_environment_range'],
+            "flocking": ['get_environment_range', 'get_self_velocity'],
             "clustering": ['get_quadrant_target_position'],
             "shaping": ['get_target_formation_points', 'stop_self'],
-            "pursuing": ['get_prey_position'],
+            "pursuing": ['get_lead_position'],
         }
 
     def get_api_prompt(self, task_name: str = None, scope: str = None, only_names: bool = False) -> str | list:

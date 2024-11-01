@@ -37,9 +37,13 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
         add_specified_entities("landmark", Landmark)
         add_specified_entities("pushable_object", PushableObject)
         add_specified_entities("robot", Robot, "green")
-        obstacle = Obstacle(entity_id, initial_position=[0, 0], size=0.10)
-        self.add_entity(obstacle)
-        entity_id += 1
+
+        obstacle_list = [(0, 1.6), (0, -1.8), (1.8, 0), (-1.6, 0)]
+        for pos in obstacle_list:
+            obstacle = Obstacle(entity_id, pos, 0.15)
+            self.add_entity(obstacle)
+            entity_id += 1
+
         # Add remaining robots
         if "count" in self.data["entities"]["robot"]:
             robot_size = self.data["entities"]["robot"]["size"]
@@ -48,8 +52,9 @@ class GymnasiumFlockingEnvironment(GymnasiumEnvironmentBase):
             color = self.data["entities"]["robot"]["color"]
 
             for i in range(robot_num):
-                position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                        robot_size=robot_size, robot_shape=shape, min_distance=0.5,
+                position = sample_point(zone_center=[0, 0], zone_shape='rectangle',
+                                        zone_size=[0.3 * self.width, 0.3 * self.height],
+                                        robot_size=robot_size, robot_shape=shape, min_distance=0.1,
                                         entities=self.entities)
                 robot = Robot(entity_id, position, robot_size, color=color)
                 self.add_entity(robot)

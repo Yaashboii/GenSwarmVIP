@@ -8,6 +8,8 @@ ANALYZE_SKILL_PROMPT_TEMPLATE: str = """
 These are the basic descriptions of the environment.
 {env_des}
 
+## These are the User original instructions:
+{instruction}
 
 ## These APIs can be directly called by you:
 There are two types of APIs: local and global.
@@ -26,8 +28,8 @@ where local APIs can only be called by the robot itself, and global APIs can be 
 ## Constraints information:
 The following are the constraints that the generated functions need to satisfy.
 {constraints}
-## User commands:
-{instruction}
+
+
 ## The output TEXT format is as follows:
 {output_template}
 

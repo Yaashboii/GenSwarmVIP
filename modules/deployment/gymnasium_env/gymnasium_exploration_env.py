@@ -1,6 +1,6 @@
 from typing import Optional, TypeVar
 
-from modules.deployment.entity import Landmark, Robot
+from modules.deployment.entity import Landmark, Robot, Obstacle
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 from modules.deployment.utils.save import save_frames_as_animations
@@ -16,6 +16,7 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
 
     def init_entities(self):
         entity_id = 0
+
         for x in np.arange(-self.width * 0.4, self.width * 0.51, 0.2 * self.width):
             for y in np.arange(-self.height * 0.4, self.height * 0.51, 0.2 * self.height):
                 landmark = Landmark(landmark_id=entity_id,

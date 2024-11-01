@@ -12,8 +12,6 @@ class GymnasiumFormationEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
-
-
     def init_entities(self):
         entity_id = 0
 
@@ -55,7 +53,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumFormationEnvironment("../../../config/env_config.json")
+    env = GymnasiumFormationEnvironment("../../../config/env/formation_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

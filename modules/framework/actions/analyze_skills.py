@@ -1,3 +1,5 @@
+from sympy.printing.dot import template
+
 from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.constraint import ConstraintPool
@@ -8,6 +10,7 @@ from modules.prompt import (
     FUNCTION_TEMPLATE,
     GLOBAL_ROBOT_API,
     LOCAL_ROBOT_API,
+    ALLOCATOR_TEMPLATE,
     ENV_DES,
     TASK_DES,
 )
@@ -23,7 +26,7 @@ class AnalyzeSkills(ActionNode):
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
             instruction=self.context.command,
-            local_api=LOCAL_ROBOT_API,
+            local_api=LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(template='Temporarily unknown'),
             global_api=GLOBAL_ROBOT_API,
             env_des=ENV_DES,
             constraints=str(self._constraint_pool),

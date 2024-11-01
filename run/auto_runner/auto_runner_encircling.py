@@ -12,6 +12,7 @@ class AutoRunnerEncircling(AutoRunnerBase):
                  run_mode='rerun',
                  target_pkl='WriteRun.pkl',
                  script_name='run.py',
+                 exp_batch=1,
                  max_speed=1.0,
                  tolerance=0.05):
         env = GymnasiumEncirclingEnvironment(env_config_path)
@@ -21,6 +22,7 @@ class AutoRunnerEncircling(AutoRunnerBase):
                          run_mode=run_mode,
                          target_pkl=target_pkl,
                          script_name=script_name,
+                         exp_batch=exp_batch,
                          max_speed=max_speed,
                          tolerance=tolerance,
                          env=env)
@@ -33,4 +35,3 @@ class AutoRunnerEncircling(AutoRunnerBase):
         return [
             ("mean_distance_error", operator.le, 0.1),
         ]
-

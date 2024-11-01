@@ -37,6 +37,7 @@ class DebugError(ActionNode):
         # if self._call_times == 0:
         self.prompt = DEBUG_PROMPT.format(
             task_des=TASK_DES,
+            instruction=self.context.command,
             robot_api=robot_api,
             env_des=ENV_DES,
             mentioned_functions=self.error_func,

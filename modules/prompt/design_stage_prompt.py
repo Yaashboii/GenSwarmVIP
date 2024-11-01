@@ -7,6 +7,9 @@ DESIGN_LOCAL_FUNCTION_PROMPT_TEMPLATE = """
 ## These are the environment description:
 {env_des}
 
+## These are the User original instructions:
+{instruction}
+
 ## Existing robot APIs:
 ```python
 {robot_api}
@@ -54,6 +57,9 @@ DESIGN_GLOBAL_FUNCTION_PROMPT_TEMPLATE = """
 
 ## These are the environment description:
 {env_des}
+
+## These are the User original instructions:
+{instruction}
 
 ## Existing APIs:
 ```python

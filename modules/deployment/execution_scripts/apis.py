@@ -253,6 +253,10 @@ def get_prey_position():
     return get_current_robot_node().get_prey_position()
 
 
+def get_lead_position():
+    return get_current_robot_node().get_prey_position()
+
+
 def get_environment_range():
     return {'x_min': -2.5, 'x_max': 2.5, 'y_min': -2.5, 'y_max': 2.5}
 

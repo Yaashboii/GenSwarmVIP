@@ -37,6 +37,7 @@ class CodeReview(ActionNode):
         robot_api = GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
+            instruction=self.context.command,
             robot_api=robot_api,
             env_des=ENV_DES,
             function_name=self._function.name,

@@ -452,6 +452,61 @@ def evaluate_min_distances_to_others(data) -> dict:
     }
 
 
+def evaluate_average_position(data) -> dict:
+    """
+    Evaluate the average position of all robots.
+
+    :param data: dictionary containing information about entities, including their final positions.
+    :return: A dictionary containing:
+        - average_position (tuple): The average position of all robots.
+    """
+    robot_positions_final = []
+
+    for entity_id, info in data.items():
+        if info["type"] == "Robot":
+            robot_positions_final.append(info["trajectory"][-1])
+
+    robot_positions_final = np.array(robot_positions_final)
+    num_robots = len(robot_positions_final)
+
+    if num_robots == 0:
+        raise ValueError("No robots found in the data.")
+
+    average_position = np.mean(robot_positions_final, axis=0)
+    average_position_distance = np.linalg.norm(average_position)
+    return {
+        "average_distance": average_position_distance
+    }
+
+
+def evaluate_average_distance_to_prey(data) -> dict:
+    """
+    Evaluate the average position of all robots.
+
+    :param data: dictionary containing information about entities, including their final positions.
+    :return: A dictionary containing:
+        - average_position (tuple): The average position of all robots.
+    """
+    robot_positions_final = []
+    prey_final_position = []
+    for entity_id, info in data.items():
+        if info["type"] == "Robot":
+            robot_positions_final.append(info["trajectory"][-1])
+        elif info["type"] == "Prey":
+            prey_final_position = info["trajectory"][-1]
+
+    robot_positions_final = np.array(robot_positions_final)
+    num_robots = len(robot_positions_final)
+
+    if num_robots == 0:
+        raise ValueError("No robots found in the data.")
+    average_position = np.mean(robot_positions_final, axis=0)
+    average_position_distance = np.linalg.norm(average_position - prey_final_position)
+    return {
+        "average_distance": average_position_distance
+    }
+
+
 def evaluate_shape_similarity(data, target_shape: list) -> dict:
     """
     Evaluate the similarity between the robots' final positions and a specified shape using Procrustes analysis.
@@ -513,7 +568,8 @@ def evaluate_shape_similarity(data, target_shape: list) -> dict:
         "procrustes_distance": disparity
     }
 
-def evaluate_encircling_end(data, target_radius: float = 0.5, tolerance: float = 0.1) -> dict:
+
+def evaluate_encircling_end(data, target_radius: float = 1, tolerance: float = 0.1) -> dict:
     """
     Evaluate the task completion by calculating the mean and variance of the robots' final distances to the prey,
     and how well they match the target radius at the final step.
@@ -697,7 +753,8 @@ def check_robots_no_movement_in_first_third(data) -> list:
     :return: 未在前1/3时间内移动的机器人ID列表。
     """
     no_movement_robots = []
-
+    if not data:
+        return []
     for entity_id, info in data.items():
         if info["type"] == "Robot":
             trajectory = np.array(info["trajectory"])

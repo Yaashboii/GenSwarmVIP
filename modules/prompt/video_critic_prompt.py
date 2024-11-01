@@ -5,8 +5,8 @@ VIDEO_PROMPT_TEMPLATE = """
 ## Role setting:
 - You need to determine whether the task has been successfully completed by analyzing the video after it has been processed.
 
-## This is the user requirement information:
-{command}
+## These are the User original instructions:
+{instruction}
 
 ## This is the constraint information:
 {constraint}

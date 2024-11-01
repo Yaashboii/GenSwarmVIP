@@ -36,6 +36,7 @@ class WriteFunction(ActionNode):
             task_des=TASK_DES,
             env_des=ENV_DES,
             robot_api=robot_api,
+            instruction=self.context.command,
             function_content=self._function.definition,
             constraints=self._constraint_text,
             other_functions=self._other_functions_str,

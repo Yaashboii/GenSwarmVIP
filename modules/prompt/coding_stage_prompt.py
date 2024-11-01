@@ -8,6 +8,10 @@ WRITE_GLOBAL_FUNCTION_PROMPT_TEMPLATE = """
 These are the basic descriptions of the environment.
 {env_des}
 
+## These are the User original instructions:
+{instruction}
+
+
 ## These are GLOBAL APIs:
 ```python
 {robot_api}
@@ -20,6 +24,8 @@ These are the basic descriptions of the environment.
 
 ## These are the constraints that need to be satisfied in the implementation of the function:
 {constraints}
+
+
 
 ## Task
 Complete the following function. The output TEXT format is as follows:
@@ -59,6 +65,10 @@ WRITE_LOCAL_FUNCTION_PROMPT_TEMPLATE = """
 ## These are the environment description:
 These are the basic descriptions of the environment.
 {env_des}
+
+## These are the User original instructions:
+{instruction}
+
 
 ## These are the basic Robot APIs:
 ```python
@@ -108,6 +118,10 @@ You need to write an interface function that calls the existing global function 
 ## These are the environment description:
 These are the basic descriptions of the environment.
 {env_des}
+
+## These are the User original instructions:
+{instruction}
+
 
 ## These are the basic global APIs:
 ```python
@@ -186,6 +200,9 @@ WRITE_LOCAL_RUN_PROMPT_TEMPLATE = """
 These are the basic descriptions of the environment.
 {env_des}
 
+## These are the User original instructions:
+{instruction}
+
 ## These are the basic Robot APIs:
 ```python
 {robot_api}
@@ -221,6 +238,7 @@ def run_loop():
 - You can only call existing functions and RobotApi, and cannot define complex logic on your own.
 - Import required modules before the function name, not within the function body.
 - Use a while loop to wait for the task to complete.
+- Determine whether a break is needed based on the specific task. If the current task is continuous, a break is not allowed.
 - You need to ensure that the entire system can update observation data in real-time and issue control speeds in real-time based on the observation data. If it is not implemented in other functions, you need to achieve this through a While loop.
 - Use existing high-level functions.
 - Do not raising errors or using assertions in the function body.

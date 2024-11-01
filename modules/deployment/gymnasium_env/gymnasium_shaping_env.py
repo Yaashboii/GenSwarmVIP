@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumShapingEnvironment("../../../config/real_env/shaping_config.json")
+    env = GymnasiumShapingEnvironment("../../../config/env/shaping_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

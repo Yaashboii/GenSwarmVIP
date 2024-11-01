@@ -20,6 +20,11 @@ class GymnasiumPursuingEnvironment(GymnasiumEnvironmentBase):
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
+        obstacle_list = [(0, 2.0), (0, -2.0), (2, 0), (-2, 0)]
+        for pos in obstacle_list:
+            obstacle = Obstacle(entity_id, pos, 0.15)
+            self.add_entity(obstacle)
+            entity_id += 1
 
         for i in range(self.num_robots):
             position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
@@ -46,7 +51,7 @@ if __name__ == "__main__":
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumPursuingEnvironment("../../../config/env/pursuit_config.json")
+    env = GymnasiumPursuingEnvironment("../../../config/env/pursuing_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

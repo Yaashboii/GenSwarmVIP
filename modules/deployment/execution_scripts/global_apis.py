@@ -2,6 +2,7 @@ import rospy
 from code_llm.msg import Observations
 import numpy as np
 from code_llm.srv import GetCharPoints, GetCharPointsRequest
+from sympy.stats.sampling.sample_numpy import numpy
 
 initial_robot_positions = {}
 initial_prey_position = []
@@ -74,7 +75,7 @@ def get_contour_points(character):
 
 
 def get_target_formation_points():
-    target_shape = [(1, -1), (1, 1), (0, 0), (1, 0), (2, 0)]
+    target_shape = [np.array((1, -1)), np.array((1, 1)), np.array((0, 0)), np.array((1, 0)), np.array((2, 0))]
     return target_shape
 
 
