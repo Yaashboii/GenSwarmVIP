@@ -1,11 +1,31 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import os
 from os import listdir, makedirs
 
 import cv2
 
-from modules.deployment.gymnasium_env import GymnasiumBridgingEnvironment, GymnasiumCoveringEnvironment, \
-    GymnasiumExplorationEnvironment, GymnasiumCirclingEnvironment, GymnasiumCrossingEnvironment,\
-    GymnasiumEncirclingEnvironment, GymnasiumFlockingEnvironment, GymnasiumHerdingEnvironment
+from modules.deployment.gymnasium_env import (
+    GymnasiumBridgingEnvironment,
+    GymnasiumCoveringEnvironment,
+    GymnasiumExplorationEnvironment,
+    GymnasiumCirclingEnvironment,
+    GymnasiumCrossingEnvironment,
+    GymnasiumEncirclingEnvironment,
+    GymnasiumFlockingEnvironment,
+    GymnasiumHerdingEnvironment,
+)
 
 
 def main():
@@ -15,7 +35,9 @@ def main():
     from modules.deployment.utils.manager import Manager
 
     data_root = f"../workspace/{rospy.get_param('path', 'test')}"
-    count = len(listdir(f"{data_root}/data/frames/"))  # this is used to number the 'frames' folder
+    count = len(
+        listdir(f"{data_root}/data/frames/")
+    )  # this is used to number the 'frames' folder
     frame_dir = f"{data_root}/data/frames/frame{count}"
     if not os.path.exists(frame_dir):
         makedirs(frame_dir)
@@ -41,7 +63,7 @@ def main():
 
         frame = env.render()
         if draw_counter % draw_frequency == 0:
-            frame_image_path = os.path.join(frame_dir, f'{draw_counter}.png')
+            frame_image_path = os.path.join(frame_dir, f"{draw_counter}.png")
             cv2.imwrite(frame_image_path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
             frame_files.append(frame_image_path)
         draw_counter += 1

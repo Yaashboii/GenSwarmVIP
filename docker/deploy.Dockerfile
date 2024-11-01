@@ -9,7 +9,7 @@ RUN apt-get update \
         sshpass \
     && pip install ansible \
        numpy \
-       rospy_message_converter \
+       rospy_message_converter
 
 WORKDIR /src
 

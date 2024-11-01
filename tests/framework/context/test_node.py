@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import unittest
 from modules.framework.code import FunctionNode, State
 from modules.framework.constraint import ConstraintNode
@@ -64,7 +77,16 @@ class TestNodes(unittest.TestCase):
 
         # 测试设置无效状态
         with self.assertRaises(ValueError):
-            self.function_node1.state = 4
+            self.function_node1.state = 9
+
+    def test_function_node_reset(self):
+        function_node = FunctionNode("function1", "descption1")
+        function_node.reset()
+
+        self.assertEqual(len(function_node._import_list), 0)
+        self.assertEqual(function_node.content, "")
+        self.assertEqual(function_node._definition, "")
+        self.assertEqual(function_node.state, State.NOT_STARTED)
 
 
 if __name__ == "__main__":

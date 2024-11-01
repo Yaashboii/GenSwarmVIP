@@ -1,6 +1,19 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Optional, TypeVar
 
-from modules.deployment.entity import Landmark, Robot
+from modules.deployment.entity import Landmark, Robot, Obstacle
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 from modules.deployment.utils.save import save_frames_as_animations
@@ -16,12 +29,17 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
 
     def init_entities(self):
         entity_id = 0
+
         for x in np.arange(-self.width * 0.4, self.width * 0.51, 0.2 * self.width):
-            for y in np.arange(-self.height * 0.4, self.height * 0.51, 0.2 * self.height):
-                landmark = Landmark(landmark_id=entity_id,
-                                    initial_position=(x, y),
-                                    size=np.array([0.2 * self.width, 0.2 * self.height]),
-                                    color='gray')
+            for y in np.arange(
+                -self.height * 0.4, self.height * 0.51, 0.2 * self.height
+            ):
+                landmark = Landmark(
+                    landmark_id=entity_id,
+                    initial_position=(x, y),
+                    size=np.array([0.2 * self.width, 0.2 * self.height]),
+                    color="gray",
+                )
                 self.add_entity(landmark)
                 entity_id += 1
         # landmark = Landmark(landmark_id=entity_id,
@@ -37,11 +55,13 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
         self.num_robots = 3
         for i in range(self.num_robots):
             position = np.array((-0.25, -0.25)) + 0.25 * i
-            robot = Robot(robot_id=entity_id,
-                          initial_position=position,
-                          target_position=None,
-                          size=robot_size,
-                          color=color)
+            robot = Robot(
+                robot_id=entity_id,
+                initial_position=position,
+                target_position=None,
+                size=robot_size,
+                color=color,
+            )
             entity_id += 1
             self.add_entity(robot)
 
@@ -53,19 +73,21 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
                 for landmark in self.entities:
                     if isinstance(landmark, Landmark):
                         if self.is_robot_within_landmark(entity, landmark):
-                            landmark.color = 'blue'
-                            landmark.state = 'visited'
+                            landmark.color = "blue"
+                            landmark.state = "visited"
 
         return obs, reward, termination, truncation, infos
 
     def is_robot_within_landmark(self, robot: Robot, landmark: Landmark):
-        if np.all(np.linalg.norm(robot.position - landmark.position) < (robot.size + 0.5 * landmark.size)):
+        if np.all(
+            np.linalg.norm(robot.position - landmark.position)
+            < (robot.size + 0.5 * landmark.size)
+        ):
             return True
         return False
 
 
 if __name__ == "__main__":
-
     import time
     import rospy
 

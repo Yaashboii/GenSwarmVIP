@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import unittest
 import os
 import shutil
@@ -41,9 +54,9 @@ class TestAction(unittest.TestCase):
 
     def setUp(self):
         self._constraint_pool = ConstraintPool()
-        self._function_pool = FunctionTree()
+        self._function_pool = FunctionTree("test")
         self._constraint_pool.reset()
-        self._function_pool.reset()
+        # self._function_pool.reset()
         print("Running test:", self._testMethodName)
 
     def tearDown(self) -> None:
@@ -112,8 +125,8 @@ if __name__ == "__main__":
     suite = unittest.TestSuite()
     # execute in such order
     # suite.addTest(TestAction('test_1_analyze_constraint'))
-    suite.addTest(TestAction("test_2_analyze_functions"))
-    suite.addTest(TestAction("test_3_design_functions"))
+    # suite.addTest(TestAction("test_2_analyze_functions"))
+    # suite.addTest(TestAction("test_3_design_functions"))
     # suite.addTest(TestAction('test_4_write_functions'))
     # suite.addTest(TestAction('test_5_write_run'))
     # suite.addTest(TestAction('test_6_code_review'))

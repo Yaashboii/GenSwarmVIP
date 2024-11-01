@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 ANALYZE_SKILL_PROMPT_TEMPLATE: str = """
 ## Background:
 {task_des}
@@ -8,6 +21,8 @@ ANALYZE_SKILL_PROMPT_TEMPLATE: str = """
 These are the basic descriptions of the environment.
 {env_des}
 
+## These are the User original instructions:
+{instruction}
 
 ## These APIs can be directly called by you:
 There are two types of APIs: local and global.
@@ -26,8 +41,8 @@ where local APIs can only be called by the robot itself, and global APIs can be 
 ## Constraints information:
 The following are the constraints that the generated functions need to satisfy.
 {constraints}
-## User commands:
-{instruction}
+
+
 ## The output TEXT format is as follows:
 {output_template}
 
@@ -43,11 +58,12 @@ The following are the constraints that the generated functions need to satisfy.
 - There should be no functional redundancy among these functions, with each function having a distinct responsibility.
 - Analyze only the constraints that the current function itself must meet; constraints related to functions it calls are beyond the scope of the current function.
 - Each constraint must be fulfilled by one of the functions listed, without any omissions.
-- If a function outputs velocity, the velocity must be normalized.
 - Distinguish which skills should run on a centralized allocator and which should run on individual robots.
 - The skill design in tasks should be divided into two categories, and the appropriate skill type should be selected based on the specific requirements of the task.
-- The allocation method for robots should be optimal, ensuring no conflicts occur between them.
-- Task allocation will only occur once at the beginning of the task, so the tasks assigned to each robot should take environmental changes into account and avoid relying on any single changing object.
+- The current task does not necessarily require a global allocator. If needed, please use the corresponding API to obtain the assigned task. If there is no corresponding API, then the current task does not require a global allocator.
+- The allocation method for robots should ensure that the total movement distance for each robot is minimized while completing all tasks, and that no task conflicts occur (i.e., each robot is assigned a distinct task, with no overlap between tasks).
+- The task allocation can include various types such as positions, lists of positions, or specific angles, based on the requirements of the task.
+- The output should strictly adhere to the specified format.
 
 """.strip()
 
@@ -94,6 +110,7 @@ Your output should satisfy the following notes:
 - There's no need to regenerate existing constraints; you only need to consider what new constraints are required.
 - These constraints should be significant and mutually independent.
 - If the user's instruction involves specific numerical values, you should retain these values in the description of the constraints.
+- The current task does not necessarily require a global allocator. If needed, please use the corresponding API to obtain the assigned task. If there is no corresponding API, then the current task does not require a global allocator.
 - The output should strictly adhere to the specified format.
 """.strip()
 

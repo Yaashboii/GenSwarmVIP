@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import asyncio
 import os
 
@@ -61,13 +74,13 @@ class Workflow:
         # initialize actions
         analyze_constraints = AnalyzeConstraints("constraint pool")
         analyze_functions = AnalyzeSkills("function pool")
-        generate_mode = 'layer'
+        generate_mode = "layer"
         if hasattr(self._context.args, "generate_mode"):
             generate_mode = self._context.args.generate_mode
         generate_functions = GenerateFunctions(run_mode=generate_mode)
         run_code = RunCodeAsync("pass")
         debug_code = DebugError("fixed code")
-        human_feedback = Criticize("feedback")
+        code_improver = CodeImprove("feedback")
         video_critic = VideoCriticize("")
         # initialize error handlers
         bug_handler = BugLevelHandler()
@@ -75,8 +88,8 @@ class Workflow:
         debug_code._next = run_code
         # critic_handler = CriticLevelHandler()
         hf_handler = FeedbackHandler()
-        hf_handler.next_action = human_feedback
-        human_feedback._next = run_code
+        hf_handler.next_action = code_improver
+        code_improver._next = run_code
         # link error handlers
         self._chain_of_handler = bug_handler
         bug_handler.successor = hf_handler

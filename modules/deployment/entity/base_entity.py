@@ -1,24 +1,38 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import numpy as np
 
 
 class Entity:
-    def __init__(self,
-                 entity_id: int,
-                 initial_position: list[float] | tuple | np.ndarray,
-                 size: list[float] | tuple | np.ndarray | float,
-                 color: str | tuple,
-                 collision: bool = False,
-                 movable: bool = False,
-                 max_speed: float = 1.0,
-                 mass: float = 1.0,
-                 density: float = 0.1,
-                 shape: str = 'circle',
-                 ):
+    def __init__(
+        self,
+        entity_id: int,
+        initial_position: list[float] | tuple | np.ndarray,
+        size: list[float] | tuple | np.ndarray | float,
+        color: str | tuple,
+        collision: bool = False,
+        movable: bool = False,
+        max_speed: float = 1.0,
+        mass: float = 1.0,
+        density: float = 0.1,
+        shape: str = "circle",
+    ):
         self.__id: int = entity_id
         self.__size = size
         self.__mass: float = mass
         self.__density: float = density
-        self.__shape: str = 'circle' if isinstance(size, float) else 'rectangle'
+        self.__shape: str = "circle" if isinstance(size, float) else "rectangle"
         self.__color: str | tuple = color
         self.__collision: bool = collision
         self.__moveable: bool = movable
@@ -49,7 +63,7 @@ class Entity:
     def yaw(self) -> float:
         """Get the current yaw of the entity."""
         return self.__yaw
-    
+
     @yaw.setter
     def yaw(self, value: float):
         """Set a new yaw for the entity."""

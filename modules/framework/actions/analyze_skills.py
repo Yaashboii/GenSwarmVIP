@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.constraint import ConstraintPool
@@ -8,6 +21,7 @@ from modules.prompt import (
     FUNCTION_TEMPLATE,
     GLOBAL_ROBOT_API,
     LOCAL_ROBOT_API,
+    ALLOCATOR_TEMPLATE,
     ENV_DES,
     TASK_DES,
 )
@@ -23,7 +37,8 @@ class AnalyzeSkills(ActionNode):
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
             instruction=self.context.command,
-            local_api=LOCAL_ROBOT_API,
+            local_api=LOCAL_ROBOT_API
+            + ALLOCATOR_TEMPLATE.format(template="Temporarily unknown"),
             global_api=GLOBAL_ROBOT_API,
             env_des=ENV_DES,
             constraints=str(self._constraint_pool),
@@ -44,8 +59,9 @@ class AnalyzeSkills(ActionNode):
         self.context.local_skill_tree.init_functions(local_functions)
         if len(global_functions) == 0:
             logger.log("No global functions detected,generate local skills", "warning")
-            self.context.scoop = 'local'
+            self.context.scoop = "local"
             from modules.framework.actions import GenerateFunctions
+
             self._next = GenerateFunctions()
 
         self._constraint_pool.check_constraints_satisfaction()
@@ -53,12 +69,12 @@ class AnalyzeSkills(ActionNode):
         return response
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import asyncio
 
     function_analyser = AnalyzeSkills("analyze constraints")
     path = "../../../workspace/test"
-    root_manager.update_root('../../../workspace/test')
+    root_manager.update_root("../../../workspace/test")
 
     function_analyser.context.load_from_file(f"{path}/constraint.pkl")
     asyncio.run(function_analyser.run())

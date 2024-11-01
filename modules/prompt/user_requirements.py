@@ -1,23 +1,27 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 tasks = {
-    "bridging": "The robots need to evenly form a straight line bridge at the position where x=0 within the range of −2<y<2.",
-
-    "flocking": "Integrate into a flock by collaborating with all robots within the map, ensuring cohesion by staying connected, alignment by moving together, and separation by keeping at least 0.5 meters apart.",
-
-    "covering": "Evenly sample target positions across the entire map, then assign the corresponding position based on each robot's ID.",
-
-    "circling": "The robots need to be evenly distributed on a circle with a radius of 1 centered at (0,0).",
-
-    "crossing": "Each robot must maintain a distance of at least 0.15 meters from other robots and obstacles to avoid collisions while moving to the target point, which is the position of the robot that was farthest from it at the initial moment.",
-
-    'shaping': "The robots need to form a specific shape, with each robot assigned a unique point on that shape to move to while avoiding collisions during the movement.",
-
-    'encircling': "The robots need to surround the target prey by evenly distributing themselves along a circle with a radius of 1, centered on the prey, with each robot assigned a specific angle, and adjust their positions in real-time based on the prey's movement to achieve coordinated encirclement.",
-
-    "exploration": "The robots need to collaboratively explore an unknown area. You are required to assign an optimal sequence of exploration areas to each robot based on the number of robots and the unexplored areas.",
-
+    "bridging": "The robots need to evenly form a straight line bridge at the position where x is equal to zero within the range of y between minus two and two.",
+    "flocking": "Integrate into a flock by collaborating with all robots within the map, ensuring cohesion by staying connected, alignment by moving together, and separation by keeping a safe distance.",
+    "covering": "Divide the environment into sections equal to the number of robots. Each robot needs to move to the center of its assigned section to achieve full coverage of the environment.",
+    "circling": "The robots need to be evenly distributed on a circle with a one-unit radius centered at the origin point.",
+    "crossing": "Each robot must maintain a distance of at least fifteen centimeters from other robots and obstacles to avoid collisions while moving to the target point, which is the position of the robot that was farthest from it at the initial moment.",
+    "shaping": "The robots need to form a specific shape, with each robot assigned a unique point on that shape to move to while avoiding collisions during the movement.",
+    "encircling": "The robots need to be evenly distributed along a circle with a one-unit radius, centered on the prey. Each robot is assigned a specific angle. As the prey moves, the robots must continuously adjust their positions in real-time, responding to the prey's dynamic changes. This ensures a sustained and coordinated encirclement.",
+    "exploration": "The robots need to explore all the unknown areas. You are required to assign an optimal sequence of exploration areas to each robot based on the number of robots and the unexplored regions, and then the robots will gradually explore these areas.",
     "clustering": "Robots with initial positions in the same quadrant need to cluster in the designated area of that corresponding quadrant.",
-
-    "pursuing": "The robots need to pursue the target prey by moving towards the prey's position while avoiding collisions with other robots and obstacles.",
+    "pursuing": "Engage in flocking behavior with all robots on the map, moving toward the lead robot. The lead robot's movement is unpredictable, so maintain cohesion by staying connected, ensure alignment by moving in sync, and uphold separation by keeping a safe personal space. Additionally, be cautious to avoid collisions with any obstacles in the environment.",
 }
 
 

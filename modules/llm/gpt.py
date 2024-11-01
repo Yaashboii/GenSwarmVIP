@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import asyncio
 
 from openai import AsyncOpenAI
@@ -22,7 +35,9 @@ class GPT(BaseLLM):
         stream_output (bool): Whether to receive partial outputs via streaming.
     """
 
-    def __init__(self, memorize: bool = False, stream_output: bool = False) -> None:
+    def __init__(
+        self, memorize: bool = False, stream_output: bool = False, model: str = "GPT"
+    ) -> None:
         """
         Initializes the GPT class by allocating a model, obtaining the necessary API
         credentials, and initializing the asynchronous client.
@@ -31,7 +46,7 @@ class GPT(BaseLLM):
             memorize (bool): Flag indicating if the class should store previous interactions.
             stream_output (bool): Flag indicating if output should be streamed.
         """
-        self.api_base, self.key, self.model = model_manager.allocate(model_family="GPT")
+        self.api_base, self.key, self.model = model_manager.allocate(model_family=model)
         super().__init__(self.model, memorize, stream_output)
         self._client = AsyncOpenAI(api_key=self.key, base_url=self.api_base)
 
@@ -112,7 +127,9 @@ class GPT(BaseLLM):
         from modules.file.log_file import logger
 
         while True:
-            logger.log("Sleeping for 5 minutes before retrying request...", level="info")
+            logger.log(
+                "Sleeping for 5 minutes before retrying request...", level="info"
+            )
             await asyncio.sleep(5 * 60)  # Sleep for 5 minutes
 
             try:
@@ -147,7 +164,7 @@ class GPT(BaseLLM):
             return await self._retry_request_with_sleep(temperature)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     gpt = GPT()
     response = asyncio.run(gpt.ask("Hello, who are you?"))
     print(response)

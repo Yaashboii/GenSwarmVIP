@@ -14,7 +14,7 @@
     "robot": {
       "count": 5,
       "specified": [],
-      "size": 0.05,
+      "size": 0.15,
       "color": "green",
       "shape": "circle",
       "perceptual_range": 1
@@ -44,7 +44,7 @@
     }
   },
   "engine_type": "QuadTreeEngine",
-  "render_mode": "human",
+  "render_mode": "",
   "output_file": "output.json",
   "dt": 0.01
 }

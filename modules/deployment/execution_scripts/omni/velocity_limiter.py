@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 #!/usr/bin/python3
 import rospy
 import numpy as np
@@ -6,16 +19,20 @@ from geometry_msgs.msg import Twist
 
 class VelocityLimiterNode:
     def __init__(self):
-        rospy.init_node('velocity_limiter_node', anonymous=True)
+        rospy.init_node("velocity_limiter_node", anonymous=True)
 
         # Parameters from roslaunch or default values
-        self.max_linear_speed = rospy.get_param('~max_linear_speed', 0.2)  # Default max linear speed
-        self.publish_rate = rospy.get_param('~publish_rate', 10.0)  # Publish rate in Hz
-        self.damping_factor = rospy.get_param('~damping_factor', 0.5)  # Damping factor (0 < factor < 1)
-        self.time = rospy.get_param('~time', 200.0)
+        self.max_linear_speed = rospy.get_param(
+            "~max_linear_speed", 0.2
+        )  # Default max linear speed
+        self.publish_rate = rospy.get_param("~publish_rate", 10.0)  # Publish rate in Hz
+        self.damping_factor = rospy.get_param(
+            "~damping_factor", 0.5
+        )  # Damping factor (0 < factor < 1)
+        self.time = rospy.get_param("~time", 200.0)
 
-        self.vel_cmd_pub = rospy.Publisher('/robot/velcmd', Twist, queue_size=10)
-        self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
+        self.vel_cmd_pub = rospy.Publisher("/robot/velcmd", Twist, queue_size=10)
+        self.cmd_vel_sub = rospy.Subscriber("/cmd_vel", Twist, self.cmd_vel_callback)
 
         self.timer = rospy.Timer(rospy.Duration(self.time), self.timer_callback)
         self.rate = rospy.Rate(self.publish_rate)
@@ -32,13 +49,21 @@ class VelocityLimiterNode:
         angular_vel = np.array([msg.angular.x, msg.angular.y, msg.angular.z])
 
         # Apply damping to the velocities
-        linear_vel = self.damping_factor * self.last_linear_vel + (1 - self.damping_factor) * linear_vel
-        angular_vel = self.damping_factor * self.last_angular_vel + (1 - self.damping_factor) * angular_vel
+        linear_vel = (
+            self.damping_factor * self.last_linear_vel
+            + (1 - self.damping_factor) * linear_vel
+        )
+        angular_vel = (
+            self.damping_factor * self.last_angular_vel
+            + (1 - self.damping_factor) * angular_vel
+        )
 
         # Normalize linear velocity
         linear_norm = np.linalg.norm(linear_vel)
         if linear_norm > 0:
-            linear_vel = linear_vel / linear_norm * min(linear_norm, self.max_linear_speed)
+            linear_vel = (
+                linear_vel / linear_norm * min(linear_norm, self.max_linear_speed)
+            )
 
         # Update Twist message with normalized and damped velocities
         msg.linear.x, msg.linear.y, msg.linear.z = linear_vel
@@ -56,7 +81,7 @@ class VelocityLimiterNode:
         rospy.signal_shutdown("Timeout reached.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         VelocityLimiterNode()
     except rospy.ROSInterruptException:

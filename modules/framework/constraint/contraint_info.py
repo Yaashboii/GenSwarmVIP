@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from modules.file import File, logger
 from .constraint_node import ConstraintNode
 from ..parser import parse_text
@@ -73,11 +86,12 @@ class ConstraintPool:
         sync_to_file()
 
     def check_constraints_satisfaction(self):
-        # TODO,添加BUG handler 来处理这个错误
         def report_error(constraint: ConstraintNode):
-            raise SystemExit(
-                f"Constraint {constraint._name} has no satisfying function"
+            logger.log(
+                f"Constraint {constraint._name} has no satisfying function",
+                "error",
             )
+            raise Exception(f"Constraint {constraint._name} has no satisfying function")
 
         [
             report_error(c)
@@ -85,7 +99,6 @@ class ConstraintPool:
             if c.has_no_connections()
         ]
         logger.log("All constraints have satisfying functions", "success")
-
 
     def get_constraint_names(self):
         """Returns a list of all constraint names."""

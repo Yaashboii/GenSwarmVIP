@@ -1,10 +1,8 @@
 - name: Copy Source Code
   hosts: SWARM
-
-#  serial: 3
-  become: yes
-  become_method: sudo
-  become_user: root
+  become: yes  # Elevate privilege to execute the tasks with elevated rights
+  become_method: sudo  # Use sudo to become the specified user
+  become_user: root  # Execute tasks as the root user
   vars:
     ansible_become_pass: 123
     stage: "{{ STAGE }}"

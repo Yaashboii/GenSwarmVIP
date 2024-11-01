@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from modules.framework.constraint import ConstraintPool
 from modules.file import logger, File
 
@@ -14,8 +27,8 @@ class FunctionTree:
         self._function_to_layer = {}
         self._keys_set = None
         self.import_list: set[str] = init_import_list
-        self.output_template = ''
-        self._file = File(name=self._name + '.py')
+        self.output_template = ""
+        self._file = File(name=self._name + ".py")
 
     def __getitem__(self, key: str):
         return self._function_nodes[key]
@@ -132,7 +145,8 @@ class FunctionTree:
                     else:
                         logger.log(
                             f"Constraint '{constraint_name}' not found in the constraint pool for function '{name}', skipping.",
-                            level="warning")
+                            level="warning",
+                        )
 
                 from modules.prompt.robot_api_prompt import robot_api
 
@@ -149,15 +163,15 @@ class FunctionTree:
             raise
 
     async def process_function_layer(
-            self,
-            operation,
-            operation_type: State,
-            start_layer_index=0,
+        self,
+        operation,
+        operation_type: State,
+        start_layer_index=0,
     ):
         import asyncio
 
         for index, layer in enumerate(
-                self._layers[start_layer_index: start_layer_index + 1]
+            self._layers[start_layer_index : start_layer_index + 1]
         ):
             tasks = []
             logger.log(f"Layer: {start_layer_index + index}", "warning")
@@ -235,11 +249,20 @@ class FunctionTree:
         return list(seen)
 
     def save_functions_to_file(self, functions: list[FunctionNode] = None, save=True):
-        import_str = "\n".join(sorted(self.import_list))
+        # 根据函数所在的层级进行排序，如果未找到层级信息，默认放在最后
         if not functions:
-            content = "\n\n\n".join([f.content for f in self._function_nodes.values()])
+            sorted_functions = sorted(
+                self._function_nodes.values(),
+                key=lambda f: self._function_to_layer.get(f, float("inf")),
+            )
         else:
-            content = "\n\n\n".join([f.content for f in functions])
+            sorted_functions = sorted(
+                functions, key=lambda f: self._function_to_layer.get(f, float("inf"))
+            )
+
+        import_str = "\n".join(sorted(self.import_list))
+        content = "\n\n\n".join([f.content for f in sorted_functions])
+
         if save:
             self._file.message = f"{import_str}\n\n{content}\n"
             return None
@@ -254,7 +277,12 @@ class FunctionTree:
         return self.save_functions_to_file(relative_function, save=save)
 
     def _update_imports(self, imports: set):
-        self.import_list |= imports
+        for imp in imports:
+            if "api" in imp or "global_api" in imp:
+                logger.log(f"reject import: {imp}", level="warning")
+                continue
+
+            self.import_list.add(imp)
 
     def _update_function_dict(self, function_dict: dict[str, str]):
         for name, content in function_dict.items():

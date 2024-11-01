@@ -1,6 +1,19 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Any, Optional, SupportsFloat, TypeVar
 
-from modules.deployment.entity import Robot
+from modules.deployment.entity import Robot, Obstacle
 from modules.deployment.utils.sample_point import *
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
 
@@ -14,23 +27,33 @@ class GymnasiumCoveringEnvironment(GymnasiumEnvironmentBase):
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
-
+        # obstacle_list = [(0, 0)]
+        # for pos in obstacle_list:
+        #     obstacle = Obstacle(entity_id, pos, 0.15)
+        #     self.add_entity(obstacle)
+        #     entity_id += 1
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle',
-                                    zone_size=[0.5 * self.width, 0.5 * self.height],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
-                                    entities=self.entities)
-            robot = Robot(robot_id=entity_id,
-                          initial_position=position,
-                          target_position=None,
-                          size=robot_size,
-                          color=color)
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[0.5 * self.width, 0.5 * self.height],
+                robot_size=robot_size,
+                robot_shape=shape,
+                min_distance=0.1,
+                entities=self.entities,
+            )
+            robot = Robot(
+                robot_id=entity_id,
+                initial_position=position,
+                target_position=None,
+                size=robot_size,
+                color=color,
+            )
             self.add_entity(robot)
             entity_id += 1
 
 
 if __name__ == "__main__":
-
     import time
     import rospy
 

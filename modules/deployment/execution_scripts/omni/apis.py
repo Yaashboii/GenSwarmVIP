@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import numpy as np
 import rospy
 import threading
@@ -46,7 +59,9 @@ class RobotNode:
         for obj in msg.observations:
             if obj.type == "Robot":
                 if obj.id == self.robot_id:
-                    self.robot_info["position"] = np.array([obj.position.x, obj.position.y])
+                    self.robot_info["position"] = np.array(
+                        [obj.position.x, obj.position.y]
+                    )
                     if self.init_position is None:
                         self.init_position = self.robot_info["position"]
                     self.robot_info["radius"] = obj.radius
@@ -55,7 +70,9 @@ class RobotNode:
                     {
                         "id": obj.id,
                         "position": np.array([obj.position.x, obj.position.y]),
-                        "velocity": np.array([obj.velocity.linear.x, obj.velocity.linear.y]),
+                        "velocity": np.array(
+                            [obj.velocity.linear.x, obj.velocity.linear.y]
+                        ),
                         "radius": obj.radius,
                     }
                 )
@@ -74,10 +91,12 @@ class RobotNode:
             elif obj.type == "Landmark":
                 self.target_position = np.array([obj.position.x, obj.position.y])
                 if obj.color == "gray":
-                    self.unexplored_area.append({
-                        "id": len(self.unexplored_area),
-                        "position": np.array([obj.position.x, obj.position.y])
-                    })
+                    self.unexplored_area.append(
+                        {
+                            "id": len(self.unexplored_area),
+                            "position": np.array([obj.position.x, obj.position.y]),
+                        }
+                    )
 
     def initialize_ros_node(self):
         if not self.ros_initialized:
@@ -88,7 +107,9 @@ class RobotNode:
             # current_folder = os.path.dirname(os.path.abspath(__file__))
             # rospy.set_param("data_path", str(current_folder) + "/data")
 
-            print(f"Waiting for position message from /robot_{self.robot_id}/observation...")
+            print(
+                f"Waiting for position message from /robot_{self.robot_id}/observation..."
+            )
             msg = rospy.wait_for_message(f"/observation", Observations)
             self.observation_callback(msg)
             print(f"Observations data init successfully")
@@ -156,7 +177,7 @@ def set_current_robot_id(robot_id, **kwargs):
 
 
 def get_current_robot_node():
-    robot_id = getattr(thread_local, 'robot_id', None)
+    robot_id = getattr(thread_local, "robot_id", None)
     if robot_id is None:
         raise ValueError("No robot_id is set for the current thread")
     return robot_nodes[robot_id]

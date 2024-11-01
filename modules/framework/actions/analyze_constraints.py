@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import json
 
 from modules.file import logger
@@ -8,6 +21,7 @@ from modules.prompt import (
     CONSTRAIN_TEMPLATE,
     GLOBAL_ROBOT_API,
     LOCAL_ROBOT_API,
+    ALLOCATOR_TEMPLATE,
     ENV_DES,
     TASK_DES,
 )
@@ -21,8 +35,10 @@ class AnalyzeConstraints(ActionNode):
     def __init__(self, next_text, node_name=""):
         super().__init__(next_text, node_name)
         self._interaction_mode = False
-        if (hasattr(self.context.args, "interaction_mode")
-                and self.context.args.interaction_mode is True):
+        if (
+            hasattr(self.context.args, "interaction_mode")
+            and self.context.args.interaction_mode is True
+        ):
             self.__llm = GPT(memorize=True)
             self._interaction_mode = True
         else:
@@ -32,11 +48,12 @@ class AnalyzeConstraints(ActionNode):
     def _build_prompt(self):
         # constraints predefined
         user_constraints = {"constraints": self._constraint_pool.constraint_list}
-        self.prompt=self.prompt.format(
+        self.prompt = self.prompt.format(
             task_des=TASK_DES,
             instruction=self.context.command,
             global_api=GLOBAL_ROBOT_API,
-            local_api=LOCAL_ROBOT_API,
+            local_api=LOCAL_ROBOT_API
+            + ALLOCATOR_TEMPLATE.format(template="Temporarily unknown"),
             env_des=ENV_DES,
             output_template=CONSTRAIN_TEMPLATE,
             user_constraints=json.dumps(user_constraints, indent=4),
@@ -49,12 +66,12 @@ class AnalyzeConstraints(ActionNode):
         logger.log(f"Analyze Constraints Success", "success")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import asyncio
     from modules.framework.context import WorkflowContext
     import argparse
 
-    root_manager.update_root('../../../workspace/test')
+    root_manager.update_root("../../../workspace/test")
 
     parser = argparse.ArgumentParser(
         description="Run simulation with custom parameters."
@@ -67,7 +84,7 @@ if __name__ == '__main__':
         help="Whether to run in interaction mode in analyze constraints.",
     )
     context = WorkflowContext()
-    task = get_user_commands('bridging')[0]
+    task = get_user_commands("covering")[0]
 
     context.command = task
     args = parser.parse_args()

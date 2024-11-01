@@ -1,4 +1,19 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import os
+import traceback
+
 import yaml
 from modules.framework.parser import CodeParser
 
@@ -61,25 +76,29 @@ def get_environment_range():
         - y_max (float): The maximum y value of the environment.
     '''
 
-def get_surrounding_robots_info():
+def get_surrounding_environment_info():
     '''
-    Get real-time information of the surrounding robots within the perception range 1.0m.(Not including the robot itself)
+    Get real-time information of the surrounding robots and obstacles within the perception range.
     Returns:
-    - list: A list of dictionaries, each containing the current position, velocity, and radius of a robot.
-    '''
-
-def get_surrounding_obstacles_info():
-    '''
-    Get real-time information of the surrounding obstacles within the perception range 1.0m.
-    Returns:
-    - list: A list of dictionaries, each containing the current position and radius of an obstacle.
+    - list: A list of dictionaries, each containing the type, position, and other relevant information of surrounding objects (robots or obstacles).
+        - "Type": A string indicating whether the object is a 'robot' or 'obstacle'.
+        - "position": The current position of the object.
+        - "velocity": The current velocity of the object. If the object is an obstacle, the velocity is [0, 0].
+        - "radius": The radius of the object.
     '''
 
 def get_prey_position():
     '''
-    Description: Get the position of the prey.
+    Description: Prey will keep moving in the environment.Get the real-time position of the prey in the environment.
     Returns:
     - numpy.ndarray: The position of the prey.
+    '''
+
+def get_lead_position():
+    '''
+    Description: Lead will keep moving in the environment.Get the real-time position of the prey in the environment.
+    Returns:
+    - numpy.ndarray: The position of the lead.
     '''
 
 def get_target_position():
@@ -121,7 +140,7 @@ def get_all_robots_initial_position():
     -dict: A dictionary where the keys are robot IDs and values are the initial positions of the robots.
         - key: int, the robot id.
         - value: numpy.ndarray, the initial position of the robot.
-    '''    
+    '''
 
 def get_prey_initial_position():
     '''
@@ -131,15 +150,12 @@ def get_prey_initial_position():
     - list: A list of float, representing the initial position of the prey.
     '''
 
-def get_initial_unexplored_area():
+def get_initial_unexplored_areas():
     '''
-    Description: Get the initial unexplored area in the environment.
+    Description: Get the initial unexplored areas in the environment.
     Returns:
-    - list: A list of dictionaries containing the id and position of an unexplored area.
-        - id (int): The unique ID of the unexplored area.
-        - position (numpy.ndarray): The position of the unexplored area.
+    -list: A list of numpy.ndarray, each representing the center position of an unexplored area.
     '''
-
 """.strip()
 
 
@@ -151,54 +167,60 @@ class RobotApi:
         self.apis = code_obj.function_defs
 
         self.base_apis = [
-            'get_all_robots_id',
-            'get_self_position',
-            'set_self_velocity',
-            'stop_self',
-            'get_self_radius',
-            'get_surrounding_robots_info',
-            'get_all_robots_initial_position',
-
+            "get_all_robots_id",
+            "get_self_position",
+            "set_self_velocity",
+            "get_self_radius",
+            "get_surrounding_environment_info",
+            "get_all_robots_initial_position",
         ]
 
         # Updated API scope mapping to support multiple scopes per API
         self.api_scope = {
-            'get_self_position': ['local'],
-            'set_self_velocity': ['local'],
-            'get_self_velocity': ['local'],
-            'stop_self': ['local'],
-            'get_environment_range': ['local', 'global'],
-            'get_self_radius': ['local'],
-            'get_prey_position': ['local'],
-            'get_target_position': ['local'],
-            'get_surrounding_robots_info': ['local'],
-            'get_surrounding_obstacles_info': ['local'],
-            'get_all_robots_id': ['global'],
-            'get_all_robots_initial_position': ['global'],
-            'get_target_formation_points': ['global'],
-            'get_initial_unexplored_area': ['global'],
-            'get_prey_initial_position': ['global'],
-            'get_surrounding_unexplored_area': ['local'],
-            'get_quadrant_target_position': ['global'],
+            "get_self_position": ["local"],
+            "set_self_velocity": ["local"],
+            "get_self_velocity": ["local"],
+            "stop_self": ["local"],
+            "get_environment_range": ["local", "global"],
+            "get_self_radius": ["local"],
+            "get_prey_position": ["local"],
+            "get_lead_position": ["local"],
+            "get_target_position": ["local"],
+            "get_surrounding_robots_info": ["local"],
+            "get_surrounding_obstacles_info": ["local"],
+            "get_all_robots_id": ["global"],
+            "get_all_robots_initial_position": ["global"],
+            "get_target_formation_points": ["global"],
+            "get_initial_unexplored_areas": ["global"],
+            "get_prey_initial_position": ["global"],
+            "get_surrounding_unexplored_area": ["local"],
+            "get_quadrant_target_position": ["global", "local"],
+            "get_surrounding_environment_info": ["local"],
             # Example of APIs with multiple scopes
             # 'example_api': ['local', 'global'],
         }
 
         self.base_prompt = [self.apis[api] for api in self.base_apis]
         self.task_apis = {
-            "bridging": ['get_surrounding_obstacles_info'],
-            "circling": ['get_surrounding_obstacles_info'],
-            "covering": ['get_environment_range'],
-            "crossing": ['get_surrounding_obstacles_info', ],
-            "encircling": ["get_prey_position", 'get_prey_initial_position'],
-            "exploration": ['get_initial_unexplored_area', 'get_environment_range'],
-            "flocking": ['get_surrounding_obstacles_info', 'get_environment_range'],
-            "clustering": ['get_surrounding_obstacles_info', 'get_quadrant_target_position'],
-            "shaping": ['get_target_formation_points'],
-            "pursuing": ['get_prey_position'],
+            "bridging": ["stop_self"],
+            "circling": ["stop_self"],
+            "covering": ["get_environment_range", "stop_self"],
+            "crossing": ["stop_self"],
+            "encircling": ["get_prey_position", "get_prey_initial_position"],
+            "exploration": [
+                "get_initial_unexplored_areas",
+                "get_environment_range",
+                "stop_self",
+            ],
+            "flocking": ["get_environment_range", "get_self_velocity"],
+            "clustering": ["get_quadrant_target_position"],
+            "shaping": ["get_target_formation_points", "stop_self"],
+            "pursuing": ["get_lead_position"],
         }
 
-    def get_api_prompt(self, task_name: str = None, scope: str = None, only_names: bool = False) -> str | list:
+    def get_api_prompt(
+        self, task_name: str = None, scope: str = None, only_names: bool = False
+    ) -> str | list:
         """
         Get the prompt of the robot API.
         Parameters:
@@ -213,7 +235,9 @@ class RobotApi:
         if task_name is None:
             all_apis = self.apis.keys()
             if scope:
-                filtered_apis = [api for api in all_apis if scope in self.api_scope.get(api, [])]
+                filtered_apis = [
+                    api for api in all_apis if scope in self.api_scope.get(api, [])
+                ]
             else:
                 filtered_apis = all_apis
 
@@ -223,16 +247,23 @@ class RobotApi:
 
         try:
             task_prompt = self.base_prompt.copy()
-            specific_apis = [self.apis[api] for api in self.task_apis.get(task_name, [])]
+            specific_apis = [
+                self.apis[api] for api in self.task_apis.get(task_name, [])
+            ]
             task_prompt.extend(specific_apis)
 
             if scope:
-                task_prompt = [api for api in task_prompt if scope in self.api_scope.get(self.get_api_name(api), [])]
+                task_prompt = [
+                    api
+                    for api in task_prompt
+                    if scope in self.api_scope.get(self.get_api_name(api), [])
+                ]
 
             if only_names:
                 return [self.get_api_name(api) for api in task_prompt]
             return "\n\n".join(task_prompt)
         except KeyError:
+            traceback.print_exc()
             raise SystemExit(
                 f"Error in get_api_prompt: Task name '{task_name}' not found. Current existing tasks: {list(self.task_apis.keys())}."
             )
@@ -246,44 +277,52 @@ class RobotApi:
         """
         Helper method to retrieve API name from the function definition.
         """
-        return next((name for name, content in self.apis.items() if content == api), None)
+        return next(
+            (name for name, content in self.apis.items() if content == api), None
+        )
 
 
 robot_api = RobotApi(content=robot_api_prompt)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-yaml_file_path = os.path.join(script_dir, '../../config/', 'experiment_config.yaml')
+yaml_file_path = os.path.join(script_dir, "../../config/", "experiment_config.yaml")
 
-with open(yaml_file_path, 'r', encoding='utf-8') as file:
+with open(yaml_file_path, "r", encoding="utf-8") as file:
     data = yaml.safe_load(file)
-task_name = data['arguments']['--run_experiment_name']['default'][0]
+task_name = data["arguments"]["--run_experiment_name"]["default"][0]
 
-GLOBAL_ROBOT_API = robot_api.get_api_prompt(task_name, scope='global')
-LOCAL_ROBOT_API = robot_api.get_api_prompt(task_name, scope='local')
+GLOBAL_ROBOT_API = robot_api.get_api_prompt(task_name, scope="global")
+LOCAL_ROBOT_API = robot_api.get_api_prompt(task_name, scope="local")
 
-global_import_list = robot_api.get_api_prompt(task_name, scope='global', only_names=True)
-local_import_list = robot_api.get_api_prompt(task_name, scope='local', only_names=True)
-local_import_list = local_import_list.split('\n\n') if isinstance(local_import_list, str) else local_import_list
-local_import_list.append('get_assigned_task')
+global_import_list = robot_api.get_api_prompt(
+    task_name, scope="global", only_names=True
+)
+local_import_list = robot_api.get_api_prompt(task_name, scope="local", only_names=True)
+local_import_list = (
+    local_import_list.split("\n\n")
+    if isinstance(local_import_list, str)
+    else local_import_list
+)
+local_import_list.append("get_assigned_task")
 
 ALLOCATOR_TEMPLATE = """
 
 def get_assigned_task():
     '''
-    Description: Get the task assigned to the robot by the global allocator. This function is executed only once when the global allocator runs, 
-    providing each robot with a specific task based on the global context. The global allocator gathers all the information about the environment 
+    Description: Get the task assigned to the robot by the global allocator. This function is executed only once when the global allocator runs,
+    providing each robot with a specific task based on the global context. The global allocator gathers all the information about the environment
     and robots to determine the most efficient and collision-free task allocation. The task information varies depending on the type of task.
     Returns:
         {template}
     '''
 """
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     for task_name in robot_api.task_apis.keys():
         print(f"Task name: {task_name}")
         print("Global APIs:")
-        print(robot_api.get_api_prompt(task_name, scope='global', only_names=True))
+        print(robot_api.get_api_prompt(task_name, scope="global", only_names=True))
         print("Local APIs:")
-        print(robot_api.get_api_prompt(task_name, scope='local', only_names=True))
+        print(robot_api.get_api_prompt(task_name, scope="local", only_names=True))
         print("=" * 50)
         print()

@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 DESIGN_LOCAL_FUNCTION_PROMPT_TEMPLATE = """
 ## Background:
 {task_des}
@@ -6,6 +19,9 @@ DESIGN_LOCAL_FUNCTION_PROMPT_TEMPLATE = """
 
 ## These are the environment description:
 {env_des}
+
+## These are the User original instructions:
+{instruction}
 
 ## Existing robot APIs:
 ```python
@@ -42,8 +58,7 @@ def {function_name}(input1, input2, ...):
 - All parameters required for the algorithm should be set as input variables with default values.
 - The function body content does not need to be provided; simply giving a `pass` is sufficient.
 - Take a holistic approach and reuse existing functions as much as possible.
-- Task allocation should occur only once at the beginning and must take environmental changes into account, avoiding reliance on any single changing object. The allocation method should be optimal, ensuring no conflicts occur between robots.
-- The task allocation can include various types such as positions, lists of positions, or specific angles, based on the requirements of the task.
+- The current task does not necessarily require a global allocator. If needed, please use the corresponding API to obtain the assigned task. If there is no corresponding API, then the current task does not require a global allocator.
 """.strip()
 
 DESIGN_GLOBAL_FUNCTION_PROMPT_TEMPLATE = """
@@ -55,6 +70,9 @@ DESIGN_GLOBAL_FUNCTION_PROMPT_TEMPLATE = """
 
 ## These are the environment description:
 {env_des}
+
+## These are the User original instructions:
+{instruction}
 
 ## Existing APIs:
 ```python
@@ -94,6 +112,6 @@ def {function_name}(input1, input2, ...):
 - Take a holistic approach and reuse existing functions as much as possible.
 - The allocation method for robots should be optimal, ensuring no conflicts occur between them.
 - Task allocation will only occur once at the beginning of the task, so the tasks assigned to each robot should take environmental changes into account and avoid relying on any single changing object.
-- The robot allocation method should be optimal to avoid conflicts; task allocation occurs once at the beginning and should account for environmental changes without relying on a single changing element.
+- The allocation method for robots should ensure that the total movement distance for each robot is minimized while completing all tasks, and that no task conflicts occur (i.e., each robot is assigned a distinct task, with no overlap between tasks).
 - The task allocation can include various types such as positions, lists of positions, or specific angles, based on the requirements of the task.
 """.strip()

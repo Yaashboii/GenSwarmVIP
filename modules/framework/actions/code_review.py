@@ -1,4 +1,17 @@
-from sympy.codegen.ast import continue_
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
+# from sympy.codegen.ast import continue_
 
 from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
@@ -29,10 +42,18 @@ class CodeReview(ActionNode):
             self._function
         )
         other_functions_str = "\n\n".join([f.function_body for f in other_functions])
-        robot_api = GLOBAL_ROBOT_API if self.context.scoop == "global" else (
-                LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(template=self.context.global_skill_tree.output_template))
+        if len(self.context.global_skill_tree.layers) == 0:
+            local_api_prompt = LOCAL_ROBOT_API
+        else:
+            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+                template=self.context.global_skill_tree.output_template
+            )
+        robot_api = (
+            GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
+        )
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
+            instruction=self.context.command,
             robot_api=robot_api,
             env_des=ENV_DES,
             function_name=self._function.name,
@@ -64,11 +85,16 @@ class CodeReview(ActionNode):
                 parser = SingleFunctionParser()
                 parser.parse_code(code)
                 parser.check_function_name(desired_function_name)
-                self._skill_tree.update_from_parser(parser.imports, parser.function_dict)
+                self._skill_tree.update_from_parser(
+                    parser.imports, parser.function_dict
+                )
                 self._skill_tree.save_code([desired_function_name])
                 return code
             except Exception as e:
-                logger.log(f"Error processing code at index {i}: {e}. Code: {code}", level="warning")
+                logger.log(
+                    f"Error processing code at index {i}: {e}. Code: {code}",
+                    level="warning",
+                )
                 continue
 
         logger.log("All code snippets failed to parse.", level="warning")
@@ -76,7 +102,13 @@ class CodeReview(ActionNode):
 
 
 class CodeReviewAsync(AsyncNode):
-    def __init__(self, skill_tree, run_mode='layer', start_state=State.WRITTEN, end_state=State.REVIEWED):
+    def __init__(
+        self,
+        skill_tree,
+        run_mode="layer",
+        start_state=State.WRITTEN,
+        end_state=State.REVIEWED,
+    ):
         super().__init__(skill_tree, run_mode, start_state, end_state)
 
     def _build_prompt(self):
@@ -88,7 +120,7 @@ class CodeReviewAsync(AsyncNode):
         return await action.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import asyncio
     from modules.framework.context import WorkflowContext
     import argparse
@@ -96,8 +128,8 @@ if __name__ == '__main__':
     context = WorkflowContext()
     path = "../../../workspace/test"
     context.load_from_file(f"{path}/written_function.pkl")
-    root_manager.update_root('../../../workspace/test')
+    root_manager.update_root("../../../workspace/test")
 
-    code_reviewer = CodeReviewAsync(context.global_skill_tree, 'sequential')
+    code_reviewer = CodeReviewAsync(context.global_skill_tree, "sequential")
     asyncio.run(code_reviewer.run())
     context.save_to_file("../../../workspace/test/reviewed_function.pkl")

@@ -1,10 +1,27 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import math
 import os
 import numpy as np
 import rospy
 import threading
 
-from code_llm.srv import ConnectEntities, ConnectEntitiesResponse, ConnectEntitiesRequest
+from code_llm.srv import (
+    ConnectEntities,
+    ConnectEntitiesResponse,
+    ConnectEntitiesRequest,
+)
 from geometry_msgs.msg import Twist
 from code_llm.msg import Observations
 
@@ -43,7 +60,9 @@ class RobotNode:
         for obj in msg.observations:
             if obj.type == "Robot":
                 if obj.id == self.robot_id:
-                    self.robot_info["position"] = np.array([obj.position.x, obj.position.y])
+                    self.robot_info["position"] = np.array(
+                        [obj.position.x, obj.position.y]
+                    )
                     if self.init_position is None:
                         self.init_position = self.robot_info["position"]
                     self.robot_info["radius"] = obj.radius
@@ -52,7 +71,9 @@ class RobotNode:
                     {
                         "id": obj.id,
                         "position": np.array([obj.position.x, obj.position.y]),
-                        "velocity": np.array([obj.velocity.linear.x, obj.velocity.linear.y]),
+                        "velocity": np.array(
+                            [obj.velocity.linear.x, obj.velocity.linear.y]
+                        ),
                         "radius": obj.radius,
                     }
                 )
@@ -71,37 +92,49 @@ class RobotNode:
             elif obj.type == "Landmark":
                 self.target_position = np.array([obj.position.x, obj.position.y])
                 if obj.color == "gray":
-                    self.unexplored_area.append(np.array([obj.position.x, obj.position.y]))
+                    self.unexplored_area.append(
+                        np.array([obj.position.x, obj.position.y])
+                    )
 
             elif obj.type == "PushableObject":
-                self.moveable_objects.append({"position": np.array([obj.position.x, obj.position.y]),
-                                              "id": obj.id,
-                                              "radius": obj.radius,
-                                              "target_position": np.array(
-                                                  [obj.target_position.x, obj.target_position.y]),
-                                              "color": obj.color})
+                self.moveable_objects.append(
+                    {
+                        "position": np.array([obj.position.x, obj.position.y]),
+                        "id": obj.id,
+                        "radius": obj.radius,
+                        "target_position": np.array(
+                            [obj.target_position.x, obj.target_position.y]
+                        ),
+                        "color": obj.color,
+                    }
+                )
 
     def initialize_ros_node(self):
         if not self.ros_initialized:
             self.ros_initialized = True
             rospy.Subscriber(f"/observation", Observations, self.observation_callback)
-            self.velocity_publisher = rospy.Publisher(f"/robot_{self.robot_id}/velocity", Twist, queue_size=10)
+            self.velocity_publisher = rospy.Publisher(
+                f"/robot_{self.robot_id}/velocity", Twist, queue_size=10
+            )
 
             current_folder = os.path.dirname(os.path.abspath(__file__))
             rospy.set_param("data_path", str(current_folder) + "/data")
 
-            print(f"Waiting for position message from /robot_{self.robot_id}/observation...")
+            print(
+                f"Waiting for position message from /robot_{self.robot_id}/observation..."
+            )
             msg = rospy.wait_for_message(f"/observation", Observations)
             self.observation_callback(msg)
             print(f"Observations data init successfully")
             start_idx = rospy.get_param("robot_start_index")
             end_idx = rospy.get_param("robot_end_index")
             total_robots = end_idx - start_idx + 1
-            self.robots_id_info = {"start_id": start_idx,
-                                   "end_id": end_idx,
-                                   "robots_num": total_robots,
-                                   "self_id": self.robot_id
-                                   }
+            self.robots_id_info = {
+                "start_id": start_idx,
+                "end_id": end_idx,
+                "robots_num": total_robots,
+                "self_id": self.robot_id,
+            }
             self.timer = rospy.Timer(rospy.Duration(0.1), self.publish_velocities)
 
     def publish_velocities(self, event):
@@ -111,9 +144,9 @@ class RobotNode:
         self.velocity_publisher.publish(velocity_msg)
 
     def connect_to_robot(self, target_id):
-        rospy.wait_for_service('/connect_to_others')
+        rospy.wait_for_service("/connect_to_others")
         try:
-            connect_service = rospy.ServiceProxy('/connect_to_others', ConnectEntities)
+            connect_service = rospy.ServiceProxy("/connect_to_others", ConnectEntities)
             request = ConnectEntitiesRequest()
             request.self_id = self.robot_id
             request.target_id = target_id
@@ -124,9 +157,11 @@ class RobotNode:
             return False
 
     def disconnect_from_robot(self, target_id):
-        rospy.wait_for_service('/disconnect_from_others')
+        rospy.wait_for_service("/disconnect_from_others")
         try:
-            disconnect_service = rospy.ServiceProxy('/disconnect_from_others', ConnectEntities)
+            disconnect_service = rospy.ServiceProxy(
+                "/disconnect_from_others", ConnectEntities
+            )
             request = ConnectEntitiesRequest()
             request.self_id = self.robot_id
             request.target_id = target_id
@@ -187,7 +222,7 @@ def set_current_robot_id(robot_id, **kwargs):
 
 
 def get_current_robot_node():
-    robot_id = getattr(thread_local, 'robot_id', None)
+    robot_id = getattr(thread_local, "robot_id", None)
     if robot_id is None:
         raise ValueError("No robot_id is set for the current thread")
     return robot_nodes[robot_id]

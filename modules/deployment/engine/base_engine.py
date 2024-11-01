@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from abc import ABC, abstractmethod
 import numpy as np
 from modules.deployment.entity.base_entity import Entity
@@ -19,8 +32,10 @@ class Engine(ABC):
             entity (Entity): The entity to add.
         """
         if entity.id in self._entities:
-            raise ValueError(f"Entity_{entity.id} with the same ID already exists."
-                             f"Current entities: {list(self._entities.keys())}")
+            raise ValueError(
+                f"Entity_{entity.id} with the same ID already exists."
+                f"Current entities: {list(self._entities.keys())}"
+            )
         self._entities[entity.id] = entity
 
     def remove_entity(self, entity_id: int):
@@ -128,23 +143,26 @@ class Engine(ABC):
         self._entities.clear()
         self._joints.clear()
 
-    @abstractmethod
     def step(self, delta_time: float):
         """
         Perform a physics step in the environment.
         """
-        raise NotImplementedError("The step method must be implemented by the subclass.")
+        raise NotImplementedError(
+            "The step method must be implemented by the subclass."
+        )
 
-    @abstractmethod
     def apply_force(self, entity_id: int, force):
         """
         Apply a force to an entity in the environment.
         """
-        raise NotImplementedError("The apply_force method must be implemented by the subclass.")
+        raise NotImplementedError(
+            "The apply_force method must be implemented by the subclass."
+        )
 
-    @abstractmethod
     def control_velocity(self, entity_id, desired_velocity, dt=None):
         """
         Control the velocity of an entity in the environment
         """
-        raise NotImplementedError("The control_velocity method must be implemented by the subclass.")
+        raise NotImplementedError(
+            "The control_velocity method must be implemented by the subclass."
+        )

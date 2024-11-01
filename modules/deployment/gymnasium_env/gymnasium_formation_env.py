@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 from typing import Optional, TypeVar
 
 from modules.deployment.entity import Robot, Obstacle
@@ -12,8 +25,6 @@ class GymnasiumFormationEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
-
-
     def init_entities(self):
         entity_id = 0
 
@@ -22,12 +33,18 @@ class GymnasiumFormationEnvironment(GymnasiumEnvironmentBase):
         color = self.data["entities"]["obstacle"]["color"]
 
         for i in range(self.num_obstacles):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=obstacle_size, robot_shape=shape, min_distance=obstacle_size,
-                                    entities=self.entities)
-            obstacle = Obstacle(obstacle_id=entity_id,
-                                initial_position=position,
-                                size=obstacle_size)
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=obstacle_size,
+                robot_shape=shape,
+                min_distance=obstacle_size,
+                entities=self.entities,
+            )
+            obstacle = Obstacle(
+                obstacle_id=entity_id, initial_position=position, size=obstacle_size
+            )
             self.add_entity(obstacle)
             entity_id += 1
 
@@ -36,26 +53,33 @@ class GymnasiumFormationEnvironment(GymnasiumEnvironmentBase):
         color = self.data["entities"]["robot"]["color"]
 
         for i in range(self.num_robots):
-            position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
-                                    robot_size=robot_size, robot_shape=shape, min_distance=robot_size,
-                                    entities=self.entities)
-            robot = Robot(robot_id=entity_id,
-                          initial_position=position,
-                          target_position=None,
-                          size=robot_size,
-                          color=color)
+            position = sample_point(
+                zone_center=[0, 0],
+                zone_shape="rectangle",
+                zone_size=[self.width, self.height],
+                robot_size=robot_size,
+                robot_shape=shape,
+                min_distance=robot_size,
+                entities=self.entities,
+            )
+            robot = Robot(
+                robot_id=entity_id,
+                initial_position=position,
+                target_position=None,
+                size=robot_size,
+                color=color,
+            )
             self.add_entity(robot)
             entity_id += 1
 
 
 if __name__ == "__main__":
-
     import time
     import rospy
 
     from modules.deployment.utils.manager import Manager
 
-    env = GymnasiumFormationEnvironment("../../../config/env_config.json")
+    env = GymnasiumFormationEnvironment("../../../config/env/formation_config.json")
 
     obs, infos = env.reset()
     manager = Manager(env)

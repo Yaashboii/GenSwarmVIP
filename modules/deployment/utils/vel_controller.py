@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import numpy as np
 import rospy
 from geometry_msgs.msg import Twist
@@ -6,7 +19,7 @@ from pynput.keyboard import Key, Listener
 
 class SpeedController:
     def __init__(
-            self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 0.5
+        self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 0.5
     ):
         self._pub = rospy.Publisher(topic_name_pub, Twist, queue_size=1)
         self._twist = Twist()
@@ -23,7 +36,7 @@ class SpeedController:
 
 class KeyboardController(SpeedController):
     def __init__(
-            self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 1
+        self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 1
     ):
         super().__init__(topic_name_pub, topic_name_sub, init_speed)
         self.listener = Listener(on_press=self.on_press)
@@ -57,7 +70,7 @@ class KeyboardController(SpeedController):
 
 class GamepadController(SpeedController):
     def __init__(
-            self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 0.5
+        self, topic_name_pub: str, topic_name_sub: str = None, init_speed: float = 0.5
     ):
         super().__init__(topic_name_pub, topic_name_sub, init_speed)
 

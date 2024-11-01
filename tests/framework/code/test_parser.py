@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import unittest
 
 from modules.framework.parser import CodeParser, SingleFunctionParser, parse_text
@@ -34,8 +47,8 @@ def subtract(x, y=0):
 
     def test_function_contents(self):
         expected_function_contents = [
-            'def add(a, b=0):\n    """This function adds two numbers."""\n    return a + b',
-            'def subtract(x, y=0):\n    """This function subtracts two numbers."""\n    return x - y',
+            "def add(a, b=0):\n    '''This function adds two numbers.'''\n    return a + b",
+            "def subtract(x, y=0):\n    '''This function subtracts two numbers.'''\n    return x - y",
         ]
         self.assertEqual(
             list(self.parser._function_dict.values()), expected_function_contents

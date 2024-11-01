@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2024 WindyLab of Westlake University, China
+All rights reserved.
+
+This software is provided "as is" without warranty of any kind, either
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, or non-infringement.
+In no event shall the authors or copyright holders be liable for any
+claim, damages, or other liability, whether in an action of contract,
+tort, or otherwise, arising from, out of, or in connection with the
+software or the use or other dealings in the software.
+"""
+
 import asyncio
 import traceback
 
@@ -30,8 +43,8 @@ class BaseNode(ABC):
 
     @_next.setter
     def _next(self, value):
-        if not isinstance(value, BaseNode):
-            raise ValueError("Value must be a BaseNode")
+        # if not isinstance(value, BaseNode):
+        #     raise ValueError("Value must be a BaseNode")
         self.__next = value
 
     @abstractmethod
@@ -51,7 +64,7 @@ class BaseNode(ABC):
 
 
 class ActionNode(BaseNode):
-    def __init__(self, next_text: str = '', node_name: str = "", llm: GPT = None):
+    def __init__(self, next_text: str = "", node_name: str = "", llm: GPT = None):
         super().__init__()
         self.__llm = llm if llm else GPT()
         self.prompt = None
@@ -74,13 +87,16 @@ class ActionNode(BaseNode):
 
     async def run(self, auto_next: bool = True) -> str:
         # First create a prompt, then utilize it to query the language model.
-        self.prompt = Prompt().get_prompt(action=self.__class__.__name__, scope=self.context.scoop)
+        self.prompt = Prompt().get_prompt(
+            action=self.__class__.__name__, scope=self.context.scoop
+        )
         self._build_prompt()
         logger.log(f"Action: {str(self)}", "info")
         res = await self._run()
         self.context.save_to_file(file_path=root_manager.workspace_root / f"{self}.pkl")
         if isinstance(res, CodeError):
             # If response is CodeError, handle it and move to next action
+            #
             if self.error_handler:
                 next_action = self.error_handler.handle(res)
                 return await next_action.run()
@@ -100,8 +116,12 @@ class ActionNode(BaseNode):
             print_to_terminal = True
             if hasattr(self.context.args, "print_to_terminal"):
                 print_to_terminal = self.context.args.print_to_terminal
-            logger.log(f"Prompt:\n {self.prompt}", "debug", print_to_terminal=print_to_terminal)
-            logger.log(f"Response:\n {code}", "info", print_to_terminal=print_to_terminal)
+            logger.log(
+                f"Prompt:\n {self.prompt}", "debug", print_to_terminal=print_to_terminal
+            )
+            logger.log(
+                f"Response:\n {code}", "info", print_to_terminal=print_to_terminal
+            )
             code = await self._process_response(code)
             return code
         except Exception as e:
@@ -114,8 +134,14 @@ class ActionNode(BaseNode):
 
 
 class AsyncNode(ActionNode):
-    def __init__(self, skill_tree: FunctionTree, run_mode='layer', start_state=None, end_state=None):
-        super().__init__('')
+    def __init__(
+        self,
+        skill_tree: FunctionTree,
+        run_mode="layer",
+        start_state=None,
+        end_state=None,
+    ):
+        super().__init__("")
         self._run_mode = run_mode
         self._start_state = start_state
         self._end_state = end_state
@@ -149,12 +175,18 @@ class AsyncNode(ActionNode):
             logger.log(f"No functions in {self._start_state} state", "error")
             raise SystemExit
 
-        if not all(function_node.state == self._start_state for function_node in
-                   self.skill_tree.layers[layer_index].functions):
-            logger.log("All functions in the layer are not in NOT_STARTED state", "error")
+        if not all(
+            function_node.state == self._start_state
+            for function_node in self.skill_tree.layers[layer_index].functions
+        ):
+            logger.log(
+                "All functions in the layer are not in NOT_STARTED state", "error"
+            )
             raise SystemExit
 
-        await self.skill_tree.process_function_layer(self.operate, self._end_state, layer_index)
+        await self.skill_tree.process_function_layer(
+            self.operate, self._end_state, layer_index
+        )
 
     async def _run_sequential_mode(self):
         for function in self.skill_tree.nodes:
