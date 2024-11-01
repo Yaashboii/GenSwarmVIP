@@ -16,7 +16,7 @@ from modules.deployment.entity.landmark import Landmark
 from modules.deployment.entity.leader import Leader
 from modules.deployment.entity.obstacle import Obstacle
 
-# from modules.deployment.entity.prey import Prey
+from modules.deployment.entity.prey import Prey
 from modules.deployment.entity.pushable_object import PushableObject
 from modules.deployment.entity.robot import Robot
 
@@ -28,7 +28,7 @@ __all__ = [
     "Landmark",
     "Leader",
     "Obstacle",
-    # "Prey",
+    "Prey",
     "PushableObject",
     "Robot",
     # "Sheep",

@@ -49,7 +49,7 @@ def main():
     # 解析参数
     args = parser.parse_args()
 
-    task_name = "pursuing"
+    task_name = "flocking"
     runner_class = task_mapping(task_name)
     config_file = config_mapping(task_name)
     runner = runner_class(
@@ -57,7 +57,7 @@ def main():
         workspace_path=task_name,
         experiment_duration=8,
         exp_batch=args.exp_batch,  # 使用传入的 exp_batch 参数
-        run_mode="analyze",
+        run_mode="rerun",
         max_speed=4.5,
         tolerance=0.15,
     )
@@ -66,7 +66,7 @@ def main():
     # exp_list = ['2024-10-28_01-49-03', '2024-10-28_01-49-05', '2024-10-28_01-49-09', '2024-10-28_01-49-15',
     #             '2024-10-28_01-49-19', '2024-10-28_01-49-27', '2024-10-28_01-51-49']
     exp_list = None
-    # exp_list = ['2024-10-31_17-05-42']
+    exp_list = ['2024-11-01_14-29-52']
 
     runner.run(exp_list=exp_list)
 
