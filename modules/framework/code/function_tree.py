@@ -249,11 +249,20 @@ class FunctionTree:
         return list(seen)
 
     def save_functions_to_file(self, functions: list[FunctionNode] = None, save=True):
-        import_str = "\n".join(sorted(self.import_list))
+        # 根据函数所在的层级进行排序，如果未找到层级信息，默认放在最后
         if not functions:
-            content = "\n\n\n".join([f.content for f in self._function_nodes.values()])
+            sorted_functions = sorted(
+                self._function_nodes.values(),
+                key=lambda f: self._function_to_layer.get(f, float("inf")),
+            )
         else:
-            content = "\n\n\n".join([f.content for f in functions])
+            sorted_functions = sorted(
+                functions, key=lambda f: self._function_to_layer.get(f, float("inf"))
+            )
+
+        import_str = "\n".join(sorted(self.import_list))
+        content = "\n\n\n".join([f.content for f in sorted_functions])
+
         if save:
             self._file.message = f"{import_str}\n\n{content}\n"
             return None
@@ -268,7 +277,12 @@ class FunctionTree:
         return self.save_functions_to_file(relative_function, save=save)
 
     def _update_imports(self, imports: set):
-        self.import_list |= imports
+        for imp in imports:
+            if "api" in imp or "global_api" in imp:
+                logger.log(f"reject import: {imp}", level="warning")
+                continue
+
+            self.import_list.add(imp)
 
     def _update_function_dict(self, function_dict: dict[str, str]):
         for name, content in function_dict.items():

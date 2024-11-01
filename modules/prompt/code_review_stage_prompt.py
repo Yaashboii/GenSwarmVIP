@@ -14,8 +14,12 @@ software or the use or other dealings in the software.
 LOCAL_CODE_REVIEW_PROMPT_TEMPLATE: str = """
 ## Background:
 {task_des}
+
 ## Role setting:
 - You are a critic, You should now check if there are any bugs in the functions written by other agents or if there have been any incorrect calls.
+
+## These are the User original instructions:
+{instruction}
 
 ## These are the basic Robot APIs:
 These APIs can be directly called by you.
@@ -70,7 +74,7 @@ Your output should satisfy the following notes:
 - When using the API to obtain the task assigned to the robot, it only needs to be called once. Repeated calls are unnecessary, as the allocation is based on the robot's initial state and occurs only once at the beginning.
 - Preserve the function's docstring, with the option to modify its content.
 - The current task does not necessarily require a global allocator. If needed, use the corresponding API to obtain the assigned task. If there is no such API, the task does not require a global allocator.
-
+- Strictly adhere to the specified format.
 """.strip()
 
 GLOBAL_CODE_REVIEW_PROMPT_TEMPLATE: str = """
@@ -78,6 +82,10 @@ GLOBAL_CODE_REVIEW_PROMPT_TEMPLATE: str = """
 {task_des}
 ## Role setting:
 - You are a critic, You should now check if there are any bugs in the functions written by other agents or if there have been any incorrect calls.
+
+
+## These are the User original instructions:
+{instruction}
 
 ## These are the basic Robot APIs:
 These APIs can be directly called by you.
@@ -130,7 +138,7 @@ def {function_name}(...):
 - The current task does not necessarily require a global allocator. If needed, please use the corresponding API to obtain the assigned task. If there is no corresponding API, then the current task does not require a global allocator.
 - When using the API to obtain the task assigned to the current robot, it only needs to be called once. Repeated calls will not be useful, as the allocation is done only once at the beginning based on the robot's initial state.
 - Preserve the function's docstring, with the option to modify its content.
-- The allocation method for robots should be optimal, ensuring no conflicts occur between them.
 - The task allocation can include various types such as positions, lists of positions, or specific angles, based on the requirements of the task.
-
+- The allocation method for robots should ensure that the total movement distance for each robot is minimized while completing all tasks, and that no task conflicts occur (i.e., each robot is assigned a distinct task, with no overlap between tasks).
+- Strictly adhere to the specified format.
 """.strip()

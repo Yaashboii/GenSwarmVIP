@@ -12,6 +12,8 @@ software or the use or other dealings in the software.
 """
 
 import os
+import traceback
+
 import yaml
 from modules.framework.parser import CodeParser
 
@@ -74,25 +76,29 @@ def get_environment_range():
         - y_max (float): The maximum y value of the environment.
     '''
 
-def get_surrounding_robots_info():
+def get_surrounding_environment_info():
     '''
-    Get real-time information of the surrounding robots within the perception range 1.0m.(Not including the robot itself)
+    Get real-time information of the surrounding robots and obstacles within the perception range.
     Returns:
-    - list: A list of dictionaries, each containing the current position, velocity, and radius of a robot.
-    '''
-
-def get_surrounding_obstacles_info():
-    '''
-    Get real-time information of the surrounding obstacles within the perception range 1.0m.
-    Returns:
-    - list: A list of dictionaries, each containing the current position and radius of an obstacle.
+    - list: A list of dictionaries, each containing the type, position, and other relevant information of surrounding objects (robots or obstacles).
+        - "Type": A string indicating whether the object is a 'robot' or 'obstacle'.
+        - "position": The current position of the object.
+        - "velocity": The current velocity of the object. If the object is an obstacle, the velocity is [0, 0].
+        - "radius": The radius of the object.
     '''
 
 def get_prey_position():
     '''
-    Description: Get the position of the prey.
+    Description: Prey will keep moving in the environment.Get the real-time position of the prey in the environment.
     Returns:
     - numpy.ndarray: The position of the prey.
+    '''
+
+def get_lead_position():
+    '''
+    Description: Lead will keep moving in the environment.Get the real-time position of the prey in the environment.
+    Returns:
+    - numpy.ndarray: The position of the lead.
     '''
 
 def get_target_position():
@@ -144,15 +150,12 @@ def get_prey_initial_position():
     - list: A list of float, representing the initial position of the prey.
     '''
 
-def get_initial_unexplored_area():
+def get_initial_unexplored_areas():
     '''
-    Description: Get the initial unexplored area in the environment.
+    Description: Get the initial unexplored areas in the environment.
     Returns:
-    - list: A list of dictionaries containing the id and position of an unexplored area.
-        - id (int): The unique ID of the unexplored area.
-        - position (numpy.ndarray): The position of the unexplored area.
+    -list: A list of numpy.ndarray, each representing the center position of an unexplored area.
     '''
-
 """.strip()
 
 
@@ -167,9 +170,8 @@ class RobotApi:
             "get_all_robots_id",
             "get_self_position",
             "set_self_velocity",
-            "stop_self",
             "get_self_radius",
-            "get_surrounding_robots_info",
+            "get_surrounding_environment_info",
             "get_all_robots_initial_position",
         ]
 
@@ -182,37 +184,38 @@ class RobotApi:
             "get_environment_range": ["local", "global"],
             "get_self_radius": ["local"],
             "get_prey_position": ["local"],
+            "get_lead_position": ["local"],
             "get_target_position": ["local"],
             "get_surrounding_robots_info": ["local"],
             "get_surrounding_obstacles_info": ["local"],
             "get_all_robots_id": ["global"],
             "get_all_robots_initial_position": ["global"],
             "get_target_formation_points": ["global"],
-            "get_initial_unexplored_area": ["global"],
+            "get_initial_unexplored_areas": ["global"],
             "get_prey_initial_position": ["global"],
             "get_surrounding_unexplored_area": ["local"],
-            "get_quadrant_target_position": ["global"],
+            "get_quadrant_target_position": ["global", "local"],
+            "get_surrounding_environment_info": ["local"],
             # Example of APIs with multiple scopes
             # 'example_api': ['local', 'global'],
         }
 
         self.base_prompt = [self.apis[api] for api in self.base_apis]
         self.task_apis = {
-            "bridging": ["get_surrounding_obstacles_info"],
-            "circling": ["get_surrounding_obstacles_info"],
-            "covering": ["get_environment_range"],
-            "crossing": [
-                "get_surrounding_obstacles_info",
-            ],
+            "bridging": ["stop_self"],
+            "circling": ["stop_self"],
+            "covering": ["get_environment_range", "stop_self"],
+            "crossing": ["stop_self"],
             "encircling": ["get_prey_position", "get_prey_initial_position"],
-            "exploration": ["get_initial_unexplored_area", "get_environment_range"],
-            "flocking": ["get_surrounding_obstacles_info", "get_environment_range"],
-            "clustering": [
-                "get_surrounding_obstacles_info",
-                "get_quadrant_target_position",
+            "exploration": [
+                "get_initial_unexplored_areas",
+                "get_environment_range",
+                "stop_self",
             ],
-            "shaping": ["get_target_formation_points"],
-            "pursuing": ["get_prey_position"],
+            "flocking": ["get_environment_range", "get_self_velocity"],
+            "clustering": ["get_quadrant_target_position"],
+            "shaping": ["get_target_formation_points", "stop_self"],
+            "pursuing": ["get_lead_position"],
         }
 
     def get_api_prompt(
@@ -260,6 +263,7 @@ class RobotApi:
                 return [self.get_api_name(api) for api in task_prompt]
             return "\n\n".join(task_prompt)
         except KeyError:
+            traceback.print_exc()
             raise SystemExit(
                 f"Error in get_api_prompt: Task name '{task_name}' not found. Current existing tasks: {list(self.task_apis.keys())}."
             )

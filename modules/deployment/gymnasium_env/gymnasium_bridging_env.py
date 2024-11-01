@@ -13,7 +13,7 @@ software or the use or other dealings in the software.
 
 from typing import Optional, TypeVar
 
-from modules.deployment.entity import Landmark, Robot
+from modules.deployment.entity import Landmark, Robot, Obstacle
 from modules.deployment.utils.sample_point import *
 
 from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnvironmentBase
@@ -29,10 +29,10 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
 
     def init_entities(self):
         range_a = Landmark(
-            landmark_id=0, initial_position=(0, 2), size=np.array((5, 1)), color="gray"
+            landmark_id=0, initial_position=(0, 2), size=np.array((5, 1)), color="blue"
         )
         range_b = Landmark(
-            landmark_id=1, initial_position=(0, -2), size=np.array((5, 1)), color="gray"
+            landmark_id=1, initial_position=(0, -2), size=np.array((5, 1)), color="blue"
         )
 
         self.add_entity(range_a)
@@ -42,6 +42,12 @@ class GymnasiumBridgingEnvironment(GymnasiumEnvironmentBase):
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
+        obstacle_position = [(1.3, 0.95), (1.9, -0.9), (-1.2, 1.1), (-0.6, 0.1)]
+        for pos in obstacle_position:
+            obstacle = Obstacle(entity_id, pos, 0.15)
+            self.add_entity(obstacle)
+            entity_id += 1
+
         for i in range(self.num_robots):
             position = sample_point(
                 zone_center=[0, 0],

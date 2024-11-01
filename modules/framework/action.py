@@ -43,8 +43,8 @@ class BaseNode(ABC):
 
     @_next.setter
     def _next(self, value):
-        if not isinstance(value, BaseNode):
-            raise ValueError("Value must be a BaseNode")
+        # if not isinstance(value, BaseNode):
+        #     raise ValueError("Value must be a BaseNode")
         self.__next = value
 
     @abstractmethod
@@ -96,6 +96,7 @@ class ActionNode(BaseNode):
         self.context.save_to_file(file_path=root_manager.workspace_root / f"{self}.pkl")
         if isinstance(res, CodeError):
             # If response is CodeError, handle it and move to next action
+            #
             if self.error_handler:
                 next_action = self.error_handler.handle(res)
                 return await next_action.run()

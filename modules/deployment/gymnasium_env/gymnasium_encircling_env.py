@@ -35,6 +35,12 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
 
+        obstacle_list = [(0, 1.5), (0, -1.5), (0.8, 0), (-0.8, 0)]
+        for pos in obstacle_list:
+            obstacle = Obstacle(entity_id, pos, 0.15)
+            self.add_entity(obstacle)
+            entity_id += 1
+
         for i in range(self.num_robots):
             position = sample_point(
                 zone_center=[0, 0],
@@ -55,29 +61,23 @@ class GymnasiumEncirclingEnvironment(GymnasiumEnvironmentBase):
             self.add_entity(robot)
             entity_id += 1
 
-        obstacle_size = self.data["entities"]["obstacle"]["size"]
-        shape = self.data["entities"]["obstacle"]["shape"]
-        color = self.data["entities"]["obstacle"]["color"]
-
-        for i in range(self.num_obstacles):
-            position = sample_point(
-                zone_center=[0, 0],
-                zone_shape="rectangle",
-                zone_size=[self.width, self.height],
-                robot_size=obstacle_size,
-                robot_shape=shape,
-                min_distance=obstacle_size,
-                entities=self.entities,
-            )
-            obstacle = Obstacle(
-                obstacle_id=entity_id, initial_position=position, size=obstacle_size
-            )
-            self.add_entity(obstacle)
-            entity_id += 1
+        # obstacle_size = self.data["entities"]["obstacle"]["size"]
+        # shape = self.data["entities"]["obstacle"]["shape"]
+        # color = self.data["entities"]["obstacle"]["color"]
+        #
+        # for i in range(self.num_obstacles):
+        #     position = sample_point(zone_center=[0, 0], zone_shape='rectangle', zone_size=[self.width, self.height],
+        #                             robot_size=obstacle_size, robot_shape=shape, min_distance=obstacle_size,
+        #                             entities=self.entities)
+        #     obstacle = Obstacle(obstacle_id=entity_id,
+        #                         initial_position=position,
+        #                         size=obstacle_size)
+        #     self.add_entity(obstacle)
+        #     entity_id += 1
 
         prey_size = 0.1
         prey = Prey(
-            prey_id=entity_id, initial_position=[0, 0], size=prey_size, num=4000
+            prey_id=entity_id, initial_position=[0, 0], size=prey_size, num=2000
         )
         self.add_entity(prey)
 

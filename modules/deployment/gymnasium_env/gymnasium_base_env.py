@@ -353,14 +353,16 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         *,
         seed: int | None = None,
         options: dict[str, Any] | None = None,
+        keep_entity=False,
     ) -> tuple[ObsType, dict[str, Any]]:
         super().reset(seed=seed)
-        self.entities = []
-        self.engine.clear_entities()
-        if self.engine.__class__.__name__ == "OmniEngine":
-            self.init_omni_entities()
-        else:
-            self.init_entities()
+        if not keep_entity:
+            self.entities = []
+            self.engine.clear_entities()
+            if self.engine.__class__.__name__ == "OmniEngine":
+                self.init_omni_entities()
+            else:
+                self.init_entities()
         obs = self.get_observation("array")
         infos = self.get_observation("dict")
         self.time_step = 0

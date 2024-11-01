@@ -34,6 +34,7 @@ class AutoRunnerExplore(AutoRunnerBase):
         target_pkl="WriteRun.pkl",
         script_name="run.py",
         max_speed=1.0,
+        exp_batch=1,
         tolerance=0.05,
     ):
         env = GymnasiumExplorationEnvironment(env_config_path)
@@ -46,6 +47,7 @@ class AutoRunnerExplore(AutoRunnerBase):
             script_name=script_name,
             max_speed=max_speed,
             tolerance=tolerance,
+            exp_batch=exp_batch,
             env=env,
         )
 

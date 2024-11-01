@@ -65,6 +65,8 @@ add_service_files(
   GetTargetPositions.srv
   GetCharPoints.srv
   ConnectEntities.srv
+  StartEnvironment.srv
+  StopEnvironment.srv
 )
 ## Generate actions in the 'action' folder
 # add_action_files(

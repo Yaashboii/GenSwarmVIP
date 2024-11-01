@@ -38,21 +38,21 @@ class WriteFunction(ActionNode):
         self._other_functions_str = other_functions_str
 
     def _build_prompt(self):
-        robot_api = (
-            GLOBAL_ROBOT_API
-            if self.context.scoop == "global"
-            else (
-                LOCAL_ROBOT_API
-                + ALLOCATOR_TEMPLATE.format(
-                    template=self.context.global_skill_tree.output_template
-                )
+        if len(self.context.global_skill_tree.layers) == 0:
+            local_api_prompt = LOCAL_ROBOT_API
+        else:
+            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+                template=self.context.global_skill_tree.output_template
             )
+        robot_api = (
+            GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
         )
 
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
             env_des=ENV_DES,
             robot_api=robot_api,
+            instruction=self.context.command,
             function_content=self._function.definition,
             constraints=self._constraint_text,
             other_functions=self._other_functions_str,

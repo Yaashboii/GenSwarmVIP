@@ -49,20 +49,21 @@ class DesignFunction(ActionNode):
         other_functions_str = "\n".join(
             [f.brief if not f.body else f.body for f in other_functions]
         )
-        robot_api = (
-            GLOBAL_ROBOT_API
-            if self.context.scoop == "global"
-            else (
-                LOCAL_ROBOT_API
-                + ALLOCATOR_TEMPLATE.format(
-                    template=self.context.global_skill_tree.output_template
-                )
+        if len(self.context.global_skill_tree.layers) == 0:
+            local_api_prompt = LOCAL_ROBOT_API
+        else:
+            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+                template=self.context.global_skill_tree.output_template
             )
+        robot_api = (
+            GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
         )
+
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
             robot_api=robot_api,
             env_des=ENV_DES,
+            instruction=self.context.command,
             function_name=self._function.name,
             function_des=self._function.description,
             constraints=constraint_pool.filtered_constraints(

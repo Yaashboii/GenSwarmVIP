@@ -34,21 +34,21 @@ class WriteRun(ActionNode):
 
     def _build_prompt(self):
         functions = "\n\n".join(self._skill_tree.function_valid_content)
-        robot_api = (
-            GLOBAL_ROBOT_API
-            if self.context.scoop == "global"
-            else (
-                LOCAL_ROBOT_API
-                + ALLOCATOR_TEMPLATE.format(
-                    template=self.context.global_skill_tree.output_template
-                )
+        if len(self.context.global_skill_tree.layers) == 0:
+            local_api_prompt = LOCAL_ROBOT_API
+        else:
+            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+                template=self.context.global_skill_tree.output_template
             )
+        robot_api = (
+            GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
         )
         self.desired_function_name = (
             "allocate_run" if self.context.scoop == "global" else "run_loop"
         )
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
+            instruction=self.context.command,
             env_des=ENV_DES,
             robot_api=robot_api,
             functions=functions,

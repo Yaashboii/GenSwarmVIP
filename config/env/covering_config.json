@@ -12,7 +12,7 @@
   "#agent number note": "sum of robot + leader",
   "entities": {
     "robot": {
-      "count": 9,
+      "count": 16,
       "specified": [],
       "size": 0.15,
       "color": "green",
@@ -45,7 +45,7 @@
     }
   },
   "engine_type": "QuadTreeEngine",
-  "render_mode": "human",
+  "render_mode": "",
   "output_file": "output.json",
-  "dt": 0.1
+  "dt": 0.01
 }
