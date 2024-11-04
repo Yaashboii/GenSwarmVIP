@@ -86,7 +86,7 @@ class TestConstraintPool(unittest.TestCase):
         constraint_node = ConstraintNode(name="constraint1", description="desc1")
         self.constraint_pool._constraint_nodes["constraint1"] = constraint_node
 
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(Exception) as context:
             self.constraint_pool.check_constraints_satisfaction()
 
     def test_filtered_constraints(self):
