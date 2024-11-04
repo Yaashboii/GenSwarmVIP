@@ -2,7 +2,8 @@ import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from streamlit import success
+
+# from streamlit import success
 
 
 class ExperimentAnalyzer:
@@ -23,18 +24,19 @@ class ExperimentAnalyzer:
         return success
 
     def analyze_all_results(self, experiment_dirs=None):
-
         exp_data = {experiment: {} for experiment in experiment_dirs}
         all_metric_names = []
 
         for experiment in experiment_dirs:
-            result_path = os.path.join(f"{self.experiment_path}", experiment, 'wo_vlm.json')
+            result_path = os.path.join(
+                f"{self.experiment_path}", experiment, "wo_vlm.json"
+            )
             if os.path.exists(result_path):
-                with open(result_path, 'r') as f:
+                with open(result_path, "r") as f:
                     result_data = json.load(f)
-                    analysis = result_data.get('analysis', {})
+                    analysis = result_data.get("analysis", {})
                     success = self.calculate_success(analysis)
-                    data = {**analysis, 'success': success}
+                    data = {**analysis, "success": success}
                     exp_data[experiment] = data
 
                     all_metric_names = list(data.keys())
@@ -52,7 +54,9 @@ class ExperimentAnalyzer:
                 mean_metric_value[metric] = 0
         for metric in all_metric_names:
             data = [
-                exp_data[exp].get(metric, 0) if isinstance(exp_data[exp].get(metric, 0), (int, float)) else 0
+                exp_data[exp].get(metric, 0)
+                if isinstance(exp_data[exp].get(metric, 0), (int, float))
+                else 0
                 for exp in exp_data.keys()
             ]
 
@@ -62,10 +66,10 @@ class ExperimentAnalyzer:
                 ylabel=metric,
                 title=f"Experiment Outcomes in {metric}",
                 colors=[self.get_color(i, len(exp_data)) for i in range(len(exp_data))],
-                save_filename=f'{metric}_metric.png',
+                save_filename=f"{metric}_metric.png",
                 rotation=True,
                 figsize=(32, 20),  # 设置图像大小
-                success_conditions=self.success_conditions
+                success_conditions=self.success_conditions,
             )
 
         self.plot_summary(mean_metric_value)
@@ -73,33 +77,44 @@ class ExperimentAnalyzer:
     def plot_summary(self, exp_data):
         labels = list(exp_data.keys())
         data = list(exp_data.values())
-        colors = ['blue']
+        colors = ["blue"]
 
         self.plot_and_print_results(
             data=data,
             labels=labels,
-            ylabel='Average Value',
-            title='Summary of All Metric Averages',
+            ylabel="Average Value",
+            title="Summary of All Metric Averages",
             colors=colors,
-            save_filename='summary_metrics.png',
+            save_filename="summary_metrics.png",
             rotation=False,
-            figsize=(32, 20)  # 传入图像大小参数
+            figsize=(32, 20),  # 传入图像大小参数
         )
 
     @staticmethod
     def get_color(index, total):
-        cmap = plt.get_cmap('viridis')
+        cmap = plt.get_cmap("viridis")
         return cmap(index / total)
 
     def analyze_code(self, functions_path):
         from modules.utils import CodeAnalyzer
-        with open(functions_path, 'r') as f:
+
+        with open(functions_path, "r") as f:
             analyzer = CodeAnalyzer(f.read())
             analysis_result = analyzer.analyze()
         return analysis_result["code_lines"]
 
-    def plot_and_print_results(self, data, labels, ylabel, title, colors, save_filename, rotation=False,
-                               figsize=(10, 6), success_conditions=None):  # 添加figsize参数
+    def plot_and_print_results(
+        self,
+        data,
+        labels,
+        ylabel,
+        title,
+        colors,
+        save_filename,
+        rotation=False,
+        figsize=(10, 6),
+        success_conditions=None,
+    ):  # 添加figsize参数
         if rotation:
             rotation = -90
         else:
@@ -115,10 +130,15 @@ class ExperimentAnalyzer:
             for condition in success_conditions:
                 metric, operator, threshold = condition
                 if metric == ylabel:
-                    plt.axhline(y=threshold, color='r', linestyle='--', label=f"Success threshold ({threshold})")
+                    plt.axhline(
+                        y=threshold,
+                        color="r",
+                        linestyle="--",
+                        label=f"Success threshold ({threshold})",
+                    )
 
         for i, v in enumerate(data):
-            plt.text(i, v + 0.01, f"{v:.2f}", ha='center', rotation=rotation)
+            plt.text(i, v + 0.01, f"{v:.2f}", ha="center", rotation=rotation)
 
         if not os.path.exists(f"{self.experiment_path}/pic"):
             os.makedirs(f"{self.experiment_path}/pic")
