@@ -25,17 +25,19 @@ class CodeImprove(ActionNode):
             local_api_prompt = LOCAL_ROBOT_API
         else:
             local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
-                template=self.context.global_skill_tree.output_template)
+                template=self.context.global_skill_tree.output_template
+            )
         self.prompt = FEEDBACK_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             global_api=GLOBAL_ROBOT_API,
             local_api=local_api_prompt,
             instruction=self.context.command,
             env_des=ENV_DES,
-            global_functions="\n\n\n".join(self.context.global_skill_tree.functions_body),
+            global_functions="\n\n\n".join(
+                self.context.global_skill_tree.functions_body
+            ),
             local_functions="\n\n\n".join(self.context.local_skill_tree.functions_body),
             feedback=self.feedback,
-
         )
 
         # else:
@@ -58,10 +60,14 @@ class CodeImprove(ActionNode):
         for func_name, func_body in parser.function_dict.items():
             if func_name in self.context.global_skill_tree.names:
                 # 更新 global_skill_tree
-                self.context.global_skill_tree.update_from_parser(parser.imports, {func_name: func_body})
+                self.context.global_skill_tree.update_from_parser(
+                    parser.imports, {func_name: func_body}
+                )
             elif func_name in self.context.local_skill_tree.names:
                 # 更新 local_skill_tree
-                self.context.local_skill_tree.update_from_parser(parser.imports, {func_name: func_body})
+                self.context.local_skill_tree.update_from_parser(
+                    parser.imports, {func_name: func_body}
+                )
 
         # 保存函数到文件
         self.context.global_skill_tree.save_functions_to_file()

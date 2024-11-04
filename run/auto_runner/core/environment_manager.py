@@ -31,8 +31,12 @@ class EnvironmentManager:
         _, infos = self.env.reset()
         self.result = self.init_result(infos)
         # Register ROS services
-        rospy.Service('/start_environment', StartEnvironment, self.handle_start_environment)
-        rospy.Service('/stop_environment', StopEnvironment, self.handle_stop_environment)
+        rospy.Service(
+            "/start_environment", StartEnvironment, self.handle_start_environment
+        )
+        rospy.Service(
+            "/stop_environment", StopEnvironment, self.handle_stop_environment
+        )
 
     def init_result(self, infos: dict) -> dict:
         """
@@ -50,13 +54,13 @@ class EnvironmentManager:
                 "size": 0,
                 "target": None,
                 "trajectory": [],
-                'type': '',
-                'states': [],
-                'dt': self.env.dt
+                "type": "",
+                "states": [],
+                "dt": self.env.dt,
             }
             result[entity_id]["size"] = infos[entity_id]["size"]
             result[entity_id]["target"] = infos[entity_id]["target_position"]
-            result[entity_id]['type'] = infos[entity_id]['type']
+            result[entity_id]["type"] = infos[entity_id]["type"]
             result[entity_id]["trajectory"].append(infos[entity_id]["position"])
         return result
 
@@ -71,7 +75,9 @@ class EnvironmentManager:
             StartEnvironmentResponse: Response indicating success.
         """
         self.start_environment(req.experiment_path)
-        return StartEnvironmentResponse(success=True, message="Environment started successfully.")
+        return StartEnvironmentResponse(
+            success=True, message="Environment started successfully."
+        )
 
     def handle_stop_environment(self, req) -> StopEnvironmentResponse:
         """
@@ -84,7 +90,9 @@ class EnvironmentManager:
             StopEnvironmentResponse: Response indicating success.
         """
         self.stop_environment(req.file_name)
-        return StopEnvironmentResponse(success=True, message="Environment stopped successfully.")
+        return StopEnvironmentResponse(
+            success=True, message="Environment stopped successfully."
+        )
 
     def start_environment(self, experiment_path: str, keep_entities=False):
         """
@@ -101,7 +109,8 @@ class EnvironmentManager:
 
         self.timer = rospy.Timer(rospy.Duration(secs=secs, nsecs=nsecs), self.step)
         print(
-            f"Environment started successfully with path: {self.experiment_path}, FPS: {self.fps}")
+            f"Environment started successfully with path: {self.experiment_path}, FPS: {self.fps}"
+        )
 
     def reset_environment(self, keep_entities):
         """
@@ -148,7 +157,7 @@ class EnvironmentManager:
         mp4_path = os.path.join(self.experiment_path, f"{file_name}.mp4")
         height, width, layers = self.frames[0].shape
         size = (width, height)
-        out = cv2.VideoWriter(mp4_path, cv2.VideoWriter_fourcc(*'mp4v'), self.fps, size)
+        out = cv2.VideoWriter(mp4_path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, size)
 
         for i, frame in enumerate(self.frames):
             # sample frame in frame list
@@ -168,6 +177,7 @@ class EnvironmentManager:
             file_name (str): The name of the file for saving the data.
         """
         import pickle
+
         data_path = os.path.join(self.experiment_path, f"{file_name}.pkl")
         with open(data_path, "wb") as f:
             pickle.dump(self.result, f)
@@ -184,8 +194,10 @@ class EnvironmentManager:
         obs, reward, termination, truncation, infos = self.env.step(action=action)
         for entity_id in infos:
             if infos[entity_id]["moveable"]:
-                self.result[entity_id]["trajectory"].append(infos[entity_id]["position"])
-            if infos[entity_id]['state'] is not None:
-                self.result[entity_id]['states'].append(infos[entity_id]['state'])
+                self.result[entity_id]["trajectory"].append(
+                    infos[entity_id]["position"]
+                )
+            if infos[entity_id]["state"] is not None:
+                self.result[entity_id]["states"].append(infos[entity_id]["state"])
         self.frames.append(self.env.render())
         self.manager.publish_observations(infos)

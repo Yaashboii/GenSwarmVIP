@@ -3,10 +3,8 @@ import os
 import sys
 
 
-
 async def run_script(
-        working_directory, command=[], print_output=True,
-        timeout=30
+    working_directory, command=[], print_output=True, timeout=30
 ) -> str:
     from modules.file import logger
 
@@ -49,8 +47,8 @@ async def run_script(
         )
 
         if (
-                "WARNING: cannot load logging configuration file, logging is disabled\n"
-                in stderr_chunks
+            "WARNING: cannot load logging configuration file, logging is disabled\n"
+            in stderr_chunks
         ):
             stderr_chunks.remove(
                 "WARNING: cannot load logging configuration file, logging is disabled\n"
@@ -61,7 +59,6 @@ async def run_script(
             return "NONE"
 
     except asyncio.TimeoutError:
-
         logger.log(content="Timeout", level="error")
         process.kill()
         await process.wait()  # Ensure the process is terminated

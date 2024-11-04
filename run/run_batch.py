@@ -8,7 +8,9 @@ def run_batches():
         print(f"\nRunning batch {batch_num}...")
 
         # 使用 subprocess.run 来运行脚本，等待每个脚本执行结束再继续下一个
-        result = subprocess.run(["python", "run_code.py", "--exp_batch", str(batch_num)])
+        result = subprocess.run(
+            ["python", "run_code.py", "--exp_batch", str(batch_num)]
+        )
 
         # 检查返回值，如果出错（返回码不为零），则打印错误并中止循环
         if result.returncode != 0:
