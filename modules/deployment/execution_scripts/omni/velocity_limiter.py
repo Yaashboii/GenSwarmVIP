@@ -29,7 +29,7 @@ class VelocityLimiterNode:
         self.damping_factor = rospy.get_param(
             "~damping_factor", 0.5
         )  # Damping factor (0 < factor < 1)
-        self.time = rospy.get_param("~time", 200.0)
+        self.time = rospy.get_param("~time", 60.0)
 
         self.vel_cmd_pub = rospy.Publisher("/robot/velcmd", Twist, queue_size=10)
         self.cmd_vel_sub = rospy.Subscriber("/cmd_vel", Twist, self.cmd_vel_callback)

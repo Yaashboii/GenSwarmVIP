@@ -50,7 +50,8 @@ class MqttClientThread:
         result = self.client.publish(topic, msg)
         status = result[0]
         if status == 0:
-            print(f"Sent `{msg}` to topic `{topic}`")
+            pass
+            # print(f"Sent `{msg}` to topic `{topic}`")
         else:
             print(f"Failed to send message to topic {topic}")
 

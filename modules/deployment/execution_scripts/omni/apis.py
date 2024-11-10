@@ -157,9 +157,7 @@ class RobotNode:
         if not self.ros_initialized:
             self.ros_initialized = True
             rospy.Subscriber(f"/observation", Observations, self.observation_callback)
-            self.velocity_publisher = rospy.Publisher(
-                f"/robot_{self.robot_id}/velocity", Twist, queue_size=10
-            )
+            self.velocity_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
             print(
                 f"Waiting for position message from /robot_{self.robot_id}/observation..."
@@ -175,6 +173,7 @@ class RobotNode:
         velocity_msg.linear.x = self.robot_info["velocity"][0]
         velocity_msg.linear.y = self.robot_info["velocity"][1]
         self.velocity_publisher.publish(velocity_msg)
+        print(f"Published velocity: {self.robot_info['velocity']}")
 
     def get_all_target_areas(self):
         return self.unexplored_area
