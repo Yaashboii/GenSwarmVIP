@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 Copyright (c) 2024 WindyLab of Westlake University, China
 All rights reserved.
@@ -11,7 +12,6 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
-#!/usr/bin/python3
 import rospy
 import numpy as np
 from geometry_msgs.msg import Twist
@@ -50,19 +50,19 @@ class VelocityLimiterNode:
 
         # Apply damping to the velocities
         linear_vel = (
-            self.damping_factor * self.last_linear_vel
-            + (1 - self.damping_factor) * linear_vel
+                self.damping_factor * self.last_linear_vel
+                + (1 - self.damping_factor) * linear_vel
         )
         angular_vel = (
-            self.damping_factor * self.last_angular_vel
-            + (1 - self.damping_factor) * angular_vel
+                self.damping_factor * self.last_angular_vel
+                + (1 - self.damping_factor) * angular_vel
         )
 
         # Normalize linear velocity
         linear_norm = np.linalg.norm(linear_vel)
         if linear_norm > 0:
             linear_vel = (
-                linear_vel / linear_norm * min(linear_norm, self.max_linear_speed)
+                    linear_vel / linear_norm * min(linear_norm, self.max_linear_speed)
             )
 
         # Update Twist message with normalized and damped velocities

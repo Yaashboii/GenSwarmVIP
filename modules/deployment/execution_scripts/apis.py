@@ -174,7 +174,9 @@ class RobotNode:
         velocity_msg = Twist()
         velocity_msg.linear.x = self.robot_info["velocity"][0]
         velocity_msg.linear.y = self.robot_info["velocity"][1]
+
         self.velocity_publisher.publish(velocity_msg)
+        # print(f"Published velocity: {self.robot_info['velocity']}")
 
     def get_all_target_areas(self):
         return self.unexplored_area

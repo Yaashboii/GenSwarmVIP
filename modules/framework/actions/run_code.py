@@ -326,8 +326,9 @@ def init_workflow(args, env=None) -> ActionNode:
             target_pkl = 'WriteRun.pkl'
         if target_pkl:
             context.load_from_file(args.experiment_path + "/" + target_pkl)
-            context.global_skill_tree.save_functions_to_file()
-            context.local_skill_tree.save_functions_to_file()
+            if args.test_mode != 'real':
+                context.global_skill_tree.save_functions_to_file()
+                context.local_skill_tree.save_functions_to_file()
         context.args = args
         init_result['target_pkl'] = args.target_pkl
         init_result['feedback'] = args.feedback

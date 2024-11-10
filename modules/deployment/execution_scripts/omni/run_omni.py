@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 Copyright (c) 2024 WindyLab of Westlake University, China
 All rights reserved.
@@ -12,7 +13,6 @@ software or the use or other dealings in the software.
 """
 import os
 import pickle
-# !/usr/bin/python3
 
 import signal
 import sys
@@ -43,14 +43,16 @@ class RobotRunner:
 
 
 def run_robot_in_thread(robot_id):
+    assigned = False
     robot_runner = RobotRunner(robot_id)
     try:
-        with open(os.path.join("allocate_result.pkl"), "rb") as f:
+        with open(os.path.join("/catkin_ws/src/code_llm/allocate_result.pkl"), "rb") as f:
             task = pickle.load(f)
             assigned = True
     except (FileNotFoundError, EOFError, pickle.UnpicklingError) as e:
         print(f"Error loading file: {e}. Initializing a default task.")
     assigned_task = task[robot_id] if assigned else None
+    print(f"Task assigned: {task[robot_id]}")
 
     robot_thread = threading.Thread(target=robot_runner.run, args=(assigned_task,))
     robot_thread.start()
