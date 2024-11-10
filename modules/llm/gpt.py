@@ -29,6 +29,7 @@ class GPT(BaseLLM):
 
     This class handles requests to OpenAI's GPT models using an asynchronous client,
     providing retry mechanisms and optional streaming support.
+2024-11-04 09:38:28:051106]:Run code success</span>
 
     Args:
         memorize (bool): Whether to store previous interactions for context in future requests.

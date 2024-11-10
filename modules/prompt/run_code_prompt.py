@@ -57,6 +57,9 @@ function_name(...):
 - Rewrite all functions that need modifications.
 - Keep the original code in the function as unchanged as possible, only modifying the parts that are incorrect.
 - The provided basic Robot APIs have already been implemented. You cannot modify these functions; you can only call them.
+- Do not raising errors or using assertions in the function body.
+- Do not assume any part of the code,because the code will be executed directly without any modification and human intervention.
+- All APIs and written functions can be called directly without any import.
 - The output should be in the specified format.
 """.strip()
 

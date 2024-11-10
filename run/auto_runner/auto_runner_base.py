@@ -29,17 +29,18 @@ from run.utils import setup_metagpt, setup_cap, check_robots_no_movement_in_firs
 
 class AutoRunnerBase(ABC):
     def __init__(
-        self,
-        env_config_path,
-        workspace_path,
-        experiment_duration,
-        run_mode="rerun",
-        target_pkl="WriteRun.pkl",
-        script_name="run.py",
-        exp_batch=1,
-        max_speed=1.0,
-        tolerance=0.05,
-        env: GymnasiumEnvironmentBase = None,
+            self,
+            env_config_path,
+            workspace_path,
+            experiment_duration,
+            run_mode="rerun",
+            target_pkl="WriteRun.pkl",
+            script_name="run.py",
+            test_mode='full_version',
+            exp_batch=1,
+            max_speed=1.0,
+            tolerance=0.05,
+            env: GymnasiumEnvironmentBase = None,
     ):
         self.exp_batch = exp_batch
         self.env_config_path = env_config_path
@@ -49,6 +50,7 @@ class AutoRunnerBase(ABC):
         self.target_pkl = target_pkl
         self.script_name = script_name
         self.run_mode = run_mode
+        self.test_mode = test_mode
         self.success_conditions = self.setup_success_conditions()
         self.result_analyzer = ExperimentAnalyzer(
             experiment_path=self.experiment_path,
@@ -63,6 +65,7 @@ class AutoRunnerBase(ABC):
             feedback="None",
             experiment_path=self.experiment_path,
             env_manager=self.sim_env,
+            test_mode=test_mode,
         )
 
     def get_experiment_directories(self):
@@ -91,14 +94,29 @@ class AutoRunnerBase(ABC):
                             success = analysis["success"]
                             if not success:
                                 directories.append(item)
-        if self.run_mode == "rerun" or self.run_mode == "fail_rerun":
+                elif self.run_mode == 'debug_rerun':
+                    result_file = os.path.join(item_path, "debug.json")
+
+                    if os.path.exists(result_file):
+                        with open(result_file, "r") as f:
+                            result_data = json.load(f)
+
+                            analysis = result_data.get("analysis", {})
+                            # bug = result_data.get('run_code_result', {)['error']
+                            success = analysis["success"]
+                        if not success:
+                            directories.append(item)
+        if self.run_mode in ['rerun', 'fail_rerun', 'debug_rerun']:
             # 根据batch数目，将实验分批次,一共10批，根据batch数目，确定当前分批
             directories = sorted(directories)
-            batch_size = len(directories) // 10
+            batch_size = 1
             batch_num = self.exp_batch
+            if batch_num > len(directories):
+                print(f"Batch {batch_num} is out of range")
+                raise SystemExit
             directories = directories[
-                (batch_num - 1) * batch_size : batch_num * batch_size
-            ]
+                          (batch_num - 1) * batch_size: batch_num * batch_size
+                          ]
             print(
                 f"Batch {batch_num} from {batch_size * (batch_num - 1)} to {batch_size * batch_num}"
             )
@@ -141,38 +159,36 @@ class AutoRunnerBase(ABC):
                     success = False
 
                     while retries < max_retries and not success:
-                        if self.script_name == "run_meta.py":
+                        if self.test_mode == "meta":
                             setup_metagpt(
                                 os.path.join(self.experiment_path, experiment)
                             )
-                        if self.script_name == "run_cap.py":
+                        if self.test_mode == "cap":
                             setup_cap(os.path.join(self.experiment_path, experiment))
 
                         self.code_runner.run_code(experiment)
+                        if self.test_mode == "vlm":
+                            print("VLM mode")
+                            return
                         # load result from file
-                        wo_vlm_result, vlm_result = self.code_runner.load_result(
-                            experiment
+                        result = self.code_runner.load_result(
+                            experiment, result_type=self.test_mode
                         )
-                        if wo_vlm_result is not None:
-                            wo_vlm_analysis = self.analyze_result(wo_vlm_result)
-                            wo_experiment_success = (
-                                self.result_analyzer.calculate_success(wo_vlm_analysis)
+                        run_result = self.code_runner.load_run_result(
+                            experiment, result_type=self.test_mode
+                        )
+                        if result is not None:
+                            analysis = self.analyze_result(result)
+                            experiment_success = (
+                                self.result_analyzer.calculate_success(analysis)
                             )
-                            success_dict = {"success": wo_experiment_success}
-                            wo_vlm_analysis.update(success_dict)
+                            success_dict = {"success": experiment_success}
+                            analysis.update(success_dict)
 
                         else:
-                            wo_vlm_analysis = {"success": False}
-                        # if vlm_result is not None:
-                        #     vlm_analysis = self.analyze_result(vlm_result)
-                        #     vlm_experiment_success = self.result_analyzer.calculate_success(vlm_analysis)
-                        #     success_dict = {"success": vlm_experiment_success}
-                        #     vlm_analysis.update(success_dict)
-                        # else:
-                        #     vlm_analysis = {"success": False}
-                        # 检查是否有未移动的机器人
+                            analysis = {"success": False}
                         unmoved_robots = check_robots_no_movement_in_first_third(
-                            wo_vlm_result
+                            result
                         )
 
                         if not unmoved_robots:
@@ -187,14 +203,14 @@ class AutoRunnerBase(ABC):
                             time.sleep(2)  # 等待3秒后重新开始实验
 
                     print(
-                        f"Analysis for wo_experiment {experiment}: {wo_vlm_analysis},\n"
+                        f"Analysis for {experiment}: {analysis},\n"
                     )
-
+                    analysis.update({"run_result": run_result})
                     self.save_experiment_result(
                         os.path.join(self.experiment_path, experiment),
-                        wo_vlm_result,
-                        wo_vlm_analysis,
-                        file_name="wo_vlm.json",
+                        result,
+                        analysis,
+                        file_name=f"{self.test_mode}.json",
                     )
                     # self.save_experiment_result(
                     #     os.path.join(self.experiment_path, experiment),
@@ -211,7 +227,7 @@ class AutoRunnerBase(ABC):
             print(f"An error occurred: {e}")
 
     def run(self, exp_list=None):
-        if self.run_mode in ["rerun", "continue", "fail_rerun"]:
+        if self.run_mode in ["rerun", "continue", "fail_rerun", 'debug_rerun']:
             self.run_multiple_experiments(exp_list)
 
         if self.run_mode == "analyze":

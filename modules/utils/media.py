@@ -56,13 +56,15 @@ def process_video(video_path, seconds_per_frame=2, start_time=0, end_time=None):
     video = cv2.VideoCapture(video_path)
     fps = video.get(cv2.CAP_PROP_FPS)
     total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    video_duration = total_frames / fps  # 视频总时长，单位为秒
+
+    # 如果没有指定 end_time，则默认使用视频的总时长
+    if end_time is None:
+        end_time = video_duration
 
     # Convert start_time and end_time to frames
     start_frame = int(start_time * fps)
-    end_frame = total_frames if end_time is None else int(end_time * fps)
-
-    # Ensure end_frame does not exceed total_frames
-    end_frame = min(end_frame, total_frames)
+    end_frame = min(int(end_time * fps), total_frames)  # 确保 end_frame 不超过总帧数
 
     # Calculate the number of frames to skip
     frames_to_skip = int(fps * seconds_per_frame)
@@ -78,8 +80,17 @@ def process_video(video_path, seconds_per_frame=2, start_time=0, end_time=None):
         base64Frames.append(base64.b64encode(buffer).decode("utf-8"))
         curr_frame += frames_to_skip
 
+    # Ensure the last frame is included if end_frame is not captured by the loop
+    if curr_frame != end_frame:
+        video.set(cv2.CAP_PROP_POS_FRAMES, end_frame - 1)
+        success, frame = video.read()
+        if success:
+            _, buffer = cv2.imencode(".jpg", frame)
+            base64Frames.append(base64.b64encode(buffer).decode("utf-8"))
+
     video.release()
 
+    # Importing the logger
     from modules.file import logger
 
     logger.log(

@@ -49,32 +49,25 @@ def main():
         "--task_name",
         type=str,
         default="exploration",
-        help="The name of the task to run",
+        help="The name of cthe task to run",
     )
 
     # 解析参数
     args = parser.parse_args()
-    task_name = args.task_name
 
-    workspace_path = 'comparative/cap/' + task_name
-    # workspace_path = task_name
+    task_name = args.task_name
+    # workspace_path = 'comparative/metagpt/' + task_name
+    workspace_path = task_name
     runner_class = task_mapping(task_name)
     config_file = config_mapping(task_name)
-    # test_mode = 'improve'
-    test_mode = 'cap'
-    if test_mode == 'real':
-        env_config_path = f"../config/real_env/{config_file}"
-        experiment_duration = 100
-    else:
-        env_config_path = f"../config/env/{config_file}"
-        experiment_duration = 10
     runner = runner_class(
-        env_config_path=env_config_path,
+        env_config_path=f"../config/env/{config_file}",
         workspace_path=workspace_path,
-        experiment_duration=experiment_duration,
-        exp_batch=args.exp_batch,
-        run_mode="rerun",
-        test_mode=test_mode,
+        experiment_duration=8,
+        exp_batch=args.exp_batch,  # 使用传入的 exp_batch 参数
+        run_mode="analyze",
+        target_pkl='WriteRun.pkl',
+        test_mode='debug',
         max_speed=4.5,
         tolerance=0.15,
     )
@@ -84,8 +77,7 @@ def main():
     # exp_list = ['2024-10-28_01-49-03', '2024-10-28_01-49-05', '2024-10-28_01-49-09', '2024-10-28_01-49-15',
     #             '2024-10-28_01-49-19', '2024-10-28_01-49-27', '2024-10-28_01-51-49']
     exp_list = None
-    # exp_list = ['2024-10-28_01-24-56']
-    # exp_list = ['2024-10-28_01-19-35']
+    # exp_list = ['2024-10-28_00-46-57']
 
     runner.run(exp_list=exp_list)
 

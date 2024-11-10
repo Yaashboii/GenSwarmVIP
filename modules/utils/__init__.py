@@ -16,6 +16,7 @@ from .logger import setup_logger, LoggerLevel
 from .media import generate_video_from_frames, process_video, create_video_from_frames
 from .root import get_project_root, root_manager
 from .run_scripts import run_script
+from .save_json import save_dict_to_json
 
 __all__ = [
     "CodeAnalyzer",
@@ -27,4 +28,5 @@ __all__ = [
     "get_project_root",
     "root_manager",
     "run_script",
+    'save_dict_to_json'
 ]

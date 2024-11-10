@@ -1,28 +1,28 @@
-# - name: Start LLM code
-#   command: >
-#     nvidia-docker run -it --rm -d
-#         --name llm-code
-#         -v /home/nvidia/docker/code_llm_ws:/catkin_ws
-#         --workdir /catkin_ws
-#         --network host
-#         llm_simulator
-#         bash -c "source /catkin_ws/devel/setup.bash && roslaunch code_llm run.launch && tail -f /dev/null"
-#   become: true
-#   become_user: nvidia  # 替换为你的 ROS 用户
-#   register: llm_code_info
-#
-#- name: Show container logs
-#  debug:
-#    var: llm_code_info.stdout_lines
-#
-
-# - name: Start LLM code
-#   command: pwd
-#   become: true
-#   become_user: nvidia  # 替换为你的 ROS 用户
-#   register: llm_code_info
-
+- name: Start LLM code
+  command: >
+    nvidia-docker run -it --rm -d
+        --name llm-code
+        -v /home/nvidia/docker/code_llm_ws:/catkin_ws
+        --workdir /catkin_ws
+        --network host
+        llm_simulator
+        bash -c "source /catkin_ws/devel/setup.bash && roslaunch code_llm run.launch && tail -f /dev/null"
+  become: true
+  become_user: nvidia  # 替换为你的 ROS 用户
+  register: llm_code_info
 
 - name: Show container logs
   debug:
-    var: MY_VARIABLE
+    var: llm_code_info.stdout_lines
+
+
+- name: Start LLM code
+  command: pwd
+  become: true
+  become_user: nvidia  # 替换为你的 ROS 用户
+  register: llm_code_info
+
+#
+#- name: Show container logs
+#  debug:
+#    var: MY_VARIABLE

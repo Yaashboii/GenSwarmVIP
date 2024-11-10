@@ -22,24 +22,37 @@ class ExperimentAnalyzer:
                 break
         return success
 
-    def analyze_all_results(self, experiment_dirs=None):
-
+    def analyze_all_results(self, experiment_dirs=None, target_file=['improve.json'],
+                            only_success: bool = False):
         exp_data = {experiment: {} for experiment in experiment_dirs}
         all_metric_names = []
 
         for experiment in experiment_dirs:
-            result_path = os.path.join(f"{self.experiment_path}", experiment, 'wo_vlm.json')
-            if os.path.exists(result_path):
-                with open(result_path, 'r') as f:
-                    result_data = json.load(f)
-                    analysis = result_data.get('analysis', {})
-                    success = self.calculate_success(analysis)
-                    data = {**analysis, 'success': success}
-                    exp_data[experiment] = data
+            combined_success = False  # Initialize combined success as False for each experiment
+            first_file_data = None  # Variable to store the first file's data for non-success metrics
+            analysis = {}
+            for file in target_file:
+                result_path = os.path.join(self.experiment_path, experiment, file)
+                if os.path.exists(result_path):
+                    with open(result_path, 'r') as f:
+                        result_data = json.load(f)
+                        if file == 'vlm.json':
+                            success = result_data.get('success', False)
+                            combined_success = combined_success or success
+                        else:
+                            analysis = result_data.get('analysis', {})
+                            success = analysis.get('success', False)
+                            combined_success = combined_success or success  # Logical OR with the existing combined success
+                else:
+                    print(f"File {result_path} not found.")
+                    if file == 'improve.json':
+                        combined_success = True
+            data = {**analysis, 'success': combined_success}
 
-                    all_metric_names = list(data.keys())
+            exp_data[experiment] = data
+            all_metric_names = list(data.keys())
+
         mean_metric_value = {}
-
         for metric in all_metric_names:
             metric_values = []
             for exp in exp_data.keys():
@@ -50,21 +63,28 @@ class ExperimentAnalyzer:
                 mean_metric_value[metric] = np.mean(metric_values)
             else:
                 mean_metric_value[metric] = 0
+
+        # Plotting results
         for metric in all_metric_names:
+            if only_success and metric != 'success':
+                continue
             data = [
                 exp_data[exp].get(metric, 0) if isinstance(exp_data[exp].get(metric, 0), (int, float)) else 0
                 for exp in exp_data.keys()
             ]
+            filename = f'{metric}_metric.png'
 
+            if metric == 'success':
+                filename = 'success_' + '_'.join(target_file) + '.png'
             self.plot_and_print_results(
                 data=data,
                 labels=exp_data.keys(),
                 ylabel=metric,
                 title=f"Experiment Outcomes in {metric}",
                 colors=[self.get_color(i, len(exp_data)) for i in range(len(exp_data))],
-                save_filename=f'{metric}_metric.png',
+                save_filename=filename,
                 rotation=True,
-                figsize=(32, 20),  # 设置图像大小
+                figsize=(32, 20),
                 success_conditions=self.success_conditions
             )
 

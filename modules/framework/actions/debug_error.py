@@ -10,7 +10,7 @@ claim, damages, or other liability, whether in an action of contract,
 tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
-
+from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree
 from modules.framework.code_error import CodeError, Bug, Bugs
@@ -37,6 +37,9 @@ class DebugError(ActionNode):
 
     def setup(self, error: CodeError | Bugs | Bug):
         self.error = error.error_msg
+        if len(self.error) > 1000:
+            self.error = self.error[:1000]
+            logger.log("error message is too long, only show the first 1000 characters", level="error")
         self.error_func = error.error_code
         self._skill_tree = (
             self.context.local_skill_tree

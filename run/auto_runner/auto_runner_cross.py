@@ -24,16 +24,17 @@ from run.utils import check_collisions, evaluate_target_achievement
 
 class AutoRunnerCross(AutoRunnerBase):
     def __init__(
-        self,
-        env_config_path,
-        workspace_path,
-        experiment_duration,
-        run_mode="rerun",
-        target_pkl="WriteRun.pkl",
-        script_name="run.py",
-        exp_batch=1,
-        max_speed=1.0,
-        tolerance=0.05,
+            self,
+            env_config_path,
+            workspace_path,
+            experiment_duration,
+            run_mode="rerun",
+            target_pkl="WriteRun.pkl",
+            script_name="run.py",
+            exp_batch=1,
+            max_speed=1.0,
+            test_mode='full_version',
+            tolerance=0.05,
     ):
         env = GymnasiumCrossingEnvironment(env_config_path, radius=2.20)
         super().__init__(
@@ -45,6 +46,7 @@ class AutoRunnerCross(AutoRunnerBase):
             script_name=script_name,
             max_speed=max_speed,
             exp_batch=exp_batch,
+            test_mode=test_mode,
             tolerance=tolerance,
             env=env,
         )
@@ -56,7 +58,7 @@ class AutoRunnerCross(AutoRunnerBase):
 
     def analyze_result(self, run_result):
         collisions = check_collisions(run_result, tolerance=self.tolerance)
-        target_achievement = evaluate_target_achievement(run_result)
+        target_achievement = evaluate_target_achievement(run_result, tolerance=self.tolerance)
         return collisions | target_achievement
 
 

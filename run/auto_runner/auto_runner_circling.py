@@ -20,16 +20,17 @@ from run.utils import evaluate_robot_circle_similarity
 
 class AutoRunnerCircling(AutoRunnerBase):
     def __init__(
-        self,
-        env_config_path,
-        workspace_path,
-        experiment_duration,
-        run_mode="rerun",
-        target_pkl="WriteRun.pkl",
-        script_name="run.py",
-        exp_batch=1,
-        max_speed=1.0,
-        tolerance=0.05,
+            self,
+            env_config_path,
+            workspace_path,
+            experiment_duration,
+            run_mode="rerun",
+            target_pkl="WriteRun.pkl",
+            script_name="run.py",
+            test_mode=None,
+            exp_batch=1,
+            max_speed=1.0,
+            tolerance=0.05,
     ):
         env = GymnasiumCirclingEnvironment(env_config_path)
         super().__init__(
@@ -42,6 +43,7 @@ class AutoRunnerCircling(AutoRunnerBase):
             max_speed=max_speed,
             exp_batch=exp_batch,
             tolerance=tolerance,
+            test_mode=test_mode,
             env=env,
         )
 

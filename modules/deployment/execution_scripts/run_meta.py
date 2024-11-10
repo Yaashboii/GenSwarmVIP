@@ -11,8 +11,12 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
+import os
+import pickle
 import sys
 import threading
+from xmlrpc.client import escape
+
 import rospy
 from code_llm.srv import GetTargetPositions, GetCharPoints, GetCharPointsRequest
 
@@ -46,13 +50,14 @@ def get_contour_points(character):
         return []
 
 
-def run_robot(robot_id, target_position, formation_points):
-    from main import initialize_ros_node, main
-
+def run_robot(robot_id, target_position, formation_points, task=None):
+    from main import initialize_ros_node, init_node, main
+    init_node()
     initialize_ros_node(
         robot_id=robot_id,
         target_position=target_position,
         formation_points=formation_points,
+        assigned_task=task,
     )
     main()
 
@@ -60,12 +65,13 @@ def run_robot(robot_id, target_position, formation_points):
 def run_multiple_robot(start_idx, end_idx):
     rospy.init_node(f"multi_robot_publisher_node{start_idx}_{end_idx}", anonymous=True)
     target_positions = get_target_positions()
-    char_points = get_contour_points("R")
-    # char_points = []
+    # char_points = get_contour_points('R')
+    char_points = [(1, -1), (1, 1), (0, 0), (1, 0), (2, 0)]
     threads = []
+
     for i in range(start_idx, end_idx + 1):
         thread = threading.Thread(
-            target=run_robot, args=(i, target_positions[i], char_points)
+            target=run_robot, args=(i, target_positions[i], char_points, None)
         )
         threads.append(thread)
         thread.start()
@@ -80,4 +86,5 @@ if __name__ == "__main__":
     # end_id = 9
     start_id = int(sys.argv[1])
     end_id = int(sys.argv[2])
+
     run_multiple_robot(start_id, end_id)

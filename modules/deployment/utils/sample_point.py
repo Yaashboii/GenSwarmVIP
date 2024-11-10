@@ -23,7 +23,7 @@ def sample_point(
     robot_shape: str = "circle",
     min_distance: float = 0,
     entities=None,
-    max_attempts_per_point=10000,
+    max_attempts_per_point=1000000,
 ):
     center = np.array(zone_center)
 

@@ -39,7 +39,7 @@ services:
       dockerfile: ./docker/deploy.Dockerfile
     image: huabench/code-llm:deploy
     working_dir: /src
-    command: ansible-playbook ./docker/ansible/main.yml -e MY_VARIABLE=${MY_VARIABLE} -e STAGE=${STAGE}
+    command: ansible-playbook ./docker/ansible/main.yml -e DATA_PATH=${DATA_PATH} -e STAGE=${STAGE}
     # command: /bin/bash
     volumes:
       - ..:/src

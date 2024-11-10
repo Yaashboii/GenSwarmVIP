@@ -101,7 +101,8 @@ class ActionNode(BaseNode):
                 next_action = self.error_handler.handle(res)
                 return await next_action.run()
             else:
-                raise ValueError("No error handler available to handle request")
+                logger.log(f"No error handler available to handle request", "warning")
+                # raise ValueError("No error handler available to handle request")
         if auto_next and self._next is not None:
             return await self._next.run()
 

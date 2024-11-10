@@ -11,8 +11,6 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
-import numpy as np
-import rospy
 import threading
 
 from geometry_msgs.msg import Twist
@@ -24,7 +22,7 @@ thread_local = threading.local()
 
 class RobotNode:
     def __init__(
-        self, robot_id, target_position=None, formation_points=None, assigned_task=None
+            self, robot_id, target_position=None, formation_points=None, assigned_task=None
     ):
         self.robot_id = robot_id
         self.assigned_task = assigned_task
@@ -309,10 +307,6 @@ def get_target_position():
     return get_current_robot_node().get_target_position()
 
 
-def get_surrounding_unexplored_area():
-    return get_current_robot_node().get_surrounding_unexplored_area()
-
-
 def get_surrounding_environment_info():
     node = get_current_robot_node()
     surrounding_robots = node.get_surrounding_robots_info()
@@ -356,3 +350,94 @@ def get_quadrant_target_position():
 
 def get_assigned_task():
     return get_current_robot_node().get_assigned_task()
+
+
+import rospy
+from code_llm.msg import Observations
+import numpy as np
+from code_llm.srv import GetCharPoints, GetCharPointsRequest
+
+initial_robot_positions = {}
+initial_prey_position = []
+initial_unexplored_areas = []
+all_robots_id = []
+init = False
+
+
+def process_initial_observations(msg: Observations):
+    global initial_robot_positions, initial_prey_position, initial_unexplored_area, all_robots_id
+    print("Processing initial observations...")
+    initial_robot_positions.clear()
+    initial_unexplored_areas.clear()
+    all_robots_id.clear()
+
+    for obj in msg.observations:
+        if obj.type == "Robot":
+            position = np.array([obj.position.x, obj.position.y])
+            initial_robot_positions[obj.id] = position
+            all_robots_id.append(obj.id)
+        elif obj.type == "Prey":
+            position = np.array([obj.position.x, obj.position.y])
+            initial_prey_position = position
+        elif obj.type == "Landmark" and obj.color == "gray":
+            initial_unexplored_areas.append(np.array([obj.position.x, obj.position.y]))
+
+
+def init_node():
+    global init
+    if init:
+        return
+    init = True
+    print("Waiting for initial observations...")
+    rospy.Subscriber("/observation", Observations, process_initial_observations)
+    msg = rospy.wait_for_message("/observation", Observations)
+    process_initial_observations(msg)
+    print("Initial observations received.")
+
+
+def get_all_robots_initial_position():
+    init_node()
+    return initial_robot_positions
+
+
+def get_prey_initial_position():
+    init_node()
+    return initial_prey_position
+
+
+def get_initial_unexplored_areas():
+    init_node()
+    return initial_unexplored_areas
+
+
+def get_environment_range():
+    return {"x_min": -2.5, "x_max": 2.5, "y_min": -2.5, "y_max": 2.5}
+
+
+def get_contour_points(character):
+    rospy.wait_for_service("/get_char_points")
+    try:
+        get_char_points = rospy.ServiceProxy("/get_char_points", GetCharPoints)
+        request = GetCharPointsRequest(character=character)
+        response = get_char_points(request)
+        points = [(point.x, point.y) for point in response.points]
+        return points
+    except rospy.ServiceException as e:
+        print(f"Service call failed: {e}")
+        return []
+
+
+def get_target_formation_points():
+    target_shape = [
+        np.array((1, -1)),
+        np.array((1, 1)),
+        np.array((0, 0)),
+        np.array((1, 0)),
+        np.array((2, 0)),
+    ]
+    return target_shape
+
+
+def get_all_robots_id():
+    init_node()
+    return all_robots_id
