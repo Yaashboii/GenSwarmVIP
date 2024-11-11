@@ -86,4 +86,10 @@ class _Logger:
         )
 
 
-logger = _Logger()
+class _MuteLogger(_Logger):
+    def log(self, content: str, level: str = "info", print_to_terminal: bool = True):
+        super(_MuteLogger, self).log(content, level, print_to_terminal=False)
+
+
+# logger = _Logger()
+logger = _MuteLogger()
