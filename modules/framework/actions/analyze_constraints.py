@@ -12,6 +12,8 @@ software or the use or other dealings in the software.
 """
 
 import json
+from rich import print as RichPrint
+from rich.panel import Panel
 
 from modules.file import logger
 from modules.framework.action import ActionNode
@@ -28,7 +30,7 @@ from modules.prompt import (
 from modules.framework.constraint import ConstraintPool
 from modules.framework.parser import *
 from modules.prompt.user_requirements import get_user_commands
-from modules.utils import root_manager
+from modules.utils import root_manager, ColorText
 
 
 class AnalyzeConstraints(ActionNode):
@@ -64,6 +66,21 @@ class AnalyzeConstraints(ActionNode):
         self._constraint_pool.init_constraints(content)
 
         logger.log(f"Analyze Constraints Success", "success")
+
+    def _display(self):
+        constraint_names = self._constraint_pool.get_constraint_names()
+        constraints = [self._constraint_pool[name] for name in constraint_names]
+        content = ""
+        for index, constraint in enumerate(constraints):
+            content += f"[bold yellow]{index+1}. {constraint.name}[/bold yellow]\n"
+            content += f"[white]{constraint.description}[/white]\n"
+
+        panel = Panel(
+            content,
+            title="[bold cyan]Step 1: Analyze Constraints[/bold cyan]",
+            border_style="cyan",  # Border color
+        )
+        RichPrint(panel)
 
 
 if __name__ == "__main__":

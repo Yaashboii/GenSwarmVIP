@@ -14,6 +14,10 @@ software or the use or other dealings in the software.
 import asyncio
 import os
 
+from rich import print as rich_print
+from rich.syntax import Syntax
+from rich.panel import Panel
+
 from modules.file import File, logger
 from modules.framework.action import *
 from modules.framework.actions import *
@@ -133,6 +137,13 @@ class Workflow:
         self._pipeline = code_llm
 
     async def run(self):
+        panel = Panel(
+            self._context.command,
+            title="[bold cyan]Step 3: Write Function Specification[/bold cyan]",
+            border_style="cyan",  # Border color
+        )
+        rich_print(panel)
+
         text = display_all(self._pipeline, self._chain_of_handler)
         flow = File(name="flow.md")
         flow.message = text

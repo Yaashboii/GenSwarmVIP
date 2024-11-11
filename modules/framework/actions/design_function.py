@@ -11,6 +11,10 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
+from rich import print as rich_print
+from rich.syntax import Syntax
+from rich.panel import Panel
+
 from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.code import FunctionNode, FunctionTree, State
@@ -106,6 +110,23 @@ class DesignFunctionAsync(AsyncNode):
         action.setup(function)
         return await action.run()
 
+    def _display(self):
+        function_nodes = self.skill_tree.nodes
+        content = ""
+        for index, node in enumerate(function_nodes):
+            if node.definition:
+                syntax = Syntax(
+                    node.definition[:300], "python", theme="monokai", line_numbers=True
+                )
+
+                panel = Panel(
+                    syntax,
+                    title="[bold cyan]Step 3: Write Function Specification[/bold cyan]",
+                    border_style="cyan",  # Border color
+                    subtitle=f"[bold cyan]Function {index+1}: {node.name}.py[/bold cyan]",
+                )
+            rich_print(panel)
+
 
 if __name__ == "__main__":
     import asyncio
@@ -117,8 +138,8 @@ if __name__ == "__main__":
     root_manager.update_root("../../../workspace/test")
 
     context.load_from_file(f"{path}/analyze_functions.pkl")
-    function_designer = DesignFunctionAsync(context.global_skill_tree)
-    # function_designer = DesignFunctionAsync(context.local_skill_tree)
+    # function_designer = DesignFunctionAsync(context.global_skill_tree)
+    function_designer = DesignFunctionAsync(context.local_skill_tree)
 
     asyncio.run(function_designer.run())
     context.save_to_file("../../../workspace/test/designed_function.pkl")

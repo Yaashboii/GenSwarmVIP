@@ -11,6 +11,10 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
+from rich import print as rich_print
+from rich.syntax import Syntax
+from rich.panel import Panel
+
 from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
 from modules.framework.code import FunctionNode, FunctionTree, State
@@ -96,6 +100,20 @@ class WriteFunctionsAsync(AsyncNode):
         )
         return await action.run()
 
+    def _display(self):
+        function_nodes = self.skill_tree.nodes
+        for index, node in enumerate(function_nodes):
+            if node.body:
+                syntax = Syntax(node.body, "python", theme="monokai", line_numbers=True)
+
+                panel = Panel(
+                    syntax,
+                    title="[bold cyan]Step 4: Write Function Body[/bold cyan]",
+                    border_style="cyan",  # Border color
+                    subtitle=f"[bold cyan]Function {index+1}: {node.name}.py[/bold cyan]",
+                )
+            rich_print(panel)
+
 
 if __name__ == "__main__":
     import asyncio
@@ -106,7 +124,7 @@ if __name__ == "__main__":
     path = "../../../workspace/test"
     context.load_from_file(f"{path}/designed_function.pkl")
     function_writer = WriteFunctionsAsync(
-        context.global_skill_tree,
+        context.local_skill_tree,
         "layer",
         start_state=State.DESIGNED,
         end_state=State.WRITTEN,

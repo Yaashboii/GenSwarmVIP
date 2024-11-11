@@ -25,3 +25,5 @@ box2d-py
 fastdtw==0.3.4
 paho-mqtt==1.6.1
 rospy_message_converter
+pygments
+rich

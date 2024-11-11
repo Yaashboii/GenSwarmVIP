@@ -11,6 +11,10 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
+from rich import print
+from rich.panel import Panel
+import shutil
+
 from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.constraint import ConstraintPool
@@ -67,6 +71,46 @@ class AnalyzeSkills(ActionNode):
         self._constraint_pool.check_constraints_satisfaction()
         logger.log(f"Analyze Functions Success", "success")
         return response
+
+    def _display(self):
+        content = ""
+
+        functions_nodes = list(self.context.global_skill_tree.nodes) + list(
+            self.context.local_skill_tree.nodes
+        )
+        for index, function in enumerate(functions_nodes):
+            content += f"[bold yellow]{index+1}. {function.name}[/bold yellow]\n"
+            content += f"{function.description}\n"
+
+        def print_tree(tree, content):
+            layers = tree._layers
+            for layer_index, layer in enumerate(layers):
+                content += f"Layer {layer_index}:\n"
+                for function_node in layer:
+                    content += f"  - {function_node.name}\n"
+            return content
+
+        global_content = print_tree(self.context.global_skill_tree, "")
+        global_panel = Panel(
+            global_content,
+            title="[bold cyan]Step 2: Analyze Skills - Global Skill Graph[/bold cyan]",
+            border_style="cyan",  # Border color
+        )
+        local_content = print_tree(self.context.local_skill_tree, "")
+        local_panel = Panel(
+            local_content,
+            title="[bold cyan]Step 2: Analyze Skills - Local Skill Graph[/bold cyan]",
+            border_style="cyan",  # Border color
+        )
+
+        panel = Panel(
+            content,
+            title="[bold cyan]Step 2: Analyze Skills[/bold cyan]",
+            border_style="cyan",  # Border color
+        )
+        print(panel)
+        print(global_panel)
+        print(local_panel)
 
 
 if __name__ == "__main__":
