@@ -134,8 +134,8 @@ class OmniEngine(Engine):
 
         # 应用遥控器的输入数据x`
         self.apply_joy_control()
-        # for entity in self._entities:
-        #     self.control_yaw(entity, desired_yaw=0)
+            # for entity in self._entities:
+            #     self.control_yaw(entity, desired_yaw=0)
         # if not self.led_init:
         self.update_led_color()
         # 继续执行原有的周期行为
@@ -199,7 +199,7 @@ class OmniEngine(Engine):
         try:
             for entity_id in self._entities:
                 color = color_mapping[self._entities[entity_id].color]
-
+                # print(f"Setting led color of entity {entity_id} to {color}")
                 # color = color_mapping["black"]
                 self.set_ledup(entity_id, color)
                 self.set_leddown(entity_id, color)

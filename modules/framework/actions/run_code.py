@@ -132,7 +132,7 @@ class RunCodeReal(ActionNode):
         result = await run_script(
             working_directory=working_directory,
             command=command,
-            timeout=self.context.args.timeout,
+            timeout=70,
             env=env,
         )
         if self.stage == "1":

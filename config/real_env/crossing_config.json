@@ -19,9 +19,9 @@
       "shape": "circle",
       "perceptual_range": 1,
       "id_list": [
-        0,
         1,
         2,
+        3,
         7,
         8,
         6
