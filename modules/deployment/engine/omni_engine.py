@@ -134,8 +134,8 @@ class OmniEngine(Engine):
 
         # 应用遥控器的输入数据x`
         self.apply_joy_control()
-            # for entity in self._entities:
-            #     self.control_yaw(entity, desired_yaw=0)
+        # for entity in self._entities:
+        #     self.control_yaw(entity, desired_yaw=0)
         # if not self.led_init:
         self.update_led_color()
         # 继续执行原有的周期行为

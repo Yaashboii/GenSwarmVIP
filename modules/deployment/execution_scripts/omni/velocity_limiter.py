@@ -11,6 +11,7 @@ claim, damages, or other liability, whether in an action of contract,
 tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
+import time
 
 import rospy
 import numpy as np
@@ -44,6 +45,7 @@ class VelocityLimiterNode:
         rospy.spin()
 
     def cmd_vel_callback(self, msg):
+        # time.sleep(2)
         # Convert Twist message to numpy array
         linear_vel = np.array([msg.linear.x, msg.linear.y, msg.linear.z])
         angular_vel = np.array([msg.angular.x, msg.angular.y, msg.angular.z])
@@ -62,7 +64,7 @@ class VelocityLimiterNode:
         linear_norm = np.linalg.norm(linear_vel)
         if linear_norm > 0:
             linear_vel = (
-                    linear_vel / linear_norm * min(linear_norm, self.max_linear_speed)
+                    linear_vel / linear_norm * self.max_linear_speed
             )
 
         # Update Twist message with normalized and damped velocities

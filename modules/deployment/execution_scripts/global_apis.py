@@ -10,12 +10,15 @@ claim, damages, or other liability, whether in an action of contract,
 tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
+import time
 
 import rospy
 from code_llm.msg import Observations
 import numpy as np
 from code_llm.srv import GetCharPoints, GetCharPointsRequest
 from sympy.stats.sampling.sample_numpy import numpy
+
+from tests.intrgration.workspace.apis import timer
 
 initial_robot_positions = {}
 initial_prey_position = []
@@ -71,10 +74,12 @@ def get_initial_unexplored_areas():
 
 
 def get_environment_range():
+    init_node()
     return {"x_min": -2.5, "x_max": 2.5, "y_min": -2.5, "y_max": 2.5}
 
 
 def get_contour_points(character):
+    init_node()
     rospy.wait_for_service("/get_char_points")
     try:
         get_char_points = rospy.ServiceProxy("/get_char_points", GetCharPoints)
@@ -88,6 +93,8 @@ def get_contour_points(character):
 
 
 def get_target_formation_points():
+    init_node()
+
     target_shape = [
         np.array((1, -1)),
         np.array((1, 1)),
@@ -99,6 +106,8 @@ def get_target_formation_points():
 
 
 def get_quadrant_target_position():
+    init_node()
+
     quadrant_target_position = {
         3: np.array([-1.25, -1.25]),
         2: np.array([-1.25, 1.25]),

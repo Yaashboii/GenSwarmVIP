@@ -57,6 +57,7 @@ def main():
     task_name = args.task_name
 
     # workspace_path = 'comparative/cap/' + task_name
+    # workspace_path = 'ablation/constraint_pool/' + task_name
     workspace_path = task_name
     runner_class = task_mapping(task_name)
     config_file = config_mapping(task_name)
@@ -64,7 +65,7 @@ def main():
     test_mode = 'real'
     if test_mode == 'real':
         env_config_path = f"../config/real_env/{config_file}"
-        experiment_duration = 60
+        experiment_duration = 50
     else:
         env_config_path = f"../config/env/{config_file}"
         experiment_duration = 10
@@ -85,7 +86,7 @@ def main():
     #             '2024-10-28_01-49-19', '2024-10-28_01-49-27', '2024-10-28_01-51-49']
     exp_list = None
     # exp_list = ['2024-10-28_01-24-56']
-    exp_list = ['2024-10-29_17-09-14']
+    exp_list = ['2024-10-29_17-31-57']
 
     runner.run(exp_list=exp_list)
 

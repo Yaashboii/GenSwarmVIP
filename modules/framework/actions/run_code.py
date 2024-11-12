@@ -291,10 +291,14 @@ def init_workflow(args, env=None) -> ActionNode:
         copy_file.setup(stage=0, path=args.experiment_path)
         run_real = RunCodeReal(env=env)
         run_real.setup(stage=1, path=args.experiment_path)
+        stop_docker = RunCodeReal(env=env)
+        stop_docker.setup(stage=2, path=args.experiment_path)
         video_critic = VideoCriticize("")
         if args.test_mode == 'real':
-            run_allocate._next = copy_file
-            copy_file._next = run_real
+            run_allocate._next = run_real
+            # stop_docker._next = run_real
+            # copy_file._next = run_real
+            # run_real._next = stop_docker
         else:
             run_allocate._next = run_code
 

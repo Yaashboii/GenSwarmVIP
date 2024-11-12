@@ -3,16 +3,16 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 task_keys = [
-    # "exploration",
+    "exploration",
     "crossing",
-    # "flocking",
+    "flocking",
     "shaping",
     "bridging",
-    # "circling",
+    "circling",
     "encircling",
-    # "covering",
-    # "clustering",
-    # "pursuing"
+    "covering",
+    "clustering",
+    "pursuing"
 ]
 
 MAX_THREADS = 1  # Set the maximum number of threads you want to run concurrently
@@ -27,7 +27,7 @@ def run_batch(batch_num, task_name):
 
 
 def run_batches(task_name):
-    batch_numbers = range(1, 10)  # Adjust range as needed
+    batch_numbers = range(1, 51)  # Adjust range as needed
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         # Submit all batches to the executor and create progress bar
         future_to_batch = {executor.submit(run_batch, batch_num, task_name): batch_num for batch_num in batch_numbers}
