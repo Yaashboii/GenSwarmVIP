@@ -11,9 +11,6 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
-from rich import print as rich_print
-from rich.syntax import Syntax
-from rich.panel import Panel
 
 from modules.file import logger
 from modules.framework.action import ActionNode, AsyncNode
@@ -27,7 +24,7 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
-from modules.utils import root_manager
+from modules.utils import root_manager, rich_code_print
 
 
 class DesignFunction(ActionNode):
@@ -38,6 +35,7 @@ class DesignFunction(ActionNode):
 
     def setup(self, function: FunctionNode):
         self._function = function
+        self.set_logging_text(f"Writing Fuction Specification")
 
     def _build_prompt(self):
         if self._function is None:
@@ -85,6 +83,7 @@ class DesignFunction(ActionNode):
         new_definition = parser.function_definition
         function_name = parser.function_name
         self.skill_tree.set_definition(function_name, new_definition)
+
         return str(code)
 
     async def operate_on_node(self, function_node: FunctionNode):
@@ -112,20 +111,13 @@ class DesignFunctionAsync(AsyncNode):
 
     def _display(self):
         function_nodes = self.skill_tree.nodes
-        content = ""
         for index, node in enumerate(function_nodes):
             if node.definition:
-                syntax = Syntax(
-                    node.definition[:300], "python", theme="monokai", line_numbers=True
+                rich_code_print(
+                    "Step 3: Write Function Specification",
+                    node.definition[:300],
+                    f"Function {index+1}: {node.name}",
                 )
-
-                panel = Panel(
-                    syntax,
-                    title="[bold cyan]Step 3: Write Function Specification[/bold cyan]",
-                    border_style="cyan",  # Border color
-                    subtitle=f"[bold cyan]Function {index+1}: {node.name}.py[/bold cyan]",
-                )
-            rich_print(panel)
 
 
 if __name__ == "__main__":

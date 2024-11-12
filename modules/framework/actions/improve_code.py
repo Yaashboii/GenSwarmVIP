@@ -11,6 +11,7 @@ from modules.prompt import (
     TASK_DES,
     ALLOCATOR_TEMPLATE,
 )
+from modules.utils import rich_code_print
 
 
 class CodeImprove(ActionNode):
@@ -49,6 +50,7 @@ class CodeImprove(ActionNode):
 
     def setup(self, feedback: str):
         self.feedback = feedback
+        self.set_logging_text(f"Improving Code")
 
     async def _process_response(self, response: str, **kwargs) -> str:
         code = parse_text(text=response)
@@ -68,6 +70,8 @@ class CodeImprove(ActionNode):
                 self.context.local_skill_tree.update_from_parser(
                     parser.imports, {func_name: func_body}
                 )
+
+        rich_code_print("Improve Code", code, f"New Code")
 
         # 保存函数到文件
         self.context.global_skill_tree.save_functions_to_file()

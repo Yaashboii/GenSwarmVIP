@@ -24,7 +24,7 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
-from modules.utils import root_manager
+from modules.utils import root_manager, rich_code_print
 
 
 class WriteRun(ActionNode):
@@ -54,6 +54,7 @@ class WriteRun(ActionNode):
             functions=functions,
             template=GLOBAL_RUN_OUTPUT_TEMPLATE,
         )
+        self.set_logging_text("Writing run.py")
 
     async def _process_response(self, response: str) -> str:
         code = parse_text(text=response)
@@ -64,6 +65,8 @@ class WriteRun(ActionNode):
         self._skill_tree.update_from_parser(parser.imports, parser.function_dict)
         self._skill_tree.save_code([self.desired_function_name])
         self._skill_tree[self.desired_function_name].state = State.WRITTEN
+
+        rich_code_print("Step 6: Write run.py", code)
 
         if self._skill_tree.name == "global_skill":
             template = eval(parse_text(response, lang="json"))["value"]

@@ -11,10 +11,6 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
-from rich import print
-from rich.panel import Panel
-import shutil
-
 from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.constraint import ConstraintPool
@@ -29,7 +25,7 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
-from modules.utils import root_manager
+from modules.utils import root_manager, rich_print
 
 
 class AnalyzeSkills(ActionNode):
@@ -48,6 +44,7 @@ class AnalyzeSkills(ActionNode):
             constraints=str(self._constraint_pool),
             output_template=FUNCTION_TEMPLATE,
         )
+        self.set_logging_text(f"Analyzing skills")
 
     async def _process_response(self, response: str) -> str:
         content = parse_text(response, "json")
@@ -91,26 +88,10 @@ class AnalyzeSkills(ActionNode):
             return content
 
         global_content = print_tree(self.context.global_skill_tree, "")
-        global_panel = Panel(
-            global_content,
-            title="[bold cyan]Step 2: Analyze Skills - Global Skill Graph[/bold cyan]",
-            border_style="cyan",  # Border color
-        )
         local_content = print_tree(self.context.local_skill_tree, "")
-        local_panel = Panel(
-            local_content,
-            title="[bold cyan]Step 2: Analyze Skills - Local Skill Graph[/bold cyan]",
-            border_style="cyan",  # Border color
-        )
-
-        panel = Panel(
-            content,
-            title="[bold cyan]Step 2: Analyze Skills[/bold cyan]",
-            border_style="cyan",  # Border color
-        )
-        print(panel)
-        print(global_panel)
-        print(local_panel)
+        rich_print("Step 2: Analyze Skills", content)
+        rich_print("Step 2: Analyze Skills - Global Skill Graph", global_content)
+        rich_print("Step 2: Analyze Skills - Local Skill Graph", local_content)
 
 
 if __name__ == "__main__":

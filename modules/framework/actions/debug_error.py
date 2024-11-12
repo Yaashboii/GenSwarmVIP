@@ -25,6 +25,7 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
+from modules.utils import rich_code_print
 
 
 class DebugError(ActionNode):
@@ -43,6 +44,7 @@ class DebugError(ActionNode):
             if self.context.scoop == "local"
             else self.context.global_skill_tree
         )
+        self.set_logging_text(f"Debuging Error")
 
     def _build_prompt(self):
         if len(self.context.global_skill_tree.layers) == 0:
@@ -75,5 +77,6 @@ class DebugError(ActionNode):
         parser.parse_code(code)
         self._skill_tree.update_from_parser(parser.imports, parser.function_dict)
         self._skill_tree.save_functions_to_file()
+        rich_code_print("Debug Error", code, f"New Code")
 
         return str(code)

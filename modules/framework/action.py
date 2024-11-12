@@ -75,6 +75,7 @@ class ActionNode(BaseNode):
         self.error_handler = None  # this is a chain of handlers, see handler.py
         self.set_renderer(ActionNodeRenderer())
         self.context: WorkflowContext = WorkflowContext()
+        self._logging_text = "Thinking"
 
     def __str__(self):
         if self._node_name:
@@ -88,6 +89,9 @@ class ActionNode(BaseNode):
 
     def _display(self):
         pass
+
+    def set_logging_text(self, text):
+        self._logging_text = text
 
     async def run(self, auto_next: bool = True) -> str:
         # First create a prompt, then utilize it to query the language model.
@@ -115,10 +119,12 @@ class ActionNode(BaseNode):
     )
     async def _run(self) -> str:
         async def loading_animation():
-            num_dots = 0
+            num_dots = 1
             while True:
                 # 输出点点动画
-                sys.stdout.write("\r\033[32mThinking" + "." * num_dots + "\033[0m")
+                sys.stdout.write(
+                    f"\r\033[32m{self._logging_text}" + "." * num_dots + "\033[0m"
+                )
                 sys.stdout.flush()
                 num_dots = (num_dots + 1) % 8  # 点的数量在 0 到 3 之间循环
                 await asyncio.sleep(0.5)  # 控制动画速度

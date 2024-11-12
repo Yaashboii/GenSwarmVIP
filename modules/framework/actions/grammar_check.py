@@ -19,7 +19,7 @@ from modules.framework.code_error import Bug, Bugs
 from modules.framework.context import WorkflowContext
 from modules.framework.handler import BugLevelHandler
 from modules.framework.parser import GrammarParser
-from modules.utils import root_manager
+from modules.utils import root_manager, rich_print
 
 
 class GrammarCheck(ActionNode):
@@ -38,6 +38,7 @@ class GrammarCheck(ActionNode):
     def setup(self, function: FunctionNode):
         self.function_name = function.name
         self.function = function
+        self.set_logging_text(f"Checking grammar")
 
     async def _run(self) -> str:
         if not self.function_name:
@@ -72,11 +73,27 @@ class GrammarCheck(ActionNode):
             logger.log(
                 f"Grammar check failed for function: {self.function_name}", "error"
             )
+            bug_text_list = [
+                f"[yellow]{e['function_name']}:[/yellow] {e['error_message']}"
+                for e in eval(response)
+            ]
+            rich_print(
+                "Step 5: Check Grammar",
+                "\n".join(bug_text_list),
+                f"{self.function_name}.py",
+            )
             return Bugs(bug_list, error_code=error_code)
         else:
             logger.log(
                 f"Grammar check passed for function: {self.function_name}", "warning"
             )
+
+            rich_print(
+                "Step 5: Check Grammar",
+                f"Grammar check passed for function: {self.function_name}",
+                f"{self.function_name}.py",
+            )
+
             return response
 
 
@@ -134,9 +151,9 @@ if __name__ == "__main__":
     path = "../../../workspace/test"
     context.load_from_file(f"{path}/reviewed_function.pkl")
     root_manager.update_root(path)
-    debug_error = DebugError(context.global_skill_tree)
+    debug_error = DebugError(context.local_skill_tree)
 
-    grammar_check = GrammarCheckAsync(context.global_skill_tree)
+    grammar_check = GrammarCheckAsync(context.local_skill_tree)
     bug_handler = BugLevelHandler()
     bug_handler.next_action = debug_error
     grammar_check.error_handler = bug_handler
