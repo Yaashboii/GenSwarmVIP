@@ -22,16 +22,17 @@ from run.utils import evaluate_shape_similarity
 
 class AutoRunnerBridging(AutoRunnerBase):
     def __init__(
-        self,
-        env_config_path,
-        workspace_path,
-        experiment_duration,
-        run_mode="rerun",
-        target_pkl="WriteRun.pkl",
-        script_name="run.py",
-        exp_batch=1,
-        max_speed=1.0,
-        tolerance=0.05,
+            self,
+            env_config_path,
+            workspace_path,
+            experiment_duration,
+            run_mode="rerun",
+            target_pkl="WriteRun.pkl",
+            script_name="run.py",
+            exp_batch=1,
+            test_mode=None,
+            max_speed=1.0,
+            tolerance=0.05,
     ):
         self.env = GymnasiumBridgingEnvironment(env_config_path)
         super().__init__(
@@ -43,6 +44,7 @@ class AutoRunnerBridging(AutoRunnerBase):
             script_name=script_name,
             max_speed=max_speed,
             exp_batch=exp_batch,
+            test_mode=test_mode,
             tolerance=tolerance,
             env=self.env,
         )
@@ -59,5 +61,5 @@ class AutoRunnerBridging(AutoRunnerBase):
 
     def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
         return [
-            ("procrustes_distance", operator.lt, 0.2),
+            ("procrustes_distance", operator.lt, 0.1),
         ]

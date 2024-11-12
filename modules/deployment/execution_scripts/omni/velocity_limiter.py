@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 Copyright (c) 2024 WindyLab of Westlake University, China
 All rights reserved.
@@ -10,8 +11,8 @@ claim, damages, or other liability, whether in an action of contract,
 tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
+import time
 
-#!/usr/bin/python3
 import rospy
 import numpy as np
 from geometry_msgs.msg import Twist
@@ -29,7 +30,7 @@ class VelocityLimiterNode:
         self.damping_factor = rospy.get_param(
             "~damping_factor", 0.5
         )  # Damping factor (0 < factor < 1)
-        self.time = rospy.get_param("~time", 200.0)
+        self.time = rospy.get_param("~time", 60.0)
 
         self.vel_cmd_pub = rospy.Publisher("/robot/velcmd", Twist, queue_size=10)
         self.cmd_vel_sub = rospy.Subscriber("/cmd_vel", Twist, self.cmd_vel_callback)
@@ -44,25 +45,26 @@ class VelocityLimiterNode:
         rospy.spin()
 
     def cmd_vel_callback(self, msg):
+        # time.sleep(2)
         # Convert Twist message to numpy array
         linear_vel = np.array([msg.linear.x, msg.linear.y, msg.linear.z])
         angular_vel = np.array([msg.angular.x, msg.angular.y, msg.angular.z])
 
         # Apply damping to the velocities
         linear_vel = (
-            self.damping_factor * self.last_linear_vel
-            + (1 - self.damping_factor) * linear_vel
+                self.damping_factor * self.last_linear_vel
+                + (1 - self.damping_factor) * linear_vel
         )
         angular_vel = (
-            self.damping_factor * self.last_angular_vel
-            + (1 - self.damping_factor) * angular_vel
+                self.damping_factor * self.last_angular_vel
+                + (1 - self.damping_factor) * angular_vel
         )
 
         # Normalize linear velocity
         linear_norm = np.linalg.norm(linear_vel)
         if linear_norm > 0:
             linear_vel = (
-                linear_vel / linear_norm * min(linear_norm, self.max_linear_speed)
+                    linear_vel / linear_norm * self.max_linear_speed
             )
 
         # Update Twist message with normalized and damped velocities

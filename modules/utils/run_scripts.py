@@ -4,12 +4,16 @@ import sys
 
 
 async def run_script(
-    working_directory, command=[], print_output=True, timeout=30
+    working_directory,
+    command=[],
+    print_output=True,
+    timeout=30,
+    env=None,
 ) -> str:
     from modules.file import logger
 
     working_directory = str(working_directory)
-    env = os.environ.copy()
+    env = os.environ.copy() if env is None else env
 
     process = await asyncio.create_subprocess_exec(
         *command,

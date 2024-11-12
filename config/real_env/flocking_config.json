@@ -18,7 +18,13 @@
       "color": "green",
       "shape": "circle",
       "perceptual_range": 1,
-      "id_list": [5,6,7,8,9,10]
+      "id_list": [
+        1,
+        2,
+        3,
+        5,
+        6
+      ]
     },
     "leader": {
       "count": 0,
@@ -29,7 +35,11 @@
       "specified": [],
       "size": 0.10,
       "shape": "circle",
-      "color": "green"
+      "color": "green",
+      "id_list": [
+        4,
+        9
+      ]
     },
     "sheep": {
       "count": 0,

@@ -111,9 +111,11 @@ def evaluate_target_achievement(data, tolerance=0.1) -> dict:
                 final_distance = current_distance
                 break
 
-        if final_distance <= tolerance:
+        if np.linalg.norm(target - info["trajectory"][-1]) <= tolerance:
             achieved_targets += 1
             total_steps_ratio += steps_to_target / len(info["trajectory"])
+        else:
+            print(np.linalg.norm(target - info["trajectory"][-1]))
 
         distance_ratio = (
             final_distance / initial_distance if initial_distance > 0 else 1

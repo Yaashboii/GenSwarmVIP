@@ -72,7 +72,7 @@ class OmniEngine(Engine):
 
         self.set_position(entity_id, position)
 
-        print(f"update position of {entity_type} {entity_id} to {position}")
+        # print(f"update position of {entity_type} {entity_id} to {position}")
         quaternion = np.array(
             [
                 msg.pose.orientation.x,
@@ -199,8 +199,8 @@ class OmniEngine(Engine):
         try:
             for entity_id in self._entities:
                 color = color_mapping[self._entities[entity_id].color]
-
-                color = color_mapping["black"]
+                # print(f"Setting led color of entity {entity_id} to {color}")
+                # color = color_mapping["black"]
                 self.set_ledup(entity_id, color)
                 self.set_leddown(entity_id, color)
         except KeyError as e:

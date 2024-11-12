@@ -6,10 +6,16 @@ from code_llm.srv import StartEnvironment, StartEnvironmentResponse
 from code_llm.srv import StopEnvironment, StopEnvironmentResponse
 
 from modules.deployment.utils.manager import Manager
+from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
 
 
 class EnvironmentManager:
-    def __init__(self, env, default_fps: int = 100, max_speed: float = 1.0):
+    def __init__(
+        self,
+        env: GymnasiumEnvironmentBase,
+        default_fps: int = 100,
+        max_speed: float = 1.0,
+    ):
         """
         Initialize the environment manager, no longer requiring experiment path and ID in the constructor.
 
@@ -21,8 +27,12 @@ class EnvironmentManager:
         self.env = env
         self.env.reset()
         self.experiment_path = None
+        real = False
+        if self.env.engine.__class__.__name__ == "OmniEngine":
+            real = True
+            default_fps = 10
         self.fps = default_fps  # Default frame rate
-        self.manager = Manager(self.env, max_speed=max_speed)
+        self.manager = Manager(self.env, max_speed=max_speed, real=real)
         self.frames = []
         self.frame_dir = None
         self.experiment_duration = 0  # Set experiment duration

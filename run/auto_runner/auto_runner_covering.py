@@ -36,6 +36,7 @@ class AutoRunnerCovering(AutoRunnerBase):
         exp_batch=1,
         max_speed=1.0,
         tolerance=0.05,
+            test_mode=None,
     ):
         env = GymnasiumCoveringEnvironment(env_config_path)
         super().__init__(
@@ -49,6 +50,7 @@ class AutoRunnerCovering(AutoRunnerBase):
             tolerance=tolerance,
             exp_batch=exp_batch,
             env=env,
+            test_mode=test_mode,
         )
 
     def analyze_result(self, run_result) -> dict[str, float]:

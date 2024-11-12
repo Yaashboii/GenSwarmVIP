@@ -1,3 +1,6 @@
+import json
+import os
+
 from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree
 from modules.framework.parser import CodeParser, parse_text
@@ -11,6 +14,7 @@ from modules.prompt import (
     TASK_DES,
     ALLOCATOR_TEMPLATE,
 )
+from modules.utils import root_manager
 
 
 class CodeImprove(ActionNode):
@@ -27,6 +31,16 @@ class CodeImprove(ActionNode):
             local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
                 template=self.context.global_skill_tree.output_template
             )
+        if self.feedback is None:
+            vlm_file = os.path.join(root_manager.workspace_root, "vlm.json")
+            if os.path.exists(vlm_file):
+                with open(vlm_file, "r") as f:
+                    result = json.load(f)
+                    if result.get("success", ""):
+                        self._next = None
+                        raise SystemExit("Success, exit!")
+                    self.feedback = result.get("feedback", "")
+
         self.prompt = FEEDBACK_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
             global_api=GLOBAL_ROBOT_API,
@@ -78,7 +92,6 @@ class CodeImprove(ActionNode):
 
 if __name__ == "__main__":
     critic = Criticize("constraints")
-    from modules.utils import root_manager
     import asyncio
 
     path = "../../../workspace/test"

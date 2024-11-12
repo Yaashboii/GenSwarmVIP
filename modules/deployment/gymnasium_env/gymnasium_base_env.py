@@ -256,7 +256,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         return obs
 
     def step(
-        self, action: ActType
+            self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
         """
         Perform one step of the environment using the given actions.
@@ -349,11 +349,11 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                 pygame.draw.rect(self.screen, color, rect)
 
     def reset(
-        self,
-        *,
-        seed: int | None = None,
-        options: dict[str, Any] | None = None,
-        keep_entity=False,
+            self,
+            *,
+            seed: int | None = None,
+            options: dict[str, Any] | None = None,
+            keep_entity=False,
     ) -> tuple[ObsType, dict[str, Any]]:
         super().reset(seed=seed)
         if not keep_entity:
@@ -419,15 +419,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                 landmark_id=i, initial_position=(0, 0), size=0.15, color="gray"
             )
             self.add_entity(landmark)
-        # entity_id = 10
-        # for x in np.arange(-self.width * 0.4, self.width * 0.51, 0.2 * self.width):
-        #     for y in np.arange(-self.height * 0.4, self.height * 0.51, 0.2 * self.height):
-        #         landmark = Landmark(landmark_id=entity_id,
-        #                             initial_position=(x, y),
-        #                             size=np.array([0.2 * self.width, 0.2 * self.height]),
-        #                             color='gray')
-        #         self.add_entity(landmark)
-        #         entity_id += 1
+
         prey_id_list = self.prey_id_list
         for i in prey_id_list:
             prey = Prey(
@@ -487,6 +479,9 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
             if entity.id == entity_id:
                 return entity
         raise ValueError(f"No entity with ID {entity_id} found.")
+
+    def set_fps(self, fps):
+        self.FPS = fps
 
     def connect_to(self, entity1_id, entity2_id):
         entity1 = self.get_entity_by_id(entity1_id)

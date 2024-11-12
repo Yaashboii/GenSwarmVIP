@@ -26,16 +26,17 @@ from run.utils import evaluate_landmark_visits, check_collisions
 
 class AutoRunnerExplore(AutoRunnerBase):
     def __init__(
-        self,
-        env_config_path,
-        workspace_path,
-        experiment_duration,
-        run_mode="rerun",
-        target_pkl="WriteRun.pkl",
-        script_name="run.py",
-        max_speed=1.0,
-        exp_batch=1,
-        tolerance=0.05,
+            self,
+            env_config_path,
+            workspace_path,
+            experiment_duration,
+            run_mode="rerun",
+            target_pkl="WriteRun.pkl",
+            script_name="run.py",
+            max_speed=1.0,
+            exp_batch=1,
+            tolerance=0.05,
+            test_mode=None,
     ):
         env = GymnasiumExplorationEnvironment(env_config_path)
         super().__init__(
@@ -47,6 +48,7 @@ class AutoRunnerExplore(AutoRunnerBase):
             script_name=script_name,
             max_speed=max_speed,
             tolerance=tolerance,
+            test_mode=test_mode,
             exp_batch=exp_batch,
             env=env,
         )

@@ -22,6 +22,7 @@ class AutoRunnerPursuing(AutoRunnerBase):
         target_pkl="WriteRun.pkl",
         script_name="run.py",
         exp_batch=1,
+        test_mode=None,
         max_speed=1.0,
         tolerance=0.05,
     ):
@@ -36,6 +37,7 @@ class AutoRunnerPursuing(AutoRunnerBase):
             max_speed=max_speed,
             exp_batch=exp_batch,
             tolerance=tolerance,
+            test_mode=test_mode,
             env=env,
         )
 

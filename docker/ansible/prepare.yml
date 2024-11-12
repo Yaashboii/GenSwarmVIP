@@ -13,12 +13,13 @@
     src: "{{ item }}"  # Specify the source file path
     dest: /home/nvidia/docker/code_llm_ws/src/code_llm/  # Target directory for the copied files
     force: yes  # Overwrite the file if it already exists
-  loop:  # List of source files to be copied
+  loop: # List of source files to be copied
     - "../../modules/deployment/execution_scripts/omni/apis.py"
     - "../../modules/deployment/execution_scripts/omni/run_omni.py"
     - "../../modules/deployment/execution_scripts/omni/mqtt_server.py"
     - "../../modules/deployment/execution_scripts/omni/velocity_limiter.py"
-    - "../../workspace/crossing/2024-09-18_09-40-15/functions.py"
+    - "../../workspace/{{DATA_PATH}}/local_skill.py"  # Use environment variable PATH
+    - "../../workspace/{{DATA_PATH}}/allocate_result.pkl"  # Use environment variable PATH
     - "../../requirements.txt"
     - "../../msg"
     - "../../srv"
