@@ -22,6 +22,7 @@ from modules.prompt import (
     LOCAL_ROBOT_API,
     ALLOCATOR_TEMPLATE,
 )
+from modules.utils import rich_code_print
 
 
 class WriteFunction(ActionNode):
@@ -36,6 +37,7 @@ class WriteFunction(ActionNode):
         self._function: FunctionNode = function
         self._constraint_text = constraint_text
         self._other_functions_str = other_functions_str
+        self.set_logging_text(f"Writing Function Body")
 
     def _build_prompt(self):
         if len(self.context.global_skill_tree.layers) == 0:
@@ -96,6 +98,17 @@ class WriteFunctionsAsync(AsyncNode):
         )
         return await action.run()
 
+    def _display(self):
+        function_nodes = self.skill_tree.nodes
+        for index, node in enumerate(function_nodes):
+            if node.body:
+                print("\n")
+                rich_code_print(
+                    "Step 4: Write Function Body",
+                    node.body,
+                    f"Function {index+1}: {node.name}",
+                )
+
 
 if __name__ == "__main__":
     import asyncio
@@ -106,7 +119,7 @@ if __name__ == "__main__":
     path = "../../../workspace/test"
     context.load_from_file(f"{path}/designed_function.pkl")
     function_writer = WriteFunctionsAsync(
-        context.global_skill_tree,
+        context.local_skill_tree,
         "layer",
         start_state=State.DESIGNED,
         end_state=State.WRITTEN,

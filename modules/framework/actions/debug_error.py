@@ -25,6 +25,7 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
+from modules.utils import rich_code_print
 
 
 class DebugError(ActionNode):
@@ -39,13 +40,17 @@ class DebugError(ActionNode):
         self.error = error.error_msg
         if len(self.error) > 1000:
             self.error = self.error[:1000]
-            logger.log("error message is too long, only show the first 1000 characters", level="error")
+            logger.log(
+                "error message is too long, only show the first 1000 characters",
+                level="error",
+            )
         self.error_func = error.error_code
         self._skill_tree = (
             self.context.local_skill_tree
             if self.context.scoop == "local"
             else self.context.global_skill_tree
         )
+        self.set_logging_text(f"Debuging Error")
 
     def _build_prompt(self):
         if len(self.context.global_skill_tree.layers) == 0:
@@ -78,5 +83,6 @@ class DebugError(ActionNode):
         parser.parse_code(code)
         self._skill_tree.update_from_parser(parser.imports, parser.function_dict)
         self._skill_tree.save_functions_to_file()
+        rich_code_print("Debug Error", code, f"New Code")
 
         return str(code)

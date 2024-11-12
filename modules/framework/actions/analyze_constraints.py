@@ -28,7 +28,7 @@ from modules.prompt import (
 from modules.framework.constraint import ConstraintPool
 from modules.framework.parser import *
 from modules.prompt.user_requirements import get_user_commands
-from modules.utils import root_manager
+from modules.utils import root_manager, rich_print
 
 
 class AnalyzeConstraints(ActionNode):
@@ -58,12 +58,23 @@ class AnalyzeConstraints(ActionNode):
             output_template=CONSTRAIN_TEMPLATE,
             user_constraints=json.dumps(user_constraints, indent=4),
         )
+        self.set_logging_text(f"Analyzing constraints")
 
     async def _process_response(self, response: str) -> str:
         content = parse_text(response, "json")
         self._constraint_pool.init_constraints(content)
 
         logger.log(f"Analyze Constraints Success", "success")
+
+    def _display(self):
+        constraint_names = self._constraint_pool.get_constraint_names()
+        constraints = [self._constraint_pool[name] for name in constraint_names]
+        content = ""
+        for index, constraint in enumerate(constraints):
+            content += f"[bold yellow]{index+1}. {constraint.name}[/bold yellow]\n"
+            content += f"[white]{constraint.description}[/white]\n"
+
+        rich_print("Step 1: Analyze Constraints", content)
 
 
 if __name__ == "__main__":

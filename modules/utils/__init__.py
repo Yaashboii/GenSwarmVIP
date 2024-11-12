@@ -17,6 +17,7 @@ from .media import generate_video_from_frames, process_video, create_video_from_
 from .root import get_project_root, root_manager
 from .run_scripts import run_script
 from .save_json import save_dict_to_json
+from .rich_print import rich_print, rich_code_print
 
 __all__ = [
     "CodeAnalyzer",
@@ -28,5 +29,6 @@ __all__ = [
     "get_project_root",
     "root_manager",
     "run_script",
-    'save_dict_to_json'
+    "save_dict_to_json" "rich_print",
+    "rich_code_print",
 ]
