@@ -139,7 +139,7 @@ class Workflow:
     async def run(self):
         panel = Panel(
             self._context.command,
-            title="[bold cyan]Step 3: Write Function Specification[/bold cyan]",
+            title="[bold cyan]User Command[/bold cyan]",
             border_style="cyan",  # Border color
         )
         rich_print(panel)

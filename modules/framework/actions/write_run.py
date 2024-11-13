@@ -66,6 +66,7 @@ class WriteRun(ActionNode):
         self._skill_tree.save_code([self.desired_function_name])
         self._skill_tree[self.desired_function_name].state = State.WRITTEN
 
+        print("\n")
         rich_code_print("Step 6: Write run.py", code)
 
         if self._skill_tree.name == "global_skill":

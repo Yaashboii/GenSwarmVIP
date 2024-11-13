@@ -13,7 +13,6 @@ software or the use or other dealings in the software.
 import os.path
 
 from click import prompt
-from torch.utils.tensorboard.summary import video
 
 from modules.file import logger
 from modules.framework.action import ActionNode
@@ -22,7 +21,12 @@ from modules.framework.code_error import Feedback
 from modules.framework.constraint import ConstraintPool
 from modules.framework.parser import parse_text
 from modules.llm import GPT
-from modules.utils import root_manager, process_video, create_video_from_frames, save_dict_to_json
+from modules.utils import (
+    root_manager,
+    process_video,
+    create_video_from_frames,
+    save_dict_to_json,
+)
 from modules.prompt import (
     VIDEO_PROMPT_TEMPLATE,
     OUTPUT_TEMPLATE,
@@ -32,10 +36,10 @@ from modules.prompt import (
 
 class VideoCriticize(ActionNode):
     def __init__(
-            self,
-            skill_tree,
-            next_text: str = "",
-            node_name: str = "",
+        self,
+        skill_tree,
+        next_text: str = "",
+        node_name: str = "",
     ):
         self.result_dict = None
         self.__llm = GPT(memorize=True, model="VLM")
@@ -49,15 +53,17 @@ class VideoCriticize(ActionNode):
         self.setup()
 
         self.prompt = [
-            {"type": "text",
-             "text": VIDEO_PROMPT_TEMPLATE.format(
-                 task_des=TASK_DES,
-                 instruction=self.context.command,
-                 command=self.context.command,
-                 feedback="/n".join(self.context.feedbacks),
-                 constraint=str(self._constraint_pool),
-                 out_put=OUTPUT_TEMPLATE,
-             ), },
+            {
+                "type": "text",
+                "text": VIDEO_PROMPT_TEMPLATE.format(
+                    task_des=TASK_DES,
+                    instruction=self.context.command,
+                    command=self.context.command,
+                    feedback="/n".join(self.context.feedbacks),
+                    constraint=str(self._constraint_pool),
+                    out_put=OUTPUT_TEMPLATE,
+                ),
+            },
             *map(
                 lambda x: {
                     "type": "image_url",
@@ -81,15 +87,15 @@ class VideoCriticize(ActionNode):
             video_path = wo_vlm_path
         else:
             video_path = None
-        self.result_dict = {'video_path': video_path, "success": None, "feedback": None}
+        self.result_dict = {"video_path": video_path, "success": None, "feedback": None}
         if video_path is None:
-            save_dict_to_json(self.result_dict, f"{root_manager.workspace_root}/vlm.json")
+            save_dict_to_json(
+                self.result_dict, f"{root_manager.workspace_root}/vlm.json"
+            )
             logger.log("No video file found", "error")
             raise SystemExit("No video file found")
 
-        self._frames = process_video(
-            video_path, start_time=0, seconds_per_frame=0.5
-        )
+        self._frames = process_video(video_path, start_time=0, seconds_per_frame=0.5)
         create_video_from_frames(
             self._frames, output_path=f"{root_manager.data_root}/extra.mp4", fps=0.5
         )
@@ -98,11 +104,11 @@ class VideoCriticize(ActionNode):
         try:
             response = parse_text(text=response, lang="json")
             result = eval(response)
-            self.result_dict['feedback'] = result["feedback"]
+            self.result_dict["feedback"] = result["feedback"]
 
             # Process success case
             if result["result"].strip().lower() == "success":
-                self.result_dict['success'] = True
+                self.result_dict["success"] = True
                 if self.context.args.human_feedback == "True":
                     if_feedback = input("If task is done? Press y/n: ")
                     if if_feedback.lower() == "y":
@@ -120,7 +126,7 @@ class VideoCriticize(ActionNode):
 
             # Process fail case
             elif result["result"].strip().lower() == "fail":
-                self.result_dict['success'] = False
+                self.result_dict["success"] = False
                 return Feedback(result["feedback"])
 
             # Invalid result case
@@ -129,12 +135,13 @@ class VideoCriticize(ActionNode):
                 raise Exception("Invalid result")
 
         except Exception as e:
-
             logger.log(f"Exception occurred: {e}", "error")
             raise  # Re-raise the exception after logging
 
         finally:
-            save_dict_to_json(self.result_dict, f"{root_manager.workspace_root}/vlm.json")
+            save_dict_to_json(
+                self.result_dict, f"{root_manager.workspace_root}/vlm.json"
+            )
 
     # async def _run(self) -> str:
     #     sim = """```json

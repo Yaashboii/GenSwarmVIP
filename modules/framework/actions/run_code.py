@@ -24,7 +24,13 @@ from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.code_error import Bug
 from modules.framework.context import WorkflowContext
-from modules.utils import root_manager, get_project_root, run_script, save_dict_to_json
+from modules.utils import (
+    root_manager,
+    get_project_root,
+    run_script,
+    save_dict_to_json,
+    rich_print,
+)
 
 
 class RunAllocateRun(ActionNode):
@@ -58,10 +64,9 @@ class RunAllocateRun(ActionNode):
         dict_result = {
             "run_times": self.call_times,
             "result": result,
-            'test_mode': self.context.args.test_mode,
+            "test_mode": self.context.args.test_mode,
         }
         try:
-
             self.env.stop_environment(save_result=False)
             if result == "NONE":
                 logger.log(content="Run allocate success", level="success")
@@ -69,7 +74,9 @@ class RunAllocateRun(ActionNode):
             if result == "No task to run":
                 return result
             else:
-                logger.log(content=f"Run allocate failed, result: {result}", level="error")
+                logger.log(
+                    content=f"Run allocate failed, result: {result}", level="error"
+                )
 
                 if self.call_times >= 3:
                     logger.log(
@@ -82,7 +89,9 @@ class RunAllocateRun(ActionNode):
                 if self.context.args.test_mode in ["debug", "full_version"]:
                     return Bug(
                         error_msg=result,
-                        error_code="\n\n".join(self.context.global_skill_tree.functions_body),
+                        error_code="\n\n".join(
+                            self.context.global_skill_tree.functions_body
+                        ),
                         error_function="",
                     )
 
@@ -91,7 +100,9 @@ class RunAllocateRun(ActionNode):
             logger.log(content=f"Exception occurred: {e}", level="error")
         finally:
             save_dict_to_json(
-                dict_result, root_manager.workspace_root / f"{self.context.args.test_mode}_global_run.json"
+                dict_result,
+                root_manager.workspace_root
+                / f"{self.context.args.test_mode}_global_run.json",
             )
 
 
@@ -107,17 +118,19 @@ class RunCodeReal(ActionNode):
 
     def setup(self, stage: int, path: str):
         self.stage = f"{stage}"
-        colon_index = path.find('workspace/')
+        colon_index = path.find("workspace/")
 
         if colon_index != -1:
-            substring = path[colon_index + len('workspace/'):]
+            substring = path[colon_index + len("workspace/") :]
             print(substring)
             self.path = substring
+        self.set_logging_text("Running code.py")
 
     async def _run(self) -> str:
-
         # 构造 docker-compose.yml 的路径
-        compose_file_path = os.path.join(root_manager.project_root, "docker/docker-compose.yml")
+        compose_file_path = os.path.join(
+            root_manager.project_root, "docker/docker-compose.yml"
+        )
 
         os.environ["DATA_PATH"] = self.path
         os.environ["STAGE"] = self.stage
@@ -137,10 +150,9 @@ class RunCodeReal(ActionNode):
         )
         if self.stage == "1":
             time.sleep(self.context.args.timeout)
-            self.env.stop_environment(
-                file_name='real', save_result=True
-            )
+            self.env.stop_environment(file_name="real", save_result=True)
         logger.log(content=result, level="info")
+        rich_print(content=result, title="Deploy Code")
         return result
 
     def _process_response(self, response: str) -> str:
@@ -180,7 +192,7 @@ class RunCodeAsync(ActionNode):
     from run.auto_runner.core import EnvironmentManager
 
     def __init__(
-            self, next_text: str = "", node_name: str = "", env: EnvironmentManager = None
+        self, next_text: str = "", node_name: str = "", env: EnvironmentManager = None
     ):
         self.call_times = 0
         self.env = env
@@ -197,7 +209,7 @@ class RunCodeAsync(ActionNode):
 
         robot_ids = list(range(start_idx, end_idx + 1))
         robot_id_chunks = [
-            robot_ids[i: i + robots_per_process]
+            robot_ids[i : i + robots_per_process]
             for i in range(0, total_robots, robots_per_process)
         ]
         tasks = []
@@ -226,12 +238,14 @@ class RunCodeAsync(ActionNode):
         dict_result = {
             "run_times": self.call_times,
             "result": result,
-            'test_mode': self.context.args.test_mode,
+            "test_mode": self.context.args.test_mode,
         }
         try:
             if self.context.args.test_mode not in ["full_version"]:
                 self._next = None
-            self.context.save_to_file(root_manager.workspace_root / f"{self.context.args.test_mode}.pkl")
+            self.context.save_to_file(
+                root_manager.workspace_root / f"{self.context.args.test_mode}.pkl"
+            )
             self.env.stop_environment(file_name=self.context.args.test_mode)
 
             if all(item in ["NONE", "Timeout"] for item in result):
@@ -254,7 +268,9 @@ class RunCodeAsync(ActionNode):
             if self.context.args.test_mode in ["debug", "full_version"]:
                 return Bug(
                     error_msg=result_content,
-                    error_code="\n\n".join(self.context.local_skill_tree.functions_body),
+                    error_code="\n\n".join(
+                        self.context.local_skill_tree.functions_body
+                    ),
                     error_function="",
                 )
 
@@ -262,8 +278,11 @@ class RunCodeAsync(ActionNode):
             logger.log(content=f"Exception occurred: {e}", level="error")
 
         finally:
-            save_dict_to_json(dict_result,
-                              root_manager.workspace_root / f"{self.context.args.test_mode}_local_run.json")
+            save_dict_to_json(
+                dict_result,
+                root_manager.workspace_root
+                / f"{self.context.args.test_mode}_local_run.json",
+            )
 
         # else:
         #     logger.log(content=f"Run code failed 3 times or VLM is enabled_{self.context.vlm},", level="error")
@@ -274,12 +293,13 @@ def init_workflow(args, env=None) -> ActionNode:
     from modules.framework.handler import BugLevelHandler
     from modules.framework.handler import FeedbackHandler
     from modules.framework.actions import DebugError, CodeImprove, VideoCriticize
+
     init_result = {
         "target_pkl": None,
         "feedback": None,
-        'test_mode': None,
-        'first_action': None,
-        'error': None,
+        "test_mode": None,
+        "first_action": None,
+        "error": None,
     }
     try:
         context = WorkflowContext()
@@ -294,7 +314,7 @@ def init_workflow(args, env=None) -> ActionNode:
         stop_docker = RunCodeReal(env=env)
         stop_docker.setup(stage=2, path=args.experiment_path)
         video_critic = VideoCriticize("")
-        if args.test_mode == 'real':
+        if args.test_mode == "real":
             run_allocate._next = run_real
             # stop_docker._next = run_real
             # copy_file._next = run_real
@@ -319,54 +339,55 @@ def init_workflow(args, env=None) -> ActionNode:
             run_code._next = video_critic
             video_critic.error_handler = chain_of_handler
         target_pkl = None
-        if args.test_mode == 'improve':
-            if os.path.exists(args.experiment_path + "/" + 'debug.pkl'):
-                target_pkl = 'run_code.pkl'
+        if args.test_mode == "improve":
+            if os.path.exists(args.experiment_path + "/" + "debug.pkl"):
+                target_pkl = "run_code.pkl"
             else:
-                target_pkl = 'WriteRun.pkl'
+                target_pkl = "WriteRun.pkl"
 
-
-        elif args.test_mode in ['wo_vlm', 'full_version', 'debug', 'real']:
-            target_pkl = 'WriteRun.pkl'
+        elif args.test_mode in ["wo_vlm", "full_version", "debug", "real"]:
+            target_pkl = "WriteRun.pkl"
         if target_pkl:
             context.load_from_file(args.experiment_path + "/" + target_pkl)
-            if args.test_mode != 'real':
+            if args.test_mode != "real":
                 context.global_skill_tree.save_functions_to_file()
                 context.local_skill_tree.save_functions_to_file()
         context.args = args
-        init_result['target_pkl'] = args.target_pkl
-        init_result['feedback'] = args.feedback
-        init_result['test_mode'] = args.test_mode
+        init_result["target_pkl"] = args.target_pkl
+        init_result["feedback"] = args.feedback
+        init_result["test_mode"] = args.test_mode
 
         if args.test_mode == "meta" or args.test_mode == "cap":
-            init_result['first_action'] = 'RunCode'
+            init_result["first_action"] = "RunCode"
             return run_code
         if args.test_mode == "vlm":
-            init_result['first_action'] = 'VideoCriticize'
+            init_result["first_action"] = "VideoCriticize"
             return video_critic
-        init_result['first_action'] = 'RunAllocateRun'
+        init_result["first_action"] = "RunAllocateRun"
 
         if args.test_mode == "improve":
             return code_improver
         return run_allocate
     except Exception as e:
         print(f"Error in init_workflow: {e}")
-        init_result['error'] = traceback.format_exc()
+        init_result["error"] = traceback.format_exc()
 
     finally:
-        save_dict_to_json(init_result, root_manager.workspace_root / f"{args.test_mode}_init_run.json")
+        save_dict_to_json(
+            init_result, root_manager.workspace_root / f"{args.test_mode}_init_run.json"
+        )
 
 
 def runcode(
-        timeout=20,
-        feedback="None",
-        experiment_path="clustering/2024-10-21_03-04-33",
-        target_pkl="WriteRun.pkl",
-        script="run.py",
-        human_feedback=False,
-        env_manager=None,
-        debug=False,
-        test_mode="wo_vlm",
+    timeout=20,
+    feedback="None",
+    experiment_path="clustering/2024-10-21_03-04-33",
+    target_pkl="WriteRun.pkl",
+    script="run.py",
+    human_feedback=False,
+    env_manager=None,
+    debug=False,
+    test_mode="wo_vlm",
 ):
     """
     Run the simulation with custom parameters (synchronously).
