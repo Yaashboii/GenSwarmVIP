@@ -14,9 +14,7 @@ software or the use or other dealings in the software.
 import asyncio
 import os
 
-from rich import print as rich_print
-from rich.syntax import Syntax
-from rich.panel import Panel
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 from modules.file import File, logger
 from modules.framework.action import *

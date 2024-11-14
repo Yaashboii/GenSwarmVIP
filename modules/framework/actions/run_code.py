@@ -132,14 +132,30 @@ class RunCodeReal(ActionNode):
             root_manager.project_root, "docker/docker-compose.yml"
         )
 
-        os.environ["DATA_PATH"] = self.path
-        os.environ["STAGE"] = self.stage
+        config_path = os.path.join(root_manager.project_root, "config/hosts")
+
+        playbook_path = os.path.join(
+            root_manager.project_root, "docker/ansible/main.yml"
+        )
+
+        # os.environ["DATA_PATH"] = self.path
+        # os.environ["STAGE"] = self.stage
         if self.stage == "1":
             self.env.start_environment(
                 experiment_path=self.context.args.experiment_path
             )
         working_directory = os.path.join(root_manager.project_root, "docker")
-        command = ["docker-compose", "up", "deploy"]
+        # command = ["docker-compose", "up", "deploy"]
+        command = [
+            "ansible-playbook",
+            "-i",
+            config_path,  # 指定 hosts 文件
+            playbook_path,  # Playbook 文件路径
+            "-e",
+            f"DATA_PATH={self.path}",  # 传递环境变量 DATA_PATH
+            "-e",
+            f"STAGE={self.stage}",  # 传递环境变量 STAGE
+        ]
         env = os.environ.copy()
         # 调用 docker-compose 命令并显示输出
         result = await run_script(
@@ -148,6 +164,7 @@ class RunCodeReal(ActionNode):
             timeout=70,
             env=env,
         )
+        rich_print(content="Code is deployed.", title="Deploy Code")
         if self.stage == "1":
             time.sleep(self.context.args.timeout)
             self.env.stop_environment(file_name="real", save_result=True)

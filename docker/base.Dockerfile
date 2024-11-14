@@ -1,9 +1,16 @@
 FROM ros:noetic-ros-core-focal
 
+
+#TODO: add ping, docker-compose
 # Install Python dependencies
 RUN apt-get update && \
-    apt-get install -y python3-pip python3-rosdep python3-rospkg wget git && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y \
+    python3-pip \
+    python3-rosdep \
+    python3-rospkg \
+    wget \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 # Check system architecture
 RUN arch=$(uname -m) && \

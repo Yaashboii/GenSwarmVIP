@@ -22,25 +22,25 @@ from abc import ABC, abstractmethod
 import numpy as np
 from tqdm import tqdm
 from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
-from modules.utils import root_manager
+from modules.utils import root_manager, rich_print
 from run.auto_runner.core import CodeRunner, ExperimentAnalyzer, EnvironmentManager
 from run.utils import setup_metagpt, setup_cap, check_robots_no_movement_in_first_third
 
 
 class AutoRunnerBase(ABC):
     def __init__(
-            self,
-            env_config_path,
-            workspace_path,
-            experiment_duration,
-            run_mode="rerun",
-            target_pkl="WriteRun.pkl",
-            script_name="run.py",
-            test_mode='full_version',
-            exp_batch=1,
-            max_speed=1.0,
-            tolerance=0.05,
-            env: GymnasiumEnvironmentBase = None,
+        self,
+        env_config_path,
+        workspace_path,
+        experiment_duration,
+        run_mode="rerun",
+        target_pkl="WriteRun.pkl",
+        script_name="run.py",
+        test_mode="full_version",
+        exp_batch=1,
+        max_speed=1.0,
+        tolerance=0.05,
+        env: GymnasiumEnvironmentBase = None,
     ):
         self.exp_batch = exp_batch
         self.env_config_path = env_config_path
@@ -94,7 +94,7 @@ class AutoRunnerBase(ABC):
                             success = analysis["success"]
                             if not success:
                                 directories.append(item)
-                elif self.run_mode == 'debug_rerun':
+                elif self.run_mode == "debug_rerun":
                     result_file = os.path.join(item_path, "debug.json")
 
                     if os.path.exists(result_file):
@@ -106,7 +106,7 @@ class AutoRunnerBase(ABC):
                             success = analysis["success"]
                         if not success:
                             directories.append(item)
-        if self.run_mode in ['rerun', 'fail_rerun', 'debug_rerun']:
+        if self.run_mode in ["rerun", "fail_rerun", "debug_rerun"]:
             # 根据batch数目，将实验分批次,一共10批，根据batch数目，确定当前分批
             directories = sorted(directories)
             batch_size = 1
@@ -115,8 +115,8 @@ class AutoRunnerBase(ABC):
                 print(f"Batch {batch_num} is out of range")
                 raise SystemExit
             directories = directories[
-                          (batch_num - 1) * batch_size: batch_num * batch_size
-                          ]
+                (batch_num - 1) * batch_size : batch_num * batch_size
+            ]
             print(
                 f"Batch {batch_num} from {batch_size * (batch_num - 1)} to {batch_size * batch_num}"
             )
@@ -179,20 +179,22 @@ class AutoRunnerBase(ABC):
                         )
                         if result is not None:
                             analysis = self.analyze_result(result)
-                            experiment_success = (
-                                self.result_analyzer.calculate_success(analysis)
+                            experiment_success = self.result_analyzer.calculate_success(
+                                analysis
                             )
                             success_dict = {"success": experiment_success}
                             analysis.update(success_dict)
 
                         else:
                             analysis = {"success": False}
-                        unmoved_robots = check_robots_no_movement_in_first_third(
-                            result
-                        )
+                        unmoved_robots = check_robots_no_movement_in_first_third(result)
 
                         if not unmoved_robots:
-                            print(f"Experiment {experiment} completed successfully.")
+                            # print(f"Experiment {experiment} completed successfully.")
+                            rich_print(
+                                title="Run Experiment",
+                                content=f"Experiment {experiment} completed successfully.",
+                            )
                             success = True  # 实验成功，跳出重试循环
                         else:
                             retries += 1
@@ -202,9 +204,15 @@ class AutoRunnerBase(ABC):
                                 )
                             time.sleep(2)  # 等待3秒后重新开始实验
 
-                    print(
-                        f"Analysis for {experiment}: {analysis},\n"
+                    # print(
+                    #     f"Analysis for {experiment}: {analysis},\n"
+                    # )
+
+                    rich_print(
+                        content=f"Analysis for {experiment}: {analysis}",
+                        title="Run Experiment",
                     )
+
                     analysis.update({"run_result": run_result})
                     self.save_experiment_result(
                         os.path.join(self.experiment_path, experiment),
@@ -227,7 +235,7 @@ class AutoRunnerBase(ABC):
             print(f"An error occurred: {e}")
 
     def run(self, exp_list=None):
-        if self.run_mode in ["rerun", "continue", "fail_rerun", 'debug_rerun']:
+        if self.run_mode in ["rerun", "continue", "fail_rerun", "debug_rerun"]:
             self.run_multiple_experiments(exp_list)
 
         if self.run_mode == "analyze":
