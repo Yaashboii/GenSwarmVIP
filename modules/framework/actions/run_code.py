@@ -328,6 +328,8 @@ def init_workflow(args, env=None) -> ActionNode:
 
         elif args.test_mode in ['wo_vlm', 'full_version', 'debug', 'real']:
             target_pkl = 'WriteRun.pkl'
+        elif args.test_mode in['cap','meta']:
+            target_pkl = None
         if target_pkl:
             context.load_from_file(args.experiment_path + "/" + target_pkl)
             if args.test_mode != 'real':

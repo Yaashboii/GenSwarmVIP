@@ -12,6 +12,7 @@ software or the use or other dealings in the software.
 """
 
 import threading
+import time
 
 from geometry_msgs.msg import Twist
 from code_llm.msg import Observations
@@ -388,8 +389,8 @@ def init_node():
     if init:
         return
     init = True
+    time.sleep(1)
     print("Waiting for initial observations...")
-    rospy.Subscriber("/observation", Observations, process_initial_observations)
     msg = rospy.wait_for_message("/observation", Observations)
     process_initial_observations(msg)
     print("Initial observations received.")

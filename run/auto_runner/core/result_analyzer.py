@@ -88,9 +88,9 @@ class ExperimentAnalyzer:
                 success_conditions=self.success_conditions
             )
 
-        self.plot_summary(mean_metric_value)
+        self.plot_summary(mean_metric_value, file_name='_'.join(target_file))
 
-    def plot_summary(self, exp_data):
+    def plot_summary(self, exp_data, file_name):
         labels = list(exp_data.keys())
         data = list(exp_data.values())
         colors = ['blue']
@@ -101,7 +101,7 @@ class ExperimentAnalyzer:
             ylabel='Average Value',
             title='Summary of All Metric Averages',
             colors=colors,
-            save_filename='summary_metrics.png',
+            save_filename=f'summary_metrics_{file_name}.png',
             rotation=False,
             figsize=(32, 20)  # 传入图像大小参数
         )

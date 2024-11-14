@@ -48,7 +48,7 @@ def main():
     parser.add_argument(
         "--task_name",
         type=str,
-        default="crossing",
+        default="clustering",
         help="The name of the task to run",
     )
 
@@ -56,13 +56,13 @@ def main():
     args = parser.parse_args()
     task_name = args.task_name
 
-    # workspace_path = 'comparative/cap/' + task_name
+    workspace_path = 'comparative/cap/' + task_name
     # workspace_path = 'ablation/constraint_pool/' + task_name
-    workspace_path = task_name
+    # workspace_path = task_name
     runner_class = task_mapping(task_name)
     config_file = config_mapping(task_name)
     # test_mode = 'improve'
-    test_mode = 'real'
+    test_mode = 'cap'
     if test_mode == 'real':
         env_config_path = f"../config/real_env/{config_file}"
         experiment_duration = 50
@@ -85,8 +85,8 @@ def main():
     # exp_list = ['2024-10-28_01-49-03', '2024-10-28_01-49-05', '2024-10-28_01-49-09', '2024-10-28_01-49-15',
     #             '2024-10-28_01-49-19', '2024-10-28_01-49-27', '2024-10-28_01-51-49']
     exp_list = None
-    # exp_list = ['2024-10-28_01-24-56']
-    exp_list = ['2024-10-29_17-31-57']
+    # exp_list = ['2024-11-10_21-52-40']
+    # exp_list = ['2024-11-10_22-23-44']
 
     runner.run(exp_list=exp_list)
 
