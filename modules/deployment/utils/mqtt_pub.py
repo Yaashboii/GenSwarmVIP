@@ -19,6 +19,7 @@ from code_llm.msg import Observations
 import os
 from paho.mqtt import client as mqtt_client
 from rospy_message_converter import json_message_converter
+from modules.utils import rich_print
 
 
 class MqttClientThread:
@@ -36,9 +37,14 @@ class MqttClientThread:
         def on_connect(client, userdata, flags, rc):
             """连接回调函数"""
             if rc == 0:
-                print("Connected to MQTT OK!")
+                # print("Connected to MQTT OK!")
+                rich_print(title="Connect to MQTT", content="Connected to MQTT OK!")
             else:
-                print(f"Failed to connect, return code {rc}")
+                # print(f"Failed to connect, return code {rc}")
+                rich_print(
+                    title="Connect to MQTT",
+                    content=f"Failed to connect, return code {rc}",
+                )
 
         client = mqtt_client.Client(self.client_id)
         client.on_connect = on_connect

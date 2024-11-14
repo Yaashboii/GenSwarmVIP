@@ -26,6 +26,7 @@ from scipy.spatial.transform import Rotation as R
 
 from modules.deployment.utils.mqtt_pub import MqttClientThread
 from sensor_msgs.msg import Joy  # 新增导入 Joy 消息类型
+from modules.utils import rich_print
 
 
 class OmniEngine(Engine):
@@ -54,6 +55,7 @@ class OmniEngine(Engine):
             broker = broker_ip
 
         net_status = -1
+
         while net_status != 0:
             net_status = os.system(f"ping -c 4 {broker}")
             time.sleep(2)
