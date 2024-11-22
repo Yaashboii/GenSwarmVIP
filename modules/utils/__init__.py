@@ -29,6 +29,7 @@ __all__ = [
     "get_project_root",
     "root_manager",
     "run_script",
-    "save_dict_to_json" "rich_print",
+    "save_dict_to_json",
+    "rich_print",
     "rich_code_print",
 ]
