@@ -26,7 +26,7 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
-from modules.utils import root_manager
+from modules.utils import root_manager, rich_code_print
 
 
 class CodeReview(ActionNode):
@@ -42,18 +42,18 @@ class CodeReview(ActionNode):
             self._function
         )
         other_functions_str = "\n\n".join([f.function_body for f in other_functions])
-        robot_api = (
-            GLOBAL_ROBOT_API
-            if self.context.scoop == "global"
-            else (
-                LOCAL_ROBOT_API
-                + ALLOCATOR_TEMPLATE.format(
-                    template=self.context.global_skill_tree.output_template
-                )
+        if len(self.context.global_skill_tree.layers) == 0:
+            local_api_prompt = LOCAL_ROBOT_API
+        else:
+            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+                template=self.context.global_skill_tree.output_template
             )
+        robot_api = (
+            GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
         )
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
+            instruction=self.context.command,
             robot_api=robot_api,
             env_des=ENV_DES,
             function_name=self._function.name,
@@ -67,6 +67,7 @@ class CodeReview(ActionNode):
     def setup(self, function: FunctionNode):
         self._function = function
         logger.log(f"Reviewing function: {self._function.name}", "warning")
+        self.set_logging_text(f"Reviewing function: {self._function.name}.py")
 
     async def _process_response(self, response: str) -> str:
         desired_function_name = self._function.name
@@ -89,6 +90,8 @@ class CodeReview(ActionNode):
                     parser.imports, parser.function_dict
                 )
                 self._skill_tree.save_code([desired_function_name])
+                print("\n")
+                rich_code_print("Step 4: Review code", code, desired_function_name)
                 return code
             except Exception as e:
                 logger.log(
@@ -117,7 +120,8 @@ class CodeReviewAsync(AsyncNode):
     async def operate(self, function):
         action = CodeReview(self.skill_tree)
         action.setup(function)
-        return await action.run()
+        await action.run()
+        return
 
 
 if __name__ == "__main__":
@@ -129,7 +133,6 @@ if __name__ == "__main__":
     path = "../../../workspace/test"
     context.load_from_file(f"{path}/written_function.pkl")
     root_manager.update_root("../../../workspace/test")
-
-    code_reviewer = CodeReviewAsync(context.global_skill_tree, "sequential")
+    code_reviewer = CodeReviewAsync(context.local_skill_tree, "sequential")
     asyncio.run(code_reviewer.run())
     context.save_to_file("../../../workspace/test/reviewed_function.pkl")

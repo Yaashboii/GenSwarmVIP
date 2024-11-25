@@ -29,10 +29,12 @@ class AutoRunnerBridging(AutoRunnerBase):
         run_mode="rerun",
         target_pkl="WriteRun.pkl",
         script_name="run.py",
+        exp_batch=1,
+        test_mode=None,
         max_speed=1.0,
         tolerance=0.05,
     ):
-        env = GymnasiumBridgingEnvironment(env_config_path)
+        self.env = GymnasiumBridgingEnvironment(env_config_path)
         super().__init__(
             env_config_path=env_config_path,
             workspace_path=workspace_path,
@@ -41,8 +43,10 @@ class AutoRunnerBridging(AutoRunnerBase):
             target_pkl=target_pkl,
             script_name=script_name,
             max_speed=max_speed,
+            exp_batch=exp_batch,
+            test_mode=test_mode,
             tolerance=tolerance,
-            env=env,
+            env=self.env,
         )
 
     def analyze_result(self, run_result) -> dict[str, float]:
@@ -57,5 +61,5 @@ class AutoRunnerBridging(AutoRunnerBase):
 
     def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
         return [
-            ("procrustes_distance", operator.lt, 0.2),
+            ("procrustes_distance", operator.lt, 0.1),
         ]

@@ -27,6 +27,8 @@ class AutoRunnerShaping(AutoRunnerBase):
         run_mode="rerun",
         target_pkl="WriteRun.pkl",
         script_name="run.py",
+        exp_batch=1,
+        test_mode=None,
         max_speed=1.0,
         tolerance=0.05,
     ):
@@ -39,7 +41,9 @@ class AutoRunnerShaping(AutoRunnerBase):
             target_pkl=target_pkl,
             script_name=script_name,
             max_speed=max_speed,
+            test_mode=test_mode,
             tolerance=tolerance,
+            exp_batch=exp_batch,
             env=env,
         )
 

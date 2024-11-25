@@ -21,10 +21,11 @@ from modules.prompt import (
     FUNCTION_TEMPLATE,
     GLOBAL_ROBOT_API,
     LOCAL_ROBOT_API,
+    ALLOCATOR_TEMPLATE,
     ENV_DES,
     TASK_DES,
 )
-from modules.utils import root_manager
+from modules.utils import root_manager, rich_print
 
 
 class AnalyzeSkills(ActionNode):
@@ -36,12 +37,14 @@ class AnalyzeSkills(ActionNode):
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
             instruction=self.context.command,
-            local_api=LOCAL_ROBOT_API,
+            local_api=LOCAL_ROBOT_API
+            + ALLOCATOR_TEMPLATE.format(template="Temporarily unknown"),
             global_api=GLOBAL_ROBOT_API,
             env_des=ENV_DES,
             constraints=str(self._constraint_pool),
             output_template=FUNCTION_TEMPLATE,
         )
+        self.set_logging_text(f"Analyzing skills")
 
     async def _process_response(self, response: str) -> str:
         content = parse_text(response, "json")
@@ -65,6 +68,30 @@ class AnalyzeSkills(ActionNode):
         self._constraint_pool.check_constraints_satisfaction()
         logger.log(f"Analyze Functions Success", "success")
         return response
+
+    def _display(self):
+        content = ""
+
+        functions_nodes = list(self.context.global_skill_tree.nodes) + list(
+            self.context.local_skill_tree.nodes
+        )
+        for index, function in enumerate(functions_nodes):
+            content += f"[bold yellow]{index+1}. {function.name}[/bold yellow]\n"
+            content += f"{function.description}\n"
+
+        def print_tree(tree, content):
+            layers = tree._layers
+            for layer_index, layer in enumerate(layers):
+                content += f"Layer {layer_index}:\n"
+                for function_node in layer:
+                    content += f"  - {function_node.name}\n"
+            return content
+
+        global_content = print_tree(self.context.global_skill_tree, "")
+        local_content = print_tree(self.context.local_skill_tree, "")
+        rich_print("Step 2: Analyze Skills", content)
+        rich_print("Step 2: Analyze Skills - Global Skill Graph", global_content)
+        rich_print("Step 2: Analyze Skills - Local Skill Graph", local_content)
 
 
 if __name__ == "__main__":

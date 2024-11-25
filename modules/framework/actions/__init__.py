@@ -14,7 +14,7 @@ software or the use or other dealings in the software.
 from .analyze_constraints import AnalyzeConstraints
 from .analyze_skills import AnalyzeSkills
 from .code_review import CodeReviewAsync
-from .criticize import Criticize
+from .improve_code import CodeImprove
 from .debug_error import DebugError
 from .design_function import DesignFunction, DesignFunctionAsync
 from .generate_functions import GenerateFunctions
@@ -28,7 +28,7 @@ __all__ = [
     "AnalyzeConstraints",
     "AnalyzeSkills",
     "CodeReviewAsync",
-    "Criticize",
+    "CodeImprove",
     "DebugError",
     "DesignFunction",
     "DesignFunctionAsync",

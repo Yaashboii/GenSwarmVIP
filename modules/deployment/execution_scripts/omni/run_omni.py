@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 Copyright (c) 2024 WindyLab of Westlake University, China
 All rights reserved.
@@ -10,8 +11,8 @@ claim, damages, or other liability, whether in an action of contract,
 tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
-
-#!/usr/bin/python3
+import os
+import pickle
 
 import signal
 import sys
@@ -20,7 +21,7 @@ import rospy
 import socket
 import re
 
-from functions import initialize_ros_node, run_loop
+from local_skill import initialize_ros_node, run_loop
 
 
 class RobotRunner:
@@ -28,20 +29,11 @@ class RobotRunner:
         self.robot_id = robot_id
         self.stop_event = threading.Event()
 
-    def run(self):
-        target_positions = [
-            (1.7320508075688774, 0.9999999999999999),
-            (1.2246467991473532e-16, 2.0),
-            (-1.732050807568877, 1.0000000000000007),
-            (-1.7320508075688776, -0.9999999999999994),
-            (-3.6739403974420594e-16, -2.0),
-            (1.7320508075688767, -1.0000000000000009),
-        ]
-
-        map = {6: 3, 0: 4, 1: 5, 2: 0, 7: 1, 8: 2}
+    def run(self, task=None):
         print(f"run code success with id={self.robot_id}")
         initialize_ros_node(
-            robot_id=self.robot_id, target_position=target_positions[map[self.robot_id]]
+            robot_id=self.robot_id,
+            assigned_task=task,
         )
         while not self.stop_event.is_set():
             run_loop()
@@ -51,8 +43,20 @@ class RobotRunner:
 
 
 def run_robot_in_thread(robot_id):
+    assigned = False
     robot_runner = RobotRunner(robot_id)
-    robot_thread = threading.Thread(target=robot_runner.run)
+    try:
+        with open(
+            os.path.join("/catkin_ws/src/code_llm/allocate_result.pkl"), "rb"
+        ) as f:
+            task = pickle.load(f)
+            assigned = True
+    except (FileNotFoundError, EOFError, pickle.UnpicklingError) as e:
+        print(f"Error loading file: {e}. Initializing a default task.")
+    assigned_task = task[robot_id] if assigned else None
+    print(f"Task assigned: {task[robot_id]}")
+
+    robot_thread = threading.Thread(target=robot_runner.run, args=(assigned_task,))
     robot_thread.start()
     return robot_runner, robot_thread
 

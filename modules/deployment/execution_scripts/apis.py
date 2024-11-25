@@ -174,7 +174,9 @@ class RobotNode:
         velocity_msg = Twist()
         velocity_msg.linear.x = self.robot_info["velocity"][0]
         velocity_msg.linear.y = self.robot_info["velocity"][1]
+
         self.velocity_publisher.publish(velocity_msg)
+        print(f"Published velocity: {self.robot_info['velocity']}")
 
     def get_all_target_areas(self):
         return self.unexplored_area
@@ -289,6 +291,10 @@ def get_prey_position():
     return get_current_robot_node().get_prey_position()
 
 
+def get_lead_position():
+    return get_current_robot_node().get_prey_position()
+
+
 def get_environment_range():
     return {"x_min": -2.5, "x_max": 2.5, "y_min": -2.5, "y_max": 2.5}
 
@@ -307,6 +313,39 @@ def get_target_position():
 
 def get_surrounding_unexplored_area():
     return get_current_robot_node().get_surrounding_unexplored_area()
+
+
+def get_surrounding_environment_info():
+    node = get_current_robot_node()
+    surrounding_robots = node.get_surrounding_robots_info()
+    surrounding_obstacles = node.get_surrounding_obstacles_info()
+
+    # Create a list to store the information of the surrounding environment
+    environment_info = []
+
+    # Add robots' information to the list
+    for robot in surrounding_robots:
+        environment_info.append(
+            {
+                "Type": "robot",
+                "position": robot["position"],
+                "velocity": robot["velocity"],
+                "radius": robot["radius"],
+            }
+        )
+
+    # Add obstacles' information to the list
+    for obstacle in surrounding_obstacles:
+        environment_info.append(
+            {
+                "Type": "obstacle",
+                "position": obstacle["position"],
+                "velocity": np.array([0, 0]),  # Obstacles don't move
+                "radius": obstacle["radius"],
+            }
+        )
+
+    return environment_info
 
 
 def get_target_formation_points():

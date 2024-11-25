@@ -27,6 +27,8 @@ class AutoRunnerCircling(AutoRunnerBase):
         run_mode="rerun",
         target_pkl="WriteRun.pkl",
         script_name="run.py",
+        test_mode=None,
+        exp_batch=1,
         max_speed=1.0,
         tolerance=0.05,
     ):
@@ -39,7 +41,9 @@ class AutoRunnerCircling(AutoRunnerBase):
             target_pkl=target_pkl,
             script_name=script_name,
             max_speed=max_speed,
+            exp_batch=exp_batch,
             tolerance=tolerance,
+            test_mode=test_mode,
             env=env,
         )
 

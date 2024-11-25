@@ -35,11 +35,11 @@ from modules.deployment.utils.char_points_generate import validate_contour_point
 
 
 class Manager:
-    def __init__(self, env, max_speed=1.2):
+    def __init__(self, env, max_speed=1.2, real=False):
         self.last_time = 0
         self.env = env
-
-        rospy.init_node("simulation_manager", anonymous=True)
+        if not real:
+            rospy.init_node("simulation_manager", anonymous=True)
         self._pub_list = []
         self._robots = env.get_entities_by_type("Robot") + env.get_entities_by_type(
             "Leader"

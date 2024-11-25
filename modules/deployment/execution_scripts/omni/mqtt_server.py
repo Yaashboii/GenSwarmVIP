@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 Copyright (c) 2024 WindyLab of Westlake University, China
 All rights reserved.
@@ -10,9 +11,6 @@ claim, damages, or other liability, whether in an action of contract,
 tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
-
-#!/usr/bin/python3
-
 import socket
 import threading
 import time
@@ -62,7 +60,6 @@ class MqttClientThread:
 
     def mqtt_callback(self, client, userdata, msg):
         """订阅消息回调函数"""
-        print("call back ")
         if msg.topic == "/observation":
             obs_msg = msg.payload.decode()
             message = json_message_converter.convert_json_to_ros_message(

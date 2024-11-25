@@ -38,7 +38,9 @@ class AutoRunnerClustering(AutoRunnerBase):
         run_mode="rerun",
         target_pkl="WriteRun.pkl",
         script_name="run.py",
+        exp_batch=1,
         max_speed=1.0,
+        test_mode=None,
         tolerance=0.05,
     ):
         env = GymnasiumClusteringEnvironment(env_config_path)
@@ -51,6 +53,8 @@ class AutoRunnerClustering(AutoRunnerBase):
             script_name=script_name,
             max_speed=max_speed,
             tolerance=tolerance,
+            exp_batch=exp_batch,
+            test_mode=test_mode,
             env=env,
         )
 
@@ -59,7 +63,11 @@ class AutoRunnerClustering(AutoRunnerBase):
             1: (0.5, 2, 0.5, 2),
             2: (-2, -0.5, 0.5, 2),
             3: (-2, -0.5, -2, -0.5),
-            4: (0.5, 2, -2, -0.5),
+            4: (0.5, 2, -2, -0.5)
+            # 3: np.array([-1.25, -1.25]),
+            # 2: np.array([-1.25, 1.25]),
+            # 1: np.array([1.25, 1.25]),
+            # 4: np.array([1.25, -1.25]),
         }
         similarity = evaluate_robot_quadrant_positions(
             run_result, target_regions=target_regions

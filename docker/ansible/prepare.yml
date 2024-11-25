@@ -13,12 +13,13 @@
     src: "{{ item }}"  # Specify the source file path
     dest: /home/nvidia/docker/code_llm_ws/src/code_llm/  # Target directory for the copied files
     force: yes  # Overwrite the file if it already exists
-  loop:  # List of source files to be copied
+  loop: # List of source files to be copied
     - "../../modules/deployment/execution_scripts/omni/apis.py"
     - "../../modules/deployment/execution_scripts/omni/run_omni.py"
     - "../../modules/deployment/execution_scripts/omni/mqtt_server.py"
     - "../../modules/deployment/execution_scripts/omni/velocity_limiter.py"
-    - "../../workspace/crossing/2024-09-18_09-40-15/functions.py"
+    - "../../workspace/{{DATA_PATH}}/local_skill.py"  # Use environment variable PATH
+    - "../../workspace/{{DATA_PATH}}/allocate_result.pkl"  # Use environment variable PATH
     - "../../requirements.txt"
     - "../../msg"
     - "../../srv"
@@ -62,3 +63,15 @@
 - name: Show container logs
   debug:
     var: llm_code_info.stdout_lines  # Show the stdout from the 'docker run' command
+
+- name: Start LLM code container without running code
+  command: >
+    nvidia-docker run -it --rm -d
+        --name llm-code
+        -v /home/nvidia/docker/code_llm_ws:/catkin_ws
+        --workdir /catkin_ws
+        --network host
+        llm_simulator
+        bash -c "tail -f /dev/null"
+  become: true
+  become_user: nvidia  # 替换为你的 ROS 用户

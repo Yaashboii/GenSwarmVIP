@@ -24,7 +24,7 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
-from modules.utils import root_manager
+from modules.utils import root_manager, rich_code_print
 
 
 class WriteRun(ActionNode):
@@ -34,26 +34,27 @@ class WriteRun(ActionNode):
 
     def _build_prompt(self):
         functions = "\n\n".join(self._skill_tree.function_valid_content)
-        robot_api = (
-            GLOBAL_ROBOT_API
-            if self.context.scoop == "global"
-            else (
-                LOCAL_ROBOT_API
-                + ALLOCATOR_TEMPLATE.format(
-                    template=self.context.global_skill_tree.output_template
-                )
+        if len(self.context.global_skill_tree.layers) == 0:
+            local_api_prompt = LOCAL_ROBOT_API
+        else:
+            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+                template=self.context.global_skill_tree.output_template
             )
+        robot_api = (
+            GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
         )
         self.desired_function_name = (
             "allocate_run" if self.context.scoop == "global" else "run_loop"
         )
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
+            instruction=self.context.command,
             env_des=ENV_DES,
             robot_api=robot_api,
             functions=functions,
             template=GLOBAL_RUN_OUTPUT_TEMPLATE,
         )
+        self.set_logging_text("Writing run.py")
 
     async def _process_response(self, response: str) -> str:
         code = parse_text(text=response)
@@ -64,6 +65,9 @@ class WriteRun(ActionNode):
         self._skill_tree.update_from_parser(parser.imports, parser.function_dict)
         self._skill_tree.save_code([self.desired_function_name])
         self._skill_tree[self.desired_function_name].state = State.WRITTEN
+
+        print("\n")
+        rich_code_print("Step 6: Write run.py", code)
 
         if self._skill_tree.name == "global_skill":
             template = eval(parse_text(response, lang="json"))["value"]

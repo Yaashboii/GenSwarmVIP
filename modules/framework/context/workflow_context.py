@@ -56,6 +56,7 @@ class WorkflowContext(Context):
         )
         self.global_run_result = File(name="allocate_result.pkl")
         self.scoop = "global"
+        self.vlm = False
 
     def save_to_file(self, file_path):
         with open(file_path, "wb") as file:

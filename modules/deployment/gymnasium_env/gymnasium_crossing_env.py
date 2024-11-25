@@ -29,7 +29,20 @@ class GymnasiumCrossingEnvironment(GymnasiumEnvironmentBase):
 
     def init_entities(self):
         # obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.num_obstacles, 1.5)
-        obstacle_points = np.array([(-1.4, -1.4), (1.4, -1.4), (0, 2), (0, 0)]) * 0.7
+        obstacle_points = (
+            np.array(
+                [
+                    (-1.1, -1.4),
+                    (1.1, -1.4),
+                    (2, 0),
+                    (-2, 0),
+                    (1.1, 1.4),
+                    (-1.1, 1.4),
+                    (0, 0),
+                ]
+            )
+            * 0.8
+        )
         robot_points = self.sample_points_on_circle(
             self.radius, self.center, self.num_robots
         )
@@ -110,7 +123,7 @@ class GymnasiumCrossingEnvironment(GymnasiumEnvironmentBase):
 
 
 if __name__ == "__main__":
-    env = GymnasiumCrossingEnvironment("../../../config/real_env/crossing_config.json")
+    env = GymnasiumCrossingEnvironment("../../../config/env/crossing_config.json")
     obs, infos = env.reset()
 
     from modules.deployment.utils.manager import Manager

@@ -14,6 +14,8 @@ software or the use or other dealings in the software.
 import asyncio
 import os
 
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+
 from modules.file import File, logger
 from modules.framework.action import *
 from modules.framework.actions import *
@@ -80,7 +82,7 @@ class Workflow:
         generate_functions = GenerateFunctions(run_mode=generate_mode)
         run_code = RunCodeAsync("pass")
         debug_code = DebugError("fixed code")
-        human_feedback = Criticize("feedback")
+        code_improver = CodeImprove("feedback")
         video_critic = VideoCriticize("")
         # initialize error handlers
         bug_handler = BugLevelHandler()
@@ -88,8 +90,8 @@ class Workflow:
         debug_code._next = run_code
         # critic_handler = CriticLevelHandler()
         hf_handler = FeedbackHandler()
-        hf_handler.next_action = human_feedback
-        human_feedback._next = run_code
+        hf_handler.next_action = code_improver
+        code_improver._next = run_code
         # link error handlers
         self._chain_of_handler = bug_handler
         bug_handler.successor = hf_handler
@@ -133,6 +135,13 @@ class Workflow:
         self._pipeline = code_llm
 
     async def run(self):
+        panel = Panel(
+            self._context.command,
+            title="[bold cyan]User Command[/bold cyan]",
+            border_style="cyan",  # Border color
+        )
+        rich_print(panel)
+
         text = display_all(self._pipeline, self._chain_of_handler)
         flow = File(name="flow.md")
         flow.message = text

@@ -41,9 +41,9 @@ class BaseLLM(ABC):
         if system_prompt:
             self.system_prompt = system_prompt
         self._memories = []
-        self._memories.append({"role": "system", "content": self.system_prompt})
+        # self._memories.append({"role": "system", "content": self.system_prompt})
 
-    async def ask(self, prompt: str | list, temperature=0.0) -> str:
+    async def ask(self, prompt: str | list, temperature=1) -> str:
         """
         Asynchronously generate an answer from the model based on the given prompt.
         """

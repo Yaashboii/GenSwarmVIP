@@ -27,6 +27,8 @@ class AutoRunnerEncircling(AutoRunnerBase):
         run_mode="rerun",
         target_pkl="WriteRun.pkl",
         script_name="run.py",
+        exp_batch=1,
+        test_mode=None,
         max_speed=1.0,
         tolerance=0.05,
     ):
@@ -34,10 +36,12 @@ class AutoRunnerEncircling(AutoRunnerBase):
         super().__init__(
             env_config_path=env_config_path,
             workspace_path=workspace_path,
+            test_mode=test_mode,
             experiment_duration=experiment_duration,
             run_mode=run_mode,
             target_pkl=target_pkl,
             script_name=script_name,
+            exp_batch=exp_batch,
             max_speed=max_speed,
             tolerance=tolerance,
             env=env,

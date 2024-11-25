@@ -10,7 +10,7 @@ claim, damages, or other liability, whether in an action of contract,
 tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
-
+from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree
 from modules.framework.code_error import CodeError, Bug, Bugs
@@ -25,34 +25,47 @@ from modules.prompt import (
     ENV_DES,
     TASK_DES,
 )
+from modules.utils import rich_code_print
 
 
 class DebugError(ActionNode):
-    def __init__(self, skill_tree: FunctionTree, next_text="", node_name=""):
+    def __init__(self, next_text="", node_name=""):
         super().__init__(next_text, node_name)
         self.__llm = GPT(memorize=True)
         self.error = None
         self.error_func = None
-        self._skill_tree = skill_tree
+        self._skill_tree = None
 
     def setup(self, error: CodeError | Bugs | Bug):
         self.error = error.error_msg
+        if len(self.error) > 1000:
+            self.error = self.error[:1000]
+            logger.log(
+                "error message is too long, only show the first 1000 characters",
+                level="error",
+            )
         self.error_func = error.error_code
+        self._skill_tree = (
+            self.context.local_skill_tree
+            if self.context.scoop == "local"
+            else self.context.global_skill_tree
+        )
+        self.set_logging_text(f"Debuging Error")
 
     def _build_prompt(self):
-        robot_api = (
-            GLOBAL_ROBOT_API
-            if self.context.scoop == "global"
-            else (
-                LOCAL_ROBOT_API
-                + ALLOCATOR_TEMPLATE.format(
-                    template=self.context.global_skill_tree.output_template
-                )
+        if len(self.context.global_skill_tree.layers) == 0:
+            local_api_prompt = LOCAL_ROBOT_API
+        else:
+            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+                template=self.context.global_skill_tree.output_template
             )
+        robot_api = (
+            GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
         )
         # if self._call_times == 0:
         self.prompt = DEBUG_PROMPT.format(
             task_des=TASK_DES,
+            instruction=self.context.command,
             robot_api=robot_api,
             env_des=ENV_DES,
             mentioned_functions=self.error_func,
@@ -70,5 +83,6 @@ class DebugError(ActionNode):
         parser.parse_code(code)
         self._skill_tree.update_from_parser(parser.imports, parser.function_dict)
         self._skill_tree.save_functions_to_file()
+        rich_code_print("Debug Error", code, f"New Code")
 
         return str(code)

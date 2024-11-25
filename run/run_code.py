@@ -12,6 +12,7 @@ software or the use or other dealings in the software.
 """
 
 from run.auto_runner import *
+import argparse
 
 
 def task_mapping(task_name: str) -> type(AutoRunnerBase):
@@ -34,29 +35,61 @@ def config_mapping(task_name: str) -> str:
     return task_name + "_config.json"
 
 
-if __name__ == "__main__":
-    task_name = "encircling"
+def main():
+    # 创建解析器
+    parser = argparse.ArgumentParser(description="Run the robot experiment.")
+    # 添加 exp_batch 参数
+    parser.add_argument(
+        "--exp_batch",
+        type=int,
+        default=1,
+        help="The number of experiment batches to run",
+    )
+    parser.add_argument(
+        "--task_name",
+        type=str,
+        default="crossing",
+        help="The name of the task to run",
+    )
+
+    # 解析参数
+    args = parser.parse_args()
+    task_name = args.task_name
+
+    # workspace_path = 'comparative/cap/' + task_name
+    # workspace_path = 'ablation/constraint_pool/' + task_name
+    workspace_path = task_name
     runner_class = task_mapping(task_name)
     config_file = config_mapping(task_name)
+    # test_mode = 'improve'
+    test_mode = "real"
+    if test_mode == "real":
+        env_config_path = f"../config/real_env/{config_file}"
+        experiment_duration = 50
+    else:
+        env_config_path = f"../config/env/{config_file}"
+        experiment_duration = 10
     runner = runner_class(
-        env_config_path=f"../config/env/{config_file}",
-        workspace_path=task_name,
-        # workspace_path='metagpt',
-        # workspace_path='cap/cross',
-        experiment_duration=15,
+        env_config_path=env_config_path,
+        workspace_path=workspace_path,
+        experiment_duration=experiment_duration,
+        exp_batch=args.exp_batch,
         run_mode="rerun",
-        # target_pkl='video_critic.pkl',
-        # target_pkl='None',
-        # script_name='run_meta.py',
-        # script_name='run_cap.py',
-        max_speed=2.0,
+        test_mode=test_mode,
+        max_speed=4.5,
         tolerance=0.15,
     )
 
     # 人工复核，哪些任务需要重新跑，写在下面
-    # exp_list = ['2024-10-11_14-59-04', ]
-    exp_list = None
 
-    # exp_list = sorted(extra_exp(f"../workspace/{runner.experiment_path}", out_type='name'))
+    # exp_list = ['2024-10-28_01-49-03', '2024-10-28_01-49-05', '2024-10-28_01-49-09', '2024-10-28_01-49-15',
+    #             '2024-10-28_01-49-19', '2024-10-28_01-49-27', '2024-10-28_01-51-49']
+    exp_list = None
+    # exp_list = ['2024-10-28_01-24-56']
+    exp_list = ["2024-10-29_17-31-57"]
 
     runner.run(exp_list=exp_list)
+
+
+if __name__ == "__main__":
+    main()

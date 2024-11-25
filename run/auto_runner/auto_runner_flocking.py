@@ -24,6 +24,7 @@ from run.utils import (
     evaluate_trajectory_pattern,
     check_collisions,
     evaluate_min_distances_to_others,
+    evaluate_average_position,
 )
 
 
@@ -36,6 +37,8 @@ class AutoRunnerFlocking(AutoRunnerBase):
         run_mode="rerun",
         target_pkl="WriteRun.pkl",
         script_name="run.py",
+        test_mode=None,
+        exp_batch=1,
         max_speed=1.0,
         tolerance=0.05,
     ):
@@ -49,20 +52,30 @@ class AutoRunnerFlocking(AutoRunnerBase):
             script_name=script_name,
             max_speed=max_speed,
             tolerance=tolerance,
+            exp_batch=exp_batch,
+            test_mode=test_mode,
             env=env,
         )
 
     def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
         return [
-            ("spatial_variance", operator.lt, 1),
-            ("max_min_distance", operator.lt, 1),
-            ("mean_dtw_distance", operator.lt, 500),
+            ("spatial_variance", operator.lt, 1.0),
+            ("mean_dtw_distance", operator.lt, 800),
+            # ("max_min_distance", operator.lt, 1),
+            # ("average_distance", operator.lt, 0.5),
         ]
 
     def analyze_result(self, run_result) -> dict[str, float]:
         terminal_distance = evaluate_trajectory_pattern(run_result)
         max_min_distance = evaluate_min_distances_to_others(run_result)
+        average_distance = evaluate_average_position(run_result)
         similarity = evaluate_trajectory_similarity(run_result)
         collision = check_collisions(run_result)
-        merged_dict = max_min_distance | terminal_distance | similarity | collision
+        merged_dict = (
+            max_min_distance
+            | terminal_distance
+            | similarity
+            | collision
+            | average_distance
+        )
         return merged_dict

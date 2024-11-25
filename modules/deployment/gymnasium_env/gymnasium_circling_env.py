@@ -31,7 +31,11 @@ class GymnasiumCirclingEnvironment(GymnasiumEnvironmentBase):
         robot_size = self.data["entities"]["robot"]["size"]
         shape = self.data["entities"]["robot"]["shape"]
         color = self.data["entities"]["robot"]["color"]
-
+        obstacle_list = [(0, 1.8), (0, -1.8), (1.8, 0), (-1.8, 0)]
+        for pos in obstacle_list:
+            obstacle = Obstacle(entity_id, pos, 0.15)
+            self.add_entity(obstacle)
+            entity_id += 1
         for i in range(self.num_robots):
             position = sample_point(
                 zone_center=[0, 0],
@@ -54,22 +58,17 @@ class GymnasiumCirclingEnvironment(GymnasiumEnvironmentBase):
         obstacle_size = self.data["entities"]["obstacle"]["size"]
         shape = self.data["entities"]["obstacle"]["shape"]
         color = self.data["entities"]["obstacle"]["color"]
-
-        for i in range(self.num_obstacles):
-            position = sample_point(
-                zone_center=[0, 0],
-                zone_shape="rectangle",
-                zone_size=[0.6 * self.width, 0.6 * self.height],
-                robot_size=obstacle_size,
-                robot_shape=shape,
-                min_distance=0.3,
-                entities=self.entities,
-            )
-            obstacle = Obstacle(
-                obstacle_id=entity_id, initial_position=position, size=obstacle_size
-            )
-            self.add_entity(obstacle)
-            entity_id += 1
+        #
+        # for i in range(self.num_obstacles):
+        #     position = sample_point(zone_center=[0, 0], zone_shape='rectangle',
+        #                             zone_size=[0.6 * self.width, 0.6 * self.height],
+        #                             robot_size=obstacle_size, robot_shape=shape, min_distance=0.3,
+        #                             entities=self.entities)
+        #     obstacle = Obstacle(obstacle_id=entity_id,
+        #                         initial_position=position,
+        #                         size=obstacle_size)
+        #     self.add_entity(obstacle)
+        #     entity_id += 1
 
 
 if __name__ == "__main__":

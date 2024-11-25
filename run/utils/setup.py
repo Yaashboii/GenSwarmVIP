@@ -31,17 +31,22 @@ def setup_metagpt(directory):
                     shutil.copy(src_file, dest_file)
                     print(f"复制文件 {src_file} 到 {dest_file}")
     # 将apis.py文件复制到directory下
-    source_file = os.path.join(
-        "../modules/deployment/execution_scripts", "apis_meta.py"
-    )
+    source_file = os.path.join("../modules/deployment/execution_scripts", "apis_all.py")
     if os.path.exists(source_file):
         shutil.copy(source_file, directory)
+        # 将apis_all.py 重命名为api.py
+        dest_file = os.path.join(directory, "api.py")
+        os.rename(os.path.join(directory, "apis_all.py"), dest_file)
     else:
         print(f"文件 {source_file} 不存在")
         return
     source_file = os.path.join("../modules/deployment/execution_scripts", "run_meta.py")
     if os.path.exists(source_file):
         shutil.copy(source_file, directory)
+        dest_file = os.path.join(directory, "run.py")
+
+        os.rename(os.path.join(directory, "run_meta.py"), dest_file)
+
     else:
         print(f"文件 {source_file} 不存在")
         return
@@ -49,52 +54,47 @@ def setup_metagpt(directory):
     # 遍历文件夹下所有python文件，开头加上from apis import *
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.endswith(".py") and file != "apis_meta.py":
+            if file.endswith(".py") and file != "api.py":
                 file_path = os.path.join(root, file)
                 with open(file_path, "r+", encoding="utf-8") as f:
                     content = f.read()
-                    if not content.startswith("from apis_meta import *"):
+                    if not content.startswith("from api import *"):
                         f.seek(0, 0)
-                        f.write("from apis_meta import *\n" + content)
-
-    # 查找是否存在time.sleep(xx),或者rate.sleep() 如果有将其注释
-    import re
-
-    sleep_patterns = [
-        re.compile(r"(\s*)time\.sleep\(\s*.*?\s*\)"),
-        re.compile(r"(\s*)rate\.sleep\(\s*.*?\s*\)"),
-    ]
-
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if file.endswith(".py"):
-                file_path = os.path.join(root, file)
-                with open(file_path, "r", encoding="utf-8") as f:
-                    lines = f.readlines()
-
-                with open(file_path, "w", encoding="utf-8") as f:
-                    for line in lines:
-                        for pattern in sleep_patterns:
-                            match = pattern.match(line)
-                            if match:
-                                line = f"{match.group(1)}# {line}"
-                                break
-                        f.write(line)
+                        f.write("from api import *\n" + content)
 
 
 def setup_cap(directory):
-    source_file = os.path.join(
-        "../modules/deployment/execution_scripts", "apis_meta.py"
-    )
-
+    # 确保目录存在
+    if not os.path.exists(directory):
+        print(f"目录 {directory} 不存在")
+        return
+    # 如果目录下没有py文件，遍历所以的文件夹找到有py文件的，将其内部的所以py文件复制到directory下
+    has_py_files = any(file.endswith(".py") for file in os.listdir(directory))
+    if not has_py_files:
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith(".py"):
+                    src_file = os.path.join(root, file)
+                    dest_file = os.path.join(directory, file)
+                    shutil.copy(src_file, dest_file)
+                    print(f"复制文件 {src_file} 到 {dest_file}")
+    # 将apis.py文件复制到directory下
+    source_file = os.path.join("../modules/deployment/execution_scripts", "apis_all.py")
     if os.path.exists(source_file):
         shutil.copy(source_file, directory)
+        # 将apis_all.py 重命名为api.py
+        dest_file = os.path.join(directory, "api.py")
+        os.rename(os.path.join(directory, "apis_all.py"), dest_file)
     else:
         print(f"文件 {source_file} 不存在")
         return
-    source_file = os.path.join("../modules/deployment/execution_scripts", "run_cap.py")
+    source_file = os.path.join("../modules/deployment/execution_scripts", "run_meta.py")
     if os.path.exists(source_file):
         shutil.copy(source_file, directory)
+        dest_file = os.path.join(directory, "run.py")
+
+        os.rename(os.path.join(directory, "run_meta.py"), dest_file)
+
     else:
         print(f"文件 {source_file} 不存在")
         return
@@ -102,32 +102,10 @@ def setup_cap(directory):
     # 遍历文件夹下所有python文件，开头加上from apis import *
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.endswith(".py") and file != "apis_meta.py":
+            if file.endswith(".py") and file != "api.py":
                 file_path = os.path.join(root, file)
                 with open(file_path, "r+", encoding="utf-8") as f:
                     content = f.read()
-                    if not content.startswith("from apis_meta import *"):
+                    if not content.startswith("from api import *"):
                         f.seek(0, 0)
-                        f.write("from apis_meta import *\n" + content)
-    import re
-
-    sleep_patterns = [
-        re.compile(r"(\s*)time\.sleep\(\s*.*?\s*\)"),
-        re.compile(r"(\s*)rate\.sleep\(\s*.*?\s*\)"),
-    ]
-
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if file.endswith(".py"):
-                file_path = os.path.join(root, file)
-                with open(file_path, "r", encoding="utf-8") as f:
-                    lines = f.readlines()
-
-                with open(file_path, "w", encoding="utf-8") as f:
-                    for line in lines:
-                        for pattern in sleep_patterns:
-                            match = pattern.match(line)
-                            if match:
-                                line = f"{match.group(1)}# {line}"
-                                break
-                        f.write(line)
+                        f.write("from api import *\n" + content)

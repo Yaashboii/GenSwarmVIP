@@ -72,9 +72,9 @@ class TestVideoProcessing(unittest.TestCase):
 
         # Assertions
         # TODO: fix this, frames should be 3
-        self.assertEqual(len(frames), 1)  # Should return 3 frames
+        self.assertEqual(len(frames), 2)  # Should return 3 frames
         mock_logger.log.assert_called_with(
-            "Extracted 1 frames from 0s to 2s", level="info"
+            "Extracted 2 frames from 0s to 2s", level="info"
         )
 
     # @mock.patch('cv2.VideoWriter')

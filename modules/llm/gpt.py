@@ -25,17 +25,20 @@ from tenacity import (
 
 class GPT(BaseLLM):
     """
-    A class to interact with OpenAI's GPT model.
+        A class to interact with OpenAI's GPT model.
 
-    This class handles requests to OpenAI's GPT models using an asynchronous client,
-    providing retry mechanisms and optional streaming support.
+        This class handles requests to OpenAI's GPT models using an asynchronous client,
+        providing retry mechanisms and optional streaming support.
+    2024-11-04 09:38:28:051106]:Run code success</span>
 
-    Args:
-        memorize (bool): Whether to store previous interactions for context in future requests.
-        stream_output (bool): Whether to receive partial outputs via streaming.
+        Args:
+            memorize (bool): Whether to store previous interactions for context in future requests.
+            stream_output (bool): Whether to receive partial outputs via streaming.
     """
 
-    def __init__(self, memorize: bool = False, stream_output: bool = False) -> None:
+    def __init__(
+        self, memorize: bool = False, stream_output: bool = False, model: str = "GPT"
+    ) -> None:
         """
         Initializes the GPT class by allocating a model, obtaining the necessary API
         credentials, and initializing the asynchronous client.
@@ -44,7 +47,7 @@ class GPT(BaseLLM):
             memorize (bool): Flag indicating if the class should store previous interactions.
             stream_output (bool): Flag indicating if output should be streamed.
         """
-        self.api_base, self.key, self.model = model_manager.allocate(model_family="GPT")
+        self.api_base, self.key, self.model = model_manager.allocate(model_family=model)
         super().__init__(self.model, memorize, stream_output)
         self._client = AsyncOpenAI(api_key=self.key, base_url=self.api_base)
 

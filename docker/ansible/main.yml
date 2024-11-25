@@ -4,14 +4,15 @@
   become_method: sudo  # Use sudo to become the specified user
   become_user: root  # Execute tasks as the root user
   vars:
-    ansible_become_pass: 123  # The password for privilege escalation
-    stage: 1  # Variable to control the stage of execution (0: prepare, 1: run, 2: finish)
+    ansible_become_pass: 123
+    stage: "{{ STAGE }}"
+
   tasks:
-    - include_tasks: prepare.yml  # Include the 'prepare.yml' tasks
-      when: stage == 0  # Only include this task when the stage variable equals 0
+    - include_tasks: prepare.yml
+      when: stage == '0'
 
     - include_tasks: run.yml
-      when: stage == 1
+      when: stage == '1'
 
     - include_tasks: finish.yml
-      when: stage == 2
+      when: stage == '2'

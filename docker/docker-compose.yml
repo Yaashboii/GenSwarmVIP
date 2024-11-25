@@ -39,14 +39,12 @@ services:
       dockerfile: ./docker/deploy.Dockerfile
     image: huabench/code-llm:deploy
     working_dir: /src
-    command: ansible-playbook ./docker/ansible/main.yml
+    command: ansible-playbook ./docker/ansible/main.yml -e DATA_PATH=${DATA_PATH} -e STAGE=1
     # command: /bin/bash
     volumes:
       - ..:/src
       - ../config/hosts:/etc/ansible/hosts
     network_mode: host
-    stdin_open: true
-    tty: true
     deploy:
       restart_policy:
         condition: none
