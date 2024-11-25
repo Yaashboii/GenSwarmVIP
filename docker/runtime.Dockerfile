@@ -31,16 +31,6 @@ RUN apt-get update && apt-get install -y \
     sshpass \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Docker (optional if you want Docker inside the container)
-RUN curl -fsSL https://get.docker.com | bash
-
-# Install Docker Compose (latest stable version)
-RUN curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-    && chmod +x /usr/local/bin/docker-compose
-
-# Verify Docker and Docker Compose installation
-RUN docker --version && docker-compose --version
-
 RUN /bin/bash -c "source activate py$(echo $PYTHON_VERSION | sed 's/\.//g') \
                   && pip3 install --no-cache-dir -r requirements.txt"
 
