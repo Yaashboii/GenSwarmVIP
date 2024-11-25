@@ -31,17 +31,17 @@ from run.utils import (
 
 class AutoRunnerClustering(AutoRunnerBase):
     def __init__(
-            self,
-            env_config_path,
-            workspace_path,
-            experiment_duration,
-            run_mode="rerun",
-            target_pkl="WriteRun.pkl",
-            script_name="run.py",
-            exp_batch=1,
-            max_speed=1.0,
-            test_mode=None,
-            tolerance=0.05,
+        self,
+        env_config_path,
+        workspace_path,
+        experiment_duration,
+        run_mode="rerun",
+        target_pkl="WriteRun.pkl",
+        script_name="run.py",
+        exp_batch=1,
+        max_speed=1.0,
+        test_mode=None,
+        tolerance=0.05,
     ):
         env = GymnasiumClusteringEnvironment(env_config_path)
         super().__init__(

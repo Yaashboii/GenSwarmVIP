@@ -22,7 +22,7 @@ thread_local = threading.local()
 
 class RobotNode:
     def __init__(
-            self, robot_id, target_position=None, formation_points=None, assigned_task=None
+        self, robot_id, target_position=None, formation_points=None, assigned_task=None
     ):
         self.robot_id = robot_id
         self.assigned_task = assigned_task

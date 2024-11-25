@@ -52,20 +52,18 @@ class VelocityLimiterNode:
 
         # Apply damping to the velocities
         linear_vel = (
-                self.damping_factor * self.last_linear_vel
-                + (1 - self.damping_factor) * linear_vel
+            self.damping_factor * self.last_linear_vel
+            + (1 - self.damping_factor) * linear_vel
         )
         angular_vel = (
-                self.damping_factor * self.last_angular_vel
-                + (1 - self.damping_factor) * angular_vel
+            self.damping_factor * self.last_angular_vel
+            + (1 - self.damping_factor) * angular_vel
         )
 
         # Normalize linear velocity
         linear_norm = np.linalg.norm(linear_vel)
         if linear_norm > 0:
-            linear_vel = (
-                    linear_vel / linear_norm * self.max_linear_speed
-            )
+            linear_vel = linear_vel / linear_norm * self.max_linear_speed
 
         # Update Twist message with normalized and damped velocities
         msg.linear.x, msg.linear.y, msg.linear.z = linear_vel

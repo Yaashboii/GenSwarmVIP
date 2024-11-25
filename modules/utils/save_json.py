@@ -10,7 +10,7 @@ def save_dict_to_json(data: dict, filename: str):
     filename (str): The name of the JSON file.
     """
     try:
-        with open(filename, 'w', encoding='utf-8') as file:
+        with open(filename, "w", encoding="utf-8") as file:
             print("Saving dictionary as JSON file...")
             print(f"Dictionary: {data}")
             json.dump(data, file, ensure_ascii=False, indent=4)

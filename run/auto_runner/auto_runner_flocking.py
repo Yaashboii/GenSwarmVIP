@@ -30,17 +30,17 @@ from run.utils import (
 
 class AutoRunnerFlocking(AutoRunnerBase):
     def __init__(
-            self,
-            env_config_path,
-            workspace_path,
-            experiment_duration,
-            run_mode="rerun",
-            target_pkl="WriteRun.pkl",
-            script_name="run.py",
-            test_mode=None,
-            exp_batch=1,
-            max_speed=1.0,
-            tolerance=0.05,
+        self,
+        env_config_path,
+        workspace_path,
+        experiment_duration,
+        run_mode="rerun",
+        target_pkl="WriteRun.pkl",
+        script_name="run.py",
+        test_mode=None,
+        exp_batch=1,
+        max_speed=1.0,
+        tolerance=0.05,
     ):
         env = GymnasiumFlockingEnvironment(env_config_path)
         super().__init__(
@@ -72,10 +72,10 @@ class AutoRunnerFlocking(AutoRunnerBase):
         similarity = evaluate_trajectory_similarity(run_result)
         collision = check_collisions(run_result)
         merged_dict = (
-                max_min_distance
-                | terminal_distance
-                | similarity
-                | collision
-                | average_distance
+            max_min_distance
+            | terminal_distance
+            | similarity
+            | collision
+            | average_distance
         )
         return merged_dict

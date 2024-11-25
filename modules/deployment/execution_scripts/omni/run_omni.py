@@ -46,7 +46,9 @@ def run_robot_in_thread(robot_id):
     assigned = False
     robot_runner = RobotRunner(robot_id)
     try:
-        with open(os.path.join("/catkin_ws/src/code_llm/allocate_result.pkl"), "rb") as f:
+        with open(
+            os.path.join("/catkin_ws/src/code_llm/allocate_result.pkl"), "rb"
+        ) as f:
             task = pickle.load(f)
             assigned = True
     except (FileNotFoundError, EOFError, pickle.UnpicklingError) as e:

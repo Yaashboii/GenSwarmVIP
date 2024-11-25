@@ -66,8 +66,8 @@ def main():
         experiment_duration=8,
         exp_batch=args.exp_batch,  # 使用传入的 exp_batch 参数
         run_mode="analyze",
-        target_pkl='WriteRun.pkl',
-        test_mode='rerun',
+        target_pkl="WriteRun.pkl",
+        test_mode="rerun",
         max_speed=4.5,
         tolerance=0.15,
     )

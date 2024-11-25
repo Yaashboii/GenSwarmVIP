@@ -91,9 +91,9 @@ class Manager:
         #
         # self.last_time = current_time
         desired_velocity = (
-                np.array([data.linear.x, data.linear.y])
-                / (np.linalg.norm([data.linear.x, data.linear.y]) + 0.001)
-                * self._max_speed
+            np.array([data.linear.x, data.linear.y])
+            / (np.linalg.norm([data.linear.x, data.linear.y]) + 0.001)
+            * self._max_speed
         )
         # print(f"Received velocity for robot {i}: {desired_velocity}")
         self.robotID_velocity[i] = desired_velocity

@@ -25,15 +25,15 @@ from tenacity import (
 
 class GPT(BaseLLM):
     """
-    A class to interact with OpenAI's GPT model.
+        A class to interact with OpenAI's GPT model.
 
-    This class handles requests to OpenAI's GPT models using an asynchronous client,
-    providing retry mechanisms and optional streaming support.
-2024-11-04 09:38:28:051106]:Run code success</span>
+        This class handles requests to OpenAI's GPT models using an asynchronous client,
+        providing retry mechanisms and optional streaming support.
+    2024-11-04 09:38:28:051106]:Run code success</span>
 
-    Args:
-        memorize (bool): Whether to store previous interactions for context in future requests.
-        stream_output (bool): Whether to receive partial outputs via streaming.
+        Args:
+            memorize (bool): Whether to store previous interactions for context in future requests.
+            stream_output (bool): Whether to receive partial outputs via streaming.
     """
 
     def __init__(

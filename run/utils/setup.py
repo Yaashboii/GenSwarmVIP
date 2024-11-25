@@ -31,9 +31,7 @@ def setup_metagpt(directory):
                     shutil.copy(src_file, dest_file)
                     print(f"复制文件 {src_file} 到 {dest_file}")
     # 将apis.py文件复制到directory下
-    source_file = os.path.join(
-        "../modules/deployment/execution_scripts", "apis_all.py"
-    )
+    source_file = os.path.join("../modules/deployment/execution_scripts", "apis_all.py")
     if os.path.exists(source_file):
         shutil.copy(source_file, directory)
         # 将apis_all.py 重命名为api.py
@@ -81,9 +79,7 @@ def setup_cap(directory):
                     shutil.copy(src_file, dest_file)
                     print(f"复制文件 {src_file} 到 {dest_file}")
     # 将apis.py文件复制到directory下
-    source_file = os.path.join(
-        "../modules/deployment/execution_scripts", "apis_all.py"
-    )
+    source_file = os.path.join("../modules/deployment/execution_scripts", "apis_all.py")
     if os.path.exists(source_file):
         shutil.copy(source_file, directory)
         # 将apis_all.py 重命名为api.py
@@ -113,4 +109,3 @@ def setup_cap(directory):
                     if not content.startswith("from api import *"):
                         f.seek(0, 0)
                         f.write("from api import *\n" + content)
-

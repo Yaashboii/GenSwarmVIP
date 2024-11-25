@@ -77,6 +77,7 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
                             landmark.state = "visited"
 
         return obs, reward, termination, truncation, infos
+
     def init_omni_entities(self):
         robot_id_list = self.robot_id_list
         target_positions = [
@@ -110,11 +111,15 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
             self.add_entity(landmark)
         entity_id = 10
         for x in np.arange(-self.width * 0.4, self.width * 0.51, 0.2 * self.width):
-            for y in np.arange(-self.height * 0.4, self.height * 0.51, 0.2 * self.height):
-                landmark = Landmark(landmark_id=entity_id,
-                                    initial_position=(x, y),
-                                    size=np.array([0.2 * self.width, 0.2 * self.height]),
-                                    color='gray')
+            for y in np.arange(
+                -self.height * 0.4, self.height * 0.51, 0.2 * self.height
+            ):
+                landmark = Landmark(
+                    landmark_id=entity_id,
+                    initial_position=(x, y),
+                    size=np.array([0.2 * self.width, 0.2 * self.height]),
+                    color="gray",
+                )
                 self.add_entity(landmark)
                 entity_id += 1
         prey_id_list = self.prey_id_list
@@ -125,6 +130,7 @@ class GymnasiumExplorationEnvironment(GymnasiumEnvironmentBase):
                 size=0.15,
             )
             self.add_entity(prey)
+
     def is_robot_within_landmark(self, robot: Robot, landmark: Landmark):
         if np.all(
             np.linalg.norm(robot.position - landmark.position)

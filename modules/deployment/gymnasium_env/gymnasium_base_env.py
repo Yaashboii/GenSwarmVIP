@@ -256,7 +256,7 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
         return obs
 
     def step(
-            self, action: ActType
+        self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
         """
         Perform one step of the environment using the given actions.
@@ -349,11 +349,11 @@ class GymnasiumEnvironmentBase(gymnasium.Env, ABC):
                 pygame.draw.rect(self.screen, color, rect)
 
     def reset(
-            self,
-            *,
-            seed: int | None = None,
-            options: dict[str, Any] | None = None,
-            keep_entity=False,
+        self,
+        *,
+        seed: int | None = None,
+        options: dict[str, Any] | None = None,
+        keep_entity=False,
     ) -> tuple[ObsType, dict[str, Any]]:
         super().reset(seed=seed)
         if not keep_entity:
