@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>CodeLLM</h1>
+  <h1>Generative Multi-Robot Swarming via </br> Multi-Language-Agent Cooperation</h1>
 </div>
 
 <p align="center">
@@ -78,19 +78,3 @@ This project is developed and tested in the **ROS Noetic** environment, primaril
 To deploy the project in a Docker environment, please refer to the detailed guide provided in [`docs/docker.md`](docs/docker.md).
 
 ---
-
-## Citation
-
-If you use this project in your research or publications, please cite the following paper:
-
-```bibtex
-@article{your_paper_reference,
-  title={Your Paper Title},
-  author={Author Names},
-  journal={Journal Name},
-  year={Year},
-  volume={Volume},
-  number={Number},
-  pages={Pages},
-  doi={DOI}
-}
