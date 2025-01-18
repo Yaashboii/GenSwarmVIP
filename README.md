@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>Generative Multi-Robot Swarming via </br> Multi-Language-Agent Cooperation</h1>
+  <h1>Source Code of GenSwarm</h1>
 </div>
 
 <p align="center">
