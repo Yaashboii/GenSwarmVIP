@@ -12,9 +12,6 @@ software or the use or other dealings in the software.
 """
 import os.path
 
-from click import prompt
-from torch.utils.tensorboard.summary import video
-
 from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree
@@ -53,7 +50,6 @@ class VideoCriticize(ActionNode):
              "text": VIDEO_PROMPT_TEMPLATE.format(
                  task_des=TASK_DES,
                  instruction=self.context.command,
-                 command=self.context.command,
                  feedback="/n".join(self.context.feedbacks),
                  constraint=str(self._constraint_pool),
                  out_put=OUTPUT_TEMPLATE,
@@ -150,7 +146,7 @@ class VideoCriticize(ActionNode):
 if __name__ == "__main__":
     import asyncio
 
-    path = "../../../workspace/encircling/2024-10-21_03-18-15"
+    path = "../../../workspace/vlm_checked/encircling/2024-10-28_07-44-15"
     root_manager.update_root(path)
     function_analyser = VideoCriticize("analyze constraints")
 

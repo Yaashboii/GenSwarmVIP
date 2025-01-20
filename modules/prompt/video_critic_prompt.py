@@ -38,17 +38,17 @@ VIDEO_PROMPT_TEMPLATE = """
 - First, analyze the video content, and then determine whether the user's instructions are met.
 - The provided frames are in chronological order. The final frame should reflect the completion of the entire task, while the preceding frames should show the process of completion.
 - You need to reason step by step and consider carefully before drawing a conclusion.
-- The user's feedback may be inconsistent with the initial requirements, and even the feedback itself may be inconsistent. In case of any conflict, the most recent feedback should take precedence.
 - For certain requirements where the details are difficult to define, such as precise numerical values, the criteria can be appropriately relaxed to allow for approximate values.
-- Green dots represent robots, gray dots represent obstacles, blue dots represent prey, large gray areas represent unexplored regions, and blue areas represent explored regions.
+- Green represent robots(In tasks where robots swap positions, robots of other colors...), gray dots represent obstacles, blue dots represent prey, large gray areas represent unexplored regions, and blue areas represent explored regions.
 - Not all elements will appear in the current task.
-- For constraints that can be assessed through video, judgments will be made. Constraints that cannot be determined through video will not be judged. For example, exact numerical values will not be assessed, but qualitative collision detection will be.
+- The robots and obstacles only need to avoid overlapping, as the specific obstacle avoidance distance cannot be estimated from the video. Therefore, any distance-related judgments do not need to be precise, as long as there is no collision.
 - The output should be in the specified format.
+- For constraints that can be assessed through video, judgments will be made. Constraints that cannot be determined through video will not be judged. For example, exact numerical values will not be assessed, but qualitative collision detection will be.
 ## This is the video frame information:
 """.strip()
 
 OUTPUT_TEMPLATE = """
 {
     "result": "..."(SUCCESS/FAIL),
-    "feedback": "..." (if result is FAIL, you need to provide feedback about the failure reason,and what should be improved)
+    "feedback": "..." (if result is FAIL, you need to provide feedback about the failure reason,and what should be improved.)
 }""".strip()

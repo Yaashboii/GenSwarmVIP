@@ -203,13 +203,13 @@ class RobotApi:
         self.base_prompt = [self.apis[api] for api in self.base_apis]
         self.task_apis = {
             "bridging": ["stop_self"],
-            "circling": ["stop_self"],
+            "aggregation": ["stop_self"],
             "covering": ["get_environment_range", "stop_self"],
             "crossing": ["stop_self"],
             "encircling": ["get_prey_position", "get_prey_initial_position"],
             "exploration": [
                 "get_initial_unexplored_areas",
-                "get_environment_range",
+                "get_environment_ragnge",
                 "stop_self",
             ],
             "flocking": ["get_environment_range", "get_self_velocity"],
@@ -219,7 +219,7 @@ class RobotApi:
         }
 
     def get_api_prompt(
-        self, task_name: str = None, scope: str = None, only_names: bool = False
+            self, task_name: str = None, scope: str = None, only_names: bool = False
     ) -> str | list:
         """
         Get the prompt of the robot API.

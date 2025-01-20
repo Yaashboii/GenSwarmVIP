@@ -22,7 +22,7 @@ class ExperimentAnalyzer:
                 break
         return success
 
-    def analyze_all_results(self, experiment_dirs=None, target_file=['wo_vlm.json'],
+    def analyze_all_results(self, experiment_dirs=None, target_file=['meta.json'],
                             only_success: bool = False):
         exp_data = {experiment: {} for experiment in experiment_dirs}
         all_metric_names = []
@@ -45,8 +45,8 @@ class ExperimentAnalyzer:
                             combined_success = combined_success or success  # Logical OR with the existing combined success
                 else:
                     print(f"File {result_path} not found.")
-                    if file == 'improve.json':
-                        combined_success = True
+                    # if file == 'improve.json':
+                    #     combined_success = True
             data = {**analysis, 'success': combined_success}
 
             exp_data[experiment] = data

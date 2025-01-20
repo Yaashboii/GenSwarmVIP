@@ -321,14 +321,14 @@ def init_workflow(args, env=None) -> ActionNode:
         target_pkl = None
         if args.test_mode == 'improve':
             if os.path.exists(args.experiment_path + "/" + 'debug.pkl'):
-                target_pkl = 'run_code.pkl'
+                target_pkl = 'RunCodeAsync.pkl'
             else:
                 target_pkl = 'WriteRun.pkl'
 
 
         elif args.test_mode in ['wo_vlm', 'full_version', 'debug', 'real']:
             target_pkl = 'WriteRun.pkl'
-        elif args.test_mode in['cap','meta']:
+        elif args.test_mode in ['cap', 'meta']:
             target_pkl = None
         if target_pkl:
             context.load_from_file(args.experiment_path + "/" + target_pkl)

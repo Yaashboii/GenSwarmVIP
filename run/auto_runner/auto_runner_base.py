@@ -81,19 +81,47 @@ class AutoRunnerBase(ABC):
                 elif self.run_mode == "rerun":
                     directories.append(item)
                 elif self.run_mode == "analyze":
-                    if self.experiment_completed(item_path):
-                        directories.append(item)
+                    # if self.experiment_completed(item_path):
+                    directories.append(item)
                 elif self.run_mode == "fail_rerun":
                     if self.experiment_completed(item_path):
-                        result_file = os.path.join(item_path, "wo_vlm.json")
+                        if self.test_mode == "cap":
+                            result_file = os.path.join(item_path, "cap.json")
+                        elif self.test_mode == "meta":
+                            result_file = os.path.join(item_path, "meta.json")
+                        else:
+                            result_file = os.path.join(item_path, "wo_vlm.json")
                         with open(result_file, "r") as f:
                             result_data = json.load(f)
 
                             analysis = result_data.get("analysis", {})
                             # bug = result_data.get('run_code_result', {})['error']
                             success = analysis["success"]
+                            error = False
+
                             if not success:
-                                directories.append(item)
+                                # for cap and meta, global_results is []
+                                if analysis["run_result"].get("global", []) is None and self.test_mode not in ['cap', 'meta']:
+                                    continue
+                                if analysis["run_result"].get("global", []) is not None:
+                                    global_results = [analysis["run_result"].get("global", []).get('result', '')]
+                                else:
+                                    global_results = []
+                                local_results = analysis["run_result"].get("local", []).get('result', '')
+                                results = global_results + local_results
+                                for result in results:
+                                    if result not in ['Timeout', 'None', 'NONE', 'No task to run']:
+                                        error = True
+                                        break
+                                if self.test_mode == "debug":
+                                    if error:
+                                        directories.append(item)
+                                else:
+                                    if error:
+                                        print(f"Error in {item}")
+                                        continue
+                                    else:
+                                        directories.append(item)
                 elif self.run_mode == 'debug_rerun':
                     result_file = os.path.join(item_path, "debug.json")
 
@@ -106,6 +134,8 @@ class AutoRunnerBase(ABC):
                             success = analysis["success"]
                         if not success:
                             directories.append(item)
+        if self.test_mode == "debug":
+            print(f"Total {len(directories)} experiments to run: {directories}")
         if self.run_mode in ['rerun', 'fail_rerun', 'debug_rerun']:
             # 根据batch数目，将实验分批次,一共10批，根据batch数目，确定当前分批
             directories = sorted(directories)
@@ -120,10 +150,19 @@ class AutoRunnerBase(ABC):
             print(
                 f"Batch {batch_num} from {batch_size * (batch_num - 1)} to {batch_size * batch_num}"
             )
+
         return directories
 
     def experiment_completed(self, path):
-        result_file = os.path.join(path, "wo_vlm.json")
+        map = {
+            'cap': 'cap.json',
+            'meta': 'meta.json',
+            'wo_vlm': 'wo_vlm.json',
+            'debug': 'wo_vlm.json',
+            'vlm': 'vlm.json',
+        }
+        result_file = os.path.join(path, f"{map[self.test_mode]}")
+
         return os.path.exists(result_file)
 
     def save_experiment_result(self, path, result, analysis, file_name=""):
@@ -148,6 +187,7 @@ class AutoRunnerBase(ABC):
             json.dump(combined_result, f, indent=4)
 
     def run_multiple_experiments(self, experiment_list):
+
         if not experiment_list:
             experiment_list = sorted(self.get_experiment_directories())
 
