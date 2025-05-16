@@ -45,7 +45,9 @@ class Workflow:
     def init_workspace():
         workspace_root = root_manager.workspace_root
         project_root = root_manager.project_root
-        os.makedirs(os.path.join(workspace_root, "data/frames"))
+        frames_root = os.path.join(workspace_root, "data/frames")
+        if not os.path.exists(frames_root):
+            os.makedirs(frames_root)
 
         util_file = File(
             root=os.path.join(project_root, "modules/deployment/execution_scripts"),

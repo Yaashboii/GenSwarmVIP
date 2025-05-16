@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from streamlit import success
+# from streamlit import success
 
 
 class ExperimentAnalyzer:
@@ -22,7 +22,7 @@ class ExperimentAnalyzer:
                 break
         return success
 
-    def analyze_all_results(self, experiment_dirs=None, target_file=['meta.json'],
+    def analyze_all_results(self, experiment_dirs=None, target_file=['wo_vlm.json'],
                             only_success: bool = False):
         exp_data = {experiment: {} for experiment in experiment_dirs}
         all_metric_names = []

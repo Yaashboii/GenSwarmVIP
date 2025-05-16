@@ -110,6 +110,7 @@ class GPT(BaseLLM):
             from modules.file.log_file import logger
 
             logger.log(f"Error in _make_request: {e}", level="error")
+            print(f"Error in _make_request: {e}")
             raise  # Re-raise the exception to trigger the retry logic
 
     async def _retry_request_with_sleep(self, temperature: float) -> str:

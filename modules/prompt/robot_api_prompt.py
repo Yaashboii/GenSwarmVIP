@@ -209,7 +209,7 @@ class RobotApi:
             "encircling": ["get_prey_position", "get_prey_initial_position"],
             "exploration": [
                 "get_initial_unexplored_areas",
-                "get_environment_ragnge",
+                "get_environment_range",
                 "stop_self",
             ],
             "flocking": ["get_environment_range", "get_self_velocity"],

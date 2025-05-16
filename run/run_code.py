@@ -89,13 +89,14 @@ def main():
     if test_mode in ['cap', 'meta']:
         workspace_path = 'comparative/' + test_mode + "/" + task_name
     else:
-        workspace_path = '4o_genswarm/'+task_name
+        workspace_path = task_name
+        # workspace_path = 'o4-mini/'+task_name
 
     if test_mode == 'real':
-        env_config_path = f"../config/real_env/{config_file}"
+        env_config_path = f"config/real_env/{config_file}"
         experiment_duration = 50
     else:
-        env_config_path = f"../config/env/{config_file}"
+        env_config_path = f"config/env/{config_file}"
         experiment_duration = 15
     runner = runner_class(
         env_config_path=env_config_path,

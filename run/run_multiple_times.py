@@ -35,9 +35,9 @@ def run_multiple_times(command, num_times, max_workers=1, timeout=30):
 
 
 if __name__ == "__main__":
-    command_to_run = "python run_single.py"
-    num_runs = 40
-    max_workers = 40
+    command_to_run = "python run/run_single.py"
+    num_runs = 100
+    max_workers = 100
     max_timeout = 18000  # 设置最大执行时间为30秒
 
     run_multiple_times(command_to_run, num_runs, max_workers, max_timeout)

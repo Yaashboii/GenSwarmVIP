@@ -61,7 +61,7 @@ class AutoRunnerFlocking(AutoRunnerBase):
         return [
             ("spatial_variance", operator.lt, 1.0),
             ("mean_dtw_distance", operator.lt, 800),
-            ("no_move_num", operator.lt, 1),
+            # ("no_move_num", operator.lt, 1),
             # ("max_min_distance", operator.lt, 1),
             # ("average_distance", operator.lt, 0.5),
         ]

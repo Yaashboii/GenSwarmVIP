@@ -7,9 +7,9 @@ arguments:
   #    help: special for test_code mode to specify the test dir name
   --experiment_nums:
     default: 1
-    help: special fsor generate_code mode to specify the experiment nums
+    help: special for generate_code mode to specify the experiment nums
   --run_experiment_name:
-    default: [ 'shaping' ]
+    default: [ 'encircling' ]
     help: for run_experiment mode and generate_code mode to specify the experiment name
   --run_times:
     default: 60
