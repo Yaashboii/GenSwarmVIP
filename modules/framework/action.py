@@ -25,8 +25,10 @@ from modules.framework.node_renderer import *
 from modules.llm import GPT
 from modules.prompt import Prompt
 from modules.utils import setup_logger, LoggerLevel, root_manager
+from modules.prompt import (
+    robot_api
 
-
+)
 class BaseNode(ABC):
     def __init__(self):
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
@@ -66,7 +68,6 @@ class BaseNode(ABC):
 class ActionNode(BaseNode):
     def __init__(self, next_text: str = "", node_name: str = "", llm: GPT = None):
         super().__init__()
-        self.__llm = llm if llm else GPT()
         self.prompt = None
         self.resp_template = None
         self._next_text = next_text  # label text rendered in mermaid graph
@@ -74,6 +75,7 @@ class ActionNode(BaseNode):
         self.error_handler = None  # this is a chain of handlers, see handler.py
         self.set_renderer(ActionNodeRenderer())
         self.context: WorkflowContext = WorkflowContext()
+        self.__llm = llm if llm else GPT(modeL_name=self.context.args.llm_name)
 
     def __str__(self):
         if self._node_name:

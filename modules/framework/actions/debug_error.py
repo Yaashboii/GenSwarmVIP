@@ -20,8 +20,6 @@ from modules.prompt import (
     DEBUG_PROMPT,
     CONTINUE_DEBUG_PROMPT,
     ALLOCATOR_TEMPLATE,
-    GLOBAL_ROBOT_API,
-    LOCAL_ROBOT_API,
     ENV_DES,
     TASK_DES,
 )
@@ -30,7 +28,7 @@ from modules.prompt import (
 class DebugError(ActionNode):
     def __init__(self, next_text="", node_name=""):
         super().__init__(next_text, node_name)
-        self.__llm = GPT(memorize=True)
+        self.__llm = GPT(memorize=True,modeL_name=self.context.args.llm_name)
         self.error = None
         self.error_func = None
         self._skill_tree = None
@@ -49,13 +47,14 @@ class DebugError(ActionNode):
 
     def _build_prompt(self):
         if len(self.context.global_skill_tree.layers) == 0:
-            local_api_prompt = LOCAL_ROBOT_API
+            local_api_prompt = self.context.local_robot_api
         else:
-            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+            local_api_prompt = self.context.local_robot_api + ALLOCATOR_TEMPLATE.format(
                 template=self.context.global_skill_tree.output_template
             )
         robot_api = (
-            GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
+
+            self.context.global_robot_api if self.context.scoop == "global" else local_api_prompt
         )
         # if self._call_times == 0:
         self.prompt = DEBUG_PROMPT.format(

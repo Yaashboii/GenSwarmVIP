@@ -1,26 +1,20 @@
 "api_base": {
   "GPT": "https://vip.DMXapi.com/v1",
-  "VLM": "https://vip.DMXapi.com/v1",
-  #  "VLM": "https://xiaoai.plus/v1",
-
-  #      "GPT": "https://xiaoai.plus/v1",
+  #  "GPT": "https://api.deepseek.com",
+  "VLM": "https://api.deepseek.com",
   "QWEN": "https://dashscope.aliyuncs.com/compatible-mode/v1",
 }
 "api_key": {
-  #      "GPT": "sk-5mU8poYeiI4bydH492B59125206344598312600438205f65",
-  #    "GPT": "sk-tT8XYVZUo5PZZsg1ppMNHOcJt0hZL59HSxI8B79VQSw6Wh7t",
-  "GPT": "sk-JVDiyrvh5BRPinBhEU40yYia87BdQVKrwDqH7PDRYERSL8rK",
-
-  "VLM": "sk-JVDiyrvh5BRPinBhEU40yYia87BdQVKrwDqH7PDRYERSL8rK",
-  #  "VLM": "sk-5mU8poYeiI4bydH492B59125206344598312600438205f65",
-
+  "GPT": "sk-4SHoph5Noe7QKAVJ02DiSzrjgLWPMjNCuZI4FXHVx3K0tQ3A",
+  #  "GPT": "sk-qiImfEgFlldXAtwPnxfFijlV8ZG1lGQqQhP1mBVW78WyOlYP",
+  "VLM": "sk-4SHoph5Noe7QKAVJ02DiSzrjgLWPMjNCuZI4FXHVx3K0tQ3A",
   "QWEN": "sk-99f55920b8834f6f8c1e78f8d3691c26",
   "CLAUDE": "input your claude api here"
 }
 "model": {
   "VLM": "gpt-4o",
-  "GPT": "gpt-4o",
-  #  "GPT": "o1-preview",
+  #  "GPT": "claude-3-7-sonnet-20250219",
+  "GPT": "DMXAPI-HuoShan-DeepSeek-V3",
   "QWEN": "qwen-vl-plus",
   "CLAUDE": "input the claude model here"
 }

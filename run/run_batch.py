@@ -9,12 +9,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 task_keys = [
     # "exploration",
     # "crossing",
-    "encircling",
+    # "encircling",
     # "shaping",
     # "bridging",
     # "aggregation",
     # "flocking",
-    # "covering",
+    "covering",
     # "clustering",
     # "pursuing"
 ]
@@ -52,7 +52,7 @@ def run_batch(batch_num, task_name, run_mode, test_mode):
 
 
 def run_batches(task_name, run_mode, test_mode):
-    batch_numbers = range(201, 301)  # Adjust range as needed
+    batch_numbers = range(1, 101)  # Adjust range as needed
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         # Submit all batches to the executor and create progress bar
         future_to_batch = {executor.submit(run_batch, batch_num, task_name, run_mode, test_mode): batch_num for

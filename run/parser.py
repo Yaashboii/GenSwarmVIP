@@ -63,7 +63,6 @@ class ParameterService:
                         except (ValueError, SyntaxError):
                             pass  # Keep the default value as a string if it cannot be evaluated
                 self.add_argument(arg, **params)
-        self.args = self.parse_arguments(self.args)
 
     def parse_arguments(self, args):
         return self.parser.parse_args(args)

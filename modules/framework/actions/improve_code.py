@@ -8,8 +8,6 @@ from modules.llm import GPT
 from modules.prompt import (
     FEEDBACK_PROMPT_TEMPLATE,
     CONTINUE_FEEDBACK_PROMPT_TEMPLATE,
-    LOCAL_ROBOT_API,
-    GLOBAL_ROBOT_API,
     ENV_DES,
     TASK_DES,
     ALLOCATOR_TEMPLATE,
@@ -26,9 +24,9 @@ class CodeImprove(ActionNode):
     def _build_prompt(self):
         # if self._call_times == 0:
         if len(self.context.global_skill_tree.layers) == 0:
-            local_api_prompt = LOCAL_ROBOT_API
+            local_api_prompt = self.context.local_robot_api
         else:
-            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+            local_api_prompt = self.context.local_robot_api + ALLOCATOR_TEMPLATE.format(
                 template=self.context.global_skill_tree.output_template)
         if self.feedback is None:
             vlm_file = os.path.join(root_manager.workspace_root, "vlm.json")
@@ -42,7 +40,7 @@ class CodeImprove(ActionNode):
 
         self.prompt = FEEDBACK_PROMPT_TEMPLATE.format(
             task_des=TASK_DES,
-            global_api=GLOBAL_ROBOT_API,
+            global_api=self.context.global_robot_api,
             local_api=local_api_prompt,
             instruction=self.context.command,
             env_des=ENV_DES,

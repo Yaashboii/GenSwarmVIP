@@ -25,7 +25,8 @@ tasks = {
 }
 # Prompt templates organized into five categories per task:
 prompt_categories = [
-    'simple_minimal',  # Simple description, no strategy instructions
+    'default'
+    'simple',  # Simple description, no strategy instructions
     'simple_strategy',  # Simple description with strategy keywords only
     'narrative',  # Natural-language storytelling format
     'structured_strategy',  # Structured template with explicit strategy
@@ -53,11 +54,21 @@ task_prompts = {
             "1. Strictly maintain a 1-meter encirclement radius\n"
             "2. Even angular spacing between robots\n"
             "3. Dynamically move based on the target's position\n"
-        )
+        ),
+        "default_structured":(
+            "[Task Description]: Robots maintain a coordinated circular formation around the moving prey, evenly spaced at a one-unit radius with real-time position adjustments.\n"
+            "[Optimization Objective]:\n"
+            "• Minimize the overall formation error while maintaining real-time encirclement of the moving target\n"
+            "[Constraints]:\n"
+            "1. Strictly maintain a 1-meter encirclement radius\n"
+            "2. Even angular spacing between robots\n"
+            "3. Dynamically move based on the target's position\n"
+        ),
     },
     "exploration": {
         "default": "The robots need to explore all the unknown areas. You are required to assign an optimal sequence of exploration areas to each robot based on the number of robots and the unexplored regions, and then the robots will gradually explore these areas.",
         "simple": "Robots must work collaboratively to explore and cover all regions.",
+        "simple_strategy": "Divide the entire unknown area into several subregions, and assign each robot an optimal exploration path based on the number of robots and the location of each subregion.",
         "narrative": (
             "Like ants foraging through an environment, "
             "the robots proceed in an organized manner along predefined paths to explore all unknown areas. "
@@ -65,8 +76,16 @@ task_prompts = {
             "The entire exploration process is efficient and systematic, "
             "culminating in a complete environmental mapping."
         ),
-        "structured": (
-            "[Task Type]: Multi-Robot Exploration\n"
+        "structured_default": (
+            "[Task Description]: Robots must work collaboratively to explore and cover all regions.\n"
+            "[Optimization Objective]:\n"
+            "• Minimize total exploration time\n"
+            "[Constraints]:\n"
+            "1. All unknown areas must be visited by at least one robot\n"
+            "2. Paths must be continuous, with no jumps or isolated segments\n"
+        ),
+        "structured_strategy":(
+            "[Task Description]: Divide the entire unknown area into several subregions, and assign each robot an optimal exploration path based on the number of robots and the location of each subregion.\n"
             "[Optimization Objective]:\n"
             "• Minimize total exploration time\n"
             "[Constraints]:\n"
@@ -76,15 +95,25 @@ task_prompts = {
     },
     "shaping": {
         "default": "The robots need to form a specific shape, with each robot assigned a unique point on that shape to move to while avoiding collisions during the movement.",
-        "simple": "Robots move to their assigned positions to form a specific shape, avoiding collisions during the process.",
+        "simple": "Robots move to form a specific shape, with real-time collision avoidance during the process.",
+        "simple_strategy": "Each robot is assigned a unique target position and moves to it while avoiding collisions.",
         "narrative": (
             "Like a drone light show in the night sky, each robot follows a predefined path to reach its precise position within the formation. "
             "Together, they assemble a clearly recognizable geometric pattern. "
             "Throughout the movement, they maintain safe distances and avoid collisions, "
             "ultimately forming a stable and orderly spatial configuration."
         ),
-        "structured": (
-            "[Task Type]: Formation Shape Control\n"
+        "structured_default": (
+            "[Task Description]: Robots move to form a specific shape, with real-time collision avoidance during the process.\n",
+            "[Optimization Objective]:\n"
+            "• Minimize the total time or total path length required to reach the target shape\n"
+            "[Constraints]:\n"
+            "1. Each robot must be assigned a unique target position to ensure complete shape coverage\n"
+            "2. No collisions are allowed during movement\n"
+            "3. Robots must remain stationary or make fine adjustments after reaching the target to maintain formation precision\n"
+        ),
+        "structured_strategy":(
+            "[Task Description]: Each robot is assigned a unique target position and moves to it while avoiding collisions.\n"
             "[Optimization Objective]:\n"
             "• Minimize the total time or total path length required to reach the target shape\n"
             "[Constraints]:\n"
@@ -101,8 +130,18 @@ task_prompts = {
             "They move to the center of each area and remain in position, "
             "forming a seamless sensing network that ensures every part of the environment is within monitoring range."
         ),
-        "structured": (
-            "[Task Type]: Area Coverage Deployment\n"
+        "simple_strategy": "Divide the environment into equal-sized grid cells based on the number of robots. Assign each robot to a grid cell and have it move to the center.",
+        "structured_strategy": (
+            "[Task Description]: Robots should be evenly distributed across the environment to achieve full coverage.\n"
+            "[Optimization Objective]:\n"
+            "• Minimize the total travel distance of all robots\n"
+            "[Constraints]:\n"
+            "1. Each robot must be assigned a distinct region center, and regions must not overlap\n"
+            "2. All regions combined must fully cover the environment\n"
+            "3. Robots should be evenly distributed within the environment to ensure uniform coverage density\n"
+        ),
+        "default_structured": (
+            "[Task Description]: Divide the environment into equal-sized grid cells based on the number of robots. Assign each robot to a grid cell and have it move to the center.\n"
             "[Optimization Objective]:\n"
             "• Minimize the total travel distance of all robots\n"
             "[Constraints]:\n"
@@ -116,7 +155,7 @@ task_prompts = {
 }
 
 
-def get_user_commands(task_name: str | list = None, format_type: str = 'structured_strategy') -> list[str]:
+def get_user_commands(task_name: str | list = None, format_type: str = 'simple_strategy') -> list[str]:
     """
     Retrieve user command prompts for specified tasks in various formats.
 

@@ -53,22 +53,37 @@ if __name__ == "__main__":
     from modules.utils import root_manager
     from run.parser import ParameterService
 
-#     user_instruction = """
-# Integrate into a flock by collaborating with all robots within the map, ensuring cohesion by staying connected, alignment by moving together, and separation by keeping a safe distance.
-# """
+    # 手动添加 prompt_type 和 llm_name 参数
+    import sys
+    sys_args = sys.argv[1:]  # 提前保留 CLI 参数用于 parse_arguments()
 
     parameter_service = ParameterService()
     config_file = "experiment_config.yaml"
     parameter_service.add_arguments_from_yaml(f"./config/{config_file}")
-    experiment_name = parameter_service.args.run_experiment_name[0]
-    task = get_user_commands(experiment_name)[0]
+
+    # ✅ 手动添加新参数（支持从命令行传入）
+    parameter_service.add_argument('--prompt_type', type=str, default='default', help='Prompt template category')
+    parameter_service.add_argument('--llm_name', type=str, default='gpt-4', help='Name of the LLM used')
+    parameter_service.add_argument('--task_name', type=str, default='flocking', help='Name of the task')
+
+    # ✅ 使用 CLI 参数解析，包括你手动添加的两个
+    args = parameter_service.parse_arguments(sys_args)
+    parameter_service.args = args  # 更新保存的 args
+
+    # ✅ 如果传入 task_name，就覆盖 YAML 中的 run_experiment_name
+    if args.task_name:
+        experiment_name = args.task_name
+        args.run_experiment_name = [experiment_name]  # 确保是列表，兼容原逻辑
+    else:
+        experiment_name = args.run_experiment_name[0]
+
+    task = get_user_commands(experiment_name,format_type=args.prompt_type)[0]
     env_config_file = config_mapping(experiment_name)
-    args = parameter_service.args
     file_name = root_manager.update_root(args=args)
+
     logger.log(f"\n{parameter_service.format_arguments_as_table(args)}", "warning")
 
-    asyncio.run(run_task(task, parameter_service.args))
-
+    asyncio.run(run_task(task, args))
     # rich_print(title="Code Generation", content="All code has been generated, ready to be deployed.")
     # # experiment_name = "encircling"
     # # file_name = "2024-12-17_11-56-41"

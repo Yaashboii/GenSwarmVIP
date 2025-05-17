@@ -21,7 +21,7 @@ from modules.framework.code import FunctionTree
 from modules.framework.constraint import ConstraintPool
 
 from .context import Context
-from modules.prompt import global_import_list, local_import_list
+from modules.prompt import robot_api
 
 
 class WorkflowContext(Context):
@@ -30,18 +30,30 @@ class WorkflowContext(Context):
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super().__new__(cls)
-            cls._instance._initialize()
+            cls._instance._initialize(*args, **kwargs)
 
         return cls._instance
 
-    def _initialize(self):
+    def _initialize(self,args=None):
         self.user_command = File(name="command.md")
         self.feedbacks = []
         self.run_code = File(name="run.py")
-        self.args = argparse.Namespace()
+        self.args = args or argparse.Namespace()  # ✅ 使用传入的 args
         self._constraint_pool = ConstraintPool()
         # TODO:所有的命名统一化，比如这里的global skill tree和local skill tree (@Jiwenkang 10-4)
-
+        task_name = self.args.run_experiment_name[0]
+        self.global_robot_api = robot_api.get_api_prompt(task_name, scope="global")
+        self.local_robot_api = robot_api.get_api_prompt(task_name, scope="local")
+        global_import_list = robot_api.get_api_prompt(
+            task_name, scope="global", only_names=True
+        )
+        local_import_list = robot_api.get_api_prompt(task_name, scope="local", only_names=True)
+        self.local_import_list = (
+            local_import_list.split("\n\n")
+            if isinstance(local_import_list, str)
+            else local_import_list
+        )
+        self.local_import_list.append("get_assigned_task")
         self._global_skill_tree = FunctionTree(
             name="global_skill",
             init_import_list={
@@ -51,7 +63,7 @@ class WorkflowContext(Context):
         self._local_skill_tree = FunctionTree(
             name="local_skill",
             init_import_list={
-                f"from apis import initialize_ros_node, {','.join(local_import_list)}"
+                f"from apis import initialize_ros_node, {','.join(self.local_import_list)}"
             },
         )
         self.global_run_result = File(name="allocate_result.pkl")
