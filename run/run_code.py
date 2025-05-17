@@ -76,10 +76,16 @@ def main():
         default="analyze",
         help="The mode of the run",
     )
+    parser.add_argument(
+        "--task_path",
+        type=str,
+        default="",
+        help="The workspace path",
+    )
     # 解析参数
     args = parser.parse_args()
     task_name = args.task_name
-
+    task_path = args.task_path
     # workspace_path = 'ablation/constraint_pool/' + task_name
     runner_class = task_mapping(task_name)
     config_file = config_mapping(task_name)
@@ -89,8 +95,7 @@ def main():
     if test_mode in ['cap', 'meta']:
         workspace_path = 'comparative/' + test_mode + "/" + task_name
     else:
-        workspace_path = task_name
-        # workspace_path = 'o4-mini/'+task_name
+        workspace_path = f"{task_path}/"+task_name
 
     if test_mode == 'real':
         env_config_path = f"config/real_env/{config_file}"
