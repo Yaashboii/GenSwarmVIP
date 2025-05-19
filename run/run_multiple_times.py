@@ -12,6 +12,7 @@ software or the use or other dealings in the software.
 """
 
 import subprocess
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from datetime import datetime
@@ -52,7 +53,11 @@ def run_all(llm_list, prompt_list, task_list, repeat_count=1, max_workers=1, tim
     with open(log_path, "w") as log_file:
         log_file.write(f"=== Run started at {datetime.now()} ===\n\n")
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(run_command, idx, cmd, timeout) for idx, cmd in commands]
+            futures = []
+            for idx, cmd in commands:
+                future = executor.submit(run_command, idx, cmd, timeout)
+                futures.append(future)
+                time.sleep(2)  # 👉 每提交一个任务，暂停 2 秒
             for future in tqdm(as_completed(futures), total=len(futures), desc="Executing Tasks"):
                 result = future.result()
                 results.append(result)
@@ -76,7 +81,7 @@ def run_all(llm_list, prompt_list, task_list, repeat_count=1, max_workers=1, tim
 
 
 if __name__ == "__main__":
-    llm_model_list = ["DMXAPI-HuoShan-DeepSeek-V3"]
+    llm_model_list = ["o1-mini"]
     prompt_type_list = [
         "default",
         "simple",
@@ -88,10 +93,10 @@ if __name__ == "__main__":
     task_list = [
         "shaping",
         "encircling",
-         "covering",
-         "exploration"
+        "covering",
+        "exploration"
     ]
-    repeat_each = 20  # 每种组合重复几次
+    repeat_each = 50  # 每种组合重复几次
     max_concurrent = 100
     per_task_timeout = 1800
     timestamp = datetime.now().strftime("[%Y-%m-%d %H:%M:%S:%f]")

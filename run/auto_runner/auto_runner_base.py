@@ -275,6 +275,7 @@ class AutoRunnerBase(ABC):
                 exp_list = sorted(self.get_experiment_directories())
             self.result_analyzer.analyze_all_results(exp_list)
 
+
     @abstractmethod
     def analyze_result(self, run_result) -> dict[str, float]:
         """

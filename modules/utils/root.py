@@ -54,7 +54,8 @@ class _RootManager:
         if workspace_root is None or args is not None:
             self.project_root = get_project_root()
             current_datetime = datetime.datetime.now()
-            formatted_date = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
+
+            formatted_date = current_datetime.strftime("%Y-%m-%d_%H-%M-%S_%f")
             generate_mode = ""
             llm_name=""
             prompt_types=""

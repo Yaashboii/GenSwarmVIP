@@ -282,7 +282,7 @@ def init_workflow(args, env=None) -> ActionNode:
         'error': None,
     }
     try:
-        context = WorkflowContext()
+        # context = WorkflowContext()
         debug_code = DebugError()
         code_improver = CodeImprove("feedback")
         run_allocate = RunAllocateRun("run allocate", env=env)
@@ -331,7 +331,7 @@ def init_workflow(args, env=None) -> ActionNode:
         elif args.test_mode in ['cap', 'meta']:
             target_pkl = None
         if target_pkl:
-            context.load_from_file(args.experiment_path + "/" + target_pkl)
+            context=WorkflowContext.load_from_file(args.experiment_path + "/" + target_pkl)
             if args.test_mode != 'real':
                 context.global_skill_tree.save_functions_to_file()
                 context.local_skill_tree.save_functions_to_file()

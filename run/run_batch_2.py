@@ -20,7 +20,8 @@ task_keys = [
 ]
 
 # llm_model_list = ["DMXAPI-HuoShan-DeepSeek-V3"]
-llm_model_list = ["gpt-4o-2024-11-20"]
+# llm_model_list = ["gpt-4o-2024-11-20"]
+llm_model_list = ["o1-mini"]
 prompt_type_list = [
     "default",
     # "simple",
@@ -40,11 +41,11 @@ test_modes = [
 ]
 
 run_modes = [
-    # 'rerun',
+    'rerun',
     # 'continue',
     # 'fail_rerun',
     # 'rerun',
-    'fail_rerun',
+    # 'fail_rerun',
     # 'analyze',
 ]
 # run_modes = [

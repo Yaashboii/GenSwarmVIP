@@ -75,7 +75,8 @@ class ActionNode(BaseNode):
         self.error_handler = None  # this is a chain of handlers, see handler.py
         self.set_renderer(ActionNodeRenderer())
         self.context: WorkflowContext = WorkflowContext()
-        self.__llm = llm if llm else GPT(modeL_name=self.context.args.llm_name)
+        if hasattr(self.context.args,"llm_name"):
+            self.__llm = llm if llm else GPT(modeL_name=self.context.args.llm_name)
 
     def __str__(self):
         if self._node_name:

@@ -2,6 +2,8 @@ import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+
+
 # from streamlit import success
 
 
@@ -143,6 +145,13 @@ class ExperimentAnalyzer:
         if not os.path.exists(f"{self.experiment_path}/pic"):
             os.makedirs(f"{self.experiment_path}/pic")
         plt_path = os.path.join(f"{self.experiment_path}/pic", save_filename)
+        txt_path = os.path.join(f"{self.experiment_path}/pic", save_filename.replace('.png', '.txt'))
+        # 保存结果到 txt 文件
+        with open(txt_path, 'w') as file:
+            file.write("Summary of All Metric Averages\n")
+            for label, value in zip(labels, data):
+                file.write(f"{label}: {value}\n")
+
         plt.tight_layout()
         plt.legend()
         plt.savefig(plt_path)

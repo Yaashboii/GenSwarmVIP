@@ -28,7 +28,7 @@ from modules.prompt import (
 class DebugError(ActionNode):
     def __init__(self, next_text="", node_name=""):
         super().__init__(next_text, node_name)
-        self.__llm = GPT(memorize=True,modeL_name=self.context.args.llm_name)
+        self.__llm = GPT(memorize=True)
         self.error = None
         self.error_func = None
         self._skill_tree = None
