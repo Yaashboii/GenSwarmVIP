@@ -3,7 +3,7 @@ import pandas as pd
 import re
 
 # 模拟文件系统遍历结构，实际运行时请替换为真实根路径
-root_dir = '../workspace/gpt-4o-2024-11-20'  # 根目录
+root_dir = '../workspace/o1-mini'  # 根目录
 summary_data = []
 
 # 遍历模拟目录结构

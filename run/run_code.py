@@ -92,10 +92,10 @@ def main():
     # test_mode = 'improve'
     test_mode = args.test_mode
     # workspace_path = 'encircling'
-    if test_mode in ['cap', 'meta']:
+    if test_mode in ['cap', 'meta', "llm2swarm"]:
         workspace_path = 'comparative/' + test_mode + "/" + task_name
     else:
-        workspace_path = f"{task_path}/"+task_name
+        workspace_path = f"{task_path}/" + task_name
 
     if test_mode == 'real':
         env_config_path = f"config/real_env/{config_file}"

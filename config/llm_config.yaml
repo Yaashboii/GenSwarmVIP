@@ -5,16 +5,17 @@
   "QWEN": "https://dashscope.aliyuncs.com/compatible-mode/v1",
 }
 "api_key": {
-  "GPT": "sk-4SHoph5Noe7QKAVJ02DiSzrjgLWPMjNCuZI4FXHVx3K0tQ3A",
+  "GPT": "sk-cBSqdkbEj5pPeY9pg2TBxgWMX7E8lmLTh4JzamXoR7L1Oymp",
   #  "GPT": "sk-qiImfEgFlldXAtwPnxfFijlV8ZG1lGQqQhP1mBVW78WyOlYP",
-  "VLM": "sk-4SHoph5Noe7QKAVJ02DiSzrjgLWPMjNCuZI4FXHVx3K0tQ3A",
+  "VLM": "sk-cBSqdkbEj5pPeY9pg2TBxgWMX7E8lmLTh4JzamXoR7L1Oymp",
   "QWEN": "sk-99f55920b8834f6f8c1e78f8d3691c26",
   "CLAUDE": "input your claude api here"
 }
 "model": {
-  "VLM": "gpt-4o",
+  "VLM": "",
   #  "GPT": "claude-3-7-sonnet-20250219",
-  "GPT": "DMXAPI-HuoShan-DeepSeek-V3",
+#  "GPT": "DMXAPI-HuoShan-DeepSeek-V3",
+  "GPT": "o1-mini",
   "QWEN": "qwen-vl-plus",
   "CLAUDE": "input the claude model here"
 }

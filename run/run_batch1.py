@@ -61,13 +61,13 @@ def main():
     parser.add_argument(
         "--task_name",
         type=str,
-        default="shaping",
+        default="crossing",
         help="The name of the task to run",
     )
     parser.add_argument(
         "--test_mode",
         type=str,
-        default="cap",
+        default="llm2swarm",
         help="The mode of the test",
     )
     parser.add_argument(
@@ -86,17 +86,17 @@ def main():
     # test_mode = 'improve'
     test_mode = args.test_mode
     # workspace_path = 'encircling'
-    if test_mode in ['cap', 'meta']:
+    if test_mode in ['cap', 'meta', 'llm2swarm']:
         workspace_path = 'comparative/' + test_mode + "/" + task_name
     else:
         workspace_path = 'o1-mini_genswarm/' + task_name
 
     if test_mode == 'real':
-        env_config_path = f"../config/real_env/{config_file}"
+        env_config_path = f"config/real_env/{config_file}"
         experiment_duration = 50
     else:
-        env_config_path = f"../config/env/{config_file}"
-        experiment_duration = 10
+        env_config_path = f"config/env/{config_file}"
+        experiment_duration = 15
     runner = runner_class(
         env_config_path=env_config_path,
         workspace_path=workspace_path,

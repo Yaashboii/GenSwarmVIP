@@ -11,7 +11,7 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
-from .setup import setup_cap, setup_metagpt
+from .setup import setup_cap, setup_metagpt,setup_llm2swarm
 from .utils import calculate_overlap_ratio
 from .metric import *
 

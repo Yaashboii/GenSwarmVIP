@@ -6,11 +6,12 @@ import time
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
 task_keys = [
-    "exploration",
-    # "crossing",
-    "encircling",
-    "shaping",
+    # "exploration",
+    "crossing",
+    # "encircling",
+    # "shaping",
     # "bridging",
     # "aggregation",
     # "flocking",
@@ -19,21 +20,23 @@ task_keys = [
     # "pursuing"
 ]
 
-# llm_model_list = ["DMXAPI-HuoShan-DeepSeek-V3"]
-llm_model_list = ["gpt-4o-2024-11-20"]
+# # llm_model_list = ["DMXAPI-HuoShan-DeepSeek-V3"]
+llm_model_list = ["o1-mini"]
 prompt_type_list = [
-    "default",
+    # "default",
     # "simple",
     # "simple_strategy",
     # "narrative",
     # "structured_default",
-    # "structured_strategy"
+    "structured_strategy"
 ]
+# prompt_type_list.reverse()
 
 test_modes = [
     # 'cap',
     # 'meta'
-    'wo_vlm'
+    'llm2swarm'
+    # 'wo_vlm'
     # 'debug'
     # 'vlm'
     # 'improve'
@@ -43,8 +46,8 @@ run_modes = [
     # 'rerun',
     # 'continue',
     # 'fail_rerun',
-    # 'rerun',
-    'fail_rerun',
+    'rerun',
+    # 'fail_rerun',
     # 'analyze',
 ]
 # run_modes = [

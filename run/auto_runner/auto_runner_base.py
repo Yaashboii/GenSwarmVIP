@@ -24,7 +24,7 @@ from tqdm import tqdm
 from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
 from modules.utils import root_manager
 from run.auto_runner.core import CodeRunner, ExperimentAnalyzer, EnvironmentManager
-from run.utils import setup_metagpt, setup_cap, check_robots_no_movement_in_first_third
+from run.utils import setup_metagpt, setup_cap, setup_llm2swarm, check_robots_no_movement_in_first_third
 
 
 class AutoRunnerBase(ABC):
@@ -89,6 +89,8 @@ class AutoRunnerBase(ABC):
                             result_file = os.path.join(item_path, "cap.json")
                         elif self.test_mode == "meta":
                             result_file = os.path.join(item_path, "meta.json")
+                        elif self.test_mode == "llm2swarm":
+                            result_file = os.path.join(item_path, "llm2swarm.json")
                         else:
                             result_file = os.path.join(item_path, "wo_vlm.json")
                         with open(result_file, "r") as f:
@@ -101,7 +103,9 @@ class AutoRunnerBase(ABC):
 
                             if not success:
                                 # for cap and meta, global_results is []
-                                if analysis["run_result"].get("global", []) is None and self.test_mode not in ['cap', 'meta']:
+                                if analysis["run_result"].get("global", []) is None and self.test_mode not in ['cap',
+                                                                                                               'meta',
+                                                                                                               "llm2swarm"]:
                                     continue
                                 if analysis["run_result"].get("global", []) is not None:
                                     global_results = [analysis["run_result"].get("global", []).get('result', '')]
@@ -157,6 +161,7 @@ class AutoRunnerBase(ABC):
         map = {
             'cap': 'cap.json',
             'meta': 'meta.json',
+            "llm2swarm": "llm2swarm.json",
             'wo_vlm': 'wo_vlm.json',
             'debug': 'wo_vlm.json',
             'vlm': 'vlm.json',
@@ -205,6 +210,9 @@ class AutoRunnerBase(ABC):
                             )
                         if self.test_mode == "cap":
                             setup_cap(os.path.join(self.experiment_path, experiment))
+
+                        if self.test_mode == "llm2swarm":
+                            setup_llm2swarm(os.path.join(self.experiment_path, experiment))
 
                         self.code_runner.run_code(experiment)
                         if self.test_mode == "vlm":
@@ -274,7 +282,6 @@ class AutoRunnerBase(ABC):
             if exp_list is None:
                 exp_list = sorted(self.get_experiment_directories())
             self.result_analyzer.analyze_all_results(exp_list)
-
 
     @abstractmethod
     def analyze_result(self, run_result) -> dict[str, float]:
