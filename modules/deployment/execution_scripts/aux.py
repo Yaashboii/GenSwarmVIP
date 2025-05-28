@@ -1,5 +1,7 @@
 import math
 
+import numpy as np
+
 
 class Vector2D:
     """A two-dimensional vector with Cartesian coordinates."""
@@ -9,7 +11,7 @@ class Vector2D:
         self.x = x
         self.y = y
 
-        if isinstance(x, (Vector2D, list, tuple)) and not y:
+        if isinstance(x, (Vector2D, list, tuple, np.ndarray)) and not y:
             self.x = x[0]
             self.y = x[1]
 

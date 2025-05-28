@@ -61,19 +61,19 @@ def main():
     parser.add_argument(
         "--task_name",
         type=str,
-        default="shaping",
+        default="crossing",
         help="The name of the task to run",
     )
     parser.add_argument(
         "--test_mode",
         type=str,
-        default="wo_vlm",
+        default="llm2swarm",
         help="The mode of the test",
     )
     parser.add_argument(
         "--run_mode",
         type=str,
-        default="analyze",
+        default="rerun",
         help="The mode of the run",
     )
     parser.add_argument(
@@ -93,7 +93,7 @@ def main():
     test_mode = args.test_mode
     # workspace_path = 'encircling'
     if test_mode in ['cap', 'meta', "llm2swarm"]:
-        workspace_path = 'comparative/' + test_mode + "/" + task_name
+        workspace_path = f'comparative/' + test_mode + f"/{task_path}/" + task_name
     else:
         workspace_path = f"{task_path}/" + task_name
 

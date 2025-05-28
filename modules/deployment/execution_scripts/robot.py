@@ -3,30 +3,24 @@ import logging
 # 假设你把这些 API 放在了 api.py 中
 from api import *
 
+
 class Robot:
     def __init__(self):
         self._id = get_self_id()
         self.position = self.Position()
-        self.epuck_wheels = self.EpuckWheels()
-        self.epuck_proximity = self.ProximitySensor()
+        self.omni_wheels = self.EpuckWheels()
+        self.omni_proximity = self.ProximitySensor()
         self.variables = self.Variables(self._id)
         self.log = self.setup_logger()
 
     class Position:
         def get_position(self):
-            return get_self_position()
-
-        def get_orientation(self):
-            v = get_self_velocity()
-            if np.linalg.norm(v) > 1e-3:
-                return float(np.arctan2(v[1], v[0]))  # radians
-            return 0.0
+            position = get_self_position()
+            return list(position)
 
     class EpuckWheels:
-        def set_speed(self, right, left):
-            # 转换为线速度控制（你也可以保留 right/left）
-            linear_speed = np.array([(right + left) / 2.0, 0.0])
-            set_self_velocity(linear_speed)
+        def set_velocity(self, vx, vy):
+            set_self_velocity([vx, vy])
 
     class ProximitySensor:
         def get_readings(self):
@@ -41,6 +35,7 @@ class Robot:
                 class Angle:
                     def __init__(self, angle_value):
                         self._angle_value = angle_value
+
                     def value(self):
                         return self._angle_value
 
@@ -48,8 +43,8 @@ class Robot:
             for obj in env_info:
                 # 避免自身，处理机器人和障碍物
                 if (
-                    obj['Type'] == 'obstacle' or
-                    (obj['Type'] == 'robot' and obj.get('id') != self_id)
+                        obj['Type'] == 'obstacle' or
+                        (obj['Type'] == 'robot' and obj.get('id') != self_id)
                 ):
                     vec = obj['position'] - get_self_position()
                     dist = np.linalg.norm(vec)
@@ -61,7 +56,7 @@ class Robot:
 
     class Variables:
         def __init__(self, robot_id):
-            self._store = {'id': robot_id }
+            self._store = {'id': f"00{robot_id}"}
 
         def get_id(self):
             return self._store['id']

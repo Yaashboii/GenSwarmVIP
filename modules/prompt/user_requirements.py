@@ -23,15 +23,6 @@ tasks = {
     "clustering": "Robots with initial positions in the same quadrant need to cluster in the designated area of that corresponding quadrant.",
     "pursuing": "Engage in flocking behavior with all robots on the map, moving toward the lead robot. The lead robot's movement is unpredictable, so maintain cohesion by staying connected, ensure alignment by moving in sync, and uphold separation by keeping a safe personal space. Additionally, be cautious to avoid collisions with any obstacles in the environment.",
 }
-# Prompt templates organized into five categories per task:
-prompt_categories = [
-    'default'
-    'simple',  # Simple description, no strategy instructions
-    'simple_strategy',  # Simple description with strategy keywords only
-    'narrative',  # Natural-language storytelling format
-    'structured_strategy',  # Structured template with explicit strategy
-    'default_structured'  # Default detailed description (structured without strategy)
-]
 
 task_prompts = {
     "encircling": {
@@ -55,7 +46,7 @@ task_prompts = {
             "2. Even angular spacing between robots\n"
             "3. Dynamically move based on the target's position\n"
         ),
-        "default_structured":(
+        "structured_default": (
             "[Task Description]: Robots maintain a coordinated circular formation around the moving prey, evenly spaced at a one-unit radius with real-time position adjustments.\n"
             "[Optimization Objective]:\n"
             "• Minimize the overall formation error while maintaining real-time encirclement of the moving target\n"
@@ -64,34 +55,6 @@ task_prompts = {
             "2. Even angular spacing between robots\n"
             "3. Dynamically move based on the target's position\n"
         ),
-    },
-    "exploration": {
-        "default": "The robots need to explore all the unknown areas. You are required to assign an optimal sequence of exploration areas to each robot based on the number of robots and the unexplored regions, and then the robots will gradually explore these areas.",
-        "simple": "Robots must work collaboratively to explore and cover all regions.",
-        "simple_strategy": "Divide the entire unknown area into several subregions, and assign each robot an optimal exploration path based on the number of robots and the location of each subregion.",
-        "narrative": (
-            "Like ants foraging through an environment, "
-            "the robots proceed in an organized manner along predefined paths to explore all unknown areas. "
-            "They avoid omissions and redundancy during execution. "
-            "The entire exploration process is efficient and systematic, "
-            "culminating in a complete environmental mapping."
-        ),
-        "structured_default": (
-            "[Task Description]: Robots must work collaboratively to explore and cover all regions.\n"
-            "[Optimization Objective]:\n"
-            "• Minimize total exploration time\n"
-            "[Constraints]:\n"
-            "1. All unknown areas must be visited by at least one robot\n"
-            "2. Paths must be continuous, with no jumps or isolated segments\n"
-        ),
-        "structured_strategy":(
-            "[Task Description]: Divide the entire unknown area into several subregions, and assign each robot an optimal exploration path based on the number of robots and the location of each subregion.\n"
-            "[Optimization Objective]:\n"
-            "• Minimize total exploration time\n"
-            "[Constraints]:\n"
-            "1. All unknown areas must be visited by at least one robot\n"
-            "2. Paths must be continuous, with no jumps or isolated segments\n"
-        )
     },
     "shaping": {
         "default": "The robots need to form a specific shape, with each robot assigned a unique point on that shape to move to while avoiding collisions during the movement.",
@@ -112,7 +75,7 @@ task_prompts = {
             "2. No collisions are allowed during movement\n"
             "3. Robots must remain stationary or make fine adjustments after reaching the target to maintain formation precision\n"
         ),
-        "structured_strategy":(
+        "structured_strategy": (
             "[Task Description]: Each robot is assigned a unique target position and moves to it while avoiding collisions.\n"
             "[Optimization Objective]:\n"
             "• Minimize the total time or total path length required to reach the target shape\n"
@@ -131,7 +94,7 @@ task_prompts = {
             "forming a seamless sensing network that ensures every part of the environment is within monitoring range."
         ),
         "simple_strategy": "Divide the environment into equal-sized grid cells based on the number of robots. Assign each robot to a grid cell and have it move to the center.",
-        "structured_strategy": (
+        "structured_default": (
             "[Task Description]: Robots should be evenly distributed across the environment to achieve full coverage.\n"
             "[Optimization Objective]:\n"
             "• Minimize the total travel distance of all robots\n"
@@ -140,7 +103,7 @@ task_prompts = {
             "2. All regions combined must fully cover the environment\n"
             "3. Robots should be evenly distributed within the environment to ensure uniform coverage density\n"
         ),
-        "default_structured": (
+        "structured_strategy": (
             "[Task Description]: Divide the environment into equal-sized grid cells based on the number of robots. Assign each robot to a grid cell and have it move to the center.\n"
             "[Optimization Objective]:\n"
             "• Minimize the total travel distance of all robots\n"
@@ -191,7 +154,7 @@ def get_user_commands(task_name: str | list = None, format_type: str = 'simple_s
         if prompts is None:
             raise KeyError(f"Unknown task: {name}")
         # Select the prompt for the requested format, fallback to default if unavailable
-        text = prompts.get(format_type, prompts['default'])
+        text = prompts.get(format_type)
         results.append(text)
 
     return results

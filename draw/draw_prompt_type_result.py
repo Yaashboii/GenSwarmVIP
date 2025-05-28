@@ -2,8 +2,13 @@ import os
 import pandas as pd
 import re
 
+
 # 模拟文件系统遍历结构，实际运行时请替换为真实根路径
-root_dir = '../workspace/o1-mini'  # 根目录
+# root_dir = '../workspace/comparative/llm2swarm/DMXAPI-HuoShan-DeepSeek-V3'  # 根目录
+# model_name = 'o1-mini'
+# model_name= 'gpt-4o-2024-11-20'
+model_name = 'DMXAPI-HuoShan-DeepSeek-V3'
+root_dir = f'../workspace/{model_name}'  # 根目录
 summary_data = []
 
 # 遍历模拟目录结构
@@ -13,13 +18,15 @@ for prompt_type in os.listdir(root_dir):
         continue
     for task_name in os.listdir(prompt_path):
         task_path = os.path.join(prompt_path, task_name)
+        if task_name == 'exploration':
+            continue
         if not os.path.isdir(task_path):
             continue
         pic_dir = os.path.join(task_path, 'pic')
         if not os.path.exists(pic_dir):
             continue
         for filename in os.listdir(pic_dir):
-            if filename.endswith('.txt') and filename.startswith('summary_metrics_'):
+            if filename.endswith('wo_vlm.json.txt') and filename.startswith('summary_metrics_'):
                 file_path = os.path.join(pic_dir, filename)
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
@@ -47,8 +54,7 @@ if not df.empty:
     # 保存为 markdown 文件
     markdown_path = os.path.join(root_dir, "success_summary.md")
     with open(markdown_path, "w", encoding="utf-8") as f:
-        f.write("# Success Rate Summary by Task and Prompt Type\n\n")
+        f.write(f"# {model_name}\n\n")
         f.write(markdown_table)
 else:
     markdown_table = "没有可用的数据生成 Markdown 表格。"
-

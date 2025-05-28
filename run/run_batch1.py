@@ -61,19 +61,19 @@ def main():
     parser.add_argument(
         "--task_name",
         type=str,
-        default="crossing",
+        default="flocking",
         help="The name of the task to run",
     )
     parser.add_argument(
         "--test_mode",
         type=str,
-        default="llm2swarm",
+        default="wo_vlm",
         help="The mode of the test",
     )
     parser.add_argument(
         "--run_mode",
         type=str,
-        default="rerun",
+        default="analyze",
         help="The mode of the run",
     )
     # 解析参数
@@ -89,7 +89,7 @@ def main():
     if test_mode in ['cap', 'meta', 'llm2swarm']:
         workspace_path = 'comparative/' + test_mode + "/" + task_name
     else:
-        workspace_path = 'o1-mini_genswarm/' + task_name
+        workspace_path = 'different_model/claude-3.7/' + task_name
 
     if test_mode == 'real':
         env_config_path = f"config/real_env/{config_file}"

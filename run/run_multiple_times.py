@@ -81,20 +81,20 @@ def run_all(llm_list, prompt_list, task_list, repeat_count=1, max_workers=1, tim
 
 
 if __name__ == "__main__":
-    llm_model_list = ["o1-mini"]
+    llm_model_list = ["DMXAPI-HuoShan-DeepSeek-V3"]
     prompt_type_list = [
-        "default",
-        "simple",
-        "simple_strategy",
-        "narrative",
+        # "default",
+        # "simple",
+        # "simple_strategy",
+        # "narrative",
         "structured_default",
-        "structured_strategy"
+        # "structured_strategy"
     ]
     task_list = [
-        "shaping",
+        # "shaping",
         "encircling",
         "covering",
-        "exploration"
+        # "exploration"
     ]
     repeat_each = 50  # 每种组合重复几次
     max_concurrent = 100
