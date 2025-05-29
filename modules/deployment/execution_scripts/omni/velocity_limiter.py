@@ -62,7 +62,7 @@ class VelocityLimiterNode:
 
         # Normalize linear velocity
         linear_norm = np.linalg.norm(linear_vel)
-        if linear_norm > 0:
+        if linear_norm > self.max_linear_speed:
             linear_vel = (
                     linear_vel / linear_norm * self.max_linear_speed
             )
