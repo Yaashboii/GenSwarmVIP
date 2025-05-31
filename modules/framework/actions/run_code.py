@@ -309,7 +309,8 @@ def init_workflow(run_args, env=None) -> ActionNode:
         stop_docker.setup(stage=2, path=run_args.experiment_path)
         video_critic = VideoCriticize("")
         if run_args.test_mode == 'real':
-            run_allocate._next = run_real
+            run_allocate._next = copy_file
+            # copy_file._next = run_code
             # stop_docker._next = run_real
             # copy_file._next = run_real
             # run_real._next = stop_docker
@@ -435,7 +436,7 @@ def runcode(
     parser.add_argument(
         "--test_mode",
         type=str,
-        default="wo_vlm",
+        default="real",
         help="Optional: wo_vlm,full_version,debug,vlm,real",
     )
     run_args = parser.parse_args(
