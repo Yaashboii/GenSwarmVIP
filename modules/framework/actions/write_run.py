@@ -17,8 +17,6 @@ from modules.framework.action import ActionNode
 from modules.framework.code import FunctionTree, State
 from modules.framework.parser import SingleFunctionParser, parse_text
 from modules.prompt import (
-    GLOBAL_ROBOT_API,
-    LOCAL_ROBOT_API,
     ALLOCATOR_TEMPLATE,
     GLOBAL_RUN_OUTPUT_TEMPLATE,
     ENV_DES,
@@ -35,13 +33,13 @@ class WriteRun(ActionNode):
     def _build_prompt(self):
         functions = "\n\n".join(self._skill_tree.function_valid_content)
         if len(self.context.global_skill_tree.layers) == 0:
-            local_api_prompt = LOCAL_ROBOT_API
+            local_api_prompt = self.context.local_robot_api
         else:
-            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+            local_api_prompt = self.context.local_robot_api + ALLOCATOR_TEMPLATE.format(
                 template=self.context.global_skill_tree.output_template
             )
         robot_api = (
-            GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
+            self.context.global_robot_api if self.context.scoop == "global" else local_api_prompt
         )
         self.desired_function_name = (
             "allocate_run" if self.context.scoop == "global" else "run_loop"

@@ -19,8 +19,6 @@ from modules.llm import GPT
 from modules.prompt import (
     ANALYZE_CONSTRAINT_PROMPT_TEMPLATE,
     CONSTRAIN_TEMPLATE,
-    GLOBAL_ROBOT_API,
-    LOCAL_ROBOT_API,
     ALLOCATOR_TEMPLATE,
     ENV_DES,
     TASK_DES,
@@ -39,10 +37,10 @@ class AnalyzeConstraints(ActionNode):
             hasattr(self.context.args, "interaction_mode")
             and self.context.args.interaction_mode is True
         ):
-            self.__llm = GPT(memorize=True)
+            self.__llm = GPT(memorize=True,modeL_name=self.context.args.llm_name)
             self._interaction_mode = True
         else:
-            self.__llm = GPT()
+            self.__llm = GPT(modeL_name=self.context.args.llm_name)
         self._constraint_pool: ConstraintPool = ConstraintPool()
 
     def _build_prompt(self):
@@ -51,8 +49,8 @@ class AnalyzeConstraints(ActionNode):
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
             instruction=self.context.command,
-            global_api=GLOBAL_ROBOT_API,
-            local_api=LOCAL_ROBOT_API
+            global_api=self.context.global_robot_api,
+            local_api=self.context.local_robot_api
             + ALLOCATOR_TEMPLATE.format(template="Temporarily unknown"),
             env_des=ENV_DES,
             output_template=CONSTRAIN_TEMPLATE,

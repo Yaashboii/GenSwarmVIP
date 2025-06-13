@@ -37,7 +37,7 @@ class GPT(BaseLLM):
     """
 
     def __init__(
-        self, memorize: bool = False, stream_output: bool = False, model: str = "GPT"
+        self, memorize: bool = False, stream_output: bool = False,modeL_name=None,model="GPT"
     ) -> None:
         """
         Initializes the GPT class by allocating a model, obtaining the necessary API
@@ -46,8 +46,11 @@ class GPT(BaseLLM):
         Args:
             memorize (bool): Flag indicating if the class should store previous interactions.
             stream_output (bool): Flag indicating if output should be streamed.
+            modeL_name (str): Name of the OpenAI GPT model.
         """
         self.api_base, self.key, self.model = model_manager.allocate(model_family=model)
+        if modeL_name is None:
+            self.model=modeL_name
         super().__init__(self.model, memorize, stream_output)
         self._client = AsyncOpenAI(api_key=self.key, base_url=self.api_base)
 
@@ -110,6 +113,7 @@ class GPT(BaseLLM):
             from modules.file.log_file import logger
 
             logger.log(f"Error in _make_request: {e}", level="error")
+            print(f"Error in _make_request: {e}")
             raise  # Re-raise the exception to trigger the retry logic
 
     async def _retry_request_with_sleep(self, temperature: float) -> str:

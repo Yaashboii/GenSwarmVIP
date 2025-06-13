@@ -24,23 +24,23 @@ from run.utils import (
     evaluate_trajectory_pattern,
     check_collisions,
     evaluate_min_distances_to_others,
-    evaluate_average_position,
+    evaluate_average_position, check_robots_no_movement_in_first_third,
 )
 
 
 class AutoRunnerFlocking(AutoRunnerBase):
     def __init__(
-        self,
-        env_config_path,
-        workspace_path,
-        experiment_duration,
-        run_mode="rerun",
-        target_pkl="WriteRun.pkl",
-        script_name="run.py",
-        test_mode=None,
-        exp_batch=1,
-        max_speed=1.0,
-        tolerance=0.05,
+            self,
+            env_config_path,
+            workspace_path,
+            experiment_duration,
+            run_mode="rerun",
+            target_pkl="WriteRun.pkl",
+            script_name="run.py",
+            test_mode=None,
+            exp_batch=1,
+            max_speed=1.0,
+            tolerance=0.05,
     ):
         env = GymnasiumFlockingEnvironment(env_config_path)
         super().__init__(
@@ -61,21 +61,23 @@ class AutoRunnerFlocking(AutoRunnerBase):
         return [
             ("spatial_variance", operator.lt, 1.0),
             ("mean_dtw_distance", operator.lt, 800),
+            # ("no_move_num", operator.lt, 1),
             # ("max_min_distance", operator.lt, 1),
             # ("average_distance", operator.lt, 0.5),
         ]
 
     def analyze_result(self, run_result) -> dict[str, float]:
         terminal_distance = evaluate_trajectory_pattern(run_result)
+        no_move_num = check_robots_no_movement_in_first_third(run_result)
         max_min_distance = evaluate_min_distances_to_others(run_result)
         average_distance = evaluate_average_position(run_result)
         similarity = evaluate_trajectory_similarity(run_result)
         collision = check_collisions(run_result)
         merged_dict = (
-            max_min_distance
-            | terminal_distance
-            | similarity
-            | collision
-            | average_distance
+                max_min_distance
+                | terminal_distance
+                | similarity
+                | collision
+                | average_distance | no_move_num
         )
         return merged_dict

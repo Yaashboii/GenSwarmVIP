@@ -22,7 +22,7 @@ ActType = TypeVar("ActType")
 RenderFrame = TypeVar("RenderFrame")
 
 
-class GymnasiumCirclingEnvironment(GymnasiumEnvironmentBase):
+class GymnasiumAggregationEnvironment(GymnasiumEnvironmentBase):
     def __init__(self, data_file: str):
         super().__init__(data_file)
 
@@ -38,7 +38,7 @@ class GymnasiumCirclingEnvironment(GymnasiumEnvironmentBase):
             entity_id += 1
         for i in range(self.num_robots):
             position = sample_point(
-                zone_center=[0, 0],
+                zone_center=[1, 0],
                 zone_shape="rectangle",
                 zone_size=[self.width, self.height],
                 robot_size=robot_size,

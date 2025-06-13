@@ -27,8 +27,8 @@ from modules.utils import root_manager, setup_logger
 class Workflow:
     def __init__(self, user_command: str, args=None):
         self._logger = setup_logger("Workflow")
-        self._context = WorkflowContext()
-        self._context.args = args
+        self._context = WorkflowContext(args=args)
+        # self._context.args = args
         self._context.command = user_command
         # initialize context for all action nodes
         ActionNode.context = self._context
@@ -47,7 +47,11 @@ class Workflow:
     def init_workspace():
         workspace_root = root_manager.workspace_root
         project_root = root_manager.project_root
-        os.makedirs(os.path.join(workspace_root, "data/frames"))
+        frames_root = os.path.join(workspace_root, "data/frames")
+
+        if not os.path.exists(frames_root):
+            os.makedirs(frames_root)
+
 
         util_file = File(
             root=os.path.join(project_root, "modules/deployment/execution_scripts"),

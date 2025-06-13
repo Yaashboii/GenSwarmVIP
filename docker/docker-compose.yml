@@ -25,6 +25,7 @@ services:
       service: runtime-base
     command:
       - /bin/bash
+      - 、=】
       - -c
       - |
         source /opt/ros/noetic/setup.bash && catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3 && source ./devel/setup.bash && cd ./src/code_llm &&

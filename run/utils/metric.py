@@ -220,14 +220,14 @@ def calculate_line_similarity(data, target_line: tuple) -> dict:
         else np.inf
     )
     slope_similarity = np.dot([1, slope], [1, target_slope]) / (
-        np.linalg.norm([1, slope]) * np.linalg.norm([1, target_slope])
+            np.linalg.norm([1, slope]) * np.linalg.norm([1, target_slope])
     )
 
     # Calculate point similarity (average distance between points on the fitted line and target line)
     point_distances = []
     for point in robot_positions:
         target_y = target_slope * point[0] + (
-            target_line[0][1] - target_slope * target_line[0][0]
+                target_line[0][1] - target_slope * target_line[0][0]
         )
         fitted_y = slope * point[0] + intercept
         point_distances.append(np.abs(target_y - fitted_y))
@@ -319,7 +319,7 @@ def fit_circle(positions):
 
 
 def evaluate_robot_circle_similarity(
-    data, expected_circle_center: tuple, expected_circle_radius: float
+        data, expected_circle_center: tuple, expected_circle_radius: float
 ) -> dict:
     """
     Evaluate the similarity between the robots' final positions and a fitted circle,
@@ -476,13 +476,15 @@ def evaluate_min_distances_to_others(data) -> dict:
         - max_min_distance (float): The maximum of the minimum distances between each robot's final position and the others.
     """
     from scipy.spatial.distance import euclidean
-
+    robot_radius = 0.10
     final_positions = []
-
     for entity_id, info in data.items():
         if info["type"] == "Robot":
             # Assuming the final position is the last point in the trajectory
             final_positions.append(np.array(info["trajectory"][-1]))
+    for entity_id, info in data.items():
+        if info["type"] == "Robot":
+            robot_radius = info["size"]
 
     num_robots = len(final_positions)
 
@@ -496,6 +498,7 @@ def evaluate_min_distances_to_others(data) -> dict:
         for j in range(num_robots):
             if i != j:
                 distance = euclidean(final_positions[i], final_positions[j])
+                distance = distance - 2 * robot_radius
                 distances_to_others.append(distance)
         min_distances.append(min(distances_to_others))
 
@@ -619,7 +622,7 @@ def evaluate_shape_similarity(data, target_shape: list) -> dict:
 
 
 def evaluate_encircling_end(
-    data, target_radius: float = 1, tolerance: float = 0.1
+        data, target_radius: float = 1, tolerance: float = 0.1
 ) -> dict:
     """
     Evaluate the task completion by calculating the mean and variance of the robots' final distances to the prey,
@@ -686,7 +689,7 @@ def evaluate_encircling_end(
 
 
 def evaluate_robot_quadrant_positions(
-    data, target_regions: dict, tolerance: float = 0.1
+        data, target_regions: dict, tolerance: float = 0.1
 ) -> dict:
     """
     根据机器人最开始所在的象限进行分类，并检查每一类机器人是否最终位于指定的区域内。
@@ -728,8 +731,8 @@ def evaluate_robot_quadrant_positions(
         for entity_id, info in robots:
             final_position = np.array(info["trajectory"][-1])
             if (
-                x_min - tolerance <= final_position[0] <= x_max + tolerance
-                and y_min - tolerance <= final_position[1] <= y_max + tolerance
+                    x_min - tolerance <= final_position[0] <= x_max + tolerance
+                    and y_min - tolerance <= final_position[1] <= y_max + tolerance
             ):
                 achieved_robots_by_quadrant[quadrant] += 1
 
@@ -744,7 +747,7 @@ def evaluate_robot_quadrant_positions(
 
 
 def evaluate_robot_prey_distance(
-    data, distance_threshold: float = 1.0, proportion_threshold: float = 0.8
+        data, distance_threshold: float = 1.0, proportion_threshold: float = 0.8
 ) -> dict:
     """
     计算每个时刻机器人与猎物之间的距离，并统计至少80%机器人在猎物1m范围内的step数占总步数的比例。
@@ -805,7 +808,7 @@ def evaluate_robot_prey_distance(
     }
 
 
-def check_robots_no_movement_in_first_third(data) -> list:
+def check_robots_no_movement_in_first_third(data) -> dict:
     """
     检查所有机器人在前1/3时间内是否有移动，并返回未移动的机器人ID。
 
@@ -822,7 +825,7 @@ def check_robots_no_movement_in_first_third(data) -> list:
             one_third_timestep = num_timesteps // 3
 
             # 判断机器人是否在前1/3时间内移动
-            initial_position = trajectory[0]
+            initial_position = trajectory[10]
             has_moved = False
 
             for t in range(1, one_third_timestep):
@@ -833,8 +836,7 @@ def check_robots_no_movement_in_first_third(data) -> list:
             if not has_moved:
                 no_movement_robots.append(entity_id)
 
-    return no_movement_robots
-
+    return {"no_move_num": len(no_movement_robots)}
 
 # if __name__ == '__main__':
 #     _, _, disparity = procrustes(target_shape, robot_positions_final)

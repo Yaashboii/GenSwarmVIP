@@ -43,7 +43,6 @@ class AutoRunnerPursuing(AutoRunnerBase):
 
     def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
         return [
-            # ("spatial_variance", operator.lt, 1),
             ("max_min_distance", operator.lt, 1),
             ("average_distance", operator.lt, 1),
         ]

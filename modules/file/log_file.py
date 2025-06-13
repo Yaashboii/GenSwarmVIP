@@ -74,7 +74,8 @@ class _Logger:
         content_with_timestamp = f"{timestamp}:{content}"
 
         if print_to_terminal:
-            log_action(content_with_timestamp)
+            pass
+            # log_action(content_with_timestamp)
         if not self._file:
             from modules.file.file import File
 

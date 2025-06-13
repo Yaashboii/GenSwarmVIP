@@ -6,15 +6,15 @@
     "#scale_factor_note": "1 meter = 100 pixel",
     "scale_factor": 100
   },
-  "task_name": "shaping",
+  "task_name": "flocking",
   "#entity note": "position/size/perceptual_range unit: meter",
   "#size note": "the radium of the circle # | the side length of the square robot",
   "#agent number note": "sum of robot + leader",
   "entities": {
     "robot": {
-      "count": 8,
+      "count": 10,
       "specified": [],
-      "size": 0.10,
+      "size": 0.15,
       "color": "green",
       "shape": "circle",
       "perceptual_range": 1
@@ -26,7 +26,7 @@
     "obstacle": {
       "count": 0,
       "specified": [],
-      "size": 0.15,
+      "size": 0.10,
       "shape": "circle",
       "color": "green"
     },

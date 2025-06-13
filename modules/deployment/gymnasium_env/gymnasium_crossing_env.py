@@ -21,7 +21,7 @@ from modules.deployment.gymnasium_env.gymnasium_base_env import GymnasiumEnviron
 
 class GymnasiumCrossingEnvironment(GymnasiumEnvironmentBase):
     def __init__(
-        self, data_file: str = None, radius: float = 2.5, center: tuple = (0, 0)
+            self, data_file: str = None, radius: float = 2.5, center: tuple = (0, 0)
     ):
         super().__init__(data_file)
         self.radius = radius
@@ -30,25 +30,26 @@ class GymnasiumCrossingEnvironment(GymnasiumEnvironmentBase):
     def init_entities(self):
         # obstacle_points = self.sample_points_inside_circle(self.radius, self.center, self.num_obstacles, 1.5)
         obstacle_points = (
-            np.array(
-                [
-                    (-1.1, -1.4),
-                    (1.1, -1.4),
-                    (2, 0),
-                    (-2, 0),
-                    (1.1, 1.4),
-                    (-1.1, 1.4),
-                    (0, 0),
-                ]
-            )
-            * 0.8
+                np.array(
+                    [
+                        (-1.1, -1.4),
+                        (1.1, -1.4),
+                        (2, 0),
+                        (-2, 0),
+                        (1.1, 1.4),
+                        (-1.1, 1.4),
+                        (0, 0),
+                    ]
+                )
+                * 0.8
         )
         robot_points = self.sample_points_on_circle(
             self.radius, self.center, self.num_robots
         )
+        robot_colors = ["green", "blue", "red", "yellow", "purple", "orange", "cyan"]
         farthest_points = self.find_farthest_points(robot_points)
         for entity_id, initial_position in enumerate(
-            obstacle_points, start=len(robot_points)
+                obstacle_points, start=len(robot_points)
         ):
             obstacle = Obstacle(
                 obstacle_id=entity_id, initial_position=initial_position, size=0.15
@@ -56,13 +57,14 @@ class GymnasiumCrossingEnvironment(GymnasiumEnvironmentBase):
             self.add_entity(obstacle)
 
         for entity_id, (initial_position, target_position) in enumerate(
-            zip(robot_points, farthest_points)
+                zip(robot_points, farthest_points)
         ):
             robot = Robot(
                 robot_id=entity_id,
                 initial_position=initial_position,
                 target_position=target_position,
                 size=0.15,
+                color=robot_colors[entity_id],
             )
             self.add_entity(robot)
 
@@ -84,7 +86,7 @@ class GymnasiumCrossingEnvironment(GymnasiumEnvironmentBase):
 
     @staticmethod
     def sample_points_inside_circle(
-        radius, center, num_points, min_distance, max_attempts_per_point=10
+            radius, center, num_points, min_distance, max_attempts_per_point=10
     ):
         def distance(p1, p2):
             return np.sqrt(np.sum((p1 - p2) ** 2, axis=1))
@@ -95,18 +97,18 @@ class GymnasiumCrossingEnvironment(GymnasiumEnvironmentBase):
 
         radius -= min_distance
         while (
-            len(points) < num_points and attempts < num_points * max_attempts_per_point
+                len(points) < num_points and attempts < num_points * max_attempts_per_point
         ):
             # Generate random points within the bounding square
             random_points = (
-                np.random.uniform(-radius, radius, size=(num_points, 2)) + center
+                    np.random.uniform(-radius, radius, size=(num_points, 2)) + center
             )
             valid_mask = np.linalg.norm(random_points - center, axis=1) <= radius
             random_points = random_points[valid_mask]
 
             for point in random_points:
                 if len(points) == 0 or np.all(
-                    distance(np.array(points), point) >= min_distance
+                        distance(np.array(points), point) >= min_distance
                 ):
                     points.append(point)
                     if len(points) >= num_points:

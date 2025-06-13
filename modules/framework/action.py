@@ -11,7 +11,6 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
-import sys
 import asyncio
 import traceback
 
@@ -26,8 +25,10 @@ from modules.framework.node_renderer import *
 from modules.llm import GPT
 from modules.prompt import Prompt
 from modules.utils import setup_logger, LoggerLevel, root_manager
+from modules.prompt import (
+    robot_api
 
-
+)
 class BaseNode(ABC):
     def __init__(self):
         self._logger = setup_logger(self.__class__.__name__, LoggerLevel.DEBUG)
@@ -67,7 +68,6 @@ class BaseNode(ABC):
 class ActionNode(BaseNode):
     def __init__(self, next_text: str = "", node_name: str = "", llm: GPT = None):
         super().__init__()
-        self.__llm = llm if llm else GPT()
         self.prompt = None
         self.resp_template = None
         self._next_text = next_text  # label text rendered in mermaid graph
@@ -75,7 +75,8 @@ class ActionNode(BaseNode):
         self.error_handler = None  # this is a chain of handlers, see handler.py
         self.set_renderer(ActionNodeRenderer())
         self.context: WorkflowContext = WorkflowContext()
-        self._logging_text = "Thinking"
+        if hasattr(self.context.args,"llm_name"):
+            self.__llm = llm if llm else GPT(modeL_name=self.context.args.llm_name)
 
     def __str__(self):
         if self._node_name:
@@ -87,12 +88,6 @@ class ActionNode(BaseNode):
     def _build_prompt(self):
         pass
 
-    def _display(self):
-        pass
-
-    def set_logging_text(self, text):
-        self._logging_text = text
-
     async def run(self, auto_next: bool = True) -> str:
         # First create a prompt, then utilize it to query the language model.
         self.prompt = Prompt().get_prompt(
@@ -101,7 +96,6 @@ class ActionNode(BaseNode):
         self._build_prompt()
         logger.log(f"Action: {str(self)}", "info")
         res = await self._run()
-        self._display()
         self.context.save_to_file(file_path=root_manager.workspace_root / f"{self}.pkl")
         if isinstance(res, CodeError):
             # If response is CodeError, handle it and move to next action
@@ -119,19 +113,6 @@ class ActionNode(BaseNode):
         stop=stop_after_attempt(5), wait=wait_random_exponential(multiplier=1, max=10)
     )
     async def _run(self) -> str:
-        async def loading_animation():
-            num_dots = 1
-            while True:
-                # 输出点点动画
-                sys.stdout.write(
-                    f"\r\033[32m{self._logging_text}" + "." * num_dots + "\033[0m"
-                )
-                sys.stdout.flush()
-                num_dots = (num_dots + 1) % 8  # 点的数量在 0 到 3 之间循环
-                await asyncio.sleep(0.5)  # 控制动画速度
-
-        animation_task = asyncio.create_task(loading_animation())
-
         try:
             if self.prompt is None:
                 raise SystemExit("Prompt is required")
@@ -151,14 +132,6 @@ class ActionNode(BaseNode):
             tb = traceback.format_exc()
             logger.log(f"Error in {str(self)}: {e},\n {tb}", "error")
             raise Exception
-        finally:
-            animation_task.cancel()
-            try:
-                await animation_task  # 等待动画任务取消完成
-            except asyncio.CancelledError:
-                pass
-            sys.stdout.write("\r" + " " * 80 + "\r")  # 覆盖 "Thinking" 并清空行
-            sys.stdout.flush()
 
     async def _process_response(self, content: str) -> str:
         return content

@@ -16,6 +16,7 @@ import datetime
 from pathlib import Path
 
 
+
 def get_project_root():
     """Search upwards to find the project root directory."""
     current_path = Path.cwd()
@@ -53,17 +54,24 @@ class _RootManager:
         if workspace_root is None or args is not None:
             self.project_root = get_project_root()
             current_datetime = datetime.datetime.now()
-            formatted_date = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
+
+            formatted_date = current_datetime.strftime("%Y-%m-%d_%H-%M-%S_%f")
             generate_mode = ""
+            llm_name=""
+            prompt_types=""
             task_name = ""
             if args is not None:
                 if hasattr(args, "generate_mode"):
                     generate_mode = args.generate_mode
                 if hasattr(args, "run_experiment_name"):
                     task_name = "_".join(args.run_experiment_name)
+                if hasattr(args, "llm_name"):
+                    llm_name = args.llm_name
+                if hasattr(args, "prompt_type"):
+                    prompt_types = args.prompt_type
             self.workspace_root = (
                 self.project_root
-                / f"workspace/{generate_mode}/{task_name}/{formatted_date}"
+                / f"workspace/{llm_name}/{prompt_types}/{generate_mode}/{task_name}/{formatted_date}"
             )
         else:
             self.workspace_root = Path(workspace_root)
