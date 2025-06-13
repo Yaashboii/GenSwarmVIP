@@ -31,8 +31,14 @@ RUN apt-get update && apt-get install -y \
     sshpass \
     && rm -rf /var/lib/apt/lists/*
 
-RUN /bin/bash -c "source activate py$(echo $PYTHON_VERSION | sed 's/\.//g') \
-                  && pip3 install --no-cache-dir -r requirements.txt"
+RUN /bin/bash -c "source activate py$(echo $PYTHON_VERSION | sed 's/\.//g') && \
+                  pip3 install --no-cache-dir -r requirements.txt && \
+                  pip3 install httpx==0.27.0 && \
+                  conda install -y -c conda-forge empy"
+
+
+RUN printf '[defaults]\nhost_key_checking = False\n' > /etc/ansible/ansible.cfg
+ENV PYTHONPATH=/catkin_ws/src/code_llm
 
 RUN printf '[defaults]\nhost_key_checking = False\n' > /etc/ansible/ansible.cfg
 

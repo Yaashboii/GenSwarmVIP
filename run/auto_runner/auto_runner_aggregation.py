@@ -13,12 +13,12 @@ software or the use or other dealings in the software.
 
 import operator
 
-from modules.deployment.gymnasium_env import GymnasiumCirclingEnvironment
+from modules.deployment.gymnasium_env import GymnasiumAggregationEnvironment
 from run.auto_runner import AutoRunnerBase
-from run.utils import evaluate_robot_circle_similarity
+from run.utils import evaluate_average_position, evaluate_min_distances_to_others
 
 
-class AutoRunnerCircling(AutoRunnerBase):
+class AutoRunnerAggregation(AutoRunnerBase):
     def __init__(
         self,
         env_config_path,
@@ -32,7 +32,7 @@ class AutoRunnerCircling(AutoRunnerBase):
         max_speed=1.0,
         tolerance=0.05,
     ):
-        env = GymnasiumCirclingEnvironment(env_config_path)
+        env = GymnasiumAggregationEnvironment(env_config_path)
         super().__init__(
             env_config_path=env_config_path,
             workspace_path=workspace_path,
@@ -48,13 +48,10 @@ class AutoRunnerCircling(AutoRunnerBase):
         )
 
     def analyze_result(self, run_result) -> dict[str, float]:
-        line_similarity = evaluate_robot_circle_similarity(
-            run_result, expected_circle_center=(0, 0), expected_circle_radius=1
-        )
-        return line_similarity
+        max_min_distance = evaluate_min_distances_to_others(run_result)
+        return max_min_distance
 
     def setup_success_conditions(self) -> list[tuple[str, operator, float]]:
         return [
-            ("center_distance", operator.lt, 0.1),
-            ("radius_difference", operator.lt, 0.1),
+            ("max_min_distance", operator.lt, 0.6),
         ]

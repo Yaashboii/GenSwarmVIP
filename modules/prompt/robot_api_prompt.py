@@ -203,7 +203,7 @@ class RobotApi:
         self.base_prompt = [self.apis[api] for api in self.base_apis]
         self.task_apis = {
             "bridging": ["stop_self"],
-            "circling": ["stop_self"],
+            "aggregation": ["stop_self"],
             "covering": ["get_environment_range", "stop_self"],
             "crossing": ["stop_self"],
             "encircling": ["get_prey_position", "get_prey_initial_position"],
@@ -219,7 +219,7 @@ class RobotApi:
         }
 
     def get_api_prompt(
-        self, task_name: str = None, scope: str = None, only_names: bool = False
+            self, task_name: str = None, scope: str = None, only_names: bool = False
     ) -> str | list:
         """
         Get the prompt of the robot API.
@@ -284,26 +284,26 @@ class RobotApi:
 
 robot_api = RobotApi(content=robot_api_prompt)
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-yaml_file_path = os.path.join(script_dir, "../../config/", "experiment_config.yaml")
+# script_dir = os.path.dirname(os.path.abspath(__file__))
+# yaml_file_path = os.path.join(script_dir, "../../config/", "experiment_config.yaml")
+#
+# with open(yaml_file_path, "r", encoding="utf-8") as file:
+#     data = yaml.safe_load(file)
+# task_name = data["arguments"]["--run_experiment_name"]["default"][0]
 
-with open(yaml_file_path, "r", encoding="utf-8") as file:
-    data = yaml.safe_load(file)
-task_name = data["arguments"]["--run_experiment_name"]["default"][0]
+# GLOBAL_ROBOT_API = robot_api.get_api_prompt(task_name, scope="global")
+# LOCAL_ROBOT_API = robot_api.get_api_prompt(task_name, scope="local")
 
-GLOBAL_ROBOT_API = robot_api.get_api_prompt(task_name, scope="global")
-LOCAL_ROBOT_API = robot_api.get_api_prompt(task_name, scope="local")
-
-global_import_list = robot_api.get_api_prompt(
-    task_name, scope="global", only_names=True
-)
-local_import_list = robot_api.get_api_prompt(task_name, scope="local", only_names=True)
-local_import_list = (
-    local_import_list.split("\n\n")
-    if isinstance(local_import_list, str)
-    else local_import_list
-)
-local_import_list.append("get_assigned_task")
+# global_import_list = robot_api.get_api_prompt(
+#     task_name, scope="global", only_names=True
+# )
+# local_import_list = robot_api.get_api_prompt(task_name, scope="local", only_names=True)
+# local_import_list = (
+#     local_import_list.split("\n\n")
+#     if isinstance(local_import_list, str)
+#     else local_import_list
+# )
+# local_import_list.append("get_assigned_task")
 
 ALLOCATOR_TEMPLATE = """
 

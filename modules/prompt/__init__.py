@@ -20,11 +20,7 @@ from .analyze_stage_prompt import (
 from .env_description_prompt import ENV_DES
 from .robot_api_prompt import (
     robot_api,
-    GLOBAL_ROBOT_API,
-    LOCAL_ROBOT_API,
     ALLOCATOR_TEMPLATE,
-    global_import_list,
-    local_import_list,
 )
 from .run_code_prompt import (
     DEBUG_PROMPT,
@@ -46,14 +42,14 @@ __all__ = [
     "FUNCTION_TEMPLATE",
     "ENV_DES",
     "robot_api",
-    "GLOBAL_ROBOT_API",
-    "LOCAL_ROBOT_API",
+    # "GLOBAL_ROBOT_API",
+    # "LOCAL_ROBOT_API",
     "ALLOCATOR_TEMPLATE",
     "DEBUG_PROMPT",
     "CONTINUE_DEBUG_PROMPT",
     "Prompt",
-    "global_import_list",
-    "global_import_list",
+    # "global_import_list",
+    # "global_import_list",
     "FEEDBACK_PROMPT_TEMPLATE",
     "CONTINUE_FEEDBACK_PROMPT_TEMPLATE",
     "GRAMMAR_CHECK_PROMPT_TEMPLATE",

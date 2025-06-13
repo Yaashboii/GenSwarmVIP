@@ -19,8 +19,6 @@ from modules.framework.parser import *
 from modules.prompt import (
     ANALYZE_SKILL_PROMPT_TEMPLATE,
     FUNCTION_TEMPLATE,
-    GLOBAL_ROBOT_API,
-    LOCAL_ROBOT_API,
     ALLOCATOR_TEMPLATE,
     ENV_DES,
     TASK_DES,
@@ -37,9 +35,9 @@ class AnalyzeSkills(ActionNode):
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
             instruction=self.context.command,
-            local_api=LOCAL_ROBOT_API
+            local_api=self.context.local_robot_api
             + ALLOCATOR_TEMPLATE.format(template="Temporarily unknown"),
-            global_api=GLOBAL_ROBOT_API,
+            global_api=self.context.global_robot_api,
             env_des=ENV_DES,
             constraints=str(self._constraint_pool),
             output_template=FUNCTION_TEMPLATE,

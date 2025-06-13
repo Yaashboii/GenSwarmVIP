@@ -51,8 +51,7 @@ def get_contour_points(character):
 
 
 def run_robot(robot_id, target_position, formation_points, task=None):
-    from main import initialize_ros_node, init_node, main
-
+    from api import initialize_ros_node, init_node
     init_node()
     initialize_ros_node(
         robot_id=robot_id,
@@ -60,6 +59,7 @@ def run_robot(robot_id, target_position, formation_points, task=None):
         formation_points=formation_points,
         assigned_task=task,
     )
+    from main import main
     main()
 
 

@@ -8,14 +8,14 @@ from modules.utils.root import root_manager
 
 class CodeRunner:
     def __init__(
-        self,
-        time_out,
-        target_pkl,
-        script_name,
-        feedback,
-        experiment_path: str,
-        env_manager=None,
-        test_mode=None,
+            self,
+            time_out,
+            target_pkl,
+            script_name,
+            feedback,
+            experiment_path: str,
+            env_manager=None,
+            test_mode=None,
     ):
         self.time_out = time_out
         self.target_pkl = target_pkl
@@ -47,8 +47,9 @@ class CodeRunner:
 
     def load_result(self, experiment_id, result_type):
         experiment_path = os.path.join(self.experiment_path, experiment_id)
-        file_path = os.path.join(experiment_path, f"{result_type}.pkl")
+        file_path = os.path.join(experiment_path, f'{result_type}.pkl')
         if os.path.exists(file_path):
+
             with open(file_path, "rb") as file:
                 result = pickle.load(file)
         else:

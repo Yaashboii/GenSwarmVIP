@@ -31,7 +31,9 @@ def setup_metagpt(directory):
                     shutil.copy(src_file, dest_file)
                     print(f"复制文件 {src_file} 到 {dest_file}")
     # 将apis.py文件复制到directory下
-    source_file = os.path.join("../modules/deployment/execution_scripts", "apis_all.py")
+    source_file = os.path.join(
+        "modules/deployment/execution_scripts", "apis_all.py"
+    )
     if os.path.exists(source_file):
         shutil.copy(source_file, directory)
         # 将apis_all.py 重命名为api.py
@@ -40,7 +42,7 @@ def setup_metagpt(directory):
     else:
         print(f"文件 {source_file} 不存在")
         return
-    source_file = os.path.join("../modules/deployment/execution_scripts", "run_meta.py")
+    source_file = os.path.join("modules/deployment/execution_scripts", "run_meta.py")
     if os.path.exists(source_file):
         shutil.copy(source_file, directory)
         dest_file = os.path.join(directory, "run.py")
@@ -79,7 +81,9 @@ def setup_cap(directory):
                     shutil.copy(src_file, dest_file)
                     print(f"复制文件 {src_file} 到 {dest_file}")
     # 将apis.py文件复制到directory下
-    source_file = os.path.join("../modules/deployment/execution_scripts", "apis_all.py")
+    source_file = os.path.join(
+        "modules/deployment/execution_scripts", "apis_all.py"
+    )
     if os.path.exists(source_file):
         shutil.copy(source_file, directory)
         # 将apis_all.py 重命名为api.py
@@ -88,7 +92,7 @@ def setup_cap(directory):
     else:
         print(f"文件 {source_file} 不存在")
         return
-    source_file = os.path.join("../modules/deployment/execution_scripts", "run_meta.py")
+    source_file = os.path.join("modules/deployment/execution_scripts", "run_meta.py")
     if os.path.exists(source_file):
         shutil.copy(source_file, directory)
         dest_file = os.path.join(directory, "run.py")
@@ -109,3 +113,50 @@ def setup_cap(directory):
                     if not content.startswith("from api import *"):
                         f.seek(0, 0)
                         f.write("from api import *\n" + content)
+
+
+def setup_llm2swarm(directory):
+    # 确保目录存在
+    if not os.path.exists(directory):
+        print(f"目录 {directory} 不存在")
+        return
+    # 如果目录下没有py文件，遍历所以的文件夹找到有py文件的，将其内部的所以py文件复制到directory下
+    has_py_files = any(file.endswith(".py") for file in os.listdir(directory))
+    if not has_py_files:
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith(".py"):
+                    src_file = os.path.join(root, file)
+                    dest_file = os.path.join(directory, file)
+                    shutil.copy(src_file, dest_file)
+                    print(f"复制文件 {src_file} 到 {dest_file}")
+    # 将apis.py文件复制到directory下
+    source_file = os.path.join(
+        "modules/deployment/execution_scripts", "apis_all.py"
+    )
+    if os.path.exists(source_file):
+        shutil.copy(source_file, directory)
+        # 将apis_all.py 重命名为api.py
+        dest_file = os.path.join(directory, "api.py")
+        os.rename(os.path.join(directory, "apis_all.py"), dest_file)
+    else:
+        print(f"文件 {source_file} 不存在")
+        return
+    source_file = os.path.join("modules/deployment/execution_scripts", "run_llm2swarm.py")
+    if os.path.exists(source_file):
+        shutil.copy(source_file, directory)
+        dest_file = os.path.join(directory, "run.py")
+
+        os.rename(os.path.join(directory, "run_llm2swarm.py"), dest_file)
+
+    else:
+        print(f"文件 {source_file} 不存在")
+        return
+
+    source_file = os.path.join("modules/deployment/execution_scripts", "robot.py")
+    if os.path.exists(source_file):
+        shutil.copy(source_file, directory)
+
+    source_file = os.path.join("modules/deployment/execution_scripts", "aux.py")
+    if os.path.exists(source_file):
+        shutil.copy(source_file, directory)

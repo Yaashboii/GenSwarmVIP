@@ -20,8 +20,6 @@ from modules.framework.constraint import ConstraintPool
 from modules.framework.error import CodeParseError
 from modules.framework.parser import SingleFunctionParser, parse_text
 from modules.prompt import (
-    GLOBAL_ROBOT_API,
-    LOCAL_ROBOT_API,
     ALLOCATOR_TEMPLATE,
     ENV_DES,
     TASK_DES,
@@ -43,13 +41,13 @@ class CodeReview(ActionNode):
         )
         other_functions_str = "\n\n".join([f.function_body for f in other_functions])
         if len(self.context.global_skill_tree.layers) == 0:
-            local_api_prompt = LOCAL_ROBOT_API
+            local_api_prompt = self.context.local_robot_api
         else:
-            local_api_prompt = LOCAL_ROBOT_API + ALLOCATOR_TEMPLATE.format(
+            local_api_prompt = self.context.local_robot_api + ALLOCATOR_TEMPLATE.format(
                 template=self.context.global_skill_tree.output_template
             )
         robot_api = (
-            GLOBAL_ROBOT_API if self.context.scoop == "global" else local_api_prompt
+            self.context.global_robot_api if self.context.scoop == "global" else local_api_prompt
         )
         self.prompt = self.prompt.format(
             task_des=TASK_DES,
