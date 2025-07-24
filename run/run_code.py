@@ -61,13 +61,13 @@ def main():
     parser.add_argument(
         "--task_name",
         type=str,
-        default="crossing",
+        default="encircling",
         help="The name of the task to run",
     )
     parser.add_argument(
         "--test_mode",
         type=str,
-        default="llm2swarm",
+        default="real",
         help="The mode of the test",
     )
     parser.add_argument(
@@ -121,6 +121,7 @@ def main():
     exp_list = None
 
     # exp_list = ['2025-01-14_14-38-06']
+    exp_list = ['2025-05-12_13-14-16']
     # exp_list = ['flocking_20250116_161606_765_6566053']
 
     runner.run(exp_list=exp_list)
