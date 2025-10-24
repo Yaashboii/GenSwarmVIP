@@ -18,8 +18,6 @@ import subprocess
 import time
 import traceback
 
-import rospy
-
 from modules.file import logger
 from modules.framework.action import ActionNode
 from modules.framework.code_error import Bug
@@ -199,8 +197,8 @@ class RunCodeAsync(ActionNode):
     async def _run(self):
         self.call_times += 1
         self.context.scoop = "local"
-        start_idx = rospy.get_param("robot_start_index")
-        end_idx = rospy.get_param("robot_end_index")
+        start_idx = 0
+        end_idx = 10
         total_robots = end_idx - start_idx + 1
         num_processes = min(10, total_robots)  # 并行进程数
         robots_per_process = total_robots // num_processes

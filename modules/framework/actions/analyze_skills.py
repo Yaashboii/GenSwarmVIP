@@ -42,7 +42,6 @@ class AnalyzeSkills(ActionNode):
             constraints=str(self._constraint_pool),
             output_template=FUNCTION_TEMPLATE,
         )
-        self.set_logging_text(f"Analyzing skills")
 
     async def _process_response(self, response: str) -> str:
         content = parse_text(response, "json")

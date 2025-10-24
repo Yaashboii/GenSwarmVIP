@@ -1,21 +1,19 @@
 "api_base": {
-  "GPT": "https://vip.DMXapi.com/v1",
+  "GPT": "https://openrouter.ai/api/v1",
   #  "GPT": "https://api.deepseek.com",
   "VLM": "https://api.deepseek.com",
-  "QWEN": "https://dashscope.aliyuncs.com/compatible-mode/v1",
 }
 "api_key": {
-  "GPT": "sk-cBSqdkbEj5pPeY9pg2TBxgWMX7E8lmLTh4JzamXoR7L1Oymp",
-  #  "GPT": "sk-qiImfEgFlldXAtwPnxfFijlV8ZG1lGQqQhP1mBVW78WyOlYP",
-  "VLM": "sk-cBSqdkbEj5pPeY9pg2TBxgWMX7E8lmLTh4JzamXoR7L1Oymp",
-  "QWEN": "sk-99f55920b8834f6f8c1e78f8d3691c26",
-  "CLAUDE": "input your claude api here"
+  "GPT": "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",
+  "VLM": "sk-cBSqdkbEj5pPeY9pg2TBxgWMX7E8lmLTh4JzamXoR7L1Oymp"
 }
 "model": {
   "VLM": "",
-#    "GPT": "gpt-4o-2024-11-20",
-  "GPT": "DMXAPI-HuoShan-DeepSeek-V3",
+  #  "GPT": "gpt-4o-2024-11-20",
+  # "GPT": "DMXAPI-HuoShan-DeepSeek-V3",
+  # "GPT": "deepseek/deepseek-chat-v3-0324:free",
+  "GPT": "tngtech/deepseek-r1t-chimera:free",
 #  "GPT": "o1-mini",
-  "QWEN": "qwen-vl-plus",
-  "CLAUDE": "input the claude model here"
+  # "QWEN": "qwen-vl-plus",
+  # "CLAUDE": "input the claude model here"
 }

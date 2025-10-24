@@ -34,7 +34,6 @@ class DesignFunction(ActionNode):
 
     def setup(self, function: FunctionNode):
         self._function = function
-        self.set_logging_text(f"Writing Fuction Specification")
 
     def _build_prompt(self):
         if self._function is None:

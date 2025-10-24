@@ -139,12 +139,6 @@ class Workflow:
         self._pipeline = code_llm
 
     async def run(self):
-        panel = Panel(
-            self._context.command,
-            title="[bold cyan]User Command[/bold cyan]",
-            border_style="cyan",  # Border color
-        )
-        rich_print(panel)
 
         text = display_all(self._pipeline, self._chain_of_handler)
         flow = File(name="flow.md")

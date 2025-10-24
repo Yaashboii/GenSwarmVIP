@@ -56,7 +56,6 @@ class AnalyzeConstraints(ActionNode):
             output_template=CONSTRAIN_TEMPLATE,
             user_constraints=json.dumps(user_constraints, indent=4),
         )
-        self.set_logging_text(f"Analyzing constraints")
 
     async def _process_response(self, response: str) -> str:
         content = parse_text(response, "json")

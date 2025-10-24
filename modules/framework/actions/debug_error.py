@@ -48,7 +48,6 @@ class DebugError(ActionNode):
             if self.context.scoop == "local"
             else self.context.global_skill_tree
         )
-        self.set_logging_text(f"Debuging Error")
 
     def _build_prompt(self):
         if len(self.context.global_skill_tree.layers) == 0:

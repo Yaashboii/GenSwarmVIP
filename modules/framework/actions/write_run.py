@@ -52,7 +52,6 @@ class WriteRun(ActionNode):
             functions=functions,
             template=GLOBAL_RUN_OUTPUT_TEMPLATE,
         )
-        self.set_logging_text("Writing run.py")
 
     async def _process_response(self, response: str) -> str:
         code = parse_text(text=response)

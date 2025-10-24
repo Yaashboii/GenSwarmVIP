@@ -35,7 +35,6 @@ class WriteFunction(ActionNode):
         self._function: FunctionNode = function
         self._constraint_text = constraint_text
         self._other_functions_str = other_functions_str
-        self.set_logging_text(f"Writing Function Body")
 
     def _build_prompt(self):
         if len(self.context.global_skill_tree.layers) == 0:

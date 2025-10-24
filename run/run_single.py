@@ -14,7 +14,6 @@ software or the use or other dealings in the software.
 import asyncio
 import argparse
 
-import rospy
 
 from modules.file import logger
 from modules.framework.workflow import Workflow

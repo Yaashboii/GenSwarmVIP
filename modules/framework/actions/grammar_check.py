@@ -38,7 +38,6 @@ class GrammarCheck(ActionNode):
     def setup(self, function: FunctionNode):
         self.function_name = function.name
         self.function = function
-        self.set_logging_text(f"Checking grammar")
 
     async def _run(self) -> str:
         if not self.function_name:

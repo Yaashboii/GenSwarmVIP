@@ -14,8 +14,6 @@ software or the use or other dealings in the software.
 import json
 
 from .base_engine import Engine
-import rospy
-from geometry_msgs.msg import PoseStamped, TwistStamped, Twist
 import numpy as np
 import socket
 import os
@@ -24,8 +22,6 @@ import threading
 
 from scipy.spatial.transform import Rotation as R
 
-from modules.deployment.utils.mqtt_pub import MqttClientThread
-from sensor_msgs.msg import Joy  # 新增导入 Joy 消息类型
 from modules.utils import rich_print
 
 
@@ -60,13 +56,7 @@ class OmniEngine(Engine):
             net_status = os.system(f"ping -c 4 {broker}")
             time.sleep(2)
 
-        # 启动MQTT客户端线程
-        mqtt_client_instance = MqttClientThread(
-            broker=broker, port=port, keepalive=keepalive, client_id=client_id
-        )
-        mqtt_thread = threading.Thread(target=mqtt_client_instance.run)
-        mqtt_thread.start()
-        return mqtt_client_instance
+        return
 
     def pose_callback(self, msg, args):
         entity_id, entity_type = args

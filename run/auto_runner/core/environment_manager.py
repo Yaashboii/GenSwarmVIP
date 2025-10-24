@@ -1,9 +1,6 @@
 import os
 import cv2
 import imageio
-import rospy
-from code_llm.srv import StartEnvironment, StartEnvironmentResponse
-from code_llm.srv import StopEnvironment, StopEnvironmentResponse
 
 from modules.deployment.utils.manager import Manager
 from modules.deployment.gymnasium_env import GymnasiumEnvironmentBase
@@ -40,13 +37,6 @@ class EnvironmentManager:
         self.timer = None
         _, infos = self.env.reset()
         self.result = self.init_result(infos)
-        # Register ROS services
-        rospy.Service(
-            "/start_environment", StartEnvironment, self.handle_start_environment
-        )
-        rospy.Service(
-            "/stop_environment", StopEnvironment, self.handle_stop_environment
-        )
 
     def init_result(self, infos: dict) -> dict:
         """
@@ -74,35 +64,6 @@ class EnvironmentManager:
             result[entity_id]["trajectory"].append(infos[entity_id]["position"])
         return result
 
-    def handle_start_environment(self, req) -> StartEnvironmentResponse:
-        """
-        Handle the ROS service request to start the environment.
-
-        Args:
-            req: The service request containing the experiment path.
-
-        Returns:
-            StartEnvironmentResponse: Response indicating success.
-        """
-        self.start_environment(req.experiment_path)
-        return StartEnvironmentResponse(
-            success=True, message="Environment started successfully."
-        )
-
-    def handle_stop_environment(self, req) -> StopEnvironmentResponse:
-        """
-        Handle the ROS service request to stop the environment.
-
-        Args:
-            req: The service request containing the file name for saving.
-
-        Returns:
-            StopEnvironmentResponse: Response indicating success.
-        """
-        self.stop_environment(req.file_name)
-        return StopEnvironmentResponse(
-            success=True, message="Environment stopped successfully."
-        )
 
     def start_environment(self, experiment_path: str, keep_entities=False):
         """
@@ -117,10 +78,7 @@ class EnvironmentManager:
         secs = int(fps_duration)  # Whole seconds
         nsecs = int((fps_duration - secs) * 1e9)  # Nanoseconds
 
-        self.timer = rospy.Timer(rospy.Duration(secs=secs, nsecs=nsecs), self.step)
-        print(
-            f"Environment started successfully with path: {self.experiment_path}, FPS: {self.fps}"
-        )
+       
 
     def reset_environment(self, keep_entities):
         """

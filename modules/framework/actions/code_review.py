@@ -65,7 +65,6 @@ class CodeReview(ActionNode):
     def setup(self, function: FunctionNode):
         self._function = function
         logger.log(f"Reviewing function: {self._function.name}", "warning")
-        self.set_logging_text(f"Reviewing function: {self._function.name}.py")
 
     async def _process_response(self, response: str) -> str:
         desired_function_name = self._function.name
