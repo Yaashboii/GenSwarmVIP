@@ -60,6 +60,8 @@ class CodeReview(ActionNode):
             ),
             other_functions=other_functions_str,
             function_content=self._function.content,
+            robotarium=self.context.robotarium_py,
+            transformations=self.context.tranformation_py,
         )
 
     def setup(self, function: FunctionNode):

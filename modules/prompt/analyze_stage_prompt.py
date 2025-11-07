@@ -24,19 +24,12 @@ These are the basic descriptions of the environment.
 ## These are the User original instructions:
 {instruction}
 
-## These APIs can be directly called by you:
-There are two types of APIs: local and global.
-where local APIs can only be called by the robot itself, and global APIs can be called by an centralized controller.
+## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
+This is robotarium.py:
+{robotarium}
 
-### local APIs:
-```python
-{local_api}
-```
-
-### global APIs:
-```python
-{global_api}
-```
+This is transformations.py
+{transformations}
 
 ## Constraints information:
 The following are the constraints that the generated functions need to satisfy.
@@ -77,19 +70,12 @@ ANALYZE_CONSTRAINT_PROMPT_TEMPLATE: str = """
 These are the basic descriptions of the environment.
 {env_des}
 
-## These APIs can be directly called by you.
-There are two types of APIs: local and global.
-where local APIs can only be called by the robot itself, and global APIs can be called by an centralized controller.
+## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
+This is robotarium.py:
+{robotarium}
 
-### local APIs:
-```python
-{local_api}
-```
-
-### global APIs:
-```python
-{global_api}
-```
+This is transformations.py
+{transformations}
 
 ## User commands:
 {instruction}

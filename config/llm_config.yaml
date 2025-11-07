@@ -4,7 +4,7 @@
   "VLM": "https://api.deepseek.com",
 }
 "api_key": {
-  "GPT": "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",
+  "GPT": "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",
   "VLM": "sk-cBSqdkbEj5pPeY9pg2TBxgWMX7E8lmLTh4JzamXoR7L1Oymp"
 }
 "model": {
@@ -12,7 +12,7 @@
   #  "GPT": "gpt-4o-2024-11-20",
   # "GPT": "DMXAPI-HuoShan-DeepSeek-V3",
   # "GPT": "deepseek/deepseek-chat-v3-0324:free",
-  "GPT": "tngtech/deepseek-r1t-chimera:free",
+  "GPT": "tngtech/deepseek-r1t2-chimera:free",
 #  "GPT": "o1-mini",
   # "QWEN": "qwen-vl-plus",
   # "CLAUDE": "input the claude model here"

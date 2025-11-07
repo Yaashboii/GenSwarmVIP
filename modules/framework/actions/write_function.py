@@ -55,6 +55,8 @@ class WriteFunction(ActionNode):
             function_content=self._function.definition,
             constraints=self._constraint_text,
             other_functions=self._other_functions_str,
+            robotarium=self.context.robotarium_py,
+            transformations=self.context.tranformation_py,
         )
 
     async def _process_response(self, response: str) -> str:

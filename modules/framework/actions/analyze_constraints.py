@@ -52,6 +52,8 @@ class AnalyzeConstraints(ActionNode):
             global_api=self.context.global_robot_api,
             local_api=self.context.local_robot_api
             + ALLOCATOR_TEMPLATE.format(template="Temporarily unknown"),
+            robotarium=self.context.robotarium_py,
+            transformations=self.context.tranformation_py,
             env_des=ENV_DES,
             output_template=CONSTRAIN_TEMPLATE,
             user_constraints=json.dumps(user_constraints, indent=4),

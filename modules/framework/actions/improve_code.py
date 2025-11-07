@@ -47,6 +47,8 @@ class CodeImprove(ActionNode):
             global_functions="\n\n\n".join(self.context.global_skill_tree.functions_body),
             local_functions="\n\n\n".join(self.context.local_skill_tree.functions_body),
             feedback=self.feedback,
+            robotarium=self.context.robotarium_py,
+            transformations=self.context.tranformation_py,
 
         )
 

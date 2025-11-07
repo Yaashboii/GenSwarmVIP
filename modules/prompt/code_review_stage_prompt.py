@@ -21,11 +21,12 @@ LOCAL_CODE_REVIEW_PROMPT_TEMPLATE: str = """
 ## These are the User original instructions:
 {instruction}
 
-## These are the basic Robot APIs:
-These APIs can be directly called by you.
-```python
-{robot_api}
-```
+## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
+This is robotarium.py:
+{robotarium}
+
+This is transformations.py
+{transformations}
 
 ## These are the environment description:
 These are the basic descriptions of the environment.
@@ -87,11 +88,12 @@ GLOBAL_CODE_REVIEW_PROMPT_TEMPLATE: str = """
 ## These are the User original instructions:
 {instruction}
 
-## These are the basic Robot APIs:
-These APIs can be directly called by you.
-```python
-{robot_api}
-```
+## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
+This is robotarium.py:
+{robotarium}
+
+This is transformations.py
+{transformations}
 
 ## These are the environment description:
 These are the basic descriptions of the environment.

@@ -41,6 +41,8 @@ class AnalyzeSkills(ActionNode):
             env_des=ENV_DES,
             constraints=str(self._constraint_pool),
             output_template=FUNCTION_TEMPLATE,
+            robotarium=self.context.robotarium_py,
+            transformations=self.context.tranformation_py,
         )
 
     async def _process_response(self, response: str) -> str:

@@ -109,8 +109,8 @@ class Workflow:
         coding_stage = ActionLinkedList("Coding", generate_functions)
         coding_stage.add(generate_functions)
         # stage 3
-        test_stage = ActionLinkedList("Testing", run_code)
-        test_stage.add(video_critic)
+        # test_stage = ActionLinkedList("Testing", run_code)
+        # test_stage.add(video_critic)
 
         # mermaid graph would be incomplete if final action is not linked
         run_code._next = ActionNode(next_text="pass", node_name="END")
@@ -133,8 +133,8 @@ class Workflow:
                     "warning",
                 )
             code_llm = ActionLinkedList("Code-LLM", coding_stage)
-        if self._run_code:
-            code_llm.add(test_stage)
+        # if self._run_code:
+        #     code_llm.add(test_stage)
         code_llm.add(ActionNode("PASS", "END"))
         self._pipeline = code_llm
 

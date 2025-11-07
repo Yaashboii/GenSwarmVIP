@@ -23,10 +23,12 @@ DESIGN_LOCAL_FUNCTION_PROMPT_TEMPLATE = """
 ## These are the User original instructions:
 {instruction}
 
-## Existing robot APIs:
-```python
-{robot_api}
-```
+## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
+This is robotarium.py:
+{robotarium}
+
+This is transformations.py
+{transformations}
 
 ## These are the existing functions' descriptions and names:
 {other_functions}
@@ -74,10 +76,12 @@ DESIGN_GLOBAL_FUNCTION_PROMPT_TEMPLATE = """
 ## These are the User original instructions:
 {instruction}
 
-## Existing APIs:
-```python
-{robot_api}
-```
+## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
+This is robotarium.py:
+{robotarium}
+
+This is transformations.py
+{transformations}
 
 ## These are the existing functions' descriptions and names:
 {other_functions}

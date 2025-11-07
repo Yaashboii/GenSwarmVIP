@@ -70,6 +70,8 @@ class DesignFunction(ActionNode):
                 related_constraints=self._function.connections
             ),
             other_functions=other_functions_str,
+            robotarium=self.context.robotarium_py,
+            transformations=self.context.tranformation_py,
         )
 
     async def _process_response(self, response: str) -> str:

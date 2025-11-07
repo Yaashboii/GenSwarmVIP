@@ -24,11 +24,13 @@ DEBUG_PROMPT = """
 ## These are the environment description:
 {env_des}
 
+## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
+This is robotarium.py:
+{robotarium}
 
-## These are the basic Robot APIs:
-```python
-{robot_api}
-```
+This is transformations.py
+{transformations}
+
 ## These are the functions that mentioned in the error message:
 {mentioned_functions}
 
@@ -110,15 +112,12 @@ FEEDBACK_PROMPT_TEMPLATE = """
 There are two types of APIs: local and global.
 where local APIs can only be called by the robot itself, and global APIs can be called by an centralized allocator.
 
-### local APIs:
-```python
-{local_api}
-```
+## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
+This is robotarium.py:
+{robotarium}
 
-### global APIs:
-```python
-{global_api}
-```
+This is transformations.py
+{transformations}
 
 ## These are the functions that can be modified:
 There are two types of functions: local and global.
@@ -202,11 +201,6 @@ GRAMMAR_CHECK_PROMPT_TEMPLATE = """
 
 ## These are the environment description:
 {env_des}
-
-## These are the basic Robot APIs:
-```python
-{robot_api}
-```
 
 ## These are the functions:
 ```python
