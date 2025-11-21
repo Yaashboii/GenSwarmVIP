@@ -115,7 +115,7 @@ CONSTRAIN_TEMPLATE: str = """
 """.strip()
 
 FUNCTION_TEMPLATE: str = """
-##Reasoning: (Think step by step, and analyze the functions that need to be implemented in the task. First, analyze the global functions, then analyze the local functions.)
+##Reasoning: (Think step by step, and analyze the functions that need to be implemented in the task. Analyze all functions as global functions.)
 ```json
 {
   "functions": [
@@ -129,7 +129,6 @@ FUNCTION_TEMPLATE: str = """
       "calls": [
         "Function name that this function calls(Robot API is also included)"
       ]
-      "scope": "local/global"
     }
     // More functions can be added as needed
   ]

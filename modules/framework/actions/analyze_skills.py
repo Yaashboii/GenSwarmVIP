@@ -51,12 +51,8 @@ class AnalyzeSkills(ActionNode):
         global_functions = []
         local_functions = []
         for function in functions:
-            if function["scope"] == "global":
-                global_functions.append(function)
-            else:
-                local_functions.append(function)
+            global_functions.append(function)
         self.context.global_skill_tree.init_functions(global_functions)
-        self.context.local_skill_tree.init_functions(local_functions)
         if len(global_functions) == 0:
             logger.log("No global functions detected,generate local skills", "warning")
             self.context.scoop = "local"

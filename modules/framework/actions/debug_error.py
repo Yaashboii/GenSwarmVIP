@@ -68,6 +68,8 @@ class DebugError(ActionNode):
             env_des=ENV_DES,
             mentioned_functions=self.error_func,
             error_message=self.error,
+            robotarium=self.context.robotarium_py,
+            transformations=self.context.tranformation_py,
         )
         # else:
         #     self.prompt = CONTINUE_DEBUG_PROMPT.format(

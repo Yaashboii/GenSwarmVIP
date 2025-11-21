@@ -107,11 +107,6 @@ FEEDBACK_PROMPT_TEMPLATE = """
 ## These are the environment description:
 {env_des}
 
-
-## These are the basic Robot APIs:
-There are two types of APIs: local and global.
-where local APIs can only be called by the robot itself, and global APIs can be called by an centralized allocator.
-
 ## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
 This is robotarium.py:
 {robotarium}

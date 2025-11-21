@@ -51,6 +51,8 @@ class WriteRun(ActionNode):
             robot_api=robot_api,
             functions=functions,
             template=GLOBAL_RUN_OUTPUT_TEMPLATE,
+            robotarium=self.context.robotarium_py,
+            transformations=self.context.tranformation_py,
         )
 
     async def _process_response(self, response: str) -> str:
