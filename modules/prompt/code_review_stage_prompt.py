@@ -21,6 +21,7 @@ LOCAL_CODE_REVIEW_PROMPT_TEMPLATE: str = """
 ## These are the User original instructions:
 {instruction}
 
+## include a main_control_loop function with neccessary helper functions in global_skill.py
 ## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
 This is robotarium.py:
 {robotarium}
@@ -88,6 +89,7 @@ GLOBAL_CODE_REVIEW_PROMPT_TEMPLATE: str = """
 ## These are the User original instructions:
 {instruction}
 
+## include a main_control_loop function with neccessary helper functions in global_skill.py
 ## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
 This is robotarium.py:
 {robotarium}

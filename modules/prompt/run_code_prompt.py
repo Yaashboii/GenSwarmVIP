@@ -24,6 +24,7 @@ DEBUG_PROMPT = """
 ## These are the environment description:
 {env_des}
 
+## include a main_control_loop function with neccessary helper functions in global_skill.py
 ## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
 This is robotarium.py:
 {robotarium}
@@ -107,7 +108,8 @@ FEEDBACK_PROMPT_TEMPLATE = """
 ## These are the environment description:
 {env_des}
 
-## Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
+## include a main_control_loop function with neccessary helper functions in global_skill.py
+# Use the Georgia Tech Robotarium API. The following python code which constitutes the Robotarium simulator can be used.
 This is robotarium.py:
 {robotarium}
 
