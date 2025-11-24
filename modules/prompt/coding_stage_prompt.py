@@ -124,6 +124,8 @@ import ...(if necessary)
 - Do not assume any part of the code,because the code will be executed directly without any modification and human intervention.
 - The current task does not necessarily require a global allocator. If needed, use the appropriate API to obtain the assigned task. If no such API exists, the task does not require a global allocator.
 - Ensure that the generated function meets all constraints.
+- Ensure that .get_poses() is only called once per main_control_loop iteration
+- Make sure to write the main_control_loop that can be run in a simple loop given a Robotarium instance
 """.strip()
 
 WRITE_GLOBAL_RUN_PROMPT_TEMPLATE = """

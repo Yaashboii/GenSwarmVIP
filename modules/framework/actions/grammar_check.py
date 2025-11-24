@@ -120,7 +120,7 @@ class GrammarCheckAsync(AsyncNode):
     async def _run_layer_mode(self):
         layer_index = self.skill_tree.get_min_layer_index_by_state(self._start_state)
         if layer_index == -1:
-            logger.log(f"No functions in {self._start_state} state", "error")
+            logger.log(f"Grammar Check: No functions in {self._start_state} state", "error")
             raise SystemExit
 
         for function_node in self.skill_tree.layers[layer_index].functions:

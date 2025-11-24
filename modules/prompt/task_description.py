@@ -29,5 +29,17 @@ These robots are being simulated in the Georgia Tech Robotarium simulator, and i
 Currently, multiple AI assistants are collaborating step-by-step to write code that runs on the Georgia Tech Robotarium simulator in python.
 You are one of these assistants, acting as a robotics expert, and you need to understand this context and carry out your work accordingly.
 Include a main_control_loop function with neccessary helper functions in global_skill.py
-The end result should be runnable Robotarium code which accomplishes the given task.
+The end result should be runnable Robotarium code which accomplishes the given task. This loop must call .step() and can not call .get_poses() more than once per iteration.
+The ultimate goal is to write code that implements the main_control_loop, such that the task till be accomplished when running the following code:
+
+NUM_ROBOTS = 5
+# Initialize Robotarium with one robot
+r = Robotarium(number_of_robots=NUM_ROBOTS, show_figure=True, sim_in_real_time=True)
+
+# Create mapping from single-integrator to unicycle dynamics
+si_to_uni_dyn = create_si_to_uni_dynamics()
+
+for i in range(1000):
+    main_control_loop(r, NUM_ROBOTS)
+    r.step()
 """.strip()
