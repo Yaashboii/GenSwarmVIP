@@ -75,6 +75,8 @@ r.set_velocities(np.arange(num_robots), velocity_matrix)
 - Generate bug-free, directly invocable function code according to Google's coding standards.
 - **MUST use the correct Robotarium import: `import rps.robotarium as robotarium`**
 - **MUST include all code within ```python ... ``` fenced blocks - the parser requires this format**
+- **Dependency Handling:** If you utilize functions from the provided `transformations.py` (e.g., `create_si_to_uni_dynamics`), you MUST copy the function definition into your code or define it locally to avoid NameErrors.
+- **Matrix Safety:** When using `numpy` functions like `random.uniform` with array inputs, explicitly reshape vectors (e.g., `low.reshape(-1, 1)`) to ensure correct broadcasting against `size=(2, N)`.
 - Adjustable parameters should be taken as input parameters with default values set for each parameter.
 - You can only write functions according to the task's specified format, and cannot generate other helper functions. If necessary, define sub-functions within the specified function.
 - Take a holistic approach and reuse **existing functions as much as possible**; this function is just a part of the entire control system.

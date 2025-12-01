@@ -161,7 +161,7 @@ Write a main_control_loop function that:
 The code should be runnable within the following loop:
 ```
 NUM_ROBOTS = 5
-r = Robotarium(number_of_robots=NUM_ROBOTS, show_figure=True, sim_in_real_time=True)
+r = robotarium.Robotarium(number_of_robots=NUM_ROBOTS, show_figure=True, sim_in_real_time=True)
 for i in range(1000):
     main_control_loop(r, NUM_ROBOTS)
     r.step()
@@ -169,7 +169,7 @@ for i in range(1000):
 
 Generate clean, well-commented code that implements the main_control_loop function and any necessary helper functions.
 """,
-        "gather_top_right": f"""Objective: Implement `main_control_loop(r, num_robots)` so that 5 robots gather at the top-right corner (target coordinates [1.0, 1.0]).
+        "gather_top_right": f"""Objective: Implement `main_control_loop(r, num_robots)` so that 5 robots move around in no particular order. The ultimate goal is for the robotarium simulation to simply function without errors.
 
 Requirements:
 - Call `r.get_poses()` exactly once per iteration.
@@ -180,13 +180,13 @@ Requirements:
 
 ```
 NUM_ROBOTS = 5
-r = Robotarium(number_of_robots=NUM_ROBOTS, show_figure=True, sim_in_real_time=True)
+r = robotarium.Robotarium(number_of_robots=NUM_ROBOTS, show_figure=True, sim_in_real_time=True)
 for i in range(1000):
     main_control_loop(r, NUM_ROBOTS)
     r.step()
 ```
 
-Include comments and explicit use of the example files present in the prompt (e.g., `gather_top_right.py`, `si_go_to_point.py`, `formation_control.py`) to guide implementation.
+Include comments and explicit use of the example files present in the prompt (e.g., `si_go_to_point.py`, `formation_control.py`) to guide implementation.
 """,
     },
 

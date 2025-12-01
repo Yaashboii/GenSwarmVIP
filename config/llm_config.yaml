@@ -4,7 +4,7 @@
   "VLM": "https://api.deepseek.com",
 }
 "api_key": {
-  "GPT": "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",
+  "GPT": "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",
   "VLM": "sk-cBSqdkbEj5pPeY9pg2TBxgWMX7E8lmLTh4JzamXoR7L1Oymp"
 }
 "model": {

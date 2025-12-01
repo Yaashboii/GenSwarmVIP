@@ -34,7 +34,7 @@ The ultimate goal is to write code that implements the main_control_loop, such t
 
 NUM_ROBOTS = 5
 # Initialize Robotarium with one robot
-r = Robotarium(number_of_robots=NUM_ROBOTS, show_figure=True, sim_in_real_time=True)
+r = robotarium.Robotarium(number_of_robots=NUM_ROBOTS, show_figure=True, sim_in_real_time=True)
 
 # Create mapping from single-integrator to unicycle dynamics
 si_to_uni_dyn = create_si_to_uni_dynamics()
