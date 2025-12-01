@@ -51,9 +51,30 @@ import ...(if necessary)
 {function_content}
     ...(function body,you need to complete it)
 ```
+
+## CRITICAL: Code Block Format Requirement
+**YOUR RESPONSE MUST INCLUDE CODE WITHIN ```python ... ``` FENCED BLOCKS.** The parser will reject any response that does not have properly fenced Python code blocks. Without the triple backticks and "python" language marker, your response cannot be processed.
+
+## Robotarium API Examples:
+**CORRECT imports and API calls:**
+```python
+# CORRECT import (use this):
+import rps.robotarium as robotarium
+import numpy as np
+
+# CORRECT set_velocities call - requires robot IDs:
+r.set_velocities(np.arange(num_robots), velocity_matrix)
+
+# INCORRECT - do NOT use these:
+# from robotarium import Robotarium  # WRONG - will fail
+# r.set_velocities(velocity_matrix)   # WRONG - missing robot IDs
+```
+
 ## Notes:
 - The global API and existing functions can be called directly without the need for imports.
 - Generate bug-free, directly invocable function code according to Google's coding standards.
+- **MUST use the correct Robotarium import: `import rps.robotarium as robotarium`**
+- **MUST include all code within ```python ... ``` fenced blocks - the parser requires this format**
 - Adjustable parameters should be taken as input parameters with default values set for each parameter.
 - You can only write functions according to the task's specified format, and cannot generate other helper functions. If necessary, define sub-functions within the specified function.
 - Take a holistic approach and reuse **existing functions as much as possible**; this function is just a part of the entire control system.
@@ -109,8 +130,29 @@ import ...(if necessary)
 {function_content}
     ...(function body,you need to complete it)
 ```
+
+## CRITICAL: Code Block Format Requirement
+**YOUR RESPONSE MUST INCLUDE CODE WITHIN ```python ... ``` FENCED BLOCKS.** The parser will reject any response that does not have properly fenced Python code blocks. Without the triple backticks and "python" language marker, your response cannot be processed.
+
+## Robotarium API Examples:
+**CORRECT imports and API calls:**
+```python
+# CORRECT import (use this):
+import rps.robotarium as robotarium
+import numpy as np
+
+# CORRECT set_velocities call - requires robot IDs:
+r.set_velocities(np.arange(num_robots), velocity_matrix)
+
+# INCORRECT - do NOT use these:
+# from robotarium import Robotarium  # WRONG - will fail
+# r.set_velocities(velocity_matrix)   # WRONG - missing robot IDs
+```
+
 ## Notes:
 - The Robot API and existing functions can be called directly without the need for imports.
+- **MUST use the correct Robotarium import: `import rps.robotarium as robotarium`**
+- **MUST include all code within ```python ... ``` fenced blocks - the parser requires this format**
 - Generate bug-free, directly invocable function code according to Google's coding standards.
 - Adjustable parameters should be set as input parameters, with default values for each parameter.
 - You can only complete the functions specified in the task according to the specified format; no other helper functions may be generated. If necessary, sub-functions can be defined within the main function.
@@ -178,8 +220,28 @@ def allocate_run():
 {template}
 ```
 
+## CRITICAL: Code Block Format Requirement
+**YOUR RESPONSE MUST INCLUDE CODE WITHIN ```python ... ``` FENCED BLOCKS.** The parser will reject any response that does not have properly fenced Python code blocks. Without the triple backticks and "python" language marker, your response cannot be processed.
+
+## Robotarium API Examples:
+**CORRECT imports and API calls:**
+```python
+# CORRECT import (use this):
+import rps.robotarium as robotarium
+import numpy as np
+
+# CORRECT set_velocities call - requires robot IDs:
+r.set_velocities(np.arange(num_robots), velocity_matrix)
+
+# INCORRECT - do NOT use these:
+# from robotarium import Robotarium  # WRONG - will fail
+# r.set_velocities(velocity_matrix)   # WRONG - missing robot IDs
+```
+
 ## Notes:
 - The API and existing functions can be called directly without the need imports.
+- **MUST use the correct Robotarium import: `import rps.robotarium as robotarium`**
+- **MUST include all code within ```python ... ``` fenced blocks - the parser requires this format**
 - You need to generate bug-free, directly invocable function code according to Google's coding standards.
 - You can only complete the functions specified in Task according to the specified format; you cannot generate other Helper functions. If necessary, you can define functions within this function.
 - You can only call these existing functions and global Api, and you cannot define complex logic on your own,just call the existing functions.
@@ -255,8 +317,28 @@ def run_loop():
     ...(function body,you need to complete it)
 ```
 
+## CRITICAL: Code Block Format Requirement
+**YOUR RESPONSE MUST INCLUDE CODE WITHIN ```python ... ``` FENCED BLOCKS.** The parser will reject any response that does not have properly fenced Python code blocks. Without the triple backticks and "python" language marker, your response cannot be processed.
+
+## Robotarium API Examples:
+**CORRECT imports and API calls:**
+```python
+# CORRECT import (use this):
+import rps.robotarium as robotarium
+import numpy as np
+
+# CORRECT set_velocities call - requires robot IDs:
+r.set_velocities(np.arange(num_robots), velocity_matrix)
+
+# INCORRECT - do NOT use these:
+# from robotarium import Robotarium  # WRONG - will fail
+# r.set_velocities(velocity_matrix)   # WRONG - missing robot IDs
+```
+
 ## Notes:
 - The Robot API and existing functions can be called directly without the need for imports.
+- **MUST use the correct Robotarium import: `import rps.robotarium as robotarium`**
+- **MUST include all code within ```python ... ``` fenced blocks - the parser requires this format**
 - Generate bug-free, directly invocable function code according to Google's coding standards.
 - You can only complete the functions specified in the task according to the specified format; no other helper functions may be generated. If necessary, sub-functions can be defined within the main function.
 - You can only call existing functions and RobotApi, and cannot define complex logic on your own.

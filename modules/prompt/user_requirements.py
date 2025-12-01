@@ -11,6 +11,36 @@ tort, or otherwise, arising from, out of, or in connection with the
 software or the use or other dealings in the software.
 """
 
+from pathlib import Path
+
+
+def load_examples_folder(folder_name: str = "robotarium_examples") -> str:
+    """
+    Load all files from a examples folder and format them for inclusion in a prompt.
+    
+    Args:
+        folder_name: Name of the folder relative to the modules/prompt directory
+    
+    Returns:
+        Formatted string with all files from the folder, or a message if folder not found
+    """
+    folder = Path(__file__).parent / folder_name
+    if not folder.exists():
+        return f"(No {folder_name} folder found at {folder})"
+    
+    output = []
+    for file in sorted(folder.glob("*")):
+        if file.is_file() and not file.name.startswith("."):
+            try:
+                with open(file, "r") as f:
+                    content = f.read()
+                output.append(f"### {file.name}\n```\n{content}\n```")
+            except Exception as e:
+                output.append(f"### {file.name}\n(Error reading: {e})")
+    
+    return "\n\n".join(output) if output else f"(No files found in {folder_name})"
+
+
 tasks = {
     "bridging": "The robots need to evenly form a straight line bridge at the position where x is equal to zero within the range of y between minus two and two.",
     "flocking": "Integrate into a flock by collaborating with all robots within the map, ensuring cohesion by staying connected, alignment by moving together, and separation by keeping a safe distance.",
@@ -22,6 +52,7 @@ tasks = {
     "exploration": "The robots need to explore all the unknown areas. You are required to assign an optimal sequence of exploration areas to each robot based on the number of robots and the unexplored regions, and then the robots will gradually explore these areas.",
     "clustering": "Robots with initial positions in the same quadrant need to cluster in the designated area of that corresponding quadrant.",
     "pursuing": "Engage in flocking behavior with all robots on the map, moving toward the lead robot. The lead robot's movement is unpredictable, so maintain cohesion by staying connected, ensure alignment by moving in sync, and uphold separation by keeping a safe personal space. Additionally, be cautious to avoid collisions with any obstacles in the environment.",
+    "robotarium": "Generate Python code for the Georgia Tech Robotarium simulator using the provided API and examples.",
 }
 
 task_prompts = {
@@ -112,7 +143,52 @@ task_prompts = {
             "2. All regions combined must fully cover the environment\n"
             "3. Robots should be evenly distributed within the environment to ensure uniform coverage density\n"
         )
-    }
+    },
+    "robotarium": {
+        "default": f"""Generate Python code for the Georgia Tech Robotarium simulator.
+
+## Reference Examples and API:
+{load_examples_folder("robotarium_examples")}
+
+## Instructions:
+Write a main_control_loop function that:
+1. Accepts parameters: r (Robotarium instance), num_robots (int)
+2. Calls r.get_poses() exactly once per iteration to get current robot positions [x, y, theta]
+3. Computes control velocities based on your algorithm logic
+4. Sets velocities using r.set_velocities(robot_ids, velocities) where velocities is a 2D array of [vx, vy]
+5. Returns after setting velocities (the caller will call r.step())
+
+The code should be runnable within the following loop:
+```
+NUM_ROBOTS = 5
+r = Robotarium(number_of_robots=NUM_ROBOTS, show_figure=True, sim_in_real_time=True)
+for i in range(1000):
+    main_control_loop(r, NUM_ROBOTS)
+    r.step()
+```
+
+Generate clean, well-commented code that implements the main_control_loop function and any necessary helper functions.
+""",
+        "gather_top_right": f"""Objective: Implement `main_control_loop(r, num_robots)` so that 5 robots gather at the top-right corner (target coordinates [1.0, 1.0]).
+
+Requirements:
+- Call `r.get_poses()` exactly once per iteration.
+- Use single-integrator control (2xN velocities) and apply single-integrator barrier certificates to avoid collisions.
+- Map safe single-integrator commands to unicycle commands using `create_si_to_uni_dynamics()` (or equivalent) before calling `r.set_velocities()`.
+- Clip individual robot speeds to a safe magnitude (e.g., 0.12 m/s).
+- The generated code should include any helper functions needed and be runnable inside this loop:
+
+```
+NUM_ROBOTS = 5
+r = Robotarium(number_of_robots=NUM_ROBOTS, show_figure=True, sim_in_real_time=True)
+for i in range(1000):
+    main_control_loop(r, NUM_ROBOTS)
+    r.step()
+```
+
+Include comments and explicit use of the example files present in the prompt (e.g., `gather_top_right.py`, `si_go_to_point.py`, `formation_control.py`) to guide implementation.
+""",
+    },
 
     # TODO: Add narrative/structured/step prompts for other tasks in the same format
 }
